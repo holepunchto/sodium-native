@@ -1,7 +1,7 @@
 {
   "name": "sodium-native",
   "version": "0.0.0",
-  "description": "WIP - nothing to see here",
+  "description": "Low level bindings for libsodium (WIP, THERE BE DRAGONS).",
   "main": "index.js",
   "dependencies": {
     "bindings": "^1.2.1",

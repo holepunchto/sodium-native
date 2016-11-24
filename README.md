@@ -1,6 +1,6 @@
 # sodium-native
 
-WIP - nothing to see here
+Low level bindings for libsodium (WIP, THERE BE DRAGONS).
 
 ```
 npm install sodium-native
@@ -9,7 +9,8 @@ npm install sodium-native
 ## Usage
 
 ``` js
-var sodium-native = require('sodium-native')
+var sodium = require('sodium-native')
+console.log(sodium)
 ```
 
 ## License
