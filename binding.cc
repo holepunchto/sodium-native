@@ -39,9 +39,12 @@ using namespace v8;
   } \
   Local<Object> var = name->ToObject();
 
-#define ASSERT_BUFFER_LENGTH(name, var, length) \
+#define ASSERT_BUFFER_SET_LENGTH(name, var) \
   ASSERT_BUFFER(name, var) \
-  unsigned long long var##_length = CLENGTH(var); \
+  unsigned long long var##_length = CLENGTH(var);
+
+#define ASSERT_BUFFER_MIN_LENGTH(name, var, length) \
+  ASSERT_BUFFER_SET_LENGTH(name, var) \
   if (var##_length < length) { \
     Nan::ThrowError(#var " must be a buffer of size " STR(length)); \
     return; \
@@ -50,24 +53,24 @@ using namespace v8;
 // crypto_sign.c
 
 NAN_METHOD(crypto_sign_seed_keypair) {
-  ASSERT_BUFFER_LENGTH(info[0], public_key, crypto_sign_PUBLICKEYBYTES);
-  ASSERT_BUFFER_LENGTH(info[1], secret_key, crypto_sign_SECRETKEYBYTES);
-  ASSERT_BUFFER_LENGTH(info[2], seed, crypto_sign_SEEDBYTES);
+  ASSERT_BUFFER_MIN_LENGTH(info[0], public_key, crypto_sign_PUBLICKEYBYTES);
+  ASSERT_BUFFER_MIN_LENGTH(info[1], secret_key, crypto_sign_SECRETKEYBYTES);
+  ASSERT_BUFFER_MIN_LENGTH(info[2], seed, crypto_sign_SEEDBYTES);
 
   CALL_SODIUM(crypto_sign_seed_keypair(CDATA(public_key), CDATA(secret_key), CDATA(seed)))
 }
 
 NAN_METHOD(crypto_sign_keypair) {
-  ASSERT_BUFFER_LENGTH(info[0], public_key, crypto_sign_PUBLICKEYBYTES);
-  ASSERT_BUFFER_LENGTH(info[1], secret_key, crypto_sign_SECRETKEYBYTES);
+  ASSERT_BUFFER_MIN_LENGTH(info[0], public_key, crypto_sign_PUBLICKEYBYTES);
+  ASSERT_BUFFER_MIN_LENGTH(info[1], secret_key, crypto_sign_SECRETKEYBYTES);
 
   CALL_SODIUM(crypto_sign_keypair(CDATA(public_key), CDATA(secret_key)))
 }
 
 NAN_METHOD(crypto_sign) {
-  ASSERT_BUFFER_LENGTH(info[0], signed_message, crypto_sign_BYTES);
+  ASSERT_BUFFER_MIN_LENGTH(info[0], signed_message, crypto_sign_BYTES);
   ASSERT_BUFFER(info[1], message); // TODO: this is not correct! must be bigger than BYTES + something
-  ASSERT_BUFFER_LENGTH(info[2], secret_key, crypto_sign_SECRETKEYBYTES);
+  ASSERT_BUFFER_MIN_LENGTH(info[2], secret_key, crypto_sign_SECRETKEYBYTES);
 
   unsigned long long signed_message_length_dummy;  // TODO: what is this used for?
 
@@ -75,9 +78,9 @@ NAN_METHOD(crypto_sign) {
 }
 
 NAN_METHOD(crypto_sign_open) {
-  ASSERT_BUFFER_LENGTH(info[1], signed_message, crypto_sign_BYTES);
+  ASSERT_BUFFER_MIN_LENGTH(info[1], signed_message, crypto_sign_BYTES);
   ASSERT_BUFFER(info[0], message); // TODO: this is not correct! must be bigger than BYTES + something
-  ASSERT_BUFFER_LENGTH(info[2], public_key, crypto_sign_PUBLICKEYBYTES);
+  ASSERT_BUFFER_MIN_LENGTH(info[2], public_key, crypto_sign_PUBLICKEYBYTES);
 
   unsigned long long message_length_dummy;  // TODO: what is this used for?
 
@@ -85,9 +88,9 @@ NAN_METHOD(crypto_sign_open) {
 }
 
 NAN_METHOD(crypto_sign_detached) {
-  ASSERT_BUFFER_LENGTH(info[0], signature, crypto_sign_BYTES);
+  ASSERT_BUFFER_MIN_LENGTH(info[0], signature, crypto_sign_BYTES);
   ASSERT_BUFFER(info[1], message);
-  ASSERT_BUFFER_LENGTH(info[2], secret_key, crypto_sign_SECRETKEYBYTES);
+  ASSERT_BUFFER_MIN_LENGTH(info[2], secret_key, crypto_sign_SECRETKEYBYTES);
 
   unsigned long long signature_length_dummy; // TODO: what is this used for?
 
@@ -95,9 +98,9 @@ NAN_METHOD(crypto_sign_detached) {
 }
 
 NAN_METHOD(crypto_sign_verify_detached) {
-  ASSERT_BUFFER_LENGTH(info[0], signature, crypto_sign_BYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[0], signature, crypto_sign_BYTES)
   ASSERT_BUFFER(info[1], message)
-  ASSERT_BUFFER_LENGTH(info[2], public_key, crypto_sign_PUBLICKEYBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[2], public_key, crypto_sign_PUBLICKEYBYTES)
 
   CALL_SODIUM_BOOL(crypto_sign_verify_detached(CDATA(signature), CDATA(message), CLENGTH(message), CDATA(public_key)))
 }
@@ -105,14 +108,14 @@ NAN_METHOD(crypto_sign_verify_detached) {
 // crypto_generic_hash
 
 NAN_METHOD(crypto_generichash) {
-  ASSERT_BUFFER_LENGTH(info[0], output, crypto_generichash_BYTES_MIN)
+  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_generichash_BYTES_MIN)
   ASSERT_BUFFER(info[1], input)
 
   unsigned char *key_data = NULL;
   size_t key_len = 0;
 
   if (info[2]->IsObject()) {
-    ASSERT_BUFFER_LENGTH(info[2], key, crypto_generichash_KEYBYTES_MIN)
+    ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_generichash_KEYBYTES_MIN)
     key_data = CDATA(key);
     key_len = CLENGTH(key);
   }
@@ -126,22 +129,40 @@ NAN_METHOD(crypto_generichash_stream) {
 
 // crypto_secretbox
 
-NAN_METHOD(crypto_secretbox_easy) {
-  ASSERT_BUFFER(info[1], message)
-  unsigned long long message_length = CLENGTH(message);
+NAN_METHOD(crypto_secretbox_detached) {
+  ASSERT_BUFFER_SET_LENGTH(info[2], message)
+  ASSERT_BUFFER_MIN_LENGTH(info[0], ciphertext, message_length)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], mac, crypto_secretbox_MACBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[3], nonce, crypto_secretbox_NONCEBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[4], key, crypto_secretbox_KEYBYTES)
 
-  ASSERT_BUFFER_LENGTH(info[0], ciphertext, crypto_secretbox_MACBYTES + message_length)
-  ASSERT_BUFFER_LENGTH(info[2], nonce, crypto_secretbox_NONCEBYTES)
-  ASSERT_BUFFER_LENGTH(info[3], key, crypto_secretbox_KEYBYTES)
+  CALL_SODIUM(crypto_secretbox_detached(CDATA(ciphertext), CDATA(mac), CDATA(message), message_length, CDATA(nonce), CDATA(key)))
+}
+
+NAN_METHOD(crypto_secretbox_easy) {
+  ASSERT_BUFFER_SET_LENGTH(info[1], message)
+  ASSERT_BUFFER_MIN_LENGTH(info[0], ciphertext, crypto_secretbox_MACBYTES + message_length)
+  ASSERT_BUFFER_MIN_LENGTH(info[2], nonce, crypto_secretbox_NONCEBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[3], key, crypto_secretbox_KEYBYTES)
 
   CALL_SODIUM(crypto_secretbox_easy(CDATA(ciphertext), CDATA(message), message_length, CDATA(nonce), CDATA(key)))
 }
 
+NAN_METHOD(crypto_secretbox_open_detached) {
+  ASSERT_BUFFER_SET_LENGTH(info[1], ciphertext)
+  ASSERT_BUFFER_MIN_LENGTH(info[0], message, ciphertext_length)
+  ASSERT_BUFFER_MIN_LENGTH(info[2], mac, crypto_secretbox_MACBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[3], nonce, crypto_secretbox_NONCEBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[4], key, crypto_secretbox_KEYBYTES)
+
+  CALL_SODIUM_BOOL(crypto_secretbox_open_detached(CDATA(message), CDATA(ciphertext), CDATA(mac), ciphertext_length, CDATA(nonce), CDATA(key)))
+}
+
 NAN_METHOD(crypto_secretbox_open_easy) {
-  ASSERT_BUFFER_LENGTH(info[1], ciphertext, crypto_secretbox_MACBYTES)
-  ASSERT_BUFFER_LENGTH(info[0], message, ciphertext_length - crypto_secretbox_MACBYTES)
-  ASSERT_BUFFER_LENGTH(info[2], nonce, crypto_secretbox_NONCEBYTES)
-  ASSERT_BUFFER_LENGTH(info[3], key, crypto_secretbox_KEYBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], ciphertext, crypto_secretbox_MACBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[0], message, ciphertext_length - crypto_secretbox_MACBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[2], nonce, crypto_secretbox_NONCEBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[3], key, crypto_secretbox_KEYBYTES)
 
   CALL_SODIUM_BOOL(crypto_secretbox_open_easy(CDATA(message), CDATA(ciphertext), ciphertext_length, CDATA(nonce), CDATA(key)))
 }
@@ -187,7 +208,9 @@ NAN_MODULE_INIT(InitAll) {
   EXPORT_NUMBER(crypto_secretbox_MACBYTES)
   EXPORT_STRING(crypto_secretbox_PRIMITIVE)
 
+  EXPORT_FUNCTION(crypto_secretbox_detached)
   EXPORT_FUNCTION(crypto_secretbox_easy)
+  EXPORT_FUNCTION(crypto_secretbox_open_detached)
   EXPORT_FUNCTION(crypto_secretbox_open_easy)
 
   #undef EXPORT_FUNCTION
@@ -200,7 +223,8 @@ NAN_MODULE_INIT(InitAll) {
   #undef STR
   #undef STR_HELPER
   #undef ASSERT_BUFFER
-  #undef ASSERT_BUFFER_LENGTH
+  #undef ASSERT_BUFFER_MIN_LENGTH
+  #undef ASSERT_BUFFER_SET_LENGTH
   #undef CALL_SODIUM
   #undef CALL_SODIUM_BOOL
 }
