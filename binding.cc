@@ -168,7 +168,10 @@ NAN_METHOD(crypto_secretbox_open_easy) {
 }
 
 NAN_MODULE_INIT(InitAll) {
-  if (sodium_init() == -1) return Nan::ThrowError("sodium_init() failed");
+  if (sodium_init() == -1) {
+    Nan::ThrowError("sodium_init() failed");
+    return;
+  }
 
   // crypto_sign
 
