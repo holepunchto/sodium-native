@@ -12,6 +12,7 @@ using namespace v8;
 #define CDATA(buf) (unsigned char *) node::Buffer::Data(buf)
 #define CLENGTH(buf) (unsigned long long) node::Buffer::Length(buf)
 #define EXPORT_NUMBER(name) Nan::Set(target, Nan::New<String>(#name).ToLocalChecked(), Nan::New<Number>(name));
+#define EXPORT_STRING(name) Nan::Set(target, Nan::New<String>(#name).ToLocalChecked(), Nan::New<String>(name).ToLocalChecked());
 #define EXPORT_FUNCTION(name) \
   Nan::Set(target, Nan::New<String>(#name).ToLocalChecked(), Nan::GetFunction(Nan::New<FunctionTemplate>(name)).ToLocalChecked());
 
@@ -79,6 +80,8 @@ NAN_METHOD(crypto_sign_verify_detached) {
 NAN_MODULE_INIT(InitAll) {
   if (sodium_init() == -1) return Nan::ThrowError("sodium_init() failed");
 
+  // crypto_sign
+
   EXPORT_NUMBER(crypto_sign_SEEDBYTES)
   EXPORT_NUMBER(crypto_sign_PUBLICKEYBYTES)
   EXPORT_NUMBER(crypto_sign_SECRETKEYBYTES)
@@ -91,8 +94,13 @@ NAN_MODULE_INIT(InitAll) {
   EXPORT_FUNCTION(crypto_sign_detached)
   EXPORT_FUNCTION(crypto_sign_verify_detached)
 
+  // crypto_generic_hash
+
+  EXPORT_STRING(crypto_generichash_PRIMITIVE)
+
   #undef EXPORT_FUNCTION
   #undef EXPORT_NUMBER
+  #undef EXPORT_STRING
   #undef CDATA
   #undef CLENGTH
 }
