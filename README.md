@@ -1,6 +1,6 @@
 # sodium-native
 
-Low level bindings for libsodium (WIP, THERE BE DRAGONS).
+Low level bindings for libsodium (WIP, HERE BE DRAGONS).
 
 ```
 npm install sodium-native
@@ -10,8 +10,30 @@ npm install sodium-native
 
 ``` js
 var sodium = require('sodium-native')
-console.log(sodium)
+var crypto = require('crypto') // TODO: expose random from sodium :)
+
+var nonce = crypto.randomBytes(sodium.crypto_secretbox_NONCEBYTES)
+var key = crypto.randomBytes(sodium.crypto_secretbox_KEYBYTES)
+var message = new Buffer('Hello, World!')
+var cipher = new Buffer(message.length + sodium.crypto_secretbox_MACBYTES)
+
+sodium.crypto_secretbox_easy(cipher, message, nonce, key)
+
+console.log('Encrypted message:', cipher)
+
+var plainText = new Buffer(cipher.length - sodium.crypto_secretbox_MACBYTES)
+
+if (!sodium.crypto_secretbox_open_easy(plainText, cipher, nonce, key)) {
+  console.log('Decryption failed!')
+  process.exit(1)
+}
+
+console.log('Decrypted message:', plainText, '(' + plainText.toString() + ')')
 ```
+
+## API
+
+(TODO, see tests + source for now)
 
 ## License
 
