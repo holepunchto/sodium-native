@@ -29,8 +29,8 @@ using namespace v8;
 
 #define ASSERT_BUFFER_LENGTH(name, var, length) \
   ASSERT_BUFFER(name, var) \
-  unsigned long long var##_len = CLENGTH(var); \
-  if (var##_len < length) { \
+  unsigned long long var##_length = CLENGTH(var); \
+  if (var##_length < length) { \
     Nan::ThrowError(#var " must be a buffer of size " STR(length)); \
   }
 
@@ -58,9 +58,9 @@ NAN_METHOD(crypto_sign) {
   ASSERT_BUFFER(info[1], message);
   ASSERT_BUFFER_LENGTH(info[2], secret_key, crypto_sign_SECRETKEYBYTES);
 
-  unsigned long long signed_message_length;
+  unsigned long long signed_message_length_dummy;
 
-  int ret = crypto_sign(CDATA(signed_message), &signed_message_length, CDATA(message), CLENGTH(message), CDATA(secret_key));
+  int ret = crypto_sign(CDATA(signed_message), &signed_message_length_dummy, CDATA(message), CLENGTH(message), CDATA(secret_key));
   info.GetReturnValue().Set(Nan::New(ret));
 }
 
@@ -71,7 +71,7 @@ NAN_METHOD(crypto_sign_open) {
 
   unsigned long long message_length;
 
-  int ret = crypto_sign_open(CDATA(message), &message_length, CDATA(signed_message), CLENGTH(signed_message), CDATA(public_key));
+  int ret = crypto_sign_open(CDATA(message), &message_length, CDATA(signed_message), signed_message_length, CDATA(public_key));
   info.GetReturnValue().Set(Nan::New(ret));
 }
 
@@ -80,9 +80,9 @@ NAN_METHOD(crypto_sign_detached) {
   ASSERT_BUFFER(info[1], message);
   ASSERT_BUFFER_LENGTH(info[2], secret_key, crypto_sign_SECRETKEYBYTES);
 
-  unsigned long long signature_length;
+  unsigned long long signature_length_dummy;
 
-  int ret = crypto_sign_detached(CDATA(signature), &signature_length, CDATA(message), CLENGTH(message), CDATA(secret_key));
+  int ret = crypto_sign_detached(CDATA(signature), &signature_length_dummy, CDATA(message), CLENGTH(message), CDATA(secret_key));
   info.GetReturnValue().Set(Nan::New(ret));
 }
 
