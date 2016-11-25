@@ -398,14 +398,10 @@ AS_IF([test "x$EMSCRIPTEN" = "x" -a "$host_os" != "pnacl"], [
 #endif
 #pragma GCC target("avx2")
 #include <immintrin.h>
-]], [[
-__m256 x = _mm256_set1_ps(3.14);
-__m256 y = _mm256_permutevar8x32_ps(x, _mm256_set1_epi32(42));
-return _mm256_movemask_ps(_mm256_cmp_ps(x, y, _CMP_NEQ_OQ));
-]])],
+]], [[ __m256i x = _mm256_abs_epi8(_mm256_setzero_si256()); ]])],
     [AC_MSG_RESULT(yes)
      AC_DEFINE([HAVE_AVX2INTRIN_H], [1], [AVX2 is available])
-     AX_CHECK_COMPILE_FLAG([-mavx2], [CFLAGS_AVX2="-mavx2"])
+     AX_CHECK_COMPILE_FLAG([-mavx2], [CFLAGS_AVX="-mavx2"])
      AC_MSG_CHECKING(if _mm256_broadcastsi128_si256 is correctly defined)
      AC_COMPILE_IFELSE([AC_LANG_PROGRAM([[
 #ifdef __native_client__
@@ -696,7 +692,6 @@ AH_VERBATIM([NDEBUG], [/* Always evaluate assert() calls */
 #endif])
 
 AC_CONFIG_FILES([Makefile
-                 contrib/Makefile
                  dist-build/Makefile
                  libsodium.pc
                  libsodium-uninstalled.pc

@@ -192,8 +192,7 @@ libsodium_la_SOURCES += \
 	crypto_stream/salsa2012/ref/xor_salsa2012.c \
 	crypto_stream/salsa208/stream_salsa208_api.c \
 	crypto_stream/salsa208/ref/stream_salsa208.c \
-	crypto_stream/salsa208/ref/xor_salsa208.c \
-	crypto_stream/xchacha20/stream_xchacha20.c
+	crypto_stream/salsa208/ref/xor_salsa208.c
 endif
 
 libsodium_la_LDFLAGS = \

@@ -9,39 +9,41 @@
 
 int crypto_stream_aes128ctr_afternm(unsigned char *out, unsigned long long len, const unsigned char *nonce, const unsigned char *c)
 {
-    aes_uint128_t xmm0;
-    aes_uint128_t xmm1;
-    aes_uint128_t xmm2;
-    aes_uint128_t xmm3;
-    aes_uint128_t xmm4;
-    aes_uint128_t xmm5;
-    aes_uint128_t xmm6;
-    aes_uint128_t xmm7;
-    aes_uint128_t xmm8;
-    aes_uint128_t xmm9;
-    aes_uint128_t xmm10;
-    aes_uint128_t xmm11;
-    aes_uint128_t xmm12;
-    aes_uint128_t xmm13;
-    aes_uint128_t xmm14;
-    aes_uint128_t xmm15;
 
-    aes_uint128_t nonce_stack;
-    unsigned long long lensav;
-    unsigned char bl[128];
-    unsigned char *blp;
-    unsigned char *np;
-    unsigned char b;
+  int128 xmm0;
+  int128 xmm1;
+  int128 xmm2;
+  int128 xmm3;
+  int128 xmm4;
+  int128 xmm5;
+  int128 xmm6;
+  int128 xmm7;
 
-    uint32_t tmp;
+  int128 xmm8;
+  int128 xmm9;
+  int128 xmm10;
+  int128 xmm11;
+  int128 xmm12;
+  int128 xmm13;
+  int128 xmm14;
+  int128 xmm15;
 
-    /* Copy nonce on the stack */
-    copy2(&nonce_stack, (const aes_uint128_t *) (nonce + 0));
-    np = (unsigned char *)&nonce_stack;
+  int128 nonce_stack;
+  unsigned long long lensav;
+  unsigned char bl[128];
+  unsigned char *blp;
+  unsigned char *np;
+  unsigned char b;
 
-enc_block:
+  uint32 tmp;
 
-    xmm0 = *(aes_uint128_t *) (np + 0);
+  /* Copy nonce on the stack */
+  copy2(&nonce_stack, (const int128 *) (nonce + 0));
+  np = (unsigned char *)&nonce_stack;
+
+    enc_block:
+
+    xmm0 = *(int128 *) (np + 0);
     copy2(&xmm1, &xmm0);
     shufb(&xmm1, SWAP32);
     copy2(&xmm2, &xmm1);
@@ -90,21 +92,21 @@ enc_block:
     tmp += 8;
     STORE32_BE(np + 12, tmp);
 
-    *(aes_uint128_t *) (out + 0) = xmm8;
-    *(aes_uint128_t *) (out + 16) = xmm9;
-    *(aes_uint128_t *) (out + 32) = xmm12;
-    *(aes_uint128_t *) (out + 48) = xmm14;
-    *(aes_uint128_t *) (out + 64) = xmm11;
-    *(aes_uint128_t *) (out + 80) = xmm15;
-    *(aes_uint128_t *) (out + 96) = xmm10;
-    *(aes_uint128_t *) (out + 112) = xmm13;
+    *(int128 *) (out + 0) = xmm8;
+    *(int128 *) (out + 16) = xmm9;
+    *(int128 *) (out + 32) = xmm12;
+    *(int128 *) (out + 48) = xmm14;
+    *(int128 *) (out + 64) = xmm11;
+    *(int128 *) (out + 80) = xmm15;
+    *(int128 *) (out + 96) = xmm10;
+    *(int128 *) (out + 112) = xmm13;
 
     len -= 128;
     out += 128;
 
     goto enc_block;
 
-partial:
+    partial:
 
     lensav = len;
     len >>= 4;
@@ -114,16 +116,16 @@ partial:
     STORE32_BE(np + 12, tmp);
 
     blp = bl;
-    *(aes_uint128_t *)(blp + 0) = xmm8;
-    *(aes_uint128_t *)(blp + 16) = xmm9;
-    *(aes_uint128_t *)(blp + 32) = xmm12;
-    *(aes_uint128_t *)(blp + 48) = xmm14;
-    *(aes_uint128_t *)(blp + 64) = xmm11;
-    *(aes_uint128_t *)(blp + 80) = xmm15;
-    *(aes_uint128_t *)(blp + 96) = xmm10;
-    *(aes_uint128_t *)(blp + 112) = xmm13;
+    *(int128 *)(blp + 0) = xmm8;
+    *(int128 *)(blp + 16) = xmm9;
+    *(int128 *)(blp + 32) = xmm12;
+    *(int128 *)(blp + 48) = xmm14;
+    *(int128 *)(blp + 64) = xmm11;
+    *(int128 *)(blp + 80) = xmm15;
+    *(int128 *)(blp + 96) = xmm10;
+    *(int128 *)(blp + 112) = xmm13;
 
-bytes:
+    bytes:
 
     if(lensav == 0) goto end;
 
@@ -136,21 +138,22 @@ bytes:
 
     goto bytes;
 
-full:
+    full:
 
     tmp = LOAD32_BE(np + 12);
     tmp += 8;
     STORE32_BE(np + 12, tmp);
 
-    *(aes_uint128_t *) (out + 0) = xmm8;
-    *(aes_uint128_t *) (out + 16) = xmm9;
-    *(aes_uint128_t *) (out + 32) = xmm12;
-    *(aes_uint128_t *) (out + 48) = xmm14;
-    *(aes_uint128_t *) (out + 64) = xmm11;
-    *(aes_uint128_t *) (out + 80) = xmm15;
-    *(aes_uint128_t *) (out + 96) = xmm10;
-    *(aes_uint128_t *) (out + 112) = xmm13;
+    *(int128 *) (out + 0) = xmm8;
+    *(int128 *) (out + 16) = xmm9;
+    *(int128 *) (out + 32) = xmm12;
+    *(int128 *) (out + 48) = xmm14;
+    *(int128 *) (out + 64) = xmm11;
+    *(int128 *) (out + 80) = xmm15;
+    *(int128 *) (out + 96) = xmm10;
+    *(int128 *) (out + 112) = xmm13;
 
-end:
+    end:
     return 0;
+
 }

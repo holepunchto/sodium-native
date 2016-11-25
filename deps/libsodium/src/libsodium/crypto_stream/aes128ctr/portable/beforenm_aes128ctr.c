@@ -9,25 +9,38 @@
 
 int crypto_stream_aes128ctr_beforenm(unsigned char *c, const unsigned char *k)
 {
-    aes_uint128_t xmm0;
-    aes_uint128_t xmm1;
-    aes_uint128_t xmm2;
-    aes_uint128_t xmm3;
-    aes_uint128_t xmm4;
-    aes_uint128_t xmm5;
-    aes_uint128_t xmm6;
-    aes_uint128_t xmm7;
-    aes_uint128_t xmm8;
-    aes_uint128_t xmm9;
-    aes_uint128_t xmm10;
-    aes_uint128_t xmm11;
-    aes_uint128_t xmm12;
-    aes_uint128_t xmm13;
-    aes_uint128_t xmm14;
-    aes_uint128_t xmm15;
-    aes_uint128_t t;
 
-    bitslicekey0(k, c)
+  /*
+     int64 x0;
+     int64 x1;
+     int64 x2;
+     int64 x3;
+     int64 e;
+     int64 q0;
+     int64 q1;
+     int64 q2;
+     int64 q3;
+     */
+
+  int128 xmm0;
+  int128 xmm1;
+  int128 xmm2;
+  int128 xmm3;
+  int128 xmm4;
+  int128 xmm5;
+  int128 xmm6;
+  int128 xmm7;
+  int128 xmm8;
+  int128 xmm9;
+  int128 xmm10;
+  int128 xmm11;
+  int128 xmm12;
+  int128 xmm13;
+  int128 xmm14;
+  int128 xmm15;
+  int128 t;
+
+  bitslicekey0(k, c)
 
     keyexpbs1(xmm0, xmm1, xmm2, xmm3, xmm4, xmm5, xmm6, xmm7, xmm8, xmm9, xmm10, xmm11, xmm12, xmm13, xmm14, xmm15,c)
     keyexpbs(xmm0, xmm1, xmm4, xmm6, xmm3, xmm7, xmm2, xmm5, xmm8, xmm9, xmm10, xmm11, xmm12, xmm13, xmm14, xmm15, xor_rcon(&xmm1);, 2,c)
