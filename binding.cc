@@ -2,6 +2,7 @@
 #include <node_buffer.h>
 #include <nan.h>
 #include "deps/libsodium/src/libsodium/include/sodium.h"
+#include "src/crypto_generichash_wrap.h"
 
 using namespace node;
 using namespace v8;
@@ -114,8 +115,14 @@ NAN_METHOD(crypto_generichash) {
   info.GetReturnValue().Set(Nan::New(ret));
 }
 
+NAN_METHOD(crypto_generichash_stream) {
+  info.GetReturnValue().Set(CryptoGenericHashWrap::NewInstance());
+}
+
 NAN_MODULE_INIT(InitAll) {
   if (sodium_init() == -1) return Nan::ThrowError("sodium_init() failed");
+
+  CryptoGenericHashWrap::Init();
 
   // crypto_sign
 
@@ -142,6 +149,7 @@ NAN_MODULE_INIT(InitAll) {
   EXPORT_NUMBER(crypto_generichash_KEYBYTES)
 
   EXPORT_FUNCTION(crypto_generichash)
+  EXPORT_FUNCTION(crypto_generichash_stream)
 
   #undef EXPORT_FUNCTION
   #undef EXPORT_NUMBER

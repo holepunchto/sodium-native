@@ -11,6 +11,7 @@
       ],
       'sources': [
         'binding.cc',
+        'src/crypto_generichash_wrap.cc',
       ],
    }
   ]
