@@ -11,10 +11,11 @@ using namespace v8;
 
 #define CDATA(buf) (unsigned char *) node::Buffer::Data(buf)
 #define CLENGTH(buf) (unsigned long long) node::Buffer::Length(buf)
-#define EXPORT_NUMBER(name) Nan::Set(target, Nan::New<String>(#name).ToLocalChecked(), Nan::New<Number>(name));
-#define EXPORT_STRING(name) Nan::Set(target, Nan::New<String>(#name).ToLocalChecked(), Nan::New<String>(name).ToLocalChecked());
-#define EXPORT_FUNCTION(name) \
-  Nan::Set(target, Nan::New<String>(#name).ToLocalChecked(), Nan::GetFunction(Nan::New<FunctionTemplate>(name)).ToLocalChecked());
+#define LOCAL_STRING(str) Nan::New<String>(str).ToLocalChecked()
+#define LOCAL_FUNCTION(fn) Nan::GetFunction(Nan::New<FunctionTemplate>(fn)).ToLocalChecked()
+#define EXPORT_NUMBER(name) Nan::Set(target, LOCAL_STRING(#name), Nan::New<Number>(name));
+#define EXPORT_STRING(name) Nan::Set(target, LOCAL_STRING(#name), LOCAL_STRING(name));
+#define EXPORT_FUNCTION(name) Nan::Set(target, LOCAL_STRING(#name), LOCAL_FUNCTION(name));
 
 // crypto_sign.c
 
@@ -101,6 +102,8 @@ NAN_MODULE_INIT(InitAll) {
   #undef EXPORT_FUNCTION
   #undef EXPORT_NUMBER
   #undef EXPORT_STRING
+  #undef LOCAL_FUNCTION
+  #undef LOCAL_STRING
   #undef CDATA
   #undef CLENGTH
 }
