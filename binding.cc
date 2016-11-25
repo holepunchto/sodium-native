@@ -50,7 +50,15 @@ using namespace v8;
     return; \
   }
 
-// crypto_sign.c
+// randombytes
+
+NAN_METHOD(randombytes_buf) {
+  ASSERT_BUFFER(info[0], random)
+
+  randombytes_buf(CDATA(random), CLENGTH(random));
+}
+
+// crypto_sign
 
 NAN_METHOD(crypto_sign_seed_keypair) {
   ASSERT_BUFFER_MIN_LENGTH(info[0], public_key, crypto_sign_PUBLICKEYBYTES);
@@ -167,11 +175,34 @@ NAN_METHOD(crypto_secretbox_open_easy) {
   CALL_SODIUM_BOOL(crypto_secretbox_open_easy(CDATA(message), CDATA(ciphertext), ciphertext_length, CDATA(nonce), CDATA(key)))
 }
 
+// crypto_stream
+
+NAN_METHOD(crypto_stream) {
+  ASSERT_BUFFER(info[0], ciphertext)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], nonce, crypto_secretbox_NONCEBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_secretbox_KEYBYTES)
+
+  CALL_SODIUM(crypto_stream(CDATA(ciphertext), CLENGTH(ciphertext), CDATA(nonce), CDATA(key)))
+}
+
+NAN_METHOD(crypto_stream_xor) {
+  ASSERT_BUFFER_SET_LENGTH(info[1], message)
+  ASSERT_BUFFER_MIN_LENGTH(info[0], ciphertext, message_length)
+  ASSERT_BUFFER_MIN_LENGTH(info[2], nonce, crypto_secretbox_NONCEBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[3], key, crypto_secretbox_KEYBYTES)
+
+  CALL_SODIUM(crypto_stream_xor(CDATA(ciphertext), CDATA(message), message_length, CDATA(nonce), CDATA(key)))
+}
+
 NAN_MODULE_INIT(InitAll) {
   if (sodium_init() == -1) {
     Nan::ThrowError("sodium_init() failed");
     return;
   }
+
+  // randombytes
+
+  EXPORT_FUNCTION(randombytes_buf)
 
   // crypto_sign
 
@@ -215,6 +246,15 @@ NAN_MODULE_INIT(InitAll) {
   EXPORT_FUNCTION(crypto_secretbox_easy)
   EXPORT_FUNCTION(crypto_secretbox_open_detached)
   EXPORT_FUNCTION(crypto_secretbox_open_easy)
+
+  // crypto_stream
+
+  EXPORT_NUMBER(crypto_stream_KEYBYTES)
+  EXPORT_NUMBER(crypto_stream_NONCEBYTES)
+  EXPORT_STRING(crypto_stream_PRIMITIVE)
+
+  EXPORT_FUNCTION(crypto_stream)
+  EXPORT_FUNCTION(crypto_stream_xor)
 
   #undef EXPORT_FUNCTION
   #undef EXPORT_NUMBER
