@@ -33,6 +33,7 @@ using namespace v8;
   unsigned long long var##_length = CLENGTH(var); \
   if (var##_length < length) { \
     Nan::ThrowError(#var " must be a buffer of size " STR(length)); \
+    return; \
   }
 
 // crypto_sign.c
