@@ -6,12 +6,14 @@
   "dependencies": {
     "bindings": "^1.2.1",
     "nan": "^2.4.0",
-    "prebuild": "^4.4.0"
+    "prebuild": "^4.4.0",
+    "standard": "^8.6.0"
   },
   "devDependencies": {
     "tape": "^4.6.3"
   },
   "scripts": {
+    "test": "standard && tape test/*.js",
     "install": "prebuild --preinstall ./configure --install",
     "sources": "find deps/libsodium/src  -name '*.[c|h|S]' | grep -v include | sed \"s/deps\\/\\(.*\\)/'\\\\1',/\""
   },

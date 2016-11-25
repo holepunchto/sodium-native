@@ -6,6 +6,8 @@ Low level bindings for libsodium (WIP, HERE BE DRAGONS).
 npm install sodium-native
 ```
 
+[![build status](https://travis-ci.org/mafintosh/sodium-native.svg?branch=master)](https://travis-ci.org/mafintosh/sodium-native)
+
 ## Usage
 
 ``` js
