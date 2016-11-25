@@ -21,6 +21,17 @@ using namespace v8;
 #define EXPORT_STRING(name) Nan::Set(target, LOCAL_STRING(#name), LOCAL_STRING(name));
 #define EXPORT_FUNCTION(name) Nan::Set(target, LOCAL_STRING(#name), LOCAL_FUNCTION(name));
 
+#define CALL_SODIUM(fn) \
+  int ret = fn; \
+  if (ret) { \
+    Nan::ThrowError("Sodium operation failed"); \
+    return; \
+  }
+
+#define CALL_SODIUM_BOOL(fn) \
+  int ret = fn; \
+  info.GetReturnValue().Set(ret == 0 ? Nan::True() : Nan::False());
+
 #define ASSERT_BUFFER(name, var) \
   if (!name->IsObject()) { \
     Nan::ThrowError(#var " must be a buffer"); \
@@ -43,27 +54,24 @@ NAN_METHOD(crypto_sign_seed_keypair) {
   ASSERT_BUFFER_LENGTH(info[1], secret_key, crypto_sign_SECRETKEYBYTES);
   ASSERT_BUFFER_LENGTH(info[2], seed, crypto_sign_SEEDBYTES);
 
-  int ret = crypto_sign_seed_keypair(CDATA(public_key), CDATA(secret_key), CDATA(seed));
-  info.GetReturnValue().Set(Nan::New(ret));
+  CALL_SODIUM(crypto_sign_seed_keypair(CDATA(public_key), CDATA(secret_key), CDATA(seed)))
 }
 
 NAN_METHOD(crypto_sign_keypair) {
   ASSERT_BUFFER_LENGTH(info[0], public_key, crypto_sign_PUBLICKEYBYTES);
   ASSERT_BUFFER_LENGTH(info[1], secret_key, crypto_sign_SECRETKEYBYTES);
 
-  int ret = crypto_sign_keypair(CDATA(public_key), CDATA(secret_key));
-  info.GetReturnValue().Set(Nan::New(ret));
+  CALL_SODIUM(crypto_sign_keypair(CDATA(public_key), CDATA(secret_key)))
 }
 
 NAN_METHOD(crypto_sign) {
   ASSERT_BUFFER_LENGTH(info[0], signed_message, crypto_sign_BYTES);
-  ASSERT_BUFFER(info[1], message);
+  ASSERT_BUFFER(info[1], message); // TODO: this is not correct! must be bigger than BYTES + something
   ASSERT_BUFFER_LENGTH(info[2], secret_key, crypto_sign_SECRETKEYBYTES);
 
-  unsigned long long signed_message_length_dummy;
+  unsigned long long signed_message_length_dummy;  // TODO: what is this used for?
 
-  int ret = crypto_sign(CDATA(signed_message), &signed_message_length_dummy, CDATA(message), CLENGTH(message), CDATA(secret_key));
-  info.GetReturnValue().Set(Nan::New(ret));
+  CALL_SODIUM(crypto_sign(CDATA(signed_message), &signed_message_length_dummy, CDATA(message), CLENGTH(message), CDATA(secret_key)))
 }
 
 NAN_METHOD(crypto_sign_open) {
@@ -71,10 +79,9 @@ NAN_METHOD(crypto_sign_open) {
   ASSERT_BUFFER(info[0], message); // TODO: this is not correct! must be bigger than BYTES + something
   ASSERT_BUFFER_LENGTH(info[2], public_key, crypto_sign_PUBLICKEYBYTES);
 
-  unsigned long long message_length;
+  unsigned long long message_length_dummy;  // TODO: what is this used for?
 
-  int ret = crypto_sign_open(CDATA(message), &message_length, CDATA(signed_message), signed_message_length, CDATA(public_key));
-  info.GetReturnValue().Set(Nan::New(ret));
+  CALL_SODIUM_BOOL(crypto_sign_open(CDATA(message), &message_length_dummy, CDATA(signed_message), signed_message_length, CDATA(public_key)))
 }
 
 NAN_METHOD(crypto_sign_detached) {
@@ -82,10 +89,9 @@ NAN_METHOD(crypto_sign_detached) {
   ASSERT_BUFFER(info[1], message);
   ASSERT_BUFFER_LENGTH(info[2], secret_key, crypto_sign_SECRETKEYBYTES);
 
-  unsigned long long signature_length_dummy;
+  unsigned long long signature_length_dummy; // TODO: what is this used for?
 
-  int ret = crypto_sign_detached(CDATA(signature), &signature_length_dummy, CDATA(message), CLENGTH(message), CDATA(secret_key));
-  info.GetReturnValue().Set(Nan::New(ret));
+  CALL_SODIUM(crypto_sign_detached(CDATA(signature), &signature_length_dummy, CDATA(message), CLENGTH(message), CDATA(secret_key)))
 }
 
 NAN_METHOD(crypto_sign_verify_detached) {
@@ -93,8 +99,7 @@ NAN_METHOD(crypto_sign_verify_detached) {
   ASSERT_BUFFER(info[1], message)
   ASSERT_BUFFER_LENGTH(info[2], public_key, crypto_sign_PUBLICKEYBYTES)
 
-  int ret = crypto_sign_verify_detached(CDATA(signature), CDATA(message), CLENGTH(message), CDATA(public_key));
-  info.GetReturnValue().Set(Nan::New(ret));
+  CALL_SODIUM_BOOL(crypto_sign_verify_detached(CDATA(signature), CDATA(message), CLENGTH(message), CDATA(public_key)))
 }
 
 // crypto_generic_hash
@@ -112,18 +117,37 @@ NAN_METHOD(crypto_generichash) {
     key_len = CLENGTH(key);
   }
 
-  int ret = crypto_generichash(CDATA(output), CLENGTH(output), CDATA(input), CLENGTH(input), key_data, key_len);
-  info.GetReturnValue().Set(Nan::New(ret));
+  CALL_SODIUM(crypto_generichash(CDATA(output), CLENGTH(output), CDATA(input), CLENGTH(input), key_data, key_len))
 }
 
 NAN_METHOD(crypto_generichash_stream) {
   info.GetReturnValue().Set(CryptoGenericHashWrap::NewInstance());
 }
 
+// crypto_secretbox
+
+NAN_METHOD(crypto_secretbox_easy) {
+  ASSERT_BUFFER(info[1], message)
+  unsigned long long message_length = CLENGTH(message);
+
+  ASSERT_BUFFER_LENGTH(info[0], ciphertext, crypto_secretbox_MACBYTES + message_length)
+  ASSERT_BUFFER_LENGTH(info[2], nonce, crypto_secretbox_NONCEBYTES)
+  ASSERT_BUFFER_LENGTH(info[3], key, crypto_secretbox_KEYBYTES)
+
+  CALL_SODIUM(crypto_secretbox_easy(CDATA(ciphertext), CDATA(message), message_length, CDATA(nonce), CDATA(key)))
+}
+
+NAN_METHOD(crypto_secretbox_open_easy) {
+  ASSERT_BUFFER_LENGTH(info[1], ciphertext, crypto_secretbox_MACBYTES)
+  ASSERT_BUFFER_LENGTH(info[0], message, ciphertext_length - crypto_secretbox_MACBYTES)
+  ASSERT_BUFFER_LENGTH(info[2], nonce, crypto_secretbox_NONCEBYTES)
+  ASSERT_BUFFER_LENGTH(info[3], key, crypto_secretbox_KEYBYTES)
+
+  CALL_SODIUM_BOOL(crypto_secretbox_open_easy(CDATA(message), CDATA(ciphertext), ciphertext_length, CDATA(nonce), CDATA(key)))
+}
+
 NAN_MODULE_INIT(InitAll) {
   if (sodium_init() == -1) return Nan::ThrowError("sodium_init() failed");
-
-  CryptoGenericHashWrap::Init();
 
   // crypto_sign
 
@@ -149,8 +173,22 @@ NAN_MODULE_INIT(InitAll) {
   EXPORT_NUMBER(crypto_generichash_KEYBYTES_MAX)
   EXPORT_NUMBER(crypto_generichash_KEYBYTES)
 
+  CryptoGenericHashWrap::Init();
+
   EXPORT_FUNCTION(crypto_generichash)
   EXPORT_FUNCTION(crypto_generichash_stream)
+
+  // crypto_secretbox
+
+  EXPORT_NUMBER(crypto_secretbox_KEYBYTES)
+  EXPORT_NUMBER(crypto_secretbox_NONCEBYTES)
+  EXPORT_NUMBER(crypto_secretbox_ZEROBYTES)
+  EXPORT_NUMBER(crypto_secretbox_BOXZEROBYTES)
+  EXPORT_NUMBER(crypto_secretbox_MACBYTES)
+  EXPORT_STRING(crypto_secretbox_PRIMITIVE)
+
+  EXPORT_FUNCTION(crypto_secretbox_easy)
+  EXPORT_FUNCTION(crypto_secretbox_open_easy)
 
   #undef EXPORT_FUNCTION
   #undef EXPORT_NUMBER
@@ -163,6 +201,8 @@ NAN_MODULE_INIT(InitAll) {
   #undef STR_HELPER
   #undef ASSERT_BUFFER
   #undef ASSERT_BUFFER_LENGTH
+  #undef CALL_SODIUM
+  #undef CALL_SODIUM_BOOL
 }
 
 NODE_MODULE(sodium, InitAll)

@@ -12,7 +12,8 @@
     "tape": "^4.6.3"
   },
   "scripts": {
-    "install": "prebuild --preinstall ./configure --install"
+    "install": "prebuild --preinstall ./configure --install",
+    "sources": "find deps/libsodium/src  -name '*.[c|h|S]' | grep -v include | sed \"s/deps\\/\\(.*\\)/'\\\\1',/\""
   },
   "repository": {
     "type": "git",
