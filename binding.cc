@@ -78,6 +78,29 @@ NAN_METHOD(crypto_sign_verify_detached) {
   info.GetReturnValue().Set(Nan::New(ret));
 }
 
+// crypto_generichash.c
+
+NAN_METHOD(crypto_generichash_statebytes) {
+  int ret = crypto_generichash_statebytes();
+  info.GetReturnValue().Set(Nan::New(ret));
+}
+
+NAN_METHOD(crypto_generichash) {
+  Local<Object> out = info[0]->ToObject();
+  Local<Object> in = info[1]->ToObject();
+
+  unsigned char *key = NULL;
+  unsigned long long key_len = 0;
+
+  if (info[2]->IsObject()) {
+    key = CDATA(info[2]);
+    key_len = CLENGTH(info[2]);
+  }
+
+  int ret = crypto_generichash(CDATA(out), CLENGTH(out), CDATA(in), CLENGTH(in), key, key_len);
+  info.GetReturnValue().Set(Nan::New(ret));
+}
+
 NAN_MODULE_INIT(InitAll) {
   if (sodium_init() == -1) return Nan::ThrowError("sodium_init() failed");
 
@@ -97,7 +120,15 @@ NAN_MODULE_INIT(InitAll) {
 
   // crypto_generic_hash
 
+  EXPORT_NUMBER(crypto_generichash_BYTES_MIN)
+  EXPORT_NUMBER(crypto_generichash_BYTES_MAX)
+  EXPORT_NUMBER(crypto_generichash_BYTES)
+  EXPORT_NUMBER(crypto_generichash_KEYBYTES_MIN)
+  EXPORT_NUMBER(crypto_generichash_KEYBYTES_MAX)
+  EXPORT_NUMBER(crypto_generichash_KEYBYTES)
   EXPORT_STRING(crypto_generichash_PRIMITIVE)
+
+  EXPORT_FUNCTION(crypto_generichash)
 
   #undef EXPORT_FUNCTION
   #undef EXPORT_NUMBER
