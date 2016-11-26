@@ -6,7 +6,7 @@ tape('crypto_sign_seed_keypair', function (t) {
   var sk = new Buffer(sodium.crypto_sign_SECRETKEYBYTES)
   var seed = new Buffer(sodium.crypto_sign_SEEDBYTES)
 
-  seed.fill('lo')
+  seed.write(Array(seed.length).join('lo'))
 
   t.throws(function () {
     sodium.crypto_sign_seed_keypair()
