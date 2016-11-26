@@ -8,6 +8,7 @@
             'type': 'static_library',
             'dependencies': [],
             'defines': [
+                'NDEBUG',
                 'SODIUM_STATIC',
                 'HAVE_LIBM=1',
                 '<!@(node ../makefile.js --defines)',
@@ -29,7 +30,7 @@
                         '-Wno-sign-compare',
                         '-Wno-unused-const-variable',
                         '-g',
-                        '-O2',
+                        '-O3',
                         '-fvisibility=hidden',
                         '-Wno-missing-field-initializers',
                         '-Wno-missing-braces',
@@ -51,7 +52,7 @@
                 '-Wno-sign-compare',
                 '-Wno-unused-but-set-variable',
                 '-g',
-                '-O2',
+                '-O3',
                 '-Wno-unknown-pragmas',
                 '-Wno-missing-field-initializers',
                 '-Wno-missing-braces',
@@ -240,6 +241,7 @@
               'libsodium/src/libsodium/sodium/runtime.c',
               'libsodium/src/libsodium/sodium/utils.c',
               'libsodium/src/libsodium/sodium/version.c',
+
             ]
         }
     ]

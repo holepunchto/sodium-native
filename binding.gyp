@@ -13,6 +13,16 @@
         'binding.cc',
         'src/crypto_generichash_wrap.cc',
       ],
-   }
+      'xcode_settings': {
+        'OTHER_CFLAGS': [
+          '-g',
+          '-O3',
+        ]
+      },
+      'cflags': [
+        '-g',
+        '-O3',
+      ]
+    }
   ]
 }
