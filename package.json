@@ -10,6 +10,8 @@
     "standard": "^8.6.0"
   },
   "devDependencies": {
+    "buffer-alloc": "^1.1.0",
+    "buffer-fill": "^0.1.0",
     "tape": "^4.6.3"
   },
   "scripts": {

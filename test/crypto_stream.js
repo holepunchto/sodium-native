@@ -1,14 +1,15 @@
 var tape = require('tape')
 var sodium = require('../')
+var alloc = require('buffer-alloc')
 
 tape('crypto_stream', function (t) {
-  var buf = new Buffer('000000000000000000')
+  var buf = alloc(50)
   var nonce = random(sodium.crypto_stream_NONCEBYTES)
   var key = random(sodium.crypto_stream_KEYBYTES)
 
   sodium.crypto_stream(buf, nonce, key)
 
-  t.notEquals(buf, new Buffer('000000000000000000'), 'contains noise now')
+  t.notEquals(buf, alloc(50), 'contains noise now')
   var copy = new Buffer(buf.toString('hex'), 'hex')
 
   sodium.crypto_stream(buf, nonce, key)
@@ -34,7 +35,7 @@ tape('crypto_stream_xor', function (t) {
 })
 
 function random (n) {
-  var buf = new Buffer(n)
+  var buf = alloc(n)
   sodium.randombytes_buf(buf)
   return buf
 }

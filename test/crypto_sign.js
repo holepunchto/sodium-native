@@ -1,12 +1,14 @@
 var tape = require('tape')
 var sodium = require('../')
+var alloc = require('buffer-alloc')
+var fill = require('buffer-fill')
 
 tape('crypto_sign_seed_keypair', function (t) {
-  var pk = new Buffer(sodium.crypto_sign_PUBLICKEYBYTES)
-  var sk = new Buffer(sodium.crypto_sign_SECRETKEYBYTES)
-  var seed = new Buffer(sodium.crypto_sign_SEEDBYTES)
+  var pk = alloc(sodium.crypto_sign_PUBLICKEYBYTES)
+  var sk = alloc(sodium.crypto_sign_SECRETKEYBYTES)
+  var seed = alloc(sodium.crypto_sign_SEEDBYTES)
 
-  seed.write(Array(seed.length).join('lo'))
+  fill(seed, 'lo')
 
   t.throws(function () {
     sodium.crypto_sign_seed_keypair()
@@ -27,13 +29,13 @@ tape('crypto_sign_seed_keypair', function (t) {
 })
 
 tape('crypto_sign_keypair', function (t) {
-  var pk = blank(sodium.crypto_sign_PUBLICKEYBYTES)
-  var sk = blank(sodium.crypto_sign_SECRETKEYBYTES)
+  var pk = alloc(sodium.crypto_sign_PUBLICKEYBYTES)
+  var sk = alloc(sodium.crypto_sign_SECRETKEYBYTES)
 
   sodium.crypto_sign_keypair(pk, sk)
 
-  t.notEqual(pk, blank(pk.length), 'made public key')
-  t.notEqual(sk, blank(sk.length), 'made secret key')
+  t.notEqual(pk, alloc(pk.length), 'made public key')
+  t.notEqual(sk, alloc(sk.length), 'made secret key')
 
   t.throws(function () {
     sodium.crypto_sign_keypair()
@@ -47,21 +49,21 @@ tape('crypto_sign_keypair', function (t) {
 })
 
 tape('crypto_sign', function (t) {
-  var pk = new Buffer(sodium.crypto_sign_PUBLICKEYBYTES)
-  var sk = new Buffer(sodium.crypto_sign_SECRETKEYBYTES)
+  var pk = alloc(sodium.crypto_sign_PUBLICKEYBYTES)
+  var sk = alloc(sodium.crypto_sign_SECRETKEYBYTES)
 
   sodium.crypto_sign_keypair(pk, sk)
 
-  var message = new Buffer('hello world')
-  var signedMessage = new Buffer(message.length + sodium.crypto_sign_BYTES)
+  var message = new Buffer('Hello, World!')
+  var signedMessage = alloc(message.length + sodium.crypto_sign_BYTES)
 
   sodium.crypto_sign(signedMessage, message, sk)
 
   t.same(signedMessage.slice(-message.length), message, 'contains message')
 
-  var output = new Buffer(message.length)
+  var output = alloc(message.length)
 
-  t.notOk(sodium.crypto_sign_open(output, Buffer.concat([blank(1), signedMessage]), pk), 'was not signed')
+  t.notOk(sodium.crypto_sign_open(output, Buffer.concat([alloc(1), signedMessage]), pk), 'was not signed')
   t.ok(sodium.crypto_sign_open(output, signedMessage, pk), 'was signed')
 
   t.same(output, message, 'same message')
@@ -69,24 +71,18 @@ tape('crypto_sign', function (t) {
 })
 
 tape('crypto_sign_detached', function (t) {
-  var pk = new Buffer(sodium.crypto_sign_PUBLICKEYBYTES)
-  var sk = new Buffer(sodium.crypto_sign_SECRETKEYBYTES)
+  var pk = alloc(sodium.crypto_sign_PUBLICKEYBYTES)
+  var sk = alloc(sodium.crypto_sign_SECRETKEYBYTES)
 
   sodium.crypto_sign_keypair(pk, sk)
 
-  var message = new Buffer('hello world')
-  var signature = new Buffer(sodium.crypto_sign_BYTES)
+  var message = new Buffer('Hello, World!')
+  var signature = alloc(sodium.crypto_sign_BYTES)
 
   sodium.crypto_sign_detached(signature, message, sk)
 
-  t.notOk(sodium.crypto_sign_verify_detached(Buffer.concat([blank(1), signature]), message, pk), 'was not signed')
+  t.notOk(sodium.crypto_sign_verify_detached(Buffer.concat([alloc(1), signature]), message, pk), 'was not signed')
   t.ok(sodium.crypto_sign_verify_detached(signature, message, pk), 'was signed')
 
   t.end()
 })
-
-function blank (n) {
-  var buf = new Buffer(n)
-  buf.fill(0)
-  return buf
-}
