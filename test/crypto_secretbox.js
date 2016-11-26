@@ -12,7 +12,6 @@ tape('crypto_secretbox_easy', function (t) {
   var nonce = alloc(sodium.crypto_secretbox_NONCEBYTES)
   sodium.randombytes_buf(nonce)
 
-
   t.throws(function () {
     sodium.crypto_secretbox_easy(alloc(0), message, nonce, key)
   }, 'throws if output is too small')
