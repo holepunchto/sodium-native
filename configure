@@ -1,2 +1,3 @@
 cd deps/libsodium
+./autogen.sh
 ./configure
