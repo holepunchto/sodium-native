@@ -203,6 +203,24 @@ NAN_METHOD(crypto_stream_xor) {
   CALL_SODIUM(crypto_stream_xor(CDATA(ciphertext), CDATA(message), message_length, CDATA(nonce), CDATA(key)))
 }
 
+// crypto_auth
+
+NAN_METHOD(crypto_auth) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_auth_BYTES)
+  ASSERT_BUFFER(info[1], input)
+  ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_auth_KEYBYTES)
+
+  CALL_SODIUM(crypto_auth(CDATA(output), CDATA(input), CLENGTH(input), CDATA(key)))
+}
+
+NAN_METHOD(crypto_auth_verify) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], hmac, crypto_auth_BYTES)
+  ASSERT_BUFFER(info[1], input)
+  ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_auth_KEYBYTES)
+
+  CALL_SODIUM_BOOL(crypto_auth_verify(CDATA(hmac), CDATA(input), CLENGTH(input), CDATA(key)))
+}
+
 NAN_MODULE_INIT(InitAll) {
   if (sodium_init() == -1) {
     Nan::ThrowError("sodium_init() failed");
@@ -270,6 +288,15 @@ NAN_MODULE_INIT(InitAll) {
 
   EXPORT_FUNCTION(crypto_stream)
   EXPORT_FUNCTION(crypto_stream_xor)
+
+  // crypto_auth
+
+  EXPORT_NUMBER(crypto_auth_BYTES)
+  EXPORT_NUMBER(crypto_auth_KEYBYTES)
+  EXPORT_STRING(crypto_auth_PRIMITIVE)
+
+  EXPORT_FUNCTION(crypto_auth)
+  EXPORT_FUNCTION(crypto_auth_verify)
 
   #undef EXPORT_FUNCTION
   #undef EXPORT_NUMBER
