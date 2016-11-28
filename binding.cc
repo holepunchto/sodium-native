@@ -50,6 +50,12 @@ using namespace v8;
     return; \
   }
 
+#define ASSERT_UINT(name, var) \
+  if (!name->IsNumber()) { \
+    Nan::ThrowError(#var " must be a number"); \
+  } \
+  int var = name->Uint32Value();
+
 // randombytes
 
 NAN_METHOD(randombytes_buf) {
@@ -225,6 +231,33 @@ NAN_METHOD(crypto_auth_verify) {
 
 // crypto_pwhash
 
+NAN_METHOD(crypto_pwhash) {
+  ASSERT_BUFFER_SET_LENGTH(info[0], output)
+  ASSERT_BUFFER_SET_LENGTH(info[1], password)
+  ASSERT_BUFFER_MIN_LENGTH(info[2], salt, crypto_pwhash_SALTBYTES)
+  ASSERT_UINT(info[3], opslimit)
+  ASSERT_UINT(info[4], memlimit)
+  ASSERT_UINT(info[5], algo)
+
+  CALL_SODIUM(crypto_pwhash(CDATA(output), output_length, (const char *) CDATA(password), password_length, CDATA(salt), opslimit, memlimit, algo))
+}
+
+NAN_METHOD(crypto_pwhash_str) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], hash, crypto_pwhash_STRBYTES)
+  ASSERT_BUFFER_SET_LENGTH(info[1], password)
+  ASSERT_UINT(info[2], opslimit)
+  ASSERT_UINT(info[3], memlimit)
+
+  CALL_SODIUM(crypto_pwhash_str((char *) CDATA(hash), (const char *) CDATA(password), password_length, opslimit, memlimit))
+}
+
+NAN_METHOD(crypto_pwhash_str_verify) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], hash, crypto_pwhash_STRBYTES)
+  ASSERT_BUFFER_SET_LENGTH(info[1], password)
+
+  CALL_SODIUM_BOOL(crypto_pwhash_str_verify((char *) CDATA(hash), (const char *) CDATA(password), password_length))
+}
+
 // crypto_scalarmult
 
 NAN_METHOD(crypto_scalarmult_base) {
@@ -333,6 +366,23 @@ NAN_MODULE_INIT(InitAll) {
 
   // crypto_pwhash
 
+  EXPORT_NUMBER(crypto_pwhash_ALG_ARGON2I13)
+  EXPORT_NUMBER(crypto_pwhash_ALG_ARGON2I13)
+  EXPORT_NUMBER(crypto_pwhash_SALTBYTES)
+  EXPORT_NUMBER(crypto_pwhash_STRBYTES)
+  EXPORT_STRING(crypto_pwhash_STRPREFIX)
+  EXPORT_NUMBER(crypto_pwhash_OPSLIMIT_INTERACTIVE)
+  EXPORT_NUMBER(crypto_pwhash_MEMLIMIT_INTERACTIVE)
+  EXPORT_NUMBER(crypto_pwhash_OPSLIMIT_MODERATE)
+  EXPORT_NUMBER(crypto_pwhash_MEMLIMIT_MODERATE)
+  EXPORT_NUMBER(crypto_pwhash_OPSLIMIT_SENSITIVE)
+  EXPORT_NUMBER(crypto_pwhash_MEMLIMIT_SENSITIVE)
+  EXPORT_STRING(crypto_pwhash_PRIMITIVE)
+
+  EXPORT_FUNCTION(crypto_pwhash)
+  EXPORT_FUNCTION(crypto_pwhash_str)
+  EXPORT_FUNCTION(crypto_pwhash_str_verify)
+
   // crypto_scalarmult
 
   EXPORT_STRING(crypto_scalarmult_PRIMITIVE)
@@ -362,6 +412,7 @@ NAN_MODULE_INIT(InitAll) {
   #undef ASSERT_BUFFER
   #undef ASSERT_BUFFER_MIN_LENGTH
   #undef ASSERT_BUFFER_SET_LENGTH
+  #undef ASSERT_UINT
   #undef CALL_SODIUM
   #undef CALL_SODIUM_BOOL
 }
