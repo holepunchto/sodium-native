@@ -1,10 +1,10 @@
 #include "crypto_generichash_wrap.h"
-#include <node_buffer.h>
+#include "macros.h"
 
 static Nan::Persistent<FunctionTemplate> crypto_generichash_constructor;
 
 CryptoGenericHashWrap::CryptoGenericHashWrap () {
-  // inited in NewInstance
+  this->state = NULL;
 }
 
 CryptoGenericHashWrap::~CryptoGenericHashWrap () {
@@ -19,26 +19,14 @@ NAN_METHOD(CryptoGenericHashWrap::New) {
 
 NAN_METHOD(CryptoGenericHashWrap::Update) {
   CryptoGenericHashWrap *self = Nan::ObjectWrap::Unwrap<CryptoGenericHashWrap>(info.This());
-
-  if (!info[0]->IsObject()) {
-    Nan::ThrowError("input must be a buffer");
-    return;
-  }
-
-  Local<Object> input = info[0]->ToObject();
-  crypto_generichash_update(self->state, (unsigned char *) node::Buffer::Data(input), node::Buffer::Length(input));
+  ASSERT_BUFFER_SET_LENGTH(info[0], input)
+  crypto_generichash_update(self->state, CDATA(input), input_length);
 }
 
 NAN_METHOD(CryptoGenericHashWrap::Final) {
   CryptoGenericHashWrap *self = Nan::ObjectWrap::Unwrap<CryptoGenericHashWrap>(info.This());
-
-  if (!info[0]->IsObject()) {
-    Nan::ThrowError("output must be a buffer");
-    return;
-  }
-
-  Local<Object> output = info[0]->ToObject();
-  crypto_generichash_final(self->state, (unsigned char *) node::Buffer::Data(output), node::Buffer::Length(output));
+  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_generichash_BYTES_MIN)
+  crypto_generichash_final(self->state, CDATA(output), output_length);
 }
 
 void CryptoGenericHashWrap::Init () {

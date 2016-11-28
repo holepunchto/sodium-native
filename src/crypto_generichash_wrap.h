@@ -9,7 +9,7 @@ using namespace v8;
 class CryptoGenericHashWrap : public Nan::ObjectWrap {
 public:
   static void Init ();
-  static Local<Value> NewInstance (unsigned char *buf, unsigned long long key_length, unsigned long long output_length);
+  static Local<Value> NewInstance (unsigned char *key, unsigned long long key_length, unsigned long long output_length);
   CryptoGenericHashWrap ();
   ~CryptoGenericHashWrap ();
 
