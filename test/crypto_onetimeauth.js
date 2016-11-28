@@ -18,23 +18,23 @@ tape('crypto_onetimeauth', function (t) {
   t.end()
 })
 
-tape('crypto_onetimeauth_stream', function (t) {
+tape('crypto_onetimeauth_instance', function (t) {
   var key = alloc(sodium.crypto_onetimeauth_KEYBYTES)
   fill(key, 'lo')
 
   t.throws(function () {
-    sodium.crypto_onetimeauth_stream()
+    sodium.crypto_onetimeauth_instance()
   }, 'key required')
 
   key[0] = 42
 
-  var stream = sodium.crypto_onetimeauth_stream(key)
+  var instance = sodium.crypto_onetimeauth_instance(key)
   var value = new Buffer('Hello, World!')
 
-  for (var i = 0; i < 10; i++) stream.update(value)
+  for (var i = 0; i < 10; i++) instance.update(value)
 
   var mac = alloc(sodium.crypto_onetimeauth_BYTES)
-  stream.final(mac)
+  instance.final(mac)
 
   t.same(mac.toString('hex'), 'ac35df70e6b95051e015de11a6cbf4ab', 'streaming mac')
 

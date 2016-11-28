@@ -138,7 +138,7 @@ NAN_METHOD(crypto_generichash) {
   CALL_SODIUM(crypto_generichash(CDATA(output), CLENGTH(output), CDATA(input), CLENGTH(input), key_data, key_len))
 }
 
-NAN_METHOD(crypto_generichash_stream) {
+NAN_METHOD(crypto_generichash_instance) {
   unsigned long long output_length = crypto_generichash_BYTES;
 
   if (info[1]->IsObject()) {
@@ -259,7 +259,7 @@ NAN_METHOD(crypto_onetimeauth_verify) {
   CALL_SODIUM_BOOL(crypto_onetimeauth_verify(CDATA(output), CDATA(input), input_length, CDATA(key)))
 }
 
-NAN_METHOD(crypto_onetimeauth_stream) {
+NAN_METHOD(crypto_onetimeauth_instance) {
   ASSERT_BUFFER_MIN_LENGTH(info[0], key, crypto_onetimeauth_KEYBYTES)
   info.GetReturnValue().Set(CryptoOnetimeAuthWrap::NewInstance(CDATA(key)));
 }
@@ -357,7 +357,7 @@ NAN_MODULE_INIT(InitAll) {
   CryptoGenericHashWrap::Init();
 
   EXPORT_FUNCTION(crypto_generichash)
-  EXPORT_FUNCTION(crypto_generichash_stream)
+  EXPORT_FUNCTION(crypto_generichash_instance)
 
   // crypto_hash
 
@@ -407,7 +407,7 @@ NAN_MODULE_INIT(InitAll) {
 
   EXPORT_FUNCTION(crypto_onetimeauth)
   EXPORT_FUNCTION(crypto_onetimeauth_verify)
-  EXPORT_FUNCTION(crypto_onetimeauth_stream)
+  EXPORT_FUNCTION(crypto_onetimeauth_instance)
 
   // crypto_pwhash
 
