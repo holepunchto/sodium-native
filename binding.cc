@@ -244,6 +244,14 @@ NAN_METHOD(crypto_scalarmult) {
 
 // crypto_shorthash
 
+NAN_METHOD(crypto_shorthash) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_shorthash_BYTES)
+  ASSERT_BUFFER(info[1], input)
+  ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_shorthash_KEYBYTES)
+
+  CALL_SODIUM(crypto_shorthash(CDATA(output), CDATA(input), CLENGTH(input), CDATA(key)))
+}
+
 NAN_MODULE_INIT(InitAll) {
   if (sodium_init() == -1) {
     Nan::ThrowError("sodium_init() failed");
@@ -335,6 +343,12 @@ NAN_MODULE_INIT(InitAll) {
   EXPORT_FUNCTION(crypto_scalarmult)
 
   // crypto_shorthash
+
+  EXPORT_NUMBER(crypto_shorthash_BYTES)
+  EXPORT_NUMBER(crypto_shorthash_KEYBYTES)
+  EXPORT_STRING(crypto_shorthash_PRIMITIVE)
+
+  EXPORT_FUNCTION(crypto_shorthash)
 
   #undef EXPORT_FUNCTION
   #undef EXPORT_NUMBER
