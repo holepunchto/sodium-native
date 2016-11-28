@@ -38,8 +38,8 @@ NAN_METHOD(crypto_sign_keypair) {
 }
 
 NAN_METHOD(crypto_sign) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], signed_message, crypto_sign_BYTES);
-  ASSERT_BUFFER(info[1], message); // TODO: this is not correct! must be bigger than BYTES + something
+  ASSERT_BUFFER_SET_LENGTH(info[1], message);
+  ASSERT_BUFFER_MIN_LENGTH(info[0], signed_message, message_length + crypto_sign_BYTES);
   ASSERT_BUFFER_MIN_LENGTH(info[2], secret_key, crypto_sign_SECRETKEYBYTES);
 
   unsigned long long signed_message_length_dummy;  // TODO: what is this used for?
@@ -49,7 +49,7 @@ NAN_METHOD(crypto_sign) {
 
 NAN_METHOD(crypto_sign_open) {
   ASSERT_BUFFER_MIN_LENGTH(info[1], signed_message, crypto_sign_BYTES);
-  ASSERT_BUFFER(info[0], message); // TODO: this is not correct! must be bigger than BYTES + something
+  ASSERT_BUFFER_MIN_LENGTH(info[0], message, signed_message_length - crypto_sign_BYTES);
   ASSERT_BUFFER_MIN_LENGTH(info[2], public_key, crypto_sign_PUBLICKEYBYTES);
 
   unsigned long long message_length_dummy;  // TODO: what is this used for?
@@ -447,7 +447,6 @@ NAN_MODULE_INIT(InitAll) {
 
   // crypto_pwhash
 
-  EXPORT_NUMBER(crypto_pwhash_ALG_ARGON2I13)
   EXPORT_NUMBER(crypto_pwhash_ALG_ARGON2I13)
   EXPORT_NUMBER(crypto_pwhash_SALTBYTES)
   EXPORT_NUMBER(crypto_pwhash_STRBYTES)

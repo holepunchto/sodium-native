@@ -63,7 +63,7 @@ tape('crypto_sign', function (t) {
 
   var output = alloc(message.length)
 
-  t.notOk(sodium.crypto_sign_open(output, Buffer.concat([alloc(1), signedMessage]), pk), 'was not signed')
+  t.notOk(sodium.crypto_sign_open(output, alloc(signedMessage.length), pk), 'was not signed')
   t.ok(sodium.crypto_sign_open(output, signedMessage, pk), 'was signed')
 
   t.same(output, message, 'same message')
