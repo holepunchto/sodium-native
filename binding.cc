@@ -135,6 +135,15 @@ NAN_METHOD(crypto_generichash_stream) {
   info.GetReturnValue().Set(CryptoGenericHashWrap::NewInstance());
 }
 
+// crypto_hash
+
+NAN_METHOD(crypto_hash) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_hash_BYTES)
+  ASSERT_BUFFER(info[1], input)
+
+  CALL_SODIUM(crypto_hash(CDATA(output), CDATA(input), CLENGTH(input)))
+}
+
 // crypto_secretbox
 
 NAN_METHOD(crypto_secretbox_detached) {
@@ -232,6 +241,12 @@ NAN_MODULE_INIT(InitAll) {
 
   EXPORT_FUNCTION(crypto_generichash)
   EXPORT_FUNCTION(crypto_generichash_stream)
+
+  // crypto_hash
+
+  EXPORT_NUMBER(crypto_hash_BYTES)
+  EXPORT_STRING(crypto_hash_PRIMITIVE)
+  EXPORT_FUNCTION(crypto_hash)
 
   // crypto_secretbox
 
