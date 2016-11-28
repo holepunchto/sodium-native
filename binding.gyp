@@ -12,6 +12,7 @@
       'sources': [
         'binding.cc',
         'src/crypto_generichash_wrap.cc',
+        'src/crypto_onetimeauth_wrap.cc',
       ],
       'xcode_settings': {
         'OTHER_CFLAGS': [

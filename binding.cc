@@ -3,6 +3,7 @@
 #include <nan.h>
 #include "deps/libsodium/src/libsodium/include/sodium.h"
 #include "src/crypto_generichash_wrap.h"
+#include "src/crypto_onetimeauth_wrap.h"
 
 using namespace node;
 using namespace v8;
@@ -258,6 +259,11 @@ NAN_METHOD(crypto_onetimeauth_verify) {
   CALL_SODIUM_BOOL(crypto_onetimeauth_verify(CDATA(output), CDATA(input), input_length, CDATA(key)))
 }
 
+NAN_METHOD(crypto_onetimeauth_stream) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], key, crypto_onetimeauth_KEYBYTES)
+  info.GetReturnValue().Set(CryptoOnetimeAuthWrap::NewInstance(CDATA(key)));
+}
+
 // crypto_pwhash
 
 NAN_METHOD(crypto_pwhash) {
@@ -397,8 +403,11 @@ NAN_MODULE_INIT(InitAll) {
   EXPORT_NUMBER(crypto_onetimeauth_KEYBYTES)
   EXPORT_STRING(crypto_onetimeauth_PRIMITIVE)
 
+  CryptoOnetimeAuthWrap::Init();
+
   EXPORT_FUNCTION(crypto_onetimeauth)
   EXPORT_FUNCTION(crypto_onetimeauth_verify)
+  EXPORT_FUNCTION(crypto_onetimeauth_stream)
 
   // crypto_pwhash
 
