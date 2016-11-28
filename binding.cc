@@ -221,6 +221,29 @@ NAN_METHOD(crypto_auth_verify) {
   CALL_SODIUM_BOOL(crypto_auth_verify(CDATA(hmac), CDATA(input), CLENGTH(input), CDATA(key)))
 }
 
+// crypto_onetimeauth
+
+// crypto_pwhash
+
+// crypto_scalarmult
+
+NAN_METHOD(crypto_scalarmult_base) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], public_key, crypto_scalarmult_BYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], secret_key, crypto_scalarmult_SCALARBYTES)
+
+  CALL_SODIUM(crypto_scalarmult_base(CDATA(public_key), CDATA(secret_key)))
+}
+
+NAN_METHOD(crypto_scalarmult) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], shared_secret, crypto_scalarmult_BYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], secret_key, crypto_scalarmult_SCALARBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[2], public_key, crypto_scalarmult_BYTES)
+
+  CALL_SODIUM(crypto_scalarmult(CDATA(shared_secret), CDATA(secret_key), CDATA(public_key)))
+}
+
+// crypto_shorthash
+
 NAN_MODULE_INIT(InitAll) {
   if (sodium_init() == -1) {
     Nan::ThrowError("sodium_init() failed");
@@ -297,6 +320,21 @@ NAN_MODULE_INIT(InitAll) {
 
   EXPORT_FUNCTION(crypto_auth)
   EXPORT_FUNCTION(crypto_auth_verify)
+
+  // crypto_onetimeauth
+
+  // crypto_pwhash
+
+  // crypto_scalarmult
+
+  EXPORT_STRING(crypto_scalarmult_PRIMITIVE)
+  EXPORT_NUMBER(crypto_scalarmult_BYTES)
+  EXPORT_NUMBER(crypto_scalarmult_SCALARBYTES)
+
+  EXPORT_FUNCTION(crypto_scalarmult_base)
+  EXPORT_FUNCTION(crypto_scalarmult)
+
+  // crypto_shorthash
 
   #undef EXPORT_FUNCTION
   #undef EXPORT_NUMBER
