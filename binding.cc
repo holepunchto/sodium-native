@@ -119,6 +119,71 @@ NAN_METHOD(crypto_hash) {
   CALL_SODIUM(crypto_hash(CDATA(output), CDATA(input), CLENGTH(input)))
 }
 
+// crypto_box
+
+NAN_METHOD(crypto_box_seed_keypair) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], public_key, crypto_box_PUBLICKEYBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], secret_key, crypto_box_SECRETKEYBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[2], seed, crypto_box_SEEDBYTES)
+
+  CALL_SODIUM(crypto_box_seed_keypair(CDATA(public_key), CDATA(secret_key), CDATA(seed)))
+}
+
+NAN_METHOD(crypto_box_keypair) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], public_key, crypto_box_PUBLICKEYBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], secret_key, crypto_box_SECRETKEYBYTES)
+
+  CALL_SODIUM(crypto_box_keypair(CDATA(public_key), CDATA(secret_key)))
+}
+
+NAN_METHOD(crypto_box_detached) {
+  ASSERT_BUFFER_SET_LENGTH(info[2], message)
+  ASSERT_BUFFER_MIN_LENGTH(info[0], ciphertext, message_length)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], mac, crypto_box_MACBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[3], nonce, crypto_box_NONCEBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[4], public_key, crypto_box_PUBLICKEYBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[5], secret_key, crypto_box_SECRETKEYBYTES)
+
+  CALL_SODIUM(crypto_box_detached(
+    CDATA(ciphertext), CDATA(mac), CDATA(message), message_length, CDATA(nonce), CDATA(public_key), CDATA(secret_key)
+  ))
+}
+
+NAN_METHOD(crypto_box_easy) {
+  ASSERT_BUFFER_SET_LENGTH(info[1], message)
+  ASSERT_BUFFER_MIN_LENGTH(info[0], ciphertext, message_length + crypto_box_MACBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[2], nonce, crypto_box_NONCEBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[3], public_key, crypto_box_PUBLICKEYBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[4], secret_key, crypto_box_SECRETKEYBYTES)
+
+  CALL_SODIUM(crypto_box_easy(CDATA(ciphertext), CDATA(message), message_length, CDATA(nonce), CDATA(public_key), CDATA(secret_key)))
+}
+
+NAN_METHOD(crypto_box_open_detached) {
+  ASSERT_BUFFER_SET_LENGTH(info[1], ciphertext)
+  ASSERT_BUFFER_MIN_LENGTH(info[0], message, ciphertext_length)
+  ASSERT_BUFFER_MIN_LENGTH(info[2], mac, crypto_box_MACBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[3], nonce, crypto_box_NONCEBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[4], public_key, crypto_box_PUBLICKEYBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[5], secret_key, crypto_box_SECRETKEYBYTES)
+
+  CALL_SODIUM_BOOL(crypto_box_open_detached(
+    CDATA(message), CDATA(ciphertext), CDATA(mac), ciphertext_length, CDATA(nonce), CDATA(public_key), CDATA(secret_key)
+  ))
+}
+
+NAN_METHOD(crypto_box_open_easy) {
+  ASSERT_BUFFER_MIN_LENGTH(info[1], ciphertext, crypto_box_MACBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[0], message, ciphertext_length - crypto_box_MACBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[2], nonce, crypto_box_NONCEBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[3], public_key, crypto_box_PUBLICKEYBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[4], secret_key, crypto_box_SECRETKEYBYTES)
+
+  CALL_SODIUM_BOOL(crypto_box_open_easy(
+    CDATA(message), CDATA(ciphertext), ciphertext_length, CDATA(nonce), CDATA(public_key), CDATA(secret_key)
+  ))
+}
+
 // crypto_secretbox
 
 NAN_METHOD(crypto_secretbox_detached) {
@@ -319,6 +384,22 @@ NAN_MODULE_INIT(InitAll) {
   EXPORT_NUMBER(crypto_hash_BYTES)
   EXPORT_STRING(crypto_hash_PRIMITIVE)
   EXPORT_FUNCTION(crypto_hash)
+
+  // crypto_box
+
+  EXPORT_NUMBER(crypto_box_SEEDBYTES)
+  EXPORT_NUMBER(crypto_box_PUBLICKEYBYTES)
+  EXPORT_NUMBER(crypto_box_SECRETKEYBYTES)
+  EXPORT_NUMBER(crypto_box_NONCEBYTES)
+  EXPORT_NUMBER(crypto_box_MACBYTES)
+  EXPORT_STRING(crypto_box_PRIMITIVE)
+
+  EXPORT_FUNCTION(crypto_box_seed_keypair)
+  EXPORT_FUNCTION(crypto_box_keypair)
+  EXPORT_FUNCTION(crypto_box_detached)
+  EXPORT_FUNCTION(crypto_box_easy)
+  EXPORT_FUNCTION(crypto_box_open_detached)
+  EXPORT_FUNCTION(crypto_box_open_easy)
 
   // crypto_secretbox
 
