@@ -405,8 +405,6 @@ NAN_MODULE_INIT(InitAll) {
 
   EXPORT_NUMBER(crypto_secretbox_KEYBYTES)
   EXPORT_NUMBER(crypto_secretbox_NONCEBYTES)
-  EXPORT_NUMBER(crypto_secretbox_ZEROBYTES)
-  EXPORT_NUMBER(crypto_secretbox_BOXZEROBYTES)
   EXPORT_NUMBER(crypto_secretbox_MACBYTES)
   EXPORT_STRING(crypto_secretbox_PRIMITIVE)
 
