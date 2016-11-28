@@ -42,12 +42,457 @@ if (!sodium.crypto_secretbox_open_easy(plainText, cipher, nonce, key)) {
 } else {
   console.log('Decrypted message:', plainText, '(' + plainText.toString() + ')')
 }
-
 ```
 
 ## API
 
-(TODO, see tests + source for now)
+#### `var sodium = require('sodium-native')`
+
+Loads the bindings. If you get an module version error you probably need to reinstall the module because you switched node versions.
+
+### Generating random data
+
+Bindings to the random data generation API.
+See the libsodium randombytes_buf docs for more information.
+
+#### `sodium.randombytes_buf(buffer)`
+
+Fill `buffer` with random data.
+
+### Signing
+
+Bindings for the crypto_sign API.
+See the libsodium crypto_sign docs for more information.
+
+#### `crypto_sign_seed_keypair(publicKey, secretKey, seed)`
+
+Create a new keypair based on a seed.
+
+* `publicKey` should be a buffer with length `crypto_sign_PUBLICKEYBYTES`.
+* `secretKey` should be a buffer with length `crypto_sign_SECRETKEYBYTES`.
+* `seed` should be a buffer with length `crypto_sign_SEEDBYTES`.
+
+The generated public and secret key will be stored in passed in buffers.
+
+#### `crypto_sign_keypair(publicKey, secretKey)`
+
+Create a new keypair.
+
+* `publicKey` should be a buffer with length `crypto_sign_PUBLICKEYBYTES`.
+* `secretKey` should be a buffer with length `crypto_sign_SECRETKEYBYTES`.
+
+The generated public and secret key will be stored in passed in buffers.
+
+#### `crypto_sign(signedMessage, message, secretKey)`
+
+Sign a message.
+
+* `signedMessage` should be a buffer with length `crypto_sign_BYTES + message.length`.
+* `message` should be a buffer of any length.
+* `secretKey` should be a secret key.
+
+The generated signed message will be stored in `signedMessage`.
+
+#### `var bool = crypto_sign_open(message, signedMessage, publicKey)`
+
+Verify and open a message.
+
+* `message` should be a buffer with length `signedMessage - crypto_sign_BYTES`.
+* `signedMessage` at least `crypto_sign_BYTES` length.
+* `publicKey` should be a public key.
+
+Will return `true` if the message could be verified. Otherwise `false`.
+If verified the originally signed message is stored in the `message` buffer.
+
+#### `crypto_sign_detached(signature, message, secretKey)`
+
+Same as `crypto_sign` except it only stores the signature.
+
+* `signature` should be a buffer with length `crypto_sign_BYTES`.
+* `message` should be a buffer of any length.
+* `secretKey` should be a secret key.
+
+The generated signature is stored in `signature`.
+
+#### `var bool = crypto_sign_verify_detached(signature, message, publicKey)`
+
+Verify a signature.
+
+* `signature` should be a buffer with length `crypto_sign_BYTES`.
+* `message` should be a buffer of any length.
+* `publicKey` should be a public key.
+
+Will return `true` if the message could be verified. Otherwise `false`.
+
+### Generic hashing
+
+Bindings for the crypto_generichash API.
+See the libsodium crypto_generichash docs for more information.
+
+#### `crypto_generichash(output, input, [key])`
+
+Hash a value with an optional key using the generichash method.
+
+* `output` should be a buffer with length within `crypto_generichash_BYTES_MIN` - `crypto_generichash_BYTES_MAX`.
+* `input` should be a buffer of any length.
+* `key` is an optional buffer of length within `crypto_generichash_KEYBYTES_MIN` - `crypto_generichash_KEYBYTES_MAX`.
+
+The generated hash is stored in `output`.
+
+Also exposes `crypto_generichash_BYTES` and `crypto_generichash_KEYBYTES` that can be used as "default" buffer sizes.
+
+#### `var instance = crypto_generichash_instance([key], [outputLength])`
+
+Create a generichash instance that can hash a stream of input buffers.
+
+* `key` is an optional buffer as above.
+* `outputLength` the buffer size of your output.
+
+#### `instance.update(input)`
+
+Update the instance with a new piece of data.
+
+* `input` should be a buffer of any size.
+
+#### `instance.final(output)`
+
+Finalize the instance.
+
+* `output` should be a buffer as above with the same length you gave when creating the instance.
+
+The generated hash is stored in `output`.
+
+### Hashing
+
+Bindings for the crypto_hash API.
+See the libsodium crypto_hash docs for more information.
+
+#### `crypto_hash(output, input)`
+
+Hash an input value.
+
+* `output` should be a buffer of length `crypto_hash_BYTES`.
+* `input` should be a buffer of any length.
+
+The generated hash is stored in `output`.
+
+### Public / secret key box encryption
+
+Bindings for the crypto_box API.
+See the libsodium crypto_box docs for more information.
+
+#### `crypto_box_seed_keypair(publicKey, secretKey, seed)`
+
+Create a new keypair based on a seed.
+
+* `publicKey` should be a buffer with length `crypto_box_PUBLICKEYBYTES`.
+* `secretKey` should be a buffer with length `crypto_box_SECRETKEYBYTES`.
+* `seed` should be a buffer with length `crypto_box_SEEDBYTES`.
+
+The generated public and secret key will be stored in passed in buffers.
+
+#### `crypto_box_keypair(publicKey, secretKey)`
+
+Create a new keypair.
+
+* `publicKey` should be a buffer with length `crypto_box_PUBLICKEYBYTES`.
+* `secretKey` should be a buffer with length `crypto_box_SECRETKEYBYTES`.
+
+The generated public and secret key will be stored in passed in buffers.
+
+#### `crypto_box_detached(cipher, mac, message, nonce, publicKey, secretKey)`
+
+Encrypt a message.
+
+* `cipher` should be a buffer with length `message.length`.
+* `mac` should be a buffer with length `crypto_box_MACBYTES`.
+* `message` should be a buffer of any length.
+* `nonce` should be a buffer with length `crypto_box_NONCEBYTES`.
+* `publicKey` should be a public key.
+* `secretKey` should be a secret key.
+
+The encrypted message will be stored in `cipher` and the authentification code will be stored in `mac`.
+
+#### `crypto_box_easy(cipher, message, nonce, publicKey, secretKey)`
+
+Same as `crypto_box_detached` except it encodes the mac in the message.
+
+* `cipher` should be a buffer with length `message.length + crypto_box_MACBYTES`.
+* `message` should be a buffer of any length.
+* `nonce` should be a buffer with length `crypto_box_NONCEBYTES`.
+* `publicKey` should be a public key.
+* `secretKey` should be a secret key.
+
+The encrypted message and authentification code  will be stored in `cipher`.
+
+#### `var bool = crypto_box_open_detached(message, cipher, mac, nonce, publicKey, secretKey)`
+
+Decrypt a message.
+
+* `message` should be a buffer with length `cipher.length`.
+* `mac` should be a buffer with length `crypto_box_MACBYTES`.
+* `cipher` should be a buffer of any length.
+* `nonce` should be a buffer with length `crypto_box_NONCEBYTES`.
+* `publicKey` should be a public key.
+* `secretKey` should be a secret key.
+
+Returns `true` if the message could be decrypted. Otherwise `false`.
+
+The decrypted message will be stored in `message`.
+
+#### `var bool = crypto_box_open_easy(message, cipher, nonce, publicKey, secretKey)`
+
+Decrypt a message encoded with the easy method.
+
+* `message` should be a buffer with length `cipher.length`.
+* `cipher` should be a buffer with length at least `crypto_box_MACBYTES`.
+* `nonce` should be a buffer with length `crypto_box_NONCEBYTES`.
+* `publicKey` should be a public key.
+* `secretKey` should be a secret key.
+
+Returns `true` if the message could be decrypted. Otherwise `false`.
+
+The decrypted message will be stored in `message`.
+
+### Secret key box encryption
+
+Bindings for the crypto_secretbox API.
+See the libsodium crypto_secretbox docs for more information.
+
+#### `crypto_secretbox_detached(cipher, mac, message, nonce, secretKey)`
+
+Encrypt a message.
+
+* `cipher` should be a buffer with length `message.length`.
+* `mac` should be a buffer with length `crypto_secretbox_MACBYTES`.
+* `message` should be a buffer of any length.
+* `nonce` should be a buffer with length `crypto_secretbox_NONCEBYTES`.
+* `secretKey` should be a secret key with legnth `crypto_secretbox_KEYBYTES`.
+
+The encrypted message will be stored in `cipher` and the authentification code will be stored in `mac`.
+
+#### `crypto_secretbox_easy(cipher, message, nonce, secretKey)`
+
+Same as `crypto_secretbox_detached` except it encodes the mac in the message.
+
+* `cipher` should be a buffer with length `message.length + crypto_secretbox_MACBYTES`.
+* `message` should be a buffer of any length.
+* `nonce` should be a buffer with length `crypto_secretbox_NONCEBYTES`.
+* `secretKey` should be a secret key with legnth `crypto_secretbox_KEYBYTES`.
+
+#### `var bool = crypto_secretbox_open_detached(message, cipher, mac, nonce, secretKey)`
+
+Decrypt a message.
+
+* `message` should be a buffer with length `cipher.length`.
+* `mac` should be a buffer with length `crypto_secretbox_MACBYTES`.
+* `cipher` should be a buffer of any length.
+* `nonce` should be a buffer with length `crypto_secretbox_NONCEBYTES`.
+* `secretKey` should be a secret key.
+
+Returns `true` if the message could be decrypted. Otherwise `false`.
+
+The decrypted message will be stored in `message`.
+
+#### `var bool = crypto_secretbox_open_easy(message, cipher, nonce, secretKey)`
+
+Decrypt a message encoded with the easy method.
+
+* `message` should be a buffer with length `cipher.length`.
+* `cipher` should be a buffer with length at least `crypto_secretbox_MACBYTES`.
+* `nonce` should be a buffer with length `crypto_secretbox_NONCEBYTES`.
+* `secretKey` should be a secret key.
+
+Returns `true` if the message could be decrypted. Otherwise `false`.
+
+The decrypted message will be stored in `message`.
+
+### Non-authenticated streaming encryption
+
+Bindings for the crypto_stream API.
+See the libsodium crypto_stream docs for more information.
+
+#### `crypto_stream(cipher, nonce, key)`
+
+Generate random data based on a nonce and key into the cipher.
+
+* `cipher` should be a buffer of any size.
+* `nonce` should be a buffer with length `crypto_stream_NONCEBYTES`.
+* `key` should be a secret key with length `crypto_stream_KEYBYTES`.
+
+The generated data is stored in `cipher`.
+
+#### `crypto_stream_xor(cipher, message, nonce, key)`
+
+Encrypt, but *not* authenticate, a message based on a nonce and key
+
+* `cipher` should be a buffer with length `message.length`.
+* `message` should be a buffer of any size.
+* `nonce` should be a buffer with length `crypto_stream_NONCEBYTES`.
+* `key` should be a secret key with length `crypto_stream_KEYBYTES`.
+
+The encrypted data is stored in `cipher`. To decrypt, swap `cipher` and `message`.
+Also supports in-place encryption where you use the same buffer as `cipher` and `message`.
+
+### Authentication
+
+Bindings for the crypto_auth API.
+See the libsodium crypto_auth docs for more information.
+
+#### `crypto_auth(output, input, key)`
+
+Create an authentication token.
+
+* `output` should be a buffer of length `crypto_auth_BYTES`.
+* `input` should be a buffer of any size.
+* `key` should be a buffer of lenght `crypto_auth_KEYBYTES`.
+
+The generated token is stored in `output`.
+
+#### `var bool = crypto_auth_verify(output, input, key)`
+
+Verify a token.
+
+* `output` should be a buffer of length `crypto_auth_BYTES`.
+* `input` should be a buffer of any size.
+* `key` should be a buffer of lenght `crypto_auth_KEYBYTES`.
+
+Returns `true` if the token could be verified. Otherwise `false`.
+
+### One-time Authentication
+
+Bindings for the crypto_onetimeauth API.
+See the libsodium crypto_onetimeauth docs for more information.
+
+#### `crypto_onetimeauth(output, input, key)`
+
+Create a authentication token based on a onetime key.
+
+* `output` should be a buffer of length `crypto_onetimauth_BYTES`.
+* `input` should be a buffer of any size.
+* `key` should be a buffer of lenght `crypto_onetimeauth_KEYBYTES`.
+
+The generated token is stored in `output`.
+
+#### `var bool = crypto_onetimeauth_verify(output, input, key)`
+
+Verify a token.
+
+* `output` should be a buffer of length `crypto_onetimeauth_BYTES`.
+* `input` should be a buffer of any size.
+* `key` should be a buffer of lenght `crypto_onetimeauth_KEYBYTES`.
+
+Returns `true` if the token could be verified. Otherwise `false`.
+
+#### `var instance = crypto_onetimeauth_instance(key)`
+
+Create an instance that create a token from a onetime key and a stream of input data.
+
+* `key` should be a buffer of length `crypto_onetimeauth_KEYBYTES`.
+
+#### `instance.update(input)`
+
+Update the instance with a new piece of data.
+
+* `input` should be a buffer of any size.
+
+#### `instance.final(output)`
+
+Finalize the instance.
+
+* `output` should be a buffer of length `crypto_onetimeauth_BYTES`.
+
+The generated hash is stored in `output`.
+
+### Password Hashing
+
+Bindings for the crypto_pwhash API.
+See the libsodium crypto_pwhash docs for more information.
+
+#### `crypto_pwhash(output, password, salt, opslimit, memlimit, algorithm)`
+
+Create a password hash.
+
+* `output` should be a buffer of any size.
+* `password` should be a buffer of any size.
+* `salt` should be a buffer with length `crypto_passwd_SALTBYTES`.
+* `opslimit` should a be number containing your ops limit setting.
+* `memlimit` should a be number containing your mem limit setting.
+* `algorithm` should be a number specifying the algorithm you want to use.
+
+Available ops and mem limits are
+
+* `crypto_pwhash_OPSLIMIT_INTERACTIVE`
+* `crypto_pwhash_OPSLIMIT_MODERATE`
+* `crypto_pwhash_OPSLIMIT_SENSITIVE`
+* `crypto_pwhash_MEMLIMIT_INTERACTIVE`
+* `crypto_pwhash_MEMLIMIT_MODERATE`
+* `crypto_pwhash_MEMLIMIT_SENSITIVE`
+
+The available algorithms are
+
+* `crypto_pwhash_ALG_ARGON2I13`
+
+The generated hash will be stored in `output` and the entire `output` buffer will be used.
+
+#### `crypto_pwhash_str(output, password, opslimit, memlimit)`
+
+Create a password hash without a salt.
+
+* `output` should be a buffer of any size.
+* `password` should be a buffer of any size.
+* `opslimit` should a be number containing your ops limit setting.
+* `memlimit` should a be number containing your mem limit setting.
+
+The generated hash will be stored in `output` and the entire `output` buffer will be used.
+
+#### `var bool = crypto_pwhash_str_verify(output, password)`
+
+Verify a password hash generated with the above method.
+
+* `output` should be a buffer of any size.
+* `password` should be a buffer of any size.
+
+Returns `true` if the hash could be verified. Otherwise `false`.
+
+### Scalar multiplication
+
+Bindings for the crypto_scalarmult API.
+See the libsodium crypto_scalarmult docs for more information.
+
+#### `crypto_scalarmult_base(publicKey, secretKey)`
+
+Create a scalar multiplication public key based on a secret key
+
+* `publicKey` should be a buffer of length `crypto_scalarmult_BYTES`.
+* `secretKey` should be a buffer of length `crypto_scalarmult_SCALARBYTES`.
+
+The generated public key is stored in `publicKey`.
+
+#### `crypto_scalarmult(sharedSecret, secretKey, remotePublicKey)`
+
+Derive a shared secret from a local secret key and a remote public key.
+
+* `sharedSecret` shoudl be a buffer of length `crypto_scalarmult_BYTES`.
+* `secretKey` should be a buffer of length `crypto_scalarmult_SCALARBYTES`.
+* `remotePublicKey` should be a buffer of length `crypto_scalarmult_BYTES`.
+
+The generated shared secret is stored in `sharedSecret`.
+
+### Short hashes
+
+Bindings for the crypto_shorthash API.
+See the libsodium crypto_shorthash docs for more information.
+
+#### `crypto_shorthash(output, input, key)`
+
+Hash a value to a short hash based on a key.
+
+* `output` should be a buffer of length `crypto_shorthash_BYTES`.
+* `input` should be a buffer of any size.
+* `key` should be a buffer of length `crypto_shorthash_KEYBYTES`.
+
+The generated short hash is stored in `output`.
 
 ## License
 
