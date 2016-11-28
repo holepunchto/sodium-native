@@ -229,6 +229,22 @@ NAN_METHOD(crypto_auth_verify) {
 
 // crypto_onetimeauth
 
+NAN_METHOD(crypto_onetimeauth) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_onetimeauth_BYTES)
+  ASSERT_BUFFER_SET_LENGTH(info[1], input)
+  ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_onetimeauth_KEYBYTES)
+
+  CALL_SODIUM(crypto_onetimeauth(CDATA(output), CDATA(input), input_length, CDATA(key)))
+}
+
+NAN_METHOD(crypto_onetimeauth_verify) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_onetimeauth_BYTES)
+  ASSERT_BUFFER_SET_LENGTH(info[1], input)
+  ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_onetimeauth_KEYBYTES)
+
+  CALL_SODIUM_BOOL(crypto_onetimeauth_verify(CDATA(output), CDATA(input), input_length, CDATA(key)))
+}
+
 // crypto_pwhash
 
 NAN_METHOD(crypto_pwhash) {
@@ -363,6 +379,13 @@ NAN_MODULE_INIT(InitAll) {
   EXPORT_FUNCTION(crypto_auth_verify)
 
   // crypto_onetimeauth
+
+  EXPORT_NUMBER(crypto_onetimeauth_BYTES)
+  EXPORT_NUMBER(crypto_onetimeauth_KEYBYTES)
+  EXPORT_STRING(crypto_onetimeauth_PRIMITIVE)
+
+  EXPORT_FUNCTION(crypto_onetimeauth)
+  EXPORT_FUNCTION(crypto_onetimeauth_verify)
 
   // crypto_pwhash
 
