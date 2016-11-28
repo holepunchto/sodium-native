@@ -131,14 +131,27 @@ NAN_METHOD(crypto_generichash) {
   if (info[2]->IsObject()) {
     ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_generichash_KEYBYTES_MIN)
     key_data = CDATA(key);
-    key_len = CLENGTH(key);
+    key_len = key_length;
   }
 
   CALL_SODIUM(crypto_generichash(CDATA(output), CLENGTH(output), CDATA(input), CLENGTH(input), key_data, key_len))
 }
 
 NAN_METHOD(crypto_generichash_stream) {
-  info.GetReturnValue().Set(CryptoGenericHashWrap::NewInstance());
+  unsigned long long output_length = crypto_generichash_BYTES;
+
+  if (info[1]->IsObject()) {
+    output_length = CLENGTH(info[1]->ToObject());
+  } else if (info[1]->IsNumber()) {
+    output_length = info[1]->Uint32Value();
+  }
+
+  if (info[0]->IsObject()) {
+    ASSERT_BUFFER_MIN_LENGTH(info[0], key, crypto_generichash_KEYBYTES_MIN)
+    info.GetReturnValue().Set(CryptoGenericHashWrap::NewInstance(CDATA(key), key_length, output_length));
+  } else {
+    info.GetReturnValue().Set(CryptoGenericHashWrap::NewInstance(NULL, 0, output_length));
+  }
 }
 
 // crypto_hash
