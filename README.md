@@ -53,7 +53,7 @@ Loads the bindings. If you get an module version error you probably need to rein
 ### Generating random data
 
 Bindings to the random data generation API.
-See the libsodium randombytes_buf docs for more information.
+[See the libsodium randombytes_buf docs for more information](https://download.libsodium.org/doc/generating_random_data/).
 
 #### `sodium.randombytes_buf(buffer)`
 
@@ -62,7 +62,7 @@ Fill `buffer` with random data.
 ### Signing
 
 Bindings for the crypto_sign API.
-See the libsodium crypto_sign docs for more information.
+[See the libsodium crypto_sign docs for more information](https://download.libsodium.org/doc/public-key_cryptography/public-key_signatures.html).
 
 #### `crypto_sign_seed_keypair(publicKey, secretKey, seed)`
 
@@ -127,7 +127,7 @@ Will return `true` if the message could be verified. Otherwise `false`.
 ### Generic hashing
 
 Bindings for the crypto_generichash API.
-See the libsodium crypto_generichash docs for more information.
+[See the libsodium crypto_generichash docs for more information](https://download.libsodium.org/doc/hashing/generic_hashing.html).
 
 #### `crypto_generichash(output, input, [key])`
 
@@ -165,7 +165,6 @@ The generated hash is stored in `output`.
 ### Hashing
 
 Bindings for the crypto_hash API.
-See the libsodium crypto_hash docs for more information.
 
 #### `crypto_hash(output, input)`
 
@@ -179,7 +178,7 @@ The generated hash is stored in `output`.
 ### Public / secret key box encryption
 
 Bindings for the crypto_box API.
-See the libsodium crypto_box docs for more information.
+[See the libsodium crypto_box docs for more information](https://download.libsodium.org/doc/public-key_cryptography/authenticated_encryption.html).
 
 #### `crypto_box_seed_keypair(publicKey, secretKey, seed)`
 
@@ -257,7 +256,7 @@ The decrypted message will be stored in `message`.
 ### Secret key box encryption
 
 Bindings for the crypto_secretbox API.
-See the libsodium crypto_secretbox docs for more information.
+[See the libsodium crypto_secretbox docs for more information](https://download.libsodium.org/doc/secret-key_cryptography/authenticated_encryption.html).
 
 #### `crypto_secretbox_detached(cipher, mac, message, nonce, secretKey)`
 
@@ -310,7 +309,7 @@ The decrypted message will be stored in `message`.
 ### Non-authenticated streaming encryption
 
 Bindings for the crypto_stream API.
-See the libsodium crypto_stream docs for more information.
+[See the libsodium crypto_stream docs for more information](https://download.libsodium.org/doc/advanced/xsalsa20.html).
 
 #### `crypto_stream(cipher, nonce, key)`
 
@@ -337,7 +336,7 @@ Also supports in-place encryption where you use the same buffer as `cipher` and 
 ### Authentication
 
 Bindings for the crypto_auth API.
-See the libsodium crypto_auth docs for more information.
+[See the libsodium crypto_auth docs for more information](https://download.libsodium.org/doc/secret-key_cryptography/secret-key_authentication.html).
 
 #### `crypto_auth(output, input, key)`
 
@@ -362,7 +361,7 @@ Returns `true` if the token could be verified. Otherwise `false`.
 ### One-time Authentication
 
 Bindings for the crypto_onetimeauth API.
-See the libsodium crypto_onetimeauth docs for more information.
+[See the libsodium crypto_onetimeauth docs for more information](https://download.libsodium.org/doc/advanced/poly1305.html).
 
 #### `crypto_onetimeauth(output, input, key)`
 
@@ -407,7 +406,7 @@ The generated hash is stored in `output`.
 ### Password Hashing
 
 Bindings for the crypto_pwhash API.
-See the libsodium crypto_pwhash docs for more information.
+[See the libsodium crypto_pwhash docs for more information](https://download.libsodium.org/doc/password_hashing/).
 
 #### `crypto_pwhash(output, password, salt, opslimit, memlimit, algorithm)`
 
@@ -458,7 +457,7 @@ Returns `true` if the hash could be verified. Otherwise `false`.
 ### Scalar multiplication
 
 Bindings for the crypto_scalarmult API.
-See the libsodium crypto_scalarmult docs for more information.
+[See the libsodium crypto_scalarmult docs for more information](https://download.libsodium.org/doc/advanced/scalar_multiplication.html).
 
 #### `crypto_scalarmult_base(publicKey, secretKey)`
 
@@ -482,7 +481,7 @@ The generated shared secret is stored in `sharedSecret`.
 ### Short hashes
 
 Bindings for the crypto_shorthash API.
-See the libsodium crypto_shorthash docs for more information.
+[See the libsodium crypto_shorthash docs for more information](https://download.libsodium.org/doc/hashing/short-input_hashing.html).
 
 #### `crypto_shorthash(output, input, key)`
 
