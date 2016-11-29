@@ -48,7 +48,7 @@ Local<Value> CryptoGenericHashWrap::NewInstance (unsigned char *key, unsigned lo
   instance = constructorHandle->GetFunction()->NewInstance(0, NULL);
 
   CryptoGenericHashWrap *self = Nan::ObjectWrap::Unwrap<CryptoGenericHashWrap>(instance);
-  self->state = (crypto_generichash_blake2b_state *) malloc(sizeof(crypto_generichash_state));
+  self->state = (crypto_generichash_state*) sodium_malloc(crypto_generichash_statebytes());
   crypto_generichash_init(self->state, key, key_length, output_length);
 
   return scope.Escape(instance);

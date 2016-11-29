@@ -48,7 +48,7 @@ Local<Value> CryptoOnetimeAuthWrap::NewInstance (unsigned char *key) {
   instance = constructorHandle->GetFunction()->NewInstance(0, NULL);
 
   CryptoOnetimeAuthWrap *self = Nan::ObjectWrap::Unwrap<CryptoOnetimeAuthWrap>(instance);
-  self->state = (crypto_onetimeauth_state *) malloc(sizeof(crypto_onetimeauth_state));
+  self->state = (crypto_onetimeauth_state*) sodium_malloc(crypto_onetimeauth_statebytes());
   crypto_onetimeauth_init(self->state, key);
 
   return scope.Escape(instance);
