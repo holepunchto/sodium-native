@@ -1,4 +1,11 @@
 node_modules
 build
-deps/libsodium
 prebuilds
+.deps
+Makefile
+deps/libsodium/config.log
+deps/libsodium/config.status
+deps/libsodium/libsodium-uninstalled.pc
+deps/libsodium/libsodium.pc
+deps/libsodium/libtool
+deps/libsodium/src/libsodium/include/sodium/version.h
