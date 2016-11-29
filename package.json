@@ -16,7 +16,8 @@
   },
   "scripts": {
     "test": "standard && tape test/*.js",
-    "install": "prebuild --preinstall ./configure --install"
+    "install": "prebuild --preinstall ./configure --install",
+    "prebuild": "prebuild --upload --all"
   },
   "repository": {
     "type": "git",
