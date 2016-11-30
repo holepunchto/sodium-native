@@ -20,6 +20,24 @@ NAN_METHOD(randombytes_buf) {
   randombytes_buf(CDATA(random), CLENGTH(random));
 }
 
+// helpers
+
+NAN_METHOD(sodium_memcmp) {
+  ASSERT_BUFFER(info[0], b1)
+  ASSERT_BUFFER(info[1], b2)
+  ASSERT_UINT(info[2], length)
+
+  CALL_SODIUM_BOOL(sodium_memcmp(CDATA(b1), CDATA(b2), length))
+}
+
+NAN_METHOD(sodium_compare) {
+  ASSERT_BUFFER(info[0], b1)
+  ASSERT_BUFFER(info[1], b2)
+  ASSERT_UINT(info[2], length)
+
+  info.GetReturnValue().Set(Nan::New<Number>(sodium_compare(CDATA(b1), CDATA(b2), length)));
+}
+
 // crypto_sign
 
 NAN_METHOD(crypto_sign_seed_keypair) {
@@ -349,6 +367,11 @@ NAN_MODULE_INIT(InitAll) {
   // randombytes
 
   EXPORT_FUNCTION(randombytes_buf)
+
+  // helpers
+
+  EXPORT_FUNCTION(sodium_memcmp)
+  EXPORT_FUNCTION(sodium_compare)
 
   // crypto_sign
 
