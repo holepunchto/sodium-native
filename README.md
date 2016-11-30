@@ -162,19 +162,6 @@ Finalize the instance.
 
 The generated hash is stored in `output`.
 
-### Hashing
-
-Bindings for the crypto_hash API.
-
-#### `crypto_hash(output, input)`
-
-Hash an input value.
-
-* `output` should be a buffer of length `crypto_hash_BYTES`.
-* `input` should be a buffer of any length.
-
-The generated hash is stored in `output`.
-
 ### Public / secret key box encryption
 
 Bindings for the crypto_box API.
