@@ -44,6 +44,7 @@
 #define ASSERT_UINT(name, var) \
   if (!name->IsNumber()) { \
     Nan::ThrowError(#var " must be a number"); \
+    return; \
   } \
   int var = name->Uint32Value();
 

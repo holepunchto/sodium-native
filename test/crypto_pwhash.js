@@ -31,6 +31,10 @@ tape('crypto_pwhash_str', function (t) {
   var opslimit = sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE
   var memlimit = sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE
 
+  t.throws(function () {
+    sodium.crypto_pwhash_str(output, passwd)
+  }, 'should throw on missing args')
+
   sodium.crypto_pwhash_str(output, passwd, opslimit, memlimit)
 
   t.notEqual(output, alloc(output.length), 'not blank')
