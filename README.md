@@ -399,14 +399,14 @@ Bindings for the crypto_pwhash API.
 
 Create a password hash.
 
-* `output` should be a buffer of any size.
+* `output` should be a buffer with length within `16` - `2^32 - 1`.
 * `password` should be a buffer of any size.
 * `salt` should be a buffer with length `crypto_passwd_SALTBYTES`.
-* `opslimit` should a be number containing your ops limit setting.
-* `memlimit` should a be number containing your mem limit setting.
+* `opslimit` should a be number containing your ops limit setting in the range `3` - `2^32 - 1`.
+* `memlimit` should a be number containing your mem limit setting in the range `8` - `2^32 - 1`.
 * `algorithm` should be a number specifying the algorithm you want to use.
 
-Available ops and mem limits are
+Available default ops and mem limits are
 
 * `crypto_pwhash_OPSLIMIT_INTERACTIVE`
 * `crypto_pwhash_OPSLIMIT_MODERATE`
@@ -423,23 +423,23 @@ The generated hash will be stored in `output` and the entire `output` buffer wil
 
 #### `crypto_pwhash_str(output, password, opslimit, memlimit)`
 
-Create a password hash without a salt.
+Create a password hash with a random salt.
 
-* `output` should be a buffer of any size.
+* `output` should be a buffer with length `crypto_pwhash_STRBYTES`.
 * `password` should be a buffer of any size.
-* `opslimit` should a be number containing your ops limit setting.
-* `memlimit` should a be number containing your mem limit setting.
+* `opslimit` should a be number containing your ops limit setting in the range `3` - `2^32 - 1`.
+* `memlimit` should a be number containing your mem limit setting in the range `8` - `2^32 - 1`.
 
-The generated hash will be stored in `output` and the entire `output` buffer will be used.
+The generated hash, settings, salt, version and algorithm will be stored in `output` and the entire `output` buffer will be used.
 
-#### `var bool = crypto_pwhash_str_verify(output, password)`
+#### `var bool = crypto_pwhash_str_verify(str, password)`
 
 Verify a password hash generated with the above method.
 
-* `output` should be a buffer of any size.
+* `str` should be a buffer with length `crypto_pwhash_STRBYTES`.
 * `password` should be a buffer of any size.
 
-Returns `true` if the hash could be verified. Otherwise `false`.
+Returns `true` if the hash could be verified with the settings contained in `str`. Otherwise `false`.
 
 ### Scalar multiplication
 
