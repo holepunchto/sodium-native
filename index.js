@@ -1,4 +1,3 @@
-var bindings = require('bindings')
-var sodium = bindings('sodium')
+var sodium = require('node-gyp-build')(__dirname)
 
 module.exports = sodium

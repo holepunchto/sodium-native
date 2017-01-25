@@ -4,9 +4,8 @@
   "description": "Low level bindings for libsodium",
   "main": "index.js",
   "dependencies": {
-    "bindings": "^1.2.1",
     "nan": "^2.4.0",
-    "prebuild": "^4.4.0"
+    "node-gyp-build": "^1.0.0"
   },
   "devDependencies": {
     "buffer-alloc": "^1.1.0",
@@ -16,8 +15,7 @@
   },
   "scripts": {
     "test": "standard && tape test/*.js",
-    "install": "prebuild --preinstall ./configure --install",
-    "prebuild": "prebuild --all --strip --verbose"
+    "install": "node-gyp-build ./configure"
   },
   "repository": {
     "type": "git",

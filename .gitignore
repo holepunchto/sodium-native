@@ -1,6 +1,5 @@
 node_modules
 build
-prebuilds
 .deps
 Makefile
 deps/libsodium/config.log
