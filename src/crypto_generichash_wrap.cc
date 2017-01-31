@@ -8,7 +8,7 @@ CryptoGenericHashWrap::CryptoGenericHashWrap () {
 }
 
 CryptoGenericHashWrap::~CryptoGenericHashWrap () {
-  free(this->state);
+  sodium_free(this->state);
 }
 
 NAN_METHOD(CryptoGenericHashWrap::New) {

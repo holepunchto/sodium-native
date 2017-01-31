@@ -8,7 +8,7 @@ CryptoOnetimeAuthWrap::CryptoOnetimeAuthWrap () {
 }
 
 CryptoOnetimeAuthWrap::~CryptoOnetimeAuthWrap () {
-  free(this->state);
+  sodium_free(this->state);
 }
 
 NAN_METHOD(CryptoOnetimeAuthWrap::New) {
