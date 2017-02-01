@@ -14,7 +14,7 @@
     "tape": "^4.6.3"
   },
   "scripts": {
-    "test": "standard && tape test/*.js",
+    "test": "standard && tape \"test/*.js\"",
     "install": "node-gyp-build ./configure"
   },
   "repository": {

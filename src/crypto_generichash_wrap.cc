@@ -45,7 +45,7 @@ Local<Value> CryptoGenericHashWrap::NewInstance (unsigned char *key, unsigned lo
   Local<Object> instance;
 
   Local<FunctionTemplate> constructorHandle = Nan::New<FunctionTemplate>(crypto_generichash_constructor);
-  instance = constructorHandle->GetFunction()->NewInstance(0, NULL);
+  instance = Nan::NewInstance(constructorHandle->GetFunction()).ToLocalChecked();
 
   CryptoGenericHashWrap *self = Nan::ObjectWrap::Unwrap<CryptoGenericHashWrap>(instance);
   self->state = (crypto_generichash_state*) sodium_malloc(crypto_generichash_statebytes());

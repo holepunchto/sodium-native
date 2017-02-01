@@ -45,7 +45,7 @@ Local<Value> CryptoOnetimeAuthWrap::NewInstance (unsigned char *key) {
   Local<Object> instance;
 
   Local<FunctionTemplate> constructorHandle = Nan::New<FunctionTemplate>(crypto_onetimeauth_constructor);
-  instance = constructorHandle->GetFunction()->NewInstance(0, NULL);
+  instance = Nan::NewInstance(constructorHandle->GetFunction()).ToLocalChecked();
 
   CryptoOnetimeAuthWrap *self = Nan::ObjectWrap::Unwrap<CryptoOnetimeAuthWrap>(instance);
   self->state = (crypto_onetimeauth_state*) sodium_malloc(crypto_onetimeauth_statebytes());
