@@ -1,7 +1,7 @@
 #include <node.h>
 #include <node_buffer.h>
 #include <nan.h>
-#include "deps/libsodium/src/libsodium/include/sodium.h"
+#include <sodium.h>
 #include "src/crypto_generichash_wrap.h"
 #include "src/crypto_onetimeauth_wrap.h"
 #include "src/macros.h"

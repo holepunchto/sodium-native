@@ -8,6 +8,7 @@
       'include_dirs' : [
         "<!(node -e \"require('nan')\")",
         'deps/libsodium',
+        'deps/libsodium/src/libsodium/include'
       ],
       'sources': [
         'binding.cc',
