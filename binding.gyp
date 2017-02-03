@@ -1,13 +1,12 @@
 {
+  'variables': {
+    'target_arch%': '<!(node preinstall.js --print-arch)>'
+  },
   'targets': [
     {
-      'target_name': 'libsodium',
-      'dependencies': [
-        'deps/libsodium.gyp:libsodium',
-      ],
+      'target_name': 'sodium',
       'include_dirs' : [
         "<!(node -e \"require('nan')\")",
-        'deps/libsodium',
         'deps/libsodium/src/libsodium/include'
       ],
       'sources': [
@@ -24,7 +23,17 @@
       'cflags': [
         '-g',
         '-O3',
-      ]
+      ],
+      'libraries': [
+        '<!(node preinstall.js --print-lib)'
+      ],
+      'conditions': [
+        ['OS=="linux"', {
+          'link_settings': {
+            'libraries': [ "-Wl,-rpath=\\$$ORIGIN/"]
+          }
+        }],
+      ],
     }
   ]
 }
