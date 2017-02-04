@@ -4,6 +4,8 @@
 #include <sodium.h>
 #include "src/crypto_generichash_wrap.h"
 #include "src/crypto_onetimeauth_wrap.h"
+#include "src/crypto_hash_sha256_wrap.h"
+#include "src/crypto_hash_sha512_wrap.h"
 #include "src/macros.h"
 
 using namespace node;
@@ -358,6 +360,32 @@ NAN_METHOD(crypto_shorthash) {
   CALL_SODIUM(crypto_shorthash(CDATA(output), CDATA(input), CLENGTH(input), CDATA(key)))
 }
 
+// crypto_hash_sha256
+
+NAN_METHOD(crypto_hash_sha256) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_hash_sha256_BYTES)
+  ASSERT_BUFFER(info[1], input)
+
+  CALL_SODIUM(crypto_hash_sha256(CDATA(output), CDATA(input), CLENGTH(input)))
+}
+
+NAN_METHOD(crypto_hash_sha256_instance) {
+  info.GetReturnValue().Set(CryptoHashSha256Wrap::NewInstance());
+}
+
+// crypto_hash_sha512
+
+NAN_METHOD(crypto_hash_sha512) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_hash_sha512_BYTES)
+  ASSERT_BUFFER(info[1], input)
+
+  CALL_SODIUM(crypto_hash_sha512(CDATA(output), CDATA(input), CLENGTH(input)))
+}
+
+NAN_METHOD(crypto_hash_sha512_instance) {
+  info.GetReturnValue().Set(CryptoHashSha512Wrap::NewInstance());
+}
+
 NAN_MODULE_INIT(InitAll) {
   if (sodium_init() == -1) {
     Nan::ThrowError("sodium_init() failed");
@@ -501,21 +529,37 @@ NAN_MODULE_INIT(InitAll) {
 
   EXPORT_FUNCTION(crypto_shorthash)
 
-  #undef EXPORT_FUNCTION
-  #undef EXPORT_NUMBER
-  #undef EXPORT_STRING
-  #undef LOCAL_FUNCTION
-  #undef LOCAL_STRING
-  #undef CDATA
-  #undef CLENGTH
-  #undef STR
-  #undef STR_HELPER
-  #undef ASSERT_BUFFER
-  #undef ASSERT_BUFFER_MIN_LENGTH
-  #undef ASSERT_BUFFER_SET_LENGTH
-  #undef ASSERT_UINT
-  #undef CALL_SODIUM
-  #undef CALL_SODIUM_BOOL
+  // crypto_hash_256
+
+  CryptoHashSha256Wrap::Init();
+
+  EXPORT_NUMBER(crypto_hash_sha256_BYTES)
+  EXPORT_FUNCTION(crypto_hash_sha256)
+  EXPORT_FUNCTION(crypto_hash_sha256_instance)
+
+  // crypto_hash_512
+
+  CryptoHashSha512Wrap::Init();
+
+  EXPORT_NUMBER(crypto_hash_sha512_BYTES)
+  EXPORT_FUNCTION(crypto_hash_sha512)
+  EXPORT_FUNCTION(crypto_hash_sha512_instance)
 }
 
 NODE_MODULE(sodium, InitAll)
+
+#undef EXPORT_FUNCTION
+#undef EXPORT_NUMBER
+#undef EXPORT_STRING
+#undef LOCAL_FUNCTION
+#undef LOCAL_STRING
+#undef CDATA
+#undef CLENGTH
+#undef STR
+#undef STR_HELPER
+#undef ASSERT_BUFFER
+#undef ASSERT_BUFFER_MIN_LENGTH
+#undef ASSERT_BUFFER_SET_LENGTH
+#undef ASSERT_UINT
+#undef CALL_SODIUM
+#undef CALL_SODIUM_BOOL
