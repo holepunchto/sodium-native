@@ -10,15 +10,15 @@
   "devDependencies": {
     "buffer-alloc": "^1.1.0",
     "buffer-fill": "^0.1.0",
-    "prebuildify": "^2.0.0",
+    "prebuildify": "^2.1.0",
     "standard": "^8.6.0",
     "tape": "^4.6.3"
   },
   "scripts": {
     "test": "standard && tape \"test/*.js\"",
     "install": "node-gyp-build \"node preinstall.js\" \"node postinstall.js\"",
-    "prebuild": "prebuildify -a --strip --preinstall \"node preinstall.js && node-gyp rebuild && node postinstall.js\"",
-    "prebuild-ia32": "prebuildify -a --strip --preinstall \"node preinstall.js && node-gyp rebuild --arch=ia32 && node postinstall.js\" --arch=ia32"
+    "prebuild": "prebuildify -a --strip --preinstall \"node preinstall.js\" --postinstall \"node postinstall.js\"",
+    "prebuild-ia32": "prebuildify -a --strip --preinstall \"node preinstall.js\" --postinstall \"node postinstall.js\" --arch=ia32"
   },
   "repository": {
     "type": "git",
