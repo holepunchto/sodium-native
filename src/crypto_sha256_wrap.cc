@@ -20,13 +20,13 @@ NAN_METHOD(CryptoSha256Wrap::New) {
 NAN_METHOD(CryptoSha256Wrap::Update) {
   CryptoSha256Wrap *self = Nan::ObjectWrap::Unwrap<CryptoSha256Wrap>(info.This());
   ASSERT_BUFFER_SET_LENGTH(info[0], input)
-  crypto_hash_sha256_update(self->state, CDATA(input), input_length);
+  crypto_hash_sha256_update(&(self->state), CDATA(input), input_length);
 }
 
 NAN_METHOD(CryptoSha256Wrap::Final) {
   CryptoSha256Wrap *self = Nan::ObjectWrap::Unwrap<CryptoSha256Wrap>(info.This());
   ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_hash_sha256_BYTES)
-  crypto_hash_sha256_final(self->state, CDATA(output), output_length);
+  crypto_hash_sha256_final(&(self->state), CDATA(output), output_length);
 }
 
 void CryptoSha256Wrap::Init () {
@@ -48,8 +48,7 @@ Local<Value> CryptoSha256Wrap::NewInstance () {
   instance = Nan::NewInstance(constructorHandle->GetFunction()).ToLocalChecked();
 
   CryptoSha256Wrap *self = Nan::ObjectWrap::Unwrap<CryptoSha256Wrap>(instance);
-  self->state = (crypto_hash_sha256_state*) sodium_malloc(crypto_hash_sha256_statebytes());
-  crypto_hash_sha256_init(self->state);
+  crypto_hash_sha256_init(&(self->state));
 
   return scope.Escape(instance);
 }

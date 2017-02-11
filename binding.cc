@@ -113,6 +113,32 @@ NAN_METHOD(crypto_generichash) {
   CALL_SODIUM(crypto_generichash(CDATA(output), CLENGTH(output), CDATA(input), CLENGTH(input), key_data, key_len))
 }
 
+NAN_METHOD(crypto_generichash_unsafe) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_generichash_BYTES_MIN)
+
+  unsigned char *key_data = NULL;
+  size_t key_len = 0;
+
+  if (info[2]->IsObject()) {
+    ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_generichash_KEYBYTES_MIN)
+    key_data = CDATA(key);
+    key_len = key_length;
+  }
+
+  Local<Array> buffers = info[1].As<Array>();
+
+  crypto_generichash_state state;
+  crypto_generichash_init(&state, NULL, 0, output_length);
+
+  uint32_t len = buffers->Length();
+  for (uint32_t i = 0; i < len; i++) {
+    Local<Value> buf = buffers->Get(i);
+    crypto_generichash_update(&state, CDATA(buf), CLENGTH(buf));
+  }
+
+  crypto_generichash_final(&state, CDATA(output), output_length);
+}
+
 NAN_METHOD(crypto_generichash_instance) {
   unsigned long long output_length = crypto_generichash_BYTES;
 

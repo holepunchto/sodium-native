@@ -3,13 +3,9 @@
 
 static Nan::Persistent<FunctionTemplate> crypto_generichash_constructor;
 
-CryptoGenericHashWrap::CryptoGenericHashWrap () {
-  this->state = NULL;
-}
+CryptoGenericHashWrap::CryptoGenericHashWrap () {}
 
-CryptoGenericHashWrap::~CryptoGenericHashWrap () {
-  sodium_free(this->state);
-}
+CryptoGenericHashWrap::~CryptoGenericHashWrap () {}
 
 NAN_METHOD(CryptoGenericHashWrap::New) {
   CryptoGenericHashWrap* obj = new CryptoGenericHashWrap();
@@ -20,13 +16,13 @@ NAN_METHOD(CryptoGenericHashWrap::New) {
 NAN_METHOD(CryptoGenericHashWrap::Update) {
   CryptoGenericHashWrap *self = Nan::ObjectWrap::Unwrap<CryptoGenericHashWrap>(info.This());
   ASSERT_BUFFER_SET_LENGTH(info[0], input)
-  crypto_generichash_update(self->state, CDATA(input), input_length);
+  crypto_generichash_update(&(self->state), CDATA(input), input_length);
 }
 
 NAN_METHOD(CryptoGenericHashWrap::Final) {
   CryptoGenericHashWrap *self = Nan::ObjectWrap::Unwrap<CryptoGenericHashWrap>(info.This());
   ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_generichash_BYTES_MIN)
-  crypto_generichash_final(self->state, CDATA(output), output_length);
+  crypto_generichash_final(&(self->state), CDATA(output), output_length);
 }
 
 void CryptoGenericHashWrap::Init () {
@@ -48,8 +44,7 @@ Local<Value> CryptoGenericHashWrap::NewInstance (unsigned char *key, unsigned lo
   instance = Nan::NewInstance(constructorHandle->GetFunction()).ToLocalChecked();
 
   CryptoGenericHashWrap *self = Nan::ObjectWrap::Unwrap<CryptoGenericHashWrap>(instance);
-  self->state = (crypto_generichash_state*) sodium_malloc(crypto_generichash_statebytes());
-  crypto_generichash_init(self->state, key, key_length, output_length);
+  crypto_generichash_init(&(self->state), key, key_length, output_length);
 
   return scope.Escape(instance);
 }

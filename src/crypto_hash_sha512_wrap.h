@@ -14,7 +14,7 @@ public:
   ~CryptoHashSha512Wrap ();
 
 private:
-  crypto_hash_sha512_state *state;
+  crypto_hash_sha512_state state;
 
   static NAN_METHOD(New);
   static NAN_METHOD(Update);

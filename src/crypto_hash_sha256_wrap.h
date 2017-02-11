@@ -14,7 +14,7 @@ public:
   ~CryptoHashSha256Wrap ();
 
 private:
-  crypto_hash_sha256_state *state;
+  crypto_hash_sha256_state state;
 
   static NAN_METHOD(New);
   static NAN_METHOD(Update);

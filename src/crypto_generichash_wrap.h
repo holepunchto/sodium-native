@@ -14,7 +14,7 @@ public:
   ~CryptoGenericHashWrap ();
 
 private:
-  crypto_generichash_state *state;
+  crypto_generichash_state state;
 
   static NAN_METHOD(New);
   static NAN_METHOD(Update);

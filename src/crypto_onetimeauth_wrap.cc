@@ -3,13 +3,9 @@
 
 static Nan::Persistent<FunctionTemplate> crypto_onetimeauth_constructor;
 
-CryptoOnetimeAuthWrap::CryptoOnetimeAuthWrap () {
-  this->state = NULL;
-}
+CryptoOnetimeAuthWrap::CryptoOnetimeAuthWrap () {}
 
-CryptoOnetimeAuthWrap::~CryptoOnetimeAuthWrap () {
-  sodium_free(this->state);
-}
+CryptoOnetimeAuthWrap::~CryptoOnetimeAuthWrap () {}
 
 NAN_METHOD(CryptoOnetimeAuthWrap::New) {
   CryptoOnetimeAuthWrap* obj = new CryptoOnetimeAuthWrap();
@@ -20,13 +16,13 @@ NAN_METHOD(CryptoOnetimeAuthWrap::New) {
 NAN_METHOD(CryptoOnetimeAuthWrap::Update) {
   CryptoOnetimeAuthWrap *self = Nan::ObjectWrap::Unwrap<CryptoOnetimeAuthWrap>(info.This());
   ASSERT_BUFFER_SET_LENGTH(info[0], input)
-  crypto_onetimeauth_update(self->state, CDATA(input), input_length);
+  crypto_onetimeauth_update(&(self->state), CDATA(input), input_length);
 }
 
 NAN_METHOD(CryptoOnetimeAuthWrap::Final) {
   CryptoOnetimeAuthWrap *self = Nan::ObjectWrap::Unwrap<CryptoOnetimeAuthWrap>(info.This());
   ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_onetimeauth_BYTES)
-  crypto_onetimeauth_final(self->state, CDATA(output));
+  crypto_onetimeauth_final(&(self->state), CDATA(output));
 }
 
 void CryptoOnetimeAuthWrap::Init () {
@@ -48,8 +44,7 @@ Local<Value> CryptoOnetimeAuthWrap::NewInstance (unsigned char *key) {
   instance = Nan::NewInstance(constructorHandle->GetFunction()).ToLocalChecked();
 
   CryptoOnetimeAuthWrap *self = Nan::ObjectWrap::Unwrap<CryptoOnetimeAuthWrap>(instance);
-  self->state = (crypto_onetimeauth_state*) sodium_malloc(crypto_onetimeauth_statebytes());
-  crypto_onetimeauth_init(self->state, key);
+  crypto_onetimeauth_init(&(self->state), key);
 
   return scope.Escape(instance);
 }

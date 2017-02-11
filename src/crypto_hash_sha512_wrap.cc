@@ -3,13 +3,9 @@
 
 static Nan::Persistent<FunctionTemplate> crypto_hash_sha512_constructor;
 
-CryptoHashSha512Wrap::CryptoHashSha512Wrap () {
-  this->state = NULL;
-}
+CryptoHashSha512Wrap::CryptoHashSha512Wrap () {}
 
-CryptoHashSha512Wrap::~CryptoHashSha512Wrap () {
-  sodium_free(this->state);
-}
+CryptoHashSha512Wrap::~CryptoHashSha512Wrap () {}
 
 NAN_METHOD(CryptoHashSha512Wrap::New) {
   CryptoHashSha512Wrap* obj = new CryptoHashSha512Wrap();
@@ -20,13 +16,13 @@ NAN_METHOD(CryptoHashSha512Wrap::New) {
 NAN_METHOD(CryptoHashSha512Wrap::Update) {
   CryptoHashSha512Wrap *self = Nan::ObjectWrap::Unwrap<CryptoHashSha512Wrap>(info.This());
   ASSERT_BUFFER_SET_LENGTH(info[0], input)
-  crypto_hash_sha512_update(self->state, CDATA(input), input_length);
+  crypto_hash_sha512_update(&(self->state), CDATA(input), input_length);
 }
 
 NAN_METHOD(CryptoHashSha512Wrap::Final) {
   CryptoHashSha512Wrap *self = Nan::ObjectWrap::Unwrap<CryptoHashSha512Wrap>(info.This());
   ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_hash_sha512_BYTES)
-  crypto_hash_sha512_final(self->state, CDATA(output));
+  crypto_hash_sha512_final(&(self->state), CDATA(output));
 }
 
 void CryptoHashSha512Wrap::Init () {
@@ -48,8 +44,7 @@ Local<Value> CryptoHashSha512Wrap::NewInstance () {
   instance = Nan::NewInstance(constructorHandle->GetFunction()).ToLocalChecked();
 
   CryptoHashSha512Wrap *self = Nan::ObjectWrap::Unwrap<CryptoHashSha512Wrap>(instance);
-  self->state = (crypto_hash_sha512_state*) sodium_malloc(crypto_hash_sha512_statebytes());
-  crypto_hash_sha512_init(self->state);
+  crypto_hash_sha512_init(&(self->state));
 
   return scope.Escape(instance);
 }

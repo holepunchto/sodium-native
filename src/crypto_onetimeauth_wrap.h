@@ -14,7 +14,7 @@ public:
   ~CryptoOnetimeAuthWrap ();
 
 private:
-  crypto_onetimeauth_state *state;
+  crypto_onetimeauth_state state;
 
   static NAN_METHOD(New);
   static NAN_METHOD(Update);
