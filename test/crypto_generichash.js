@@ -107,3 +107,30 @@ tape('crypto_generichash_instance with key and hash length', function (t) {
   t.same(out.toString('hex'), 'fb43f0ab6872cbfd39ec4f8a1bc6fb37', 'streaming short keyed hash')
   t.end()
 })
+
+tape('crypto_generichash_batch', function (t) {
+  var buf = new Buffer('Hej, Verden')
+  var batch = []
+  for (var i = 0; i < 10; i++) batch.push(buf)
+
+  var out = alloc(sodium.crypto_generichash_BYTES)
+  sodium.crypto_generichash_batch(out, batch)
+
+  t.same(out.toString('hex'), 'cbc20f347f5dfe37dc13231cbf7eaa4ec48e585ec055a96839b213f62bd8ce00', 'batch hash')
+  t.end()
+})
+
+tape('crypto_generichash_batch with key', function (t) {
+  var key = alloc(sodium.crypto_generichash_KEYBYTES)
+  fill(key, 'lo')
+
+  var buf = new Buffer('Hej, Verden')
+  var batch = []
+  for (var i = 0; i < 10; i++) batch.push(buf)
+
+  var out = alloc(sodium.crypto_generichash_BYTES)
+  sodium.crypto_generichash_batch(out, batch, key)
+
+  t.same(out.toString('hex'), '405f14acbeeb30396b8030f78e6a84bab0acf08cb1376aa200a500f669f675dc', 'batch keyed hash')
+  t.end()
+})

@@ -141,6 +141,10 @@ The generated hash is stored in `output`.
 
 Also exposes `crypto_generichash_BYTES` and `crypto_generichash_KEYBYTES` that can be used as "default" buffer sizes.
 
+#### `crypto_generichash_batch(output, inputArray, [key])`
+
+Same as `crypto_generichash` except this hashes an array of buffers instead of a single one.
+
 #### `var instance = crypto_generichash_instance([key], [outputLength])`
 
 Create a generichash instance that can hash a stream of input buffers.

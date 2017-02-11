@@ -113,7 +113,7 @@ NAN_METHOD(crypto_generichash) {
   CALL_SODIUM(crypto_generichash(CDATA(output), CLENGTH(output), CDATA(input), CLENGTH(input), key_data, key_len))
 }
 
-NAN_METHOD(crypto_generichash_unsafe) {
+NAN_METHOD(crypto_generichash_batch) {
   ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_generichash_BYTES_MIN)
 
   unsigned char *key_data = NULL;
@@ -125,14 +125,23 @@ NAN_METHOD(crypto_generichash_unsafe) {
     key_len = key_length;
   }
 
+  if (!info[1]->IsArray()) {
+    Nan::ThrowError("batch must be an array of buffers");
+    return;
+  }
+
   Local<Array> buffers = info[1].As<Array>();
 
   crypto_generichash_state state;
-  crypto_generichash_init(&state, NULL, 0, output_length);
+  crypto_generichash_init(&state, key_data, key_len, output_length);
 
   uint32_t len = buffers->Length();
   for (uint32_t i = 0; i < len; i++) {
     Local<Value> buf = buffers->Get(i);
+    if (!buf->IsObject()) {
+      Nan::ThrowError("batch must be an array of buffers");
+      return;
+    }
     crypto_generichash_update(&state, CDATA(buf), CLENGTH(buf));
   }
 
@@ -455,6 +464,7 @@ NAN_MODULE_INIT(InitAll) {
 
   EXPORT_FUNCTION(crypto_generichash)
   EXPORT_FUNCTION(crypto_generichash_instance)
+  EXPORT_FUNCTION(crypto_generichash_batch)
 
   // crypto_hash
 
