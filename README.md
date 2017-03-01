@@ -332,7 +332,7 @@ A streaming instance to the `crypto_stream_xor` api. Pass a nonce and key in the
 
 Encrypt the next message
 
-#### `instance.final()
+#### `instance.final()`
 
 Finalize the stream. Zeros out internal state.
 
