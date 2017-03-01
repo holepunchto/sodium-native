@@ -11,8 +11,8 @@ public:
   unsigned char *nonce;
   unsigned char *key;
   unsigned char next_block[64];
-  int remainder = 0;
-  uint64_t block_counter = 0;
+  int remainder;
+  uint64_t block_counter;
 
   static void Init ();
   static Local<Value> NewInstance (unsigned char *nonce, unsigned char *key);
