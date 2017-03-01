@@ -15,6 +15,7 @@
         'src/crypto_hash_sha512_wrap.cc',
         'src/crypto_generichash_wrap.cc',
         'src/crypto_onetimeauth_wrap.cc',
+        'src/crypto_stream_xor_wrap.cc',
       ],
       'xcode_settings': {
         'OTHER_CFLAGS': [

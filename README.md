@@ -324,6 +324,18 @@ Encrypt, but *not* authenticate, a message based on a nonce and key
 The encrypted data is stored in `cipher`. To decrypt, swap `cipher` and `message`.
 Also supports in-place encryption where you use the same buffer as `cipher` and `message`.
 
+#### `var instance = crypto_stream_xor_instance(nonce, key)`
+
+A streaming instance to the `crypto_stream_xor` api. Pass a nonce and key in the constructor.
+
+#### `instance.update(cipher, message)`
+
+Encrypt the next message
+
+#### `instance.final()
+
+Finalize the stream. Zeros out internal state.
+
 ### Authentication
 
 Bindings for the crypto_auth API.
