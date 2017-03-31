@@ -16,6 +16,7 @@
         'src/crypto_generichash_wrap.cc',
         'src/crypto_onetimeauth_wrap.cc',
         'src/crypto_stream_xor_wrap.cc',
+        'src/crypto_stream_chacha20_xor_wrap.cc',
       ],
       'xcode_settings': {
         'OTHER_CFLAGS': [
