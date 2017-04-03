@@ -535,7 +535,6 @@ NAN_MODULE_INIT(InitAll) {
 
   EXPORT_NUMBER(crypto_stream_chacha20_KEYBYTES)
   EXPORT_NUMBER(crypto_stream_chacha20_NONCEBYTES)
-  //EXPORT_STRING(crypto_stream_chacha20_PRIMITIVE)
 
 
   EXPORT_FUNCTION(crypto_stream)
