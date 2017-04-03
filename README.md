@@ -312,7 +312,8 @@ Generate random data based on a nonce and key into the cipher.
 
 The generated data is stored in `cipher`.
 
-#### `crypto_stream_xor(cipher, message, nonce, key)`
+#### `crypto_stream_xor(cipher, message, nonce, key)` or
+#### `crypto_stream_chacha20_xor(cipher, message, nonce, key)`
 
 Encrypt, but *not* authenticate, a message based on a nonce and key
 
@@ -324,9 +325,16 @@ Encrypt, but *not* authenticate, a message based on a nonce and key
 The encrypted data is stored in `cipher`. To decrypt, swap `cipher` and `message`.
 Also supports in-place encryption where you use the same buffer as `cipher` and `message`.
 
-#### `var instance = crypto_stream_xor_instance(nonce, key)`
+Encryption defaults to XSalsa20, use `crypto_stream_chacha20_xor` if you want 
+to encrypt/decrypt with ChaCha20 instead.
+
+#### `var instance = crypto_stream_xor_instance(nonce, key)` or
+#### `var instance = crypto_stream_chacha20_xor_instance(nonce, key)`
 
 A streaming instance to the `crypto_stream_xor` api. Pass a nonce and key in the constructor.
+
+Encryption defaults to XSalsa20, use `crypto_stream_chacha20_xor_instance` if 
+you want to encrypt/decrypt with ChaCha20 instead.
 
 #### `instance.update(cipher, message)`
 
