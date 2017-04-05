@@ -325,7 +325,7 @@ Encrypt, but *not* authenticate, a message based on a nonce and key
 The encrypted data is stored in `cipher`. To decrypt, swap `cipher` and `message`.
 Also supports in-place encryption where you use the same buffer as `cipher` and `message`.
 
-Encryption defaults to XSalsa20, use `crypto_stream_chacha20_xor` if you want 
+Encryption defaults to XSalsa20, use `crypto_stream_chacha20_xor` if you want
 to encrypt/decrypt with ChaCha20 instead.
 
 #### `var instance = crypto_stream_xor_instance(nonce, key)` or
@@ -333,7 +333,7 @@ to encrypt/decrypt with ChaCha20 instead.
 
 A streaming instance to the `crypto_stream_xor` api. Pass a nonce and key in the constructor.
 
-Encryption defaults to XSalsa20, use `crypto_stream_chacha20_xor_instance` if 
+Encryption defaults to XSalsa20, use `crypto_stream_chacha20_xor_instance` if
 you want to encrypt/decrypt with ChaCha20 instead.
 
 #### `instance.update(cipher, message)`
@@ -503,6 +503,26 @@ Hash a value to a short hash based on a key.
 * `key` should be a buffer of length `crypto_shorthash_KEYBYTES`.
 
 The generated short hash is stored in `output`.
+
+### Key derivation
+
+Bindings for the crypto_kdf API.
+[See the libsodium crypto_kdf docs for more information](https://download.libsodium.org/doc/key_derivation/).
+
+#### `crypto_kdf_keygen(key)`
+
+Generate a new master key.
+
+* `key` should be a buffer of length `crypto_kdf_KEYBYTES`
+
+#### `crypto_kdf_crypto_kdf_derive_from_key(subkey, subkeyId, context, key)`
+
+Derive a new key from a master key.
+
+* `subkey` should be a buffer between `crypto_kdf_BYTES_MIN` and `crypto_kdf_BYTES_MAX`.
+* `subkeyId` should be an integer.
+* `context` should be a buffer of length `crypto_kdf_CONTEXTBYTES`
+* `key` should by a buffer of length `crypto_kdf_KEYBYTES`
 
 ### SHA
 
