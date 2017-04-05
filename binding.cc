@@ -241,6 +241,27 @@ NAN_METHOD(crypto_box_open_easy) {
   ))
 }
 
+// crypto_box_seal
+
+NAN_METHOD(crypto_box_seal) {
+  ASSERT_BUFFER_SET_LENGTH(info[1], message)
+  ASSERT_BUFFER_MIN_LENGTH(info[0], ciphertext, message_length)
+  ASSERT_BUFFER_MIN_LENGTH(info[3], public_key, crypto_box_PUBLICKEYBYTES)
+
+  CALL_SODIUM(crypto_box_seal(CDATA(ciphertext), CDATA(message), CDATA(message_length), CDATA(public_key)))
+}
+
+NAN_METHOD(crypto_box_seal_open) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], message, ciphertext_length);
+  ASSERT_BUFFER_SET_LENGTH(info[1], ciphertext_length);
+  // according to libsodium docs, public key is not required here...
+  // see: https://download.libsodium.org/doc/public-key_cryptography/sealed_boxes.html
+  ASSERT_BUFFER_SET_LENGTH(info[3], public_key, crypto_box_PUBLICKEYBYTES)
+  ASSERT_BUFFER_SET_LENGTH(info[4], secret_key, crypto_box_SECRETKEYBYTES)
+
+  CALL_SODIUM(crypto_box_seal_open(CDATA(message), CDATA(ciphertext), CDATA(ciphertext_length), CDATA(public_key), CDATA(secret_key)))
+}
+
 // crypto_secretbox
 
 NAN_METHOD(crypto_secretbox_detached) {
