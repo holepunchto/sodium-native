@@ -419,6 +419,23 @@ NAN_METHOD(crypto_shorthash) {
   CALL_SODIUM(crypto_shorthash(CDATA(output), CDATA(input), CLENGTH(input), CDATA(key)))
 }
 
+// crypto_kdf
+
+NAN_METHOD(crypto_kdf_keygen) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], key, crypto_kdf_KEYBYTES)
+
+  crypto_kdf_keygen(CDATA(key)); // void return value
+}
+
+NAN_METHOD(crypto_kdf_derive_from_key) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], subkey, crypto_kdf_BYTES_MIN)
+  ASSERT_UINT(info[1], subkey_id)
+  ASSERT_BUFFER_MIN_LENGTH(info[2], context, crypto_kdf_CONTEXTBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[3], key, crypto_kdf_KEYBYTES)
+
+  CALL_SODIUM(crypto_kdf_derive_from_key(CDATA(subkey), subkey_length, subkey_id, (const char *) CDATA(context), CDATA(key)))
+}
+
 // crypto_hash_sha256
 
 NAN_METHOD(crypto_hash_sha256) {
@@ -599,6 +616,17 @@ NAN_MODULE_INIT(InitAll) {
   EXPORT_STRING(crypto_shorthash_PRIMITIVE)
 
   EXPORT_FUNCTION(crypto_shorthash)
+
+  // crypto_kdf
+
+  EXPORT_NUMBER(crypto_kdf_BYTES_MIN)
+  EXPORT_NUMBER(crypto_kdf_BYTES_MAX)
+  EXPORT_NUMBER(crypto_kdf_CONTEXTBYTES)
+  EXPORT_NUMBER(crypto_kdf_KEYBYTES)
+  EXPORT_STRING(crypto_kdf_PRIMITIVE)
+
+  EXPORT_FUNCTION(crypto_kdf_keygen)
+  EXPORT_FUNCTION(crypto_kdf_derive_from_key)
 
   // crypto_hash_256
 
