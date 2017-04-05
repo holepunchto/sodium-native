@@ -515,7 +515,7 @@ Generate a new master key.
 
 * `key` should be a buffer of length `crypto_kdf_KEYBYTES`
 
-#### `crypto_kdf_crypto_kdf_derive_from_key(subkey, subkeyId, context, key)`
+#### `crypto_kdf_derive_from_key(subkey, subkeyId, context, key)`
 
 Derive a new key from a master key.
 
