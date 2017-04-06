@@ -245,19 +245,19 @@ NAN_METHOD(crypto_box_open_easy) {
 
 NAN_METHOD(crypto_box_seal) {
   ASSERT_BUFFER_SET_LENGTH(info[1], message)
-  ASSERT_BUFFER_MIN_LENGTH(info[0], ciphertext, message_length)
-  ASSERT_BUFFER_MIN_LENGTH(info[3], public_key, crypto_box_PUBLICKEYBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[0], ciphertext, message_length + crypto_box_SEALBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[2], public_key, crypto_box_PUBLICKEYBYTES)
 
   CALL_SODIUM(crypto_box_seal(CDATA(ciphertext), CDATA(message), message_length, CDATA(public_key)))
 }
 
 NAN_METHOD(crypto_box_seal_open) {
   ASSERT_BUFFER_SET_LENGTH(info[1], ciphertext)
-  ASSERT_BUFFER_MIN_LENGTH(info[0], message, ciphertext_length)
+  ASSERT_BUFFER_MIN_LENGTH(info[0], message, ciphertext_length - crypto_box_SEALBYTES)
   // according to libsodium docs, public key is not required here...
   // see: https://download.libsodium.org/doc/public-key_cryptography/sealed_boxes.html
-  ASSERT_BUFFER_MIN_LENGTH(info[3], public_key, crypto_box_PUBLICKEYBYTES)
-  ASSERT_BUFFER_MIN_LENGTH(info[4], secret_key, crypto_box_SECRETKEYBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[2], public_key, crypto_box_PUBLICKEYBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[3], secret_key, crypto_box_SECRETKEYBYTES)
 
   CALL_SODIUM(crypto_box_seal_open(CDATA(message), CDATA(ciphertext), ciphertext_length, CDATA(public_key), CDATA(secret_key)))
 }
@@ -556,6 +556,10 @@ NAN_MODULE_INIT(InitAll) {
   EXPORT_NUMBER(crypto_secretbox_NONCEBYTES)
   EXPORT_NUMBER(crypto_secretbox_MACBYTES)
   EXPORT_STRING(crypto_secretbox_PRIMITIVE)
+  
+  EXPORT_NUMBER(crypto_box_PUBLICKEYBYTES)
+  EXPORT_NUMBER(crypto_box_SECRETKEYBYTES)
+  EXPORT_NUMBER(crypto_box_SEALBYTES)
 
   EXPORT_FUNCTION(crypto_box_seal)
   EXPORT_FUNCTION(crypto_box_seal_open)
