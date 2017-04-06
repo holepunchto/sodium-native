@@ -584,10 +584,19 @@ NAN_MODULE_INIT(InitAll) {
 
   // crypto_pwhash
 
-  EXPORT_NUMBER(crypto_pwhash_ALG_ARGON2I13)
+  EXPORT_NUMBER(crypto_pwhash_ALG_ARGON2I13) // Deprecated in favour of ALG_DEFAULT
+  EXPORT_NUMBER(crypto_pwhash_ALG_DEFAULT)
+  EXPORT_NUMBER(crypto_pwhash_BYTES_MIN)
+  EXPORT_NUMBER(crypto_pwhash_BYTES_MAX)
+  EXPORT_NUMBER(crypto_pwhash_PASSWD_MIN)
+  EXPORT_NUMBER(crypto_pwhash_PASSWD_MAX)
   EXPORT_NUMBER(crypto_pwhash_SALTBYTES)
   EXPORT_NUMBER(crypto_pwhash_STRBYTES)
   EXPORT_STRING(crypto_pwhash_STRPREFIX)
+  EXPORT_NUMBER(crypto_pwhash_OPSLIMIT_MIN)
+  EXPORT_NUMBER(crypto_pwhash_OPSLIMIT_MAX)
+  EXPORT_NUMBER(crypto_pwhash_MEMLIMIT_MIN)
+  EXPORT_NUMBER(crypto_pwhash_MEMLIMIT_MAX)
   EXPORT_NUMBER(crypto_pwhash_OPSLIMIT_INTERACTIVE)
   EXPORT_NUMBER(crypto_pwhash_MEMLIMIT_INTERACTIVE)
   EXPORT_NUMBER(crypto_pwhash_OPSLIMIT_MODERATE)

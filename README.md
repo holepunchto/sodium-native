@@ -423,11 +423,11 @@ Bindings for the crypto_pwhash API.
 
 Create a password hash.
 
-* `output` should be a buffer with length within `16` - `2^32 - 1`.
+* `output` should be a buffer with length within `crypto_pwhash_BYTES_MIN` - `crypto_pwhash_BYTES_MAX`.
 * `password` should be a buffer of any size.
 * `salt` should be a buffer with length `crypto_passwd_SALTBYTES`.
-* `opslimit` should a be number containing your ops limit setting in the range `3` - `2^32 - 1`.
-* `memlimit` should a be number containing your mem limit setting in the range `8` - `2^32 - 1`.
+* `opslimit` should a be number containing your ops limit setting in the range `crypto_pwhash_OPSLIMIT_MIN` - `crypto_pwhash_OPSLIMIT_MAX`.
+* `memlimit` should a be number containing your mem limit setting in the range `crypto_pwhash_MEMLIMIT_MIN` - `crypto_pwhash_OPSLIMIT_MAX`.
 * `algorithm` should be a number specifying the algorithm you want to use.
 
 Available default ops and mem limits are
@@ -441,7 +441,7 @@ Available default ops and mem limits are
 
 The available algorithms are
 
-* `crypto_pwhash_ALG_ARGON2I13`
+* `crypto_pwhash_ALG_DEFAULT`
 
 The generated hash will be stored in `output` and the entire `output` buffer will be used.
 
@@ -451,8 +451,8 @@ Create a password hash with a random salt.
 
 * `output` should be a buffer with length `crypto_pwhash_STRBYTES`.
 * `password` should be a buffer of any size.
-* `opslimit` should a be number containing your ops limit setting in the range `3` - `2^32 - 1`.
-* `memlimit` should a be number containing your mem limit setting in the range `8` - `2^32 - 1`.
+* `opslimit` should a be number containing your ops limit setting in the range `crypto_pwhash_OPSLIMIT_MIN` - `crypto_pwhash_OPSLIMIT_MAX`.
+* `memlimit` should a be number containing your mem limit setting in the range `crypto_pwhash_MEMLIMIT_MIN` - `crypto_pwhash_OPSLIMIT_MAX`.
 
 The generated hash, settings, salt, version and algorithm will be stored in `output` and the entire `output` buffer will be used.
 

@@ -9,7 +9,7 @@ tape('crypto_pwhash', function (t) {
   var salt = alloc(sodium.crypto_pwhash_SALTBYTES)
   var opslimit = sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE
   var memlimit = sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE
-  var algo = sodium.crypto_pwhash_ALG_ARGON2I13
+  var algo = sodium.crypto_pwhash_ALG_DEFAULT
 
   fill(salt, 'lo')
 
