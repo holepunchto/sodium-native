@@ -99,6 +99,11 @@ tape('crypto_box_seal', function (t) {
 
   sodium.crypto_box_keypair(pk, sk)
 
+  var pk2 = alloc(sodium.crypto_box_PUBLICKEYBYTES)
+  var sk2 = alloc(sodium.crypto_box_SECRETKEYBYTES)
+
+  sodium.crypto_box_keypair(pk2, sk2)
+
   var message = new Buffer('Hello, sealed World!')
   var cipher = alloc(message.length + sodium.crypto_box_SEALBYTES)
 
@@ -108,7 +113,7 @@ tape('crypto_box_seal', function (t) {
   t.notEqual(cipher, alloc(cipher.length), 'not blank')
 
   var plain = alloc(cipher.length - sodium.crypto_box_SEALBYTES)
-  t.notOk(sodium.crypto_box_seal_open(plain, cipher, pk, sk), 'does not decrypt')
+  t.notOk(sodium.crypto_box_seal_open(plain, cipher, pk2, sk2), 'does not decrypt')
   t.ok(sodium.crypto_box_seal_open(plain, cipher, pk, sk), 'decrypts')
   t.same(plain, message, 'same message')
 
