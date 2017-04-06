@@ -259,7 +259,7 @@ NAN_METHOD(crypto_box_seal_open) {
   ASSERT_BUFFER_MIN_LENGTH(info[2], public_key, crypto_box_PUBLICKEYBYTES)
   ASSERT_BUFFER_MIN_LENGTH(info[3], secret_key, crypto_box_SECRETKEYBYTES)
 
-  CALL_SODIUM(crypto_box_seal_open(CDATA(message), CDATA(ciphertext), ciphertext_length, CDATA(public_key), CDATA(secret_key)))
+  CALL_SODIUM_BOOL(crypto_box_seal_open(CDATA(message), CDATA(ciphertext), ciphertext_length, CDATA(public_key), CDATA(secret_key)))
 }
 
 // crypto_secretbox
