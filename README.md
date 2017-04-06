@@ -244,6 +244,30 @@ Returns `true` if the message could be decrypted. Otherwise `false`.
 
 The decrypted message will be stored in `message`.
 
+### Sealed box encryption
+
+Bindings for the crypto_box_seal API.
+[See the libsodium crypto_box_seal docs for more information](https://download.libsodium.org/doc/public-key_cryptography/sealed_boxes.html).
+
+#### `crypto_box_seal(cipher, message, publicKey)`
+
+Encrypt a message in a sealed box using a throwaway keypair.
+The ciphertext cannot be associated with the sender due to the sender's key
+being a single use keypair that is overwritten during encryption.
+
+* `cipher` should be a buffer with length at least `message.length + crypto_box_SEALBYTES`.
+* `message` should be a buffer with any length.
+* `publicKey` should be the receipent's public key.
+
+#### `var bool = crypto_box_seal_open(message, cipher, publicKey, secretKey)`
+
+Decrypt a message encoded with the sealed box method.
+
+* `message` should be a buffer with length at least  `cipher.length - crypto_box_SEALBYTES`.
+* `cipher` should be a buffer with length at least `crypto_box_SEALBYTES`.
+* `publicKey` should be the receipient's public key.
+* `secretKey` should be the receipient's secret key.
+
 ### Secret key box encryption
 
 Bindings for the crypto_secretbox API.
