@@ -12,6 +12,11 @@
 #define EXPORT_STRING(name) Nan::Set(target, LOCAL_STRING(#name), LOCAL_STRING(name));
 #define EXPORT_FUNCTION(name) Nan::Set(target, LOCAL_STRING(#name), LOCAL_FUNCTION(name));
 
+// workaround for old compilers
+#ifndef SIZE_MAX
+#define SIZE_MAX ((size_t) - 1)
+#endif
+
 #define CALL_SODIUM(fn) \
   int ret = fn; \
   if (ret) { \
