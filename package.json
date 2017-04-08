@@ -22,12 +22,12 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/mafintosh/sodium-native.git"
+    "url": "https://github.com/sodium-friends/sodium-native.git"
   },
   "author": "Mathias Buus (@mafintosh)",
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/mafintosh/sodium-native/issues"
+    "url": "https://github.com/sodium-friends/sodium-native/issues"
   },
-  "homepage": "https://github.com/mafintosh/sodium-native"
+  "homepage": "https://github.com/sodium-friends/sodium-native"
 }
