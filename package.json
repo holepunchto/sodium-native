@@ -11,6 +11,7 @@
     "buffer-alloc": "^1.1.0",
     "buffer-fill": "^0.1.0",
     "prebuildify": "^2.1.0",
+    "sodium-test": "^0.1.0",
     "standard": "^8.6.0",
     "tape": "^4.6.3"
   },
