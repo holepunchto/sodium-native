@@ -28,6 +28,8 @@ if (process.argv.indexOf('--print-lib') > -1) {
     case 'linux':
       console.log(path.join(__dirname, '/deps/lib/libsodium.so.18'))
       break
+    case 'openbsd':
+      break
     case 'win32':
       console.log('../deps/libsodium/Build/ReleaseDLL/' + warch + '/libsodium.lib')
       break
@@ -49,6 +51,9 @@ switch (os.platform()) {
 
   case 'win32':
     buildWindows()
+    break
+
+  case 'openbsd':
     break
 
   default:

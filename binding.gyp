@@ -32,6 +32,14 @@
         '<!(node preinstall.js --print-lib)'
       ],
       'conditions': [
+        ['OS=="openbsd"', {
+          'libraries': [
+            '-lsodium',
+          ],
+          'include_dirs': [
+            '<!(pkg-config --cflags libsodium | cut -dI -f2)',
+          ]
+        }],
         ['OS=="linux"', {
           'link_settings': {
             'libraries': [ "-Wl,-rpath=\\$$ORIGIN/"]
