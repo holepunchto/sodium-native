@@ -85,7 +85,6 @@ tape('crypto_pwhash_str_async', function (t) {
     t.notEqual(output, alloc(output.length), 'not blank')
     sodium.crypto_pwhash_str_verify_async(alloc(output.length), passwd, function (err, bool) {
       t.error(err)
-      console.log(bool)
       t.ok(bool === false, 'does not verify')
 
       sodium.crypto_pwhash_str_verify_async(output, passwd, function (err, bool) {
