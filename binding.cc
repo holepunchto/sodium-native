@@ -8,6 +8,9 @@
 #include "src/crypto_hash_sha512_wrap.h"
 #include "src/crypto_stream_xor_wrap.h"
 #include "src/crypto_stream_chacha20_xor_wrap.h"
+#include "src/crypto_pwhash_async.cc"
+#include "src/crypto_pwhash_str_async.cc"
+#include "src/crypto_pwhash_str_verify_async.cc"
 #include "src/macros.h"
 
 using namespace node;
@@ -413,6 +416,39 @@ NAN_METHOD(crypto_pwhash_str_verify) {
   CALL_SODIUM_BOOL(crypto_pwhash_str_verify((char *) CDATA(hash), (const char *) CDATA(password), password_length))
 }
 
+NAN_METHOD(crypto_pwhash_async) {
+  ASSERT_BUFFER_SET_LENGTH(info[0], output)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], password, crypto_pwhash_PASSWD_MIN)
+  ASSERT_BUFFER_MIN_LENGTH(info[2], salt, crypto_pwhash_SALTBYTES)
+  ASSERT_UINT_BOUNDS(info[3], opslimit, crypto_pwhash_OPSLIMIT_MIN, crypto_pwhash_OPSLIMIT_MAX)
+  ASSERT_UINT_BOUNDS(info[4], memlimit, crypto_pwhash_MEMLIMIT_MIN, crypto_pwhash_MEMLIMIT_MAX)
+  ASSERT_UINT(info[5], algo)
+
+  ASSERT_FUNCTION(info[6], callback)
+
+  Nan::AsyncQueueWorker(new CryptoPwhashAsync(new Nan::Callback(callback), CDATA(output), output_length, (const char *) CDATA(password), password_length, CDATA(salt), opslimit, memlimit, algo));
+}
+
+NAN_METHOD(crypto_pwhash_str_async) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], hash, crypto_pwhash_STRBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], password, crypto_pwhash_PASSWD_MIN)
+  ASSERT_UINT_BOUNDS(info[2], opslimit, crypto_pwhash_OPSLIMIT_MIN, crypto_pwhash_OPSLIMIT_MAX)
+  ASSERT_UINT_BOUNDS(info[3], memlimit, crypto_pwhash_MEMLIMIT_MIN, crypto_pwhash_MEMLIMIT_MAX)
+
+  ASSERT_FUNCTION(info[4], callback)
+
+  Nan::AsyncQueueWorker(new CryptoPwhashStrAsync(new Nan::Callback(callback), (char *) CDATA(hash), (const char *) CDATA(password), password_length, opslimit, memlimit));
+}
+
+NAN_METHOD(crypto_pwhash_str_verify_async) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], hash, crypto_pwhash_STRBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], password, crypto_pwhash_PASSWD_MIN)
+
+  ASSERT_FUNCTION(info[2], callback)
+
+  Nan::AsyncQueueWorker(new CryptoPwhashStrVerifyAsync(new Nan::Callback(callback), (char *) CDATA(hash), (const char *) CDATA(password), password_length));
+}
+
 // crypto_scalarmult
 
 NAN_METHOD(crypto_scalarmult_base) {
@@ -636,6 +672,10 @@ NAN_MODULE_INIT(InitAll) {
   EXPORT_FUNCTION(crypto_pwhash)
   EXPORT_FUNCTION(crypto_pwhash_str)
   EXPORT_FUNCTION(crypto_pwhash_str_verify)
+
+  EXPORT_FUNCTION(crypto_pwhash_async)
+  EXPORT_FUNCTION(crypto_pwhash_str_async)
+  EXPORT_FUNCTION(crypto_pwhash_str_verify_async)
 
   // crypto_scalarmult
 
