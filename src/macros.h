@@ -64,7 +64,7 @@
     Nan::ThrowError(#var "must be at least " #min); \
     return; \
   } \
-  if (((unsigned long long) var) > max) { \
+  if (((size_t) var) > max) { \
     Nan::ThrowError(#var "must be at most " #max); \
     return; \
   }
