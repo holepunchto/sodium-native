@@ -390,11 +390,11 @@ NAN_METHOD(crypto_onetimeauth_instance) {
 // crypto_pwhash
 
 NAN_METHOD(crypto_pwhash) {
-  ASSERT_BUFFER_SET_LENGTH(info[0], output)
-  ASSERT_BUFFER_SET_LENGTH(info[1], password)
+  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_pwhash_BYTES_MIN)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], password, crypto_pwhash_PASSWD_MIN)
   ASSERT_BUFFER_MIN_LENGTH(info[2], salt, crypto_pwhash_SALTBYTES)
-  ASSERT_UINT(info[3], opslimit)
-  ASSERT_UINT(info[4], memlimit)
+  ASSERT_UINT_BOUNDS(info[3], opslimit, crypto_pwhash_OPSLIMIT_MIN, crypto_pwhash_OPSLIMIT_MAX)
+  ASSERT_UINT_BOUNDS(info[4], memlimit, crypto_pwhash_MEMLIMIT_MIN, crypto_pwhash_MEMLIMIT_MAX)
   ASSERT_UINT(info[5], algo)
 
   CALL_SODIUM(crypto_pwhash(CDATA(output), output_length, (const char *) CDATA(password), password_length, CDATA(salt), opslimit, memlimit, algo))
@@ -402,16 +402,16 @@ NAN_METHOD(crypto_pwhash) {
 
 NAN_METHOD(crypto_pwhash_str) {
   ASSERT_BUFFER_MIN_LENGTH(info[0], hash, crypto_pwhash_STRBYTES)
-  ASSERT_BUFFER_SET_LENGTH(info[1], password)
-  ASSERT_UINT(info[2], opslimit)
-  ASSERT_UINT(info[3], memlimit)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], password, crypto_pwhash_PASSWD_MIN)
+  ASSERT_UINT_BOUNDS(info[2], opslimit, crypto_pwhash_OPSLIMIT_MIN, crypto_pwhash_OPSLIMIT_MAX)
+  ASSERT_UINT_BOUNDS(info[3], memlimit, crypto_pwhash_MEMLIMIT_MIN, crypto_pwhash_MEMLIMIT_MAX)
 
   CALL_SODIUM(crypto_pwhash_str((char *) CDATA(hash), (const char *) CDATA(password), password_length, opslimit, memlimit))
 }
 
 NAN_METHOD(crypto_pwhash_str_verify) {
   ASSERT_BUFFER_MIN_LENGTH(info[0], hash, crypto_pwhash_STRBYTES)
-  ASSERT_BUFFER_SET_LENGTH(info[1], password)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], password, crypto_pwhash_PASSWD_MIN)
 
   CALL_SODIUM_BOOL(crypto_pwhash_str_verify((char *) CDATA(hash), (const char *) CDATA(password), password_length))
 }
@@ -592,7 +592,7 @@ NAN_MODULE_INIT(InitAll) {
   EXPORT_NUMBER(crypto_secretbox_NONCEBYTES)
   EXPORT_NUMBER(crypto_secretbox_MACBYTES)
   EXPORT_STRING(crypto_secretbox_PRIMITIVE)
-  
+
   EXPORT_NUMBER(crypto_box_PUBLICKEYBYTES)
   EXPORT_NUMBER(crypto_box_SECRETKEYBYTES)
   EXPORT_NUMBER(crypto_box_SEALBYTES)

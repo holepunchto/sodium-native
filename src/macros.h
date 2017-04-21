@@ -51,7 +51,7 @@
     Nan::ThrowError(#var " must be a number"); \
     return; \
   } \
-  int var = name->Uint32Value();
+  unsigned int var = name->Uint32Value();
 
 #define ASSERT_UINT_BOUNDS(name, var, min, max) \
   if (!name->IsNumber()) { \
