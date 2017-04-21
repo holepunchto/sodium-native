@@ -53,4 +53,27 @@
   } \
   int var = name->Uint32Value();
 
+#define ASSERT_UINT_BOUNDS(name, var, min, max) \
+  if (!name->IsNumber()) { \
+    Nan::ThrowError(#var " must be a number"); \
+    return; \
+  } \
+  unsigned int var = name->Uint32Value(); \
+  \
+  if (var < min) { \
+    Nan::ThrowError(#var "must be at least " #min); \
+    return; \
+  } \
+  if (((unsigned long long) var) > max) { \
+    Nan::ThrowError(#var "must be at most " #max); \
+    return; \
+  }
+
+#define ASSERT_FUNCTION(name, var) \
+  if (!name->IsFunction()) { \
+    Nan::ThrowError(#var " must be a function"); \
+    return; \
+  } \
+  Local<Function> var = name.As<Function>();
+
 #endif
