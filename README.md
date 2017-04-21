@@ -508,7 +508,7 @@ Just like `crypto_pwhash_str` but will run password hashing on a seperate worker
 
 #### `crypto_pwhash_str_verify_async(str, password, callback)`
 
-Just like `crypto_pwhash_str_verify` but will run password hashing on a seperate worker so it will not block the event loop. `callback(err, bool)` will receive any errors from the hashing but all argument errors will `throw`. If the verification succeeds `bool` is `true`, otherwise `err` is set.
+Just like `crypto_pwhash_str_verify` but will run password hashing on a seperate worker so it will not block the event loop. `callback(err, bool)` will receive any errors from the hashing but all argument errors will `throw`. If the verification succeeds `bool` is `true`, otherwise `false`. Due to an issue with libsodium `err` is currently never set.
 
 ### Scalar multiplication
 

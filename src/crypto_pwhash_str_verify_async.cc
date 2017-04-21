@@ -31,10 +31,15 @@ class CryptoPwhashStrVerifyAsync : public Nan::AsyncWorker {
     Nan::HandleScope scope;
 
     v8::Local<v8::Value> argv[] = {
-        Nan::Error(ErrorMessage())
+        // Due to an issue with crypto_pwhash_str_verify not counting an malloc
+        // error different from a verification mismatch we predict that a mismatch
+        // is the most likely cause of the error
+        // Nan::Error(ErrorMessage())
+        Nan::Null(),
+        Nan::False()
     };
 
-    callback->Call(1, argv);
+    callback->Call(2, argv);
   }
 
  private:

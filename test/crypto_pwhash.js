@@ -70,7 +70,7 @@ tape('crypto_pwhash_async', function (t) {
   })
 })
 
-tape('crypto_pwhash_str', function (t) {
+tape('crypto_pwhash_str_async', function (t) {
   var output = alloc(sodium.crypto_pwhash_STRBYTES)
   var passwd = new Buffer('Hej, Verden!')
   var opslimit = sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE
@@ -84,12 +84,13 @@ tape('crypto_pwhash_str', function (t) {
     t.error(err)
     t.notEqual(output, alloc(output.length), 'not blank')
     sodium.crypto_pwhash_str_verify_async(alloc(output.length), passwd, function (err, bool) {
-      t.ok(err, 'should set error')
-      t.notOk(bool, 'does not verify')
+      t.error(err)
+      console.log(bool)
+      t.ok(bool === false, 'does not verify')
 
       sodium.crypto_pwhash_str_verify_async(output, passwd, function (err, bool) {
         t.error(err)
-        t.ok(bool, 'verifies')
+        t.ok(bool === true, 'verifies')
         t.end()
       })
     })
