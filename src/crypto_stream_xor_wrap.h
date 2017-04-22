@@ -8,8 +8,8 @@ using namespace v8;
 
 class CryptoStreamXorWrap : public Nan::ObjectWrap {
 public:
-  unsigned char *nonce;
-  unsigned char *key;
+  unsigned char nonce[crypto_stream_NONCEBYTES];
+  unsigned char key[crypto_stream_KEYBYTES];
   unsigned char next_block[64];
   int remainder;
   uint64_t block_counter;

@@ -6,8 +6,8 @@ static Nan::Persistent<FunctionTemplate> crypto_stream_xor_constructor;
 static void crypto_stream_xor_wrap_init (CryptoStreamXorWrap *self, unsigned char *nonce, unsigned char *key) {
   self->remainder = 0;
   self->block_counter = 0;
-  self->nonce = nonce;
-  self->key = key;
+  memcpy(self->nonce, nonce, sizeof(self->nonce));
+  memcpy(self->key, key, sizeof(self->key));
 }
 
 static void crypto_stream_xor_wrap_update (CryptoStreamXorWrap *self, unsigned char *cipher, unsigned char *message, uint64_t message_length) {
@@ -48,9 +48,9 @@ static void crypto_stream_xor_wrap_update (CryptoStreamXorWrap *self, unsigned c
 }
 
 static void crypto_stream_xor_wrap_final (CryptoStreamXorWrap *self) {
-  self->nonce = NULL;
-  self->key = NULL;
-  sodium_memzero(self->next_block, 64);
+  sodium_memzero(self->nonce, sizeof(self->nonce));
+  sodium_memzero(self->key, sizeof(self->key));
+  sodium_memzero(self->next_block, sizeof(self->next_block));
   self->remainder = 0;
 }
 
