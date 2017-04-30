@@ -52,6 +52,35 @@ if (!sodium.crypto_secretbox_open_easy(plainText, cipher, nonce, key)) {
 
 Loads the bindings. If you get an module version error you probably need to reinstall the module because you switched node versions.
 
+### Memory Protection
+
+Bindings to the secure memory API.
+[See the libsodium "Securing memory allocations" docs for more information](https://download.libsodium.org/doc/helpers/memory_management/).
+
+#### `sodium.memzero(buffer)`
+
+Zero out the data in `buffer`.
+
+#### `sodium.mlock(buffer)`
+
+Lock the memory contained in `buffer`
+
+#### `sodium.munlock(buffer)`
+
+Unlock previously `mlock`ed memory contained in `buffer`
+
+#### `var buffer = sodium.malloc(size)`
+
+Allocate a buffer of `size` which is
+
+#### `var buffer = sodium.allocarray(count, size)`
+
+#### `sodium.mprotect_noaccess(buffer)`
+
+#### `sodium.mprotect_readonly(buffer)`
+
+#### `sodium.mprotect_readwrite(buffer)`
+
 ### Generating random data
 
 Bindings to the random data generation API.
