@@ -46,7 +46,7 @@
 
 #define ASSERT_BUFFER_MIN_LENGTH(name, var, length) \
   ASSERT_BUFFER_SET_LENGTH(name, var) \
-  if (var##_length < length) { \
+  if (length > 0 && var##_length < length) { \
     Nan::ThrowError(#var " must be a buffer of size " STR(length)); \
     return; \
   }
@@ -65,7 +65,7 @@
   } \
   unsigned int var = name->Uint32Value(); \
   \
-  if (var < min) { \
+  if (min > 0 && var < min) { \
     Nan::ThrowError(#var " must be at least " #min); \
     return; \
   } \
