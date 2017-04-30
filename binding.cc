@@ -39,7 +39,7 @@ NAN_METHOD(munlock) {
   CALL_SODIUM(sodium_munlock(CDATA(buf), CLENGTH(buf)))
 }
 
-void SodiumFreeCallback (char * data, void * hint) {
+static void SodiumFreeCallback (char * data, void * hint) {
   sodium_free((void *) data);
 }
 
