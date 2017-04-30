@@ -9,6 +9,7 @@
 #define LOCAL_STRING(str) Nan::New<String>(str).ToLocalChecked()
 #define LOCAL_FUNCTION(fn) Nan::GetFunction(Nan::New<FunctionTemplate>(fn)).ToLocalChecked()
 #define EXPORT_NUMBER(name) Nan::Set(target, LOCAL_STRING(#name), Nan::New<Number>(name));
+#define EXPORT_NUMBER_PATCHED(name, val) Nan::Set(target, LOCAL_STRING(#name), Nan::New<Number>(val));
 #define EXPORT_STRING(name) Nan::Set(target, LOCAL_STRING(#name), LOCAL_STRING(name));
 #define EXPORT_FUNCTION(name) Nan::Set(target, LOCAL_STRING(#name), LOCAL_FUNCTION(name));
 
@@ -16,6 +17,10 @@
 #ifndef SIZE_MAX
 #define SIZE_MAX ((size_t) - 1)
 #endif
+
+// from sodium source - the corrected values. can be removed when a new sodium release is cut
+#define SODIUM_NATIVE_PATCHED_crypto_pwhash_MEMLIMIT_MIN 8192U
+#define SODIUM_NATIVE_PATCHED_crypto_pwhash_MEMLIMIT_MAX ((SIZE_MAX >= 4398046510080U) ? 4398046510080U : (SIZE_MAX >= 2147483648U) ? 2147483648U : 32768U)
 
 #define CALL_SODIUM(fn) \
   int ret = fn; \
@@ -61,11 +66,11 @@
   unsigned int var = name->Uint32Value(); \
   \
   if (var < min) { \
-    Nan::ThrowError(#var "must be at least " #min); \
+    Nan::ThrowError(#var " must be at least " #min); \
     return; \
   } \
-  if (var > max) { \
-    Nan::ThrowError(#var "must be at most " #max); \
+  if (max <= sizeof(unsigned int) && var > max) { \
+    Nan::ThrowError(#var " must be at most " #max); \
     return; \
   }
 
