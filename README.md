@@ -67,13 +67,11 @@ Lock the memory contained in `buffer`
 
 #### `sodium.munlock(buffer)`
 
-Unlock previously `mlock`ed memory contained in `buffer`
+Unlock previously `mlock`ed memory contained in `buffer`. This will also `memzero` `buffer`
 
 #### `var buffer = sodium.malloc(size)`
 
-Allocate a buffer of `size` which is
-
-#### `var buffer = sodium.allocarray(count, size)`
+Allocate a buffer of `size` which is memory protected. See [libsodium docs](https://download.libsodium.org/doc/helpers/memory_management.html#guarded-heap-allocations) for details
 
 #### `sodium.mprotect_noaccess(buffer)`
 

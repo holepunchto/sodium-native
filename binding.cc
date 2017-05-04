@@ -44,32 +44,11 @@ static void SodiumFreeCallback (char * data, void * hint) {
 }
 
 NAN_METHOD(malloc) {
-  ASSERT_UINT(info[0], size)
+  ASSERT_UINT_BOUNDS(info[0], size, 0, node::Buffer::kMaxLength)
 
   Nan::MaybeLocal<v8::Object> buf = Nan::NewBuffer(
     (char *)sodium_malloc(size),
     size,
-    SodiumFreeCallback,
-    NULL
-  );
-
-  info.GetReturnValue().Set(buf.ToLocalChecked());
-}
-
-NAN_METHOD(allocarray) {
-  ASSERT_UINT(info[0], count)
-  ASSERT_UINT(info[1], size)
-
-  void * ptr = sodium_allocarray(count, size);
-
-  if (ptr == NULL) {
-    Nan::ThrowError("Sodium operation failed. Unable to allocate memory");
-    return;
-  }
-
-  Nan::MaybeLocal<v8::Object> buf = Nan::NewBuffer(
-    (char *) ptr,
-    count * size,
     SodiumFreeCallback,
     NULL
   );
@@ -628,7 +607,6 @@ NAN_MODULE_INIT(InitAll) {
   EXPORT_FUNCTION(mlock)
   EXPORT_FUNCTION(munlock)
   EXPORT_FUNCTION(malloc)
-  EXPORT_FUNCTION(allocarray)
   EXPORT_FUNCTION(mprotect_noaccess)
   EXPORT_FUNCTION(mprotect_readonly)
   EXPORT_FUNCTION(mprotect_readwrite)

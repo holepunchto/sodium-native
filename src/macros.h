@@ -56,14 +56,14 @@
     Nan::ThrowError(#var " must be a number"); \
     return; \
   } \
-  unsigned int var = name->Uint32Value();
+  int64_t var = name->IntegerValue();
 
 #define ASSERT_UINT_BOUNDS(name, var, min, max) \
   if (!name->IsNumber()) { \
     Nan::ThrowError(#var " must be a number"); \
     return; \
   } \
-  unsigned int var = name->Uint32Value(); \
+  int64_t var = name->IntegerValue(); \
   \
   if (min > 0 && var < min) { \
     Nan::ThrowError(#var " must be at least " #min); \
