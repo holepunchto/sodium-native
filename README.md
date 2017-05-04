@@ -71,7 +71,7 @@ Unlock previously `mlock`ed memory contained in `buffer`. This will also `memzer
 
 #### `var buffer = sodium.malloc(size)`
 
-Allocate a buffer of `size` which is memory protected. See [libsodium docs](https://download.libsodium.org/doc/helpers/memory_management.html#guarded-heap-allocations) for details
+Allocate a buffer of `size` which is memory protected. See [libsodium docs](https://download.libsodium.org/doc/helpers/memory_management.html#guarded-heap-allocations) for details. Be aware that many Buffer methods may break the security guarantees of `sodium.malloc`'ed memory.
 
 #### `sodium.mprotect_noaccess(buffer)`
 
