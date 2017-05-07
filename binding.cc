@@ -84,7 +84,7 @@ NAN_METHOD(randombytes_buf) {
 
 // helpers
 
-NAN_METHOD(sodium_memcmp) {
+NAN_METHOD(memcmp) {
   ASSERT_BUFFER(info[0], b1)
   ASSERT_BUFFER(info[1], b2)
   ASSERT_UINT(info[2], length)
@@ -92,7 +92,7 @@ NAN_METHOD(sodium_memcmp) {
   CALL_SODIUM_BOOL(sodium_memcmp(CDATA(b1), CDATA(b2), length))
 }
 
-NAN_METHOD(sodium_compare) {
+NAN_METHOD(compare) {
   ASSERT_BUFFER(info[0], b1)
   ASSERT_BUFFER(info[1], b2)
   ASSERT_UINT(info[2], length)
@@ -617,8 +617,8 @@ NAN_MODULE_INIT(InitAll) {
 
   // helpers
 
-  EXPORT_FUNCTION(sodium_memcmp)
-  EXPORT_FUNCTION(sodium_compare)
+  EXPORT_FUNCTION(memcmp)
+  EXPORT_FUNCTION(compare)
 
   // crypto_sign
 
