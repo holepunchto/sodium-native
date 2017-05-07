@@ -17,6 +17,9 @@ switch (os.platform()) {
     buildDarwin()
     break
 
+  case 'openbsd':
+    break
+
   default:
     buildLinux()
     break
