@@ -75,9 +75,18 @@ Allocate a buffer of `size` which is memory protected. See [libsodium docs](http
 
 #### `sodium.mprotect_noaccess(buffer)`
 
+Make `buffer` allocated using `sodium.malloc` inaccessible, crashing the process if any access is attempted.
+Note that this will have no effect for normal `Buffer`s.
+
 #### `sodium.mprotect_readonly(buffer)`
 
+Make `buffer` allocated using `sodium.malloc` read-only, crashing the process if any writing is attempted.
+Note that this will have no effect for normal `Buffer`s.
+
 #### `sodium.mprotect_readwrite(buffer)`
+
+Make `buffer` allocated using `sodium.malloc` read-write, undoing `mprotect_noaccess` or `mprotect_readonly`.
+Note that this will have no effect for normal `Buffer`s.
 
 ### Generating random data
 
