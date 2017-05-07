@@ -19,6 +19,61 @@ using namespace v8;
 // As per Libsodium install docs
 #define SODIUM_STATIC
 
+// memory management
+
+NAN_METHOD(memzero) {
+  ASSERT_BUFFER(info[0], buf)
+
+  sodium_memzero(CDATA(buf), CLENGTH(buf));
+}
+
+NAN_METHOD(mlock) {
+  ASSERT_BUFFER(info[0], buf)
+
+  CALL_SODIUM(sodium_mlock(CDATA(buf), CLENGTH(buf)))
+}
+
+NAN_METHOD(munlock) {
+  ASSERT_BUFFER(info[0], buf)
+
+  CALL_SODIUM(sodium_munlock(CDATA(buf), CLENGTH(buf)))
+}
+
+static void SodiumFreeCallback (char * data, void * hint) {
+  sodium_free((void *) data);
+}
+
+NAN_METHOD(malloc) {
+  ASSERT_UINT_BOUNDS(info[0], size, 0, node::Buffer::kMaxLength)
+
+  Nan::MaybeLocal<v8::Object> buf = Nan::NewBuffer(
+    (char *)sodium_malloc(size),
+    size,
+    SodiumFreeCallback,
+    NULL
+  );
+
+  info.GetReturnValue().Set(buf.ToLocalChecked());
+}
+
+NAN_METHOD(mprotect_noaccess) {
+  ASSERT_BUFFER(info[0], buf)
+
+  CALL_SODIUM(sodium_mprotect_noaccess(node::Buffer::Data(buf)))
+}
+
+NAN_METHOD(mprotect_readonly) {
+  ASSERT_BUFFER(info[0], buf)
+
+  CALL_SODIUM(sodium_mprotect_readonly(node::Buffer::Data(buf)))
+}
+
+NAN_METHOD(mprotect_readwrite) {
+  ASSERT_BUFFER(info[0], buf)
+
+  CALL_SODIUM(sodium_mprotect_readwrite(node::Buffer::Data(buf)))
+}
+
 // randombytes
 
 NAN_METHOD(randombytes_buf) {
@@ -546,6 +601,15 @@ NAN_MODULE_INIT(InitAll) {
     Nan::ThrowError("sodium_init() failed");
     return;
   }
+
+  // memory management
+  EXPORT_FUNCTION(memzero)
+  EXPORT_FUNCTION(mlock)
+  EXPORT_FUNCTION(munlock)
+  EXPORT_FUNCTION(malloc)
+  EXPORT_FUNCTION(mprotect_noaccess)
+  EXPORT_FUNCTION(mprotect_readonly)
+  EXPORT_FUNCTION(mprotect_readwrite)
 
   // randombytes
 
