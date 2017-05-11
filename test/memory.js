@@ -110,6 +110,6 @@ tape('mprotect_readwrite', function (t) {
     }
   })
   p.on('exit', function (code, signal) {
-    t.ok(p.signalCode !== null || p.exitCode > 0)
+    t.ok(p.signalCode === null || p.exitCode === 0)
   })
 })
