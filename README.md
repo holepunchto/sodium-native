@@ -55,7 +55,7 @@ Loads the bindings. If you get an module version error you probably need to rein
 ### Memory Protection
 
 Bindings to the secure memory API.
-[See the libsodium "Securing memory allocations" docs for more information](https://download.libsodium.org/doc/helpers/memory_management/).
+[See the libsodium "Securing memory allocations" docs for more information](https://download.libsodium.org/doc/helpers/memory_management.html).
 
 #### `sodium.memzero(buffer)`
 
