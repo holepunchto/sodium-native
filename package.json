@@ -10,12 +10,14 @@
   "devDependencies": {
     "buffer-alloc": "^1.1.0",
     "buffer-fill": "^0.1.0",
+    "node-gyp": "^3.6.1",
     "prebuildify": "^2.1.0",
     "sodium-test": "^0.1.0",
     "standard": "^8.6.0",
     "tape": "^4.6.3"
   },
   "scripts": {
+    "dev": "node-gyp rebuild",
     "test": "standard && tape \"test/*.js\"",
     "install": "node-gyp-build \"node preinstall.js\" \"node postinstall.js\"",
     "prebuild": "prebuildify -a --strip --preinstall \"node preinstall.js\" --postinstall \"node postinstall.js\"",
