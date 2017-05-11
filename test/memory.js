@@ -75,7 +75,7 @@ tape('mprotect_noaccess', function (t) {
     t.fail()
   })
   p.on('exit', function (code, signal) {
-    t.ok(signal)
+    t.ok(p.signalCode !== null || p.exitCode > 0)
   })
 })
 
@@ -87,7 +87,7 @@ tape('mprotect_readonly', function (t) {
     t.ok(msg === 'read')
   })
   p.on('exit', function (code, signal) {
-    t.ok(signal)
+    t.ok(p.signalCode !== null || p.exitCode > 0)
   })
 })
 
@@ -110,6 +110,6 @@ tape('mprotect_readwrite', function (t) {
     }
   })
   p.on('exit', function (code, signal) {
-    t.ok(signal !== 'SIGBUS')
+    t.ok(p.signalCode !== null || p.exitCode > 0)
   })
 })
