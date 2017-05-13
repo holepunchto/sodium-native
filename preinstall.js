@@ -28,6 +28,9 @@ if (process.argv.indexOf('--print-lib') > -1) {
     case 'linux':
       console.log(path.join(__dirname, '/deps/lib/libsodium.so.18'))
       break
+    case 'openbsd':
+      console.log(path.join(__dirname, '/deps/lib/libsodium.so.20.0'))
+      break
     case 'win32':
       console.log('../deps/libsodium/Build/ReleaseDLL/' + warch + '/libsodium.lib')
       break
@@ -49,6 +52,10 @@ switch (os.platform()) {
 
   case 'win32':
     buildWindows()
+    break
+
+  case 'openbsd':
+    buildBSD()
     break
 
   default:
@@ -100,6 +107,12 @@ function buildDarwin () {
     spawn('install_name_tool', ['-id', res, res], {stdio: 'inherit'}, function (err) {
       if (err) throw err
     })
+  })
+}
+
+function buildBSD () {
+  buildUnix('so.20.0', function (err) {
+    if (err) throw err
   })
 }
 

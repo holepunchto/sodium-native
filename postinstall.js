@@ -17,6 +17,10 @@ switch (os.platform()) {
     buildDarwin()
     break
 
+  case 'openbsd':
+    buildBSD()
+    break
+
   default:
     buildLinux()
     break
@@ -34,6 +38,15 @@ function buildWindows () {
 function buildLinux () {
   var lib = path.join(__dirname, 'deps/lib/libsodium.so.18')
   var dst = path.join(build, 'libsodium.so.18')
+  if (fs.existsSync(dst)) return
+  copy(lib, dst, function (err) {
+    if (err) throw err
+  })
+}
+
+function buildBSD () {
+  var lib = path.join(__dirname, 'deps/lib/libsodium.so.20.0')
+  var dst = path.join(build, 'libsodium.so.20.0')
   if (fs.existsSync(dst)) return
   copy(lib, dst, function (err) {
     if (err) throw err
