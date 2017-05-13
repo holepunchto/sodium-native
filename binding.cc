@@ -147,18 +147,17 @@ NAN_METHOD(crypto_sign_detached) {
   CALL_SODIUM(crypto_sign_detached(CDATA(signature), &signature_length_dummy, CDATA(message), CLENGTH(message), CDATA(secret_key)))
 }
 
-NAN_METHOD(crypto_sign_ed25516_pk_to_curve25519) {
+NAN_METHOD(crypto_sign_ed25519_pk_to_curve25519) {
   ASSERT_BUFFER_MIN_LENGTH(info[0], curve25519_pk, crypto_box_PUBLICKEYBYTES)
   ASSERT_BUFFER_MIN_LENGTH(info[1], ed25519_pk, crypto_sign_PUBLICKEYBYTES)
   CALL_SODIUM(crypto_sign_ed25519_pk_to_curve25519(CDATA(curve25519_pk), CDATA(ed25519_pk)))
 }
 
-NAN_METHOD(crypto_sign_ed25516_sk_to_curve25519) {
+NAN_METHOD(crypto_sign_ed25519_sk_to_curve25519) {
   ASSERT_BUFFER_MIN_LENGTH(info[0], curve25519_sk, crypto_box_SECRETKEYBYTES)
   ASSERT_BUFFER_MIN_LENGTH(info[1], ed25519_sk, crypto_sign_SECRETKEYBYTES)
   CALL_SODIUM(crypto_sign_ed25519_sk_to_curve25519(CDATA(curve25519_sk), CDATA(ed25519_sk)))
 }
-
 
 NAN_METHOD(crypto_sign_verify_detached) {
   ASSERT_BUFFER_MIN_LENGTH(info[0], signature, crypto_sign_BYTES)
@@ -840,8 +839,3 @@ NODE_MODULE(sodium, InitAll)
 #undef ASSERT_UINT
 #undef CALL_SODIUM
 #undef CALL_SODIUM_BOOL
-
-
-
-
-
