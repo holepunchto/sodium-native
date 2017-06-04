@@ -36,7 +36,7 @@ function buildWindows () {
 }
 
 function buildLinux () {
-  var lib = path.join(__dirname, 'deps/lib/libsodium.so.18')
+  var lib = path.join(__dirname, 'deps/lib/libsodium-' + arch + '.so.18')
   var dst = path.join(build, 'libsodium.so.18')
   if (fs.existsSync(dst)) return
   copy(lib, dst, function (err) {
@@ -45,7 +45,7 @@ function buildLinux () {
 }
 
 function buildBSD () {
-  var lib = path.join(__dirname, 'deps/lib/libsodium.so.20.0')
+  var lib = path.join(__dirname, 'deps/lib/libsodium-' + arch + '.so.20.0')
   var dst = path.join(build, 'libsodium.so.20.0')
   if (fs.existsSync(dst)) return
   copy(lib, dst, function (err) {
@@ -54,7 +54,7 @@ function buildBSD () {
 }
 
 function buildDarwin () {
-  var lib = path.join(__dirname, 'deps/lib/libsodium.dylib')
+  var lib = path.join(__dirname, 'deps/lib/libsodium-' + arch + '.dylib')
   var dst = path.join(build, 'libsodium.dylib')
   if (fs.existsSync(dst)) return
   copy(lib, dst, function (err) {
