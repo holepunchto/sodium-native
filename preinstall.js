@@ -23,13 +23,13 @@ if (process.argv.indexOf('--print-arch') > -1) {
 if (process.argv.indexOf('--print-lib') > -1) {
   switch (os.platform()) {
     case 'darwin':
-      console.log('../deps/lib/libsodium.dylib')
+      console.log('../deps/lib/libsodium-' + arch + '.dylib')
       break
     case 'linux':
-      console.log(path.join(__dirname, '/deps/lib/libsodium.so.18'))
+      console.log(path.join(__dirname, '/deps/lib/libsodium-' + arch + '.so.18'))
       break
     case 'openbsd':
-      console.log(path.join(__dirname, '/deps/lib/libsodium.so.20.0'))
+      console.log(path.join(__dirname, '/deps/lib/libsodium-' + arch + '.so.20.0'))
       break
     case 'win32':
       console.log('../deps/libsodium/Build/ReleaseDLL/' + warch + '/libsodium.lib')
@@ -84,18 +84,21 @@ function buildWindows () {
 }
 
 function buildUnix (ext, cb) {
-  var res = path.join(__dirname, 'deps/lib/libsodium.' + ext)
+  var res = path.join(__dirname, 'deps/lib/libsodium-' + arch + '.' + ext)
   if (fs.existsSync(res)) return cb(null, res)
 
   spawn('./configure', ['--prefix=' + tmp], {cwd: dir, stdio: 'inherit'}, function (err) {
     if (err) throw err
-    spawn('make', ['install'], {cwd: dir, stdio: 'inherit'}, function (err) {
+    spawn('make', ['clean'], {cwd: dir, stdio: 'inherit'}, function (err) {
       if (err) throw err
-
-      var lib = fs.realpathSync(path.join(tmp, 'lib/libsodium.' + ext))
-      fs.rename(lib, res, function (err) {
+      spawn('make', ['install'], {cwd: dir, stdio: 'inherit'}, function (err) {
         if (err) throw err
-        if (cb) cb(null, res)
+
+        var lib = fs.realpathSync(path.join(tmp, 'lib/libsodium.' + ext))
+        fs.rename(lib, res, function (err) {
+          if (err) throw err
+          if (cb) cb(null, res)
+        })
       })
     })
   })
