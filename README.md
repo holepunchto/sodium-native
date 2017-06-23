@@ -162,13 +162,13 @@ Verify a signature.
 
 Will return `true` if the message could be verified. Otherwise `false`.
 
-####`crypto_sign_ed25519_pk_to_curve25519(curve_pk, ed_pk)
+#### `crypto_sign_ed25519_pk_to_curve25519(curve_pk, ed_pk)`
 
 convert a ed25519 public key to curve25519 (which can be used with `box` and `scalarmult`)
 * `curve_pk` should be a buffer with length `crypto_box_PUBLICKEYBYTES`
 * `ed_pk` should be a buffer with length `crypto_sign_PUBLICKEYBYTES`
 
-####`crypto_sign_ed25519_sk_to_curve25519(curve_sk, ed_sk)
+#### `crypto_sign_ed25519_sk_to_curve25519(curve_sk, ed_sk)`
 
 convert a ed25519 secret key to curve25519 (which can be used with `box` and `scalarmult`)
 * `curve_sk` should be a buffer with length `crypto_box_SECRETKEYBYTES`
