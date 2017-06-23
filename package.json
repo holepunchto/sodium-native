@@ -23,6 +23,7 @@
     "install": "node-gyp-build \"node preinstall.js\" \"node postinstall.js\"",
     "prebuild": "prebuildify -a --strip --preinstall \"node preinstall.js\" --postinstall \"node postinstall.js\"",
     "prebuild-ia32": "prebuildify -a --strip --preinstall \"node preinstall.js\" --postinstall \"node postinstall.js\" --arch=ia32"
+    "prebuild-arm": "prebuildify -a --strip --preinstall \"node preinstall.js\" --postinstall \"node postinstall.js\" --arch=arm"
   },
   "repository": {
     "type": "git",
@@ -35,3 +36,4 @@
   },
   "homepage": "https://github.com/sodium-friends/sodium-native"
 }
+
