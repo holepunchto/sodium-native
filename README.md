@@ -506,7 +506,7 @@ Create a password hash.
 
 * `output` should be a buffer with length within `crypto_pwhash_BYTES_MIN` - `crypto_pwhash_BYTES_MAX`.
 * `password` should be a buffer of any size.
-* `salt` should be a buffer with length `crypto_passwd_SALTBYTES`.
+* `salt` should be a buffer with length `crypto_pwhash_SALTBYTES`.
 * `opslimit` should a be number containing your ops limit setting in the range `crypto_pwhash_OPSLIMIT_MIN` - `crypto_pwhash_OPSLIMIT_MAX`.
 * `memlimit` should a be number containing your mem limit setting in the range `crypto_pwhash_MEMLIMIT_MIN` - `crypto_pwhash_OPSLIMIT_MAX`.
 * `algorithm` should be a number specifying the algorithm you want to use.
