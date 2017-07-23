@@ -25,18 +25,17 @@ if (process.argv.indexOf('--print-lib') > -1) {
     case 'darwin':
       console.log('../deps/lib/libsodium-' + arch + '.dylib')
       break
-    case 'linux':
-      console.log(path.join(__dirname, '/deps/lib/libsodium-' + arch + '.so.18'))
-      break
     case 'openbsd':
       console.log(path.join(__dirname, '/deps/lib/libsodium-' + arch + '.so.20.0'))
       break
     case 'win32':
       console.log('../deps/libsodium/Build/ReleaseDLL/' + warch + '/libsodium.lib')
       break
-  }
 
-  process.exit(0)
+    default:
+      console.log(path.join(__dirname, '/deps/lib/libsodium-' + arch + '.so.18'))
+      break
+  }
 }
 
 try {
