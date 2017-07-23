@@ -141,7 +141,7 @@ test "${ECHO+set}" = set || ECHO=${as_echo-'printf %s\n'}
 : ${MKDIR="mkdir"}
 : ${MV="mv -f"}
 : ${RM="rm -f"}
-: ${SHELL="${CONFIG_SHELL-/bin/sh}"}
+: ${SHELL="${CONFIG_SHELL-/data/data/com.termux/files/usr/bin/sh}"}
 : ${Xsed="$SED -e 1s/^X//"}
 
 # Global variables:
@@ -2771,7 +2771,7 @@ func_mode_install ()
     $opt_debug
     # There may be an optional sh(1) argument at the beginning of
     # install_prog (especially on Windows NT).
-    if test "$nonopt" = "$SHELL" || test "$nonopt" = /bin/sh ||
+    if test "$nonopt" = "$SHELL" || test "$nonopt" = /data/data/com.termux/files/usr/bin/sh ||
        # Allow the use of GNU shtool's install command.
        case $nonopt in *shtool*) :;; *) false;; esac; then
       # Aesthetically quote it.

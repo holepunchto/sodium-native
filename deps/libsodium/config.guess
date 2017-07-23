@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /data/data/com.termux/files/usr/bin/sh
 # Attempt to guess a canonical system name.
 #   Copyright 1992-2013 Free Software Foundation, Inc.
 
@@ -900,7 +900,7 @@ EOF
 	  EV67)  UNAME_MACHINE=alphaev67 ;;
 	  EV68*) UNAME_MACHINE=alphaev68 ;;
 	esac
-	objdump --private-headers /bin/sh | grep -q ld.so.1
+	objdump --private-headers /data/data/com.termux/files/usr/bin/sh | grep -q ld.so.1
 	if test "$?" = 0 ; then LIBC="gnulibc1" ; fi
 	echo ${UNAME_MACHINE}-unknown-linux-${LIBC}
 	exit ;;

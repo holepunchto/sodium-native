@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /data/data/com.termux/files/usr/bin/sh
 
 export NACL_SDK_ROOT=${NACL_SDK_ROOT-"/opt/nacl_sdk/pepper_49"}
 export NACL_TOOLCHAIN=${NACL_TOOLCHAIN-"${NACL_SDK_ROOT}/toolchain/mac_pnacl"}

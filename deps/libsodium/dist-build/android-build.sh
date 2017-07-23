@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /data/data/com.termux/files/usr/bin/sh
 
 if [ -z "$NDK_PLATFORM" ]; then
   export NDK_PLATFORM="android-24"

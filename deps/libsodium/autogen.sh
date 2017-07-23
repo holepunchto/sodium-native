@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /data/data/com.termux/files/usr/bin/sh
 
 if glibtoolize --version > /dev/null 2>&1; then
   LIBTOOLIZE='glibtoolize'

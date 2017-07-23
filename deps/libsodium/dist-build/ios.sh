@@ -1,8 +1,8 @@
-#! /bin/sh
+#! /data/data/com.termux/files/usr/bin/sh
 #
 #  Step 1.
 #  Configure for base system so simulator is covered
-#  
+#
 #  Step 2.
 #  Make for iOS and iOS simulator
 #

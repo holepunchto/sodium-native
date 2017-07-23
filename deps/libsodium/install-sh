@@ -1,4 +1,4 @@
-#!/bin/sh
+#!/data/data/com.termux/files/usr/bin/sh
 # install - install a program, script, or datafile
 
 scriptversion=2011-11-20.07; # UTC

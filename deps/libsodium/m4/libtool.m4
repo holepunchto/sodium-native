@@ -77,7 +77,7 @@ AC_REQUIRE([LTVERSION_VERSION])dnl
 AC_REQUIRE([LTOBSOLETE_VERSION])dnl
 m4_require([_LT_PROG_LTMAIN])dnl
 
-_LT_SHELL_INIT([SHELL=${CONFIG_SHELL-/bin/sh}])
+_LT_SHELL_INIT([SHELL=${CONFIG_SHELL-/data/data/com.termux/files/usr/bin/sh}])
 
 dnl Parse OPTIONS
 _LT_SET_OPTIONS([$0], [$1])
@@ -1774,7 +1774,7 @@ AC_CACHE_VAL([lt_cv_sys_max_cmd_len], [dnl
       for i in 1 2 3 4 5 6 7 8; do
         teststring=$teststring$teststring
       done
-      SHELL=${SHELL-${CONFIG_SHELL-/bin/sh}}
+      SHELL=${SHELL-${CONFIG_SHELL-/data/data/com.termux/files/usr/bin/sh}}
       # If test is not a shell built-in, we'll probably end up computing a
       # maximum length that is only half of the actual maximum length, but
       # we can't tell.

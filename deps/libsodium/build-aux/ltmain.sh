@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /data/data/com.termux/files/usr/bin/sh
 ## DO NOT EDIT - This file generated from ./build-aux/ltmain.in
 ##               by inline-source v2014-01-03.01
 
@@ -318,7 +318,7 @@ test -z "$GREP" && {
 : ${MKDIR="mkdir"}
 : ${MV="mv -f"}
 : ${RM="rm -f"}
-: ${SHELL="${CONFIG_SHELL-/bin/sh}"}
+: ${SHELL="${CONFIG_SHELL-/data/data/com.termux/files/usr/bin/sh}"}
 
 
 ## -------------------- ##
@@ -1367,7 +1367,7 @@ func_lt_ver ()
 # time-stamp-pattern: "10/scriptversion=%:y-%02m-%02d.%02H; # UTC"
 # time-stamp-time-zone: "UTC"
 # End:
-#! /bin/sh
+#! /data/data/com.termux/files/usr/bin/sh
 
 # Set a version string for this script.
 scriptversion=2014-01-07.03; # UTC
@@ -1405,7 +1405,7 @@ scriptversion=2014-01-07.03; # UTC
 #
 # For the simplest scripts you might need only:
 #
-#   #!/bin/sh
+#   #!/data/data/com.termux/files/usr/bin/sh
 #   . relative/path/to/funclib.sh
 #   . relative/path/to/options-parser
 #   scriptversion=1.0
@@ -4091,7 +4091,7 @@ func_mode_install ()
 
     # There may be an optional sh(1) argument at the beginning of
     # install_prog (especially on Windows NT).
-    if test "$SHELL" = "$nonopt" || test /bin/sh = "$nonopt" ||
+    if test "$SHELL" = "$nonopt" || test /data/data/com.termux/files/usr/bin/sh = "$nonopt" ||
        # Allow the use of GNU shtool's install command.
        case $nonopt in *shtool*) :;; *) false;; esac
     then

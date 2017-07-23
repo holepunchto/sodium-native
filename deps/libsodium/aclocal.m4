@@ -247,7 +247,7 @@ AC_CACHE_CHECK([dependency style of $depcc],
     for i in 1 2 3 4 5 6; do
       echo '#include "conftst'$i'.h"' >> sub/conftest.c
       # Using ": > sub/conftst$i.h" creates only sub/conftst1.h with
-      # Solaris 10 /bin/sh.
+      # Solaris 10 /data/data/com.termux/files/usr/bin/sh.
       echo '/* dummy */' > sub/conftst$i.h
     done
     echo "${am__include} ${am__quote}sub/conftest.Po${am__quote}" > confmf

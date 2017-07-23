@@ -1,4 +1,4 @@
-#! /bin/sh
+#! /data/data/com.termux/files/usr/bin/sh
 
 export CFLAGS="-O3 -fomit-frame-pointer -m64 -mtune=westmere"
 export PREFIX="$(pwd)/libsodium-win64"
