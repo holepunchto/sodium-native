@@ -40,6 +40,11 @@
             'libraries': [ "-Wl,-rpath=\\$$ORIGIN/"]
           }
         }],
+        ['OS=="android"', {
+          'link_settings': {
+            'libraries': [ "-Wl,-rpath=\\$$ORIGIN/"]
+          }
+        }],
       ],
     }
   ]
