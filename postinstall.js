@@ -46,12 +46,7 @@ function buildLinux () {
 }
 
 function buildBSD () {
-  var lib = path.join(__dirname, 'deps/lib/libsodium.so.18')
-  var dst = path.join(build, 'libsodium.so.18')
-  if (fs.existsSync(dst)) return
-  copy(lib, dst, function (err) {
-    if (err) throw err
-  })
+  buildLinux()
 }
 
 function buildDarwin () {
