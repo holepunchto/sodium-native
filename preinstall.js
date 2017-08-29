@@ -30,12 +30,6 @@ if (process.argv.indexOf('--print-lib') > -1) {
     case 'linux':
       console.log(path.join(__dirname, '/deps/lib/libsodium-' + arch + '.so.18'))
       break
-<<<<<<< HEAD
-    case 'openbsd':
-      console.log(path.join(__dirname, '/deps/lib/libsodium-' + arch + '.so.20.0'))
-      break
-=======
->>>>>>> Fix build script for FreeBSD
     case 'win32':
       console.log('../deps/libsodium/Build/ReleaseDLL/' + warch + '/libsodium.lib')
       break

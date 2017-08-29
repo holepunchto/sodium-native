@@ -46,13 +46,8 @@ function buildLinux () {
 }
 
 function buildBSD () {
-<<<<<<< HEAD
-  var lib = path.join(__dirname, 'deps/lib/libsodium-' + arch + '.so.20.0')
-  var dst = path.join(build, 'libsodium.so.20.0')
-=======
   var lib = path.join(__dirname, 'deps/lib/libsodium.so.18')
   var dst = path.join(build, 'libsodium.so.18')
->>>>>>> Fix build script for FreeBSD
   if (fs.existsSync(dst)) return
   copy(lib, dst, function (err) {
     if (err) throw err
