@@ -25,15 +25,22 @@ if (process.argv.indexOf('--print-lib') > -1) {
     case 'darwin':
       console.log('../deps/lib/libsodium-' + arch + '.dylib')
       break
+    case 'freebsd':
+    case 'openbsd':
     case 'linux':
       console.log(path.join(__dirname, '/deps/lib/libsodium-' + arch + '.so.18'))
       break
+<<<<<<< HEAD
     case 'openbsd':
       console.log(path.join(__dirname, '/deps/lib/libsodium-' + arch + '.so.20.0'))
       break
+=======
+>>>>>>> Fix build script for FreeBSD
     case 'win32':
       console.log('../deps/libsodium/Build/ReleaseDLL/' + warch + '/libsodium.lib')
       break
+    default:
+      process.exit(1)
   }
 
   process.exit(0)
@@ -54,6 +61,7 @@ switch (os.platform()) {
     buildWindows()
     break
 
+  case 'freebsd':
   case 'openbsd':
     buildBSD()
     break
@@ -114,7 +122,7 @@ function buildDarwin () {
 }
 
 function buildBSD () {
-  buildUnix('so.20.0', function (err) {
+  buildUnix('so.18', function (err) {
     if (err) throw err
   })
 }

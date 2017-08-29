@@ -35,9 +35,9 @@
         '<!(node preinstall.js --print-lib)'
       ],
       'conditions': [
-        ['OS=="linux"', {
+        ['OS != "mac" and OS != "win"', {
           'link_settings': {
-            'libraries': [ "-Wl,-rpath=\\$$ORIGIN/"]
+            'libraries': [ "-Wl,-rpath=\\$$ORIGIN"]
           }
         }],
       ],
