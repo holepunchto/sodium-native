@@ -2,7 +2,7 @@
 #define CRYPTO_HASH_SHA512_WRAP_H
 
 #include <nan.h>
-#include "../deps/libsodium/src/libsodium/include/sodium.h"
+#include "../libsodium/src/libsodium/include/sodium.h"
 
 using namespace v8;
 

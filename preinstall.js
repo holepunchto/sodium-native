@@ -5,7 +5,7 @@ var os = require('os')
 var proc = require('child_process')
 var path = require('path')
 
-var dir = path.join(__dirname, 'deps/libsodium')
+var dir = path.join(__dirname, 'libsodium')
 var tmp = path.join(__dirname, 'tmp')
 var arch = process.env.PREBUILD_ARCH || os.arch()
 
@@ -23,15 +23,15 @@ if (process.argv.indexOf('--print-arch') > -1) {
 if (process.argv.indexOf('--print-lib') > -1) {
   switch (os.platform()) {
     case 'darwin':
-      console.log('../deps/lib/libsodium-' + arch + '.dylib')
+      console.log('../lib/libsodium-' + arch + '.dylib')
       break
     case 'freebsd':
     case 'openbsd':
     case 'linux':
-      console.log(path.join(__dirname, '/deps/lib/libsodium-' + arch + '.so.18'))
+      console.log(path.join(__dirname, '/lib/libsodium-' + arch + '.so.18'))
       break
     case 'win32':
-      console.log('../deps/libsodium/Build/ReleaseDLL/' + warch + '/libsodium.lib')
+      console.log('../libsodium/Build/ReleaseDLL/' + warch + '/libsodium.lib')
       break
     default:
       process.exit(1)
@@ -41,7 +41,7 @@ if (process.argv.indexOf('--print-lib') > -1) {
 }
 
 try {
-  fs.mkdirSync(path.join(__dirname, 'deps/lib'))
+  fs.mkdirSync(path.join(__dirname, 'lib'))
 } catch (err) {
   // do nothing
 }
@@ -66,7 +66,7 @@ switch (os.platform()) {
 }
 
 function buildWindows () {
-  var res = path.join(__dirname, 'deps/lib/libsodium-' + arch + '.dll')
+  var res = path.join(__dirname, 'lib/libsodium-' + arch + '.dll')
   if (fs.existsSync(res)) return
 
   spawn('.\\msvc-scripts\\process.bat', [], {cwd: dir, stdio: 'inherit'}, function (err) {
@@ -86,7 +86,7 @@ function buildWindows () {
 }
 
 function buildUnix (ext, cb) {
-  var res = path.join(__dirname, 'deps/lib/libsodium-' + arch + '.' + ext)
+  var res = path.join(__dirname, 'lib/libsodium-' + arch + '.' + ext)
   if (fs.existsSync(res)) return cb(null, res)
 
   spawn('./configure', ['--prefix=' + tmp], {cwd: dir, stdio: 'inherit'}, function (err) {
