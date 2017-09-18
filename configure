@@ -1,3 +1,4 @@
 cd libsodium
+git checkout -- 1.0.13
 ./autogen.sh
 ./configure
