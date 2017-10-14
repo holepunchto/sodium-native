@@ -1,6 +1,9 @@
 #ifndef SODIDUM_NATIVE_MACROS_H
 #define SODIDUM_NATIVE_MACROS_H
 
+#include <errno.h>
+#include <string.h>
+
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
 
@@ -21,7 +24,7 @@
 #define CALL_SODIUM(fn) \
   int ret = fn; \
   if (ret) { \
-    Nan::ThrowError("Sodium operation failed"); \
+    Nan::ThrowError(Nan::ErrnoException(errno, NULL, strerror(errno))); \
     return; \
   }
 
