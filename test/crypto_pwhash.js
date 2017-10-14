@@ -15,12 +15,12 @@ tape('crypto_pwhash', function (t) {
 
   sodium.crypto_pwhash(output, passwd, salt, opslimit, memlimit, algo)
 
-  t.same(output.toString('hex'), '9dc3499e37e8177f5e5abdf0fa18bfb7b768970a5fd870e3c28af7a79d75c3c2', 'hashes password')
+  t.same(output.toString('hex'), 'f0236e17ec70050fc989f19d8ce640301e8f912154b4f0afc1552cdf246e659f', 'hashes password')
 
   salt[0] = 0
   sodium.crypto_pwhash(output, passwd, salt, opslimit, memlimit, algo)
 
-  t.same(output.toString('hex'), '0170a897e8952582fa29f7cdd58e791ddabf3f32ce0268fe9bd244bccee812a8', 'diff salt -> diff hash')
+  t.same(output.toString('hex'), 'df73f15d217196311d4b1aa6fba339905ffe581dee4bd3a95ec2bb7c52991d65', 'diff salt -> diff hash')
 
   t.end()
 })
@@ -57,13 +57,13 @@ tape('crypto_pwhash_async', function (t) {
   sodium.crypto_pwhash_async(output, passwd, salt, opslimit, memlimit, algo, function (err) {
     t.error(err)
 
-    t.same(output.toString('hex'), '9dc3499e37e8177f5e5abdf0fa18bfb7b768970a5fd870e3c28af7a79d75c3c2', 'hashes password')
+    t.same(output.toString('hex'), 'f0236e17ec70050fc989f19d8ce640301e8f912154b4f0afc1552cdf246e659f', 'hashes password')
 
     salt[0] = 0
     sodium.crypto_pwhash_async(output, passwd, salt, opslimit, memlimit, algo, function (err) {
       t.error(err)
 
-      t.same(output.toString('hex'), '0170a897e8952582fa29f7cdd58e791ddabf3f32ce0268fe9bd244bccee812a8', 'diff salt -> diff hash')
+      t.same(output.toString('hex'), 'df73f15d217196311d4b1aa6fba339905ffe581dee4bd3a95ec2bb7c52991d65', 'diff salt -> diff hash')
 
       t.end()
     })
@@ -94,4 +94,16 @@ tape('crypto_pwhash_str_async', function (t) {
       })
     })
   })
+})
+
+tape('crypto_pwhash limits', function (t) {
+  var output = alloc(sodium.crypto_pwhash_STRBYTES)
+  var passwd = new Buffer('Hej, Verden!')
+  var opslimit = Number.MAX_SAFE_INTEGER
+  var memlimit = Number.MAX_SAFE_INTEGER
+
+  t.throws(function () {
+    sodium.crypto_pwhash_str(output, passwd, opslimit, memlimit)
+  }, 'should throw on large limits')
+  t.end()
 })
