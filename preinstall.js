@@ -23,12 +23,12 @@ if (process.argv.indexOf('--print-arch') > -1) {
 if (process.argv.indexOf('--print-lib') > -1) {
   switch (os.platform()) {
     case 'darwin':
-      console.log('../lib/libsodium-' + arch + '.dylib')
+      console.log('lib/libsodium-' + arch + '.dylib')
       break
     case 'freebsd':
     case 'openbsd':
     case 'linux':
-      console.log(path.join(__dirname, '/lib/libsodium-' + arch + '.so.18'))
+      console.log(path.join(__dirname, 'build/lib/libsodium-' + arch + '.so.18'))
       break
     case 'win32':
       console.log('../libsodium/Build/ReleaseDLL/' + warch + '/libsodium.lib')
@@ -41,7 +41,13 @@ if (process.argv.indexOf('--print-lib') > -1) {
 }
 
 try {
-  fs.mkdirSync(path.join(__dirname, 'lib'))
+  fs.mkdirSync(path.join(__dirname, 'build'))
+} catch (err) {
+  // do nothing
+}
+
+try {
+  fs.mkdirSync(path.join(__dirname, 'build/lib'))
 } catch (err) {
   // do nothing
 }
@@ -66,7 +72,7 @@ switch (os.platform()) {
 }
 
 function buildWindows () {
-  var res = path.join(__dirname, 'lib/libsodium-' + arch + '.dll')
+  var res = path.join(__dirname, 'build/lib/libsodium-' + arch + '.dll')
   if (fs.existsSync(res)) return
 
   spawn('.\\msvc-scripts\\process.bat', [], {cwd: dir, stdio: 'inherit'}, function (err) {
@@ -86,7 +92,7 @@ function buildWindows () {
 }
 
 function buildUnix (ext, cb) {
-  var res = path.join(__dirname, 'lib/libsodium-' + arch + '.' + ext)
+  var res = path.join(__dirname, 'build/lib/libsodium-' + arch + '.' + ext)
   if (fs.existsSync(res)) return cb(null, res)
 
   spawn('./configure', ['--prefix=' + tmp], {cwd: dir, stdio: 'inherit'}, function (err) {
