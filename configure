@@ -1,4 +1,4 @@
 #!/bin/sh
 cd libsodium
 ./autogen.sh
-./configure
+./configure "$@"

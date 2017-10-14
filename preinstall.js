@@ -28,7 +28,7 @@ if (process.argv.indexOf('--print-lib') > -1) {
     case 'freebsd':
     case 'openbsd':
     case 'linux':
-      console.log(path.join(__dirname, 'build/lib/libsodium-' + arch + '.so.18'))
+      console.log(path.join(__dirname, 'build/lib/libsodium-' + arch + '.so.23'))
       break
     case 'win32':
       console.log('../libsodium/Build/ReleaseDLL/' + warch + '/libsodium.lib')
@@ -40,17 +40,8 @@ if (process.argv.indexOf('--print-lib') > -1) {
   process.exit(0)
 }
 
-try {
-  fs.mkdirSync(path.join(__dirname, 'build'))
-} catch (err) {
-  // do nothing
-}
-
-try {
-  fs.mkdirSync(path.join(__dirname, 'build/lib'))
-} catch (err) {
-  // do nothing
-}
+mkdirSync(path.join(__dirname, 'build'))
+mkdirSync(path.join(__dirname, 'build/lib'))
 
 switch (os.platform()) {
   case 'darwin':
@@ -95,7 +86,7 @@ function buildUnix (ext, cb) {
   var res = path.join(__dirname, 'build/lib/libsodium-' + arch + '.' + ext)
   if (fs.existsSync(res)) return cb(null, res)
 
-  spawn('./configure', ['--prefix=' + tmp], {cwd: dir, stdio: 'inherit'}, function (err) {
+  spawn('./configure', ['--prefix=' + tmp], {cwd: __dirname, stdio: 'inherit'}, function (err) {
     if (err) throw err
     spawn('make', ['clean'], {cwd: dir, stdio: 'inherit'}, function (err) {
       if (err) throw err
@@ -122,13 +113,13 @@ function buildDarwin () {
 }
 
 function buildBSD () {
-  buildUnix('so.18', function (err) {
+  buildUnix('so.23', function (err) {
     if (err) throw err
   })
 }
 
 function buildLinux () {
-  buildUnix('so.18', function (err) {
+  buildUnix('so.23', function (err) {
     if (err) throw err
   })
 }
@@ -139,4 +130,12 @@ function spawn (cmd, args, opts, cb) {
     if (code) return cb(new Error(cmd + ' exited with ' + code))
     cb(null)
   })
+}
+
+function mkdirSync (p) {
+  try {
+    fs.mkdirSync(p)
+  } catch (err) {
+    // do nothing
+  }
 }
