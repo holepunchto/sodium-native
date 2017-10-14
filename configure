@@ -1,4 +1,6 @@
+#!/bin/sh
 cd libsodium
-git checkout -- 1.0.13
+[ -d ".git" ] && git submodule update --recursive --remote
+[ -d ".git" ] && git checkout tags/1.0.15
 ./autogen.sh
 ./configure
