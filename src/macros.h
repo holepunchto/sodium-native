@@ -18,10 +18,6 @@
 #define SIZE_MAX ((size_t) - 1)
 #endif
 
-// from sodium source - the corrected values. can be removed when a new sodium release is cut
-#define SODIUM_NATIVE_PATCHED_crypto_pwhash_MEMLIMIT_MIN 8192U
-#define SODIUM_NATIVE_PATCHED_crypto_pwhash_MEMLIMIT_MAX ((SIZE_MAX >= 4398046510080U) ? 4398046510080U : (SIZE_MAX >= 2147483648U) ? 2147483648U : 32768U)
-
 #define CALL_SODIUM(fn) \
   int ret = fn; \
   if (ret) { \
