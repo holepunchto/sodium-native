@@ -19,6 +19,7 @@
   },
   "scripts": {
     "dev": "node-gyp rebuild",
+    "setup-sodium": "cd libsodium && git submodule update --recursive --remote --init && git checkout tags/1.0.15",
     "test": "standard && tape \"test/*.js\"",
     "install": "node-gyp-build \"node preinstall.js\" \"node postinstall.js\"",
     "prebuild": "prebuildify -a --strip --preinstall \"node preinstall.js\" --postinstall \"node postinstall.js\"",
