@@ -1,17 +1,4 @@
 node_modules
 build
-.deps
 tmp
-Makefile
 lib
-libsodium/config.log
-libsodium/config.status
-libsodium/libsodium-uninstalled.pc
-libsodium/libsodium.pc
-libsodium/libtool
-libsodium/src/libsodium/include/sodium/version.h
-.dirstamp
-.libs
-*.lo
-*.o
-*.la
