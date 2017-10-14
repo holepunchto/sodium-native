@@ -461,7 +461,7 @@ NAN_METHOD(crypto_pwhash) {
   ASSERT_BUFFER_MIN_LENGTH(info[1], password, crypto_pwhash_PASSWD_MIN)
   ASSERT_BUFFER_MIN_LENGTH(info[2], salt, crypto_pwhash_SALTBYTES)
   ASSERT_UINT_BOUNDS(info[3], opslimit, crypto_pwhash_OPSLIMIT_MIN, crypto_pwhash_OPSLIMIT_MAX)
-  ASSERT_UINT_BOUNDS(info[4], memlimit, SODIUM_NATIVE_PATCHED_crypto_pwhash_MEMLIMIT_MIN, SODIUM_NATIVE_PATCHED_crypto_pwhash_MEMLIMIT_MAX)
+  ASSERT_UINT_BOUNDS(info[4], memlimit, crypto_pwhash_MEMLIMIT_MIN, crypto_pwhash_MEMLIMIT_MAX)
   ASSERT_UINT(info[5], algo)
 
   CALL_SODIUM(crypto_pwhash(CDATA(output), output_length, (const char *) CDATA(password), password_length, CDATA(salt), opslimit, memlimit, algo))
@@ -471,7 +471,7 @@ NAN_METHOD(crypto_pwhash_str) {
   ASSERT_BUFFER_MIN_LENGTH(info[0], hash, crypto_pwhash_STRBYTES)
   ASSERT_BUFFER_MIN_LENGTH(info[1], password, crypto_pwhash_PASSWD_MIN)
   ASSERT_UINT_BOUNDS(info[2], opslimit, crypto_pwhash_OPSLIMIT_MIN, crypto_pwhash_OPSLIMIT_MAX)
-  ASSERT_UINT_BOUNDS(info[3], memlimit, SODIUM_NATIVE_PATCHED_crypto_pwhash_MEMLIMIT_MIN, SODIUM_NATIVE_PATCHED_crypto_pwhash_MEMLIMIT_MAX)
+  ASSERT_UINT_BOUNDS(info[3], memlimit, crypto_pwhash_MEMLIMIT_MIN, crypto_pwhash_MEMLIMIT_MAX)
 
   CALL_SODIUM(crypto_pwhash_str((char *) CDATA(hash), (const char *) CDATA(password), password_length, opslimit, memlimit))
 }
@@ -488,7 +488,7 @@ NAN_METHOD(crypto_pwhash_async) {
   ASSERT_BUFFER_MIN_LENGTH(info[1], password, crypto_pwhash_PASSWD_MIN)
   ASSERT_BUFFER_MIN_LENGTH(info[2], salt, crypto_pwhash_SALTBYTES)
   ASSERT_UINT_BOUNDS(info[3], opslimit, crypto_pwhash_OPSLIMIT_MIN, crypto_pwhash_OPSLIMIT_MAX)
-  ASSERT_UINT_BOUNDS(info[4], memlimit, SODIUM_NATIVE_PATCHED_crypto_pwhash_MEMLIMIT_MIN, SODIUM_NATIVE_PATCHED_crypto_pwhash_MEMLIMIT_MAX)
+  ASSERT_UINT_BOUNDS(info[4], memlimit, crypto_pwhash_MEMLIMIT_MIN, crypto_pwhash_MEMLIMIT_MAX)
   ASSERT_UINT(info[5], algo)
 
   ASSERT_FUNCTION(info[6], callback)
@@ -510,7 +510,7 @@ NAN_METHOD(crypto_pwhash_str_async) {
   ASSERT_BUFFER_MIN_LENGTH(info[0], hash, crypto_pwhash_STRBYTES)
   ASSERT_BUFFER_MIN_LENGTH(info[1], password, crypto_pwhash_PASSWD_MIN)
   ASSERT_UINT_BOUNDS(info[2], opslimit, crypto_pwhash_OPSLIMIT_MIN, crypto_pwhash_OPSLIMIT_MAX)
-  ASSERT_UINT_BOUNDS(info[3], memlimit, SODIUM_NATIVE_PATCHED_crypto_pwhash_MEMLIMIT_MIN, SODIUM_NATIVE_PATCHED_crypto_pwhash_MEMLIMIT_MAX)
+  ASSERT_UINT_BOUNDS(info[3], memlimit, crypto_pwhash_MEMLIMIT_MIN, crypto_pwhash_MEMLIMIT_MAX)
 
   ASSERT_FUNCTION(info[4], callback)
 
@@ -759,8 +759,8 @@ NAN_MODULE_INIT(InitAll) {
   EXPORT_STRING(crypto_pwhash_STRPREFIX)
   EXPORT_NUMBER(crypto_pwhash_OPSLIMIT_MIN)
   EXPORT_NUMBER(crypto_pwhash_OPSLIMIT_MAX)
-  EXPORT_NUMBER_PATCHED(crypto_pwhash_MEMLIMIT_MIN, SODIUM_NATIVE_PATCHED_crypto_pwhash_MEMLIMIT_MIN)
-  EXPORT_NUMBER_PATCHED(crypto_pwhash_MEMLIMIT_MAX, SODIUM_NATIVE_PATCHED_crypto_pwhash_MEMLIMIT_MAX)
+  EXPORT_NUMBER(crypto_pwhash_MEMLIMIT_MIN)
+  EXPORT_NUMBER(crypto_pwhash_MEMLIMIT_MAX)
   EXPORT_NUMBER(crypto_pwhash_OPSLIMIT_INTERACTIVE)
   EXPORT_NUMBER(crypto_pwhash_MEMLIMIT_INTERACTIVE)
   EXPORT_NUMBER(crypto_pwhash_OPSLIMIT_MODERATE)
