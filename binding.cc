@@ -21,19 +21,19 @@ using namespace v8;
 
 // memory management
 
-NAN_METHOD(memzero) {
+NAN_METHOD(sodium_memzero) {
   ASSERT_BUFFER(info[0], buf)
 
   sodium_memzero(CDATA(buf), CLENGTH(buf));
 }
 
-NAN_METHOD(mlock) {
+NAN_METHOD(sodium_mlock) {
   ASSERT_BUFFER(info[0], buf)
 
   CALL_SODIUM(sodium_mlock(CDATA(buf), CLENGTH(buf)))
 }
 
-NAN_METHOD(munlock) {
+NAN_METHOD(sodium_munlock) {
   ASSERT_BUFFER(info[0], buf)
 
   CALL_SODIUM(sodium_munlock(CDATA(buf), CLENGTH(buf)))
@@ -43,7 +43,7 @@ static void SodiumFreeCallback (char * data, void * hint) {
   sodium_free((void *) data);
 }
 
-NAN_METHOD(malloc) {
+NAN_METHOD(sodium_malloc) {
   ASSERT_UINT_BOUNDS(info[0], size, 0, node::Buffer::kMaxLength)
 
   Nan::MaybeLocal<v8::Object> buf = Nan::NewBuffer(
@@ -56,19 +56,19 @@ NAN_METHOD(malloc) {
   info.GetReturnValue().Set(buf.ToLocalChecked());
 }
 
-NAN_METHOD(mprotect_noaccess) {
+NAN_METHOD(sodium_mprotect_noaccess) {
   ASSERT_BUFFER(info[0], buf)
 
   CALL_SODIUM(sodium_mprotect_noaccess(node::Buffer::Data(buf)))
 }
 
-NAN_METHOD(mprotect_readonly) {
+NAN_METHOD(sodium_mprotect_readonly) {
   ASSERT_BUFFER(info[0], buf)
 
   CALL_SODIUM(sodium_mprotect_readonly(node::Buffer::Data(buf)))
 }
 
-NAN_METHOD(mprotect_readwrite) {
+NAN_METHOD(sodium_mprotect_readwrite) {
   ASSERT_BUFFER(info[0], buf)
 
   CALL_SODIUM(sodium_mprotect_readwrite(node::Buffer::Data(buf)))
@@ -84,7 +84,7 @@ NAN_METHOD(randombytes_buf) {
 
 // helpers
 
-NAN_METHOD(memcmp) {
+NAN_METHOD(sodium_memcmp) {
   ASSERT_BUFFER(info[0], b1)
   ASSERT_BUFFER(info[1], b2)
   ASSERT_UINT(info[2], length)
@@ -92,7 +92,7 @@ NAN_METHOD(memcmp) {
   CALL_SODIUM_BOOL(sodium_memcmp(CDATA(b1), CDATA(b2), length))
 }
 
-NAN_METHOD(compare) {
+NAN_METHOD(sodium_compare) {
   ASSERT_BUFFER(info[0], b1)
   ASSERT_BUFFER(info[1], b2)
   ASSERT_UINT(info[2], length)
@@ -615,13 +615,13 @@ NAN_MODULE_INIT(InitAll) {
   }
 
   // memory management
-  EXPORT_FUNCTION(memzero)
-  EXPORT_FUNCTION(mlock)
-  EXPORT_FUNCTION(munlock)
-  EXPORT_FUNCTION(malloc)
-  EXPORT_FUNCTION(mprotect_noaccess)
-  EXPORT_FUNCTION(mprotect_readonly)
-  EXPORT_FUNCTION(mprotect_readwrite)
+  EXPORT_FUNCTION(sodium_memzero)
+  EXPORT_FUNCTION(sodium_mlock)
+  EXPORT_FUNCTION(sodium_munlock)
+  EXPORT_FUNCTION(sodium_malloc)
+  EXPORT_FUNCTION(sodium_mprotect_noaccess)
+  EXPORT_FUNCTION(sodium_mprotect_readonly)
+  EXPORT_FUNCTION(sodium_mprotect_readwrite)
 
   // randombytes
 
@@ -629,8 +629,8 @@ NAN_MODULE_INIT(InitAll) {
 
   // helpers
 
-  EXPORT_FUNCTION(memcmp)
-  EXPORT_FUNCTION(compare)
+  EXPORT_FUNCTION(sodium_memcmp)
+  EXPORT_FUNCTION(sodium_compare)
 
   // crypto_sign
 

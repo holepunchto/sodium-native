@@ -3,7 +3,7 @@ var tape = require('tape')
 var sodium = require('../')
 var fork = require('child_process').fork
 
-tape('memzero', function (t) {
+tape('sodium_memzero', function (t) {
   var buf = alloc(10)
   var exp = alloc(10)
   var zero = alloc(10)
@@ -13,31 +13,31 @@ tape('memzero', function (t) {
   t.same(buf, exp, 'buffers start out with same content')
   t.notSame(buf, zero, 'buffer is not zero')
 
-  sodium.memzero(buf)
+  sodium.sodium_memzero(buf)
   t.notSame(buf, exp, 'buffers are not longer the same')
   t.same(buf, zero, 'buffer is now zeroed')
 
   t.end()
 })
 
-tape('mlock / munlock', function (t) {
+tape('sodium_mlock / sodium_munlock', function (t) {
   var buf = alloc(10)
   var exp = alloc(10)
 
   buf.fill(0x18)
   exp.fill(0x18)
-  sodium.mlock(buf)
+  sodium.sodium_mlock(buf)
   t.same(buf, exp, 'mlock did not corrupt data')
-  sodium.munlock(buf)
+  sodium.sodium_munlock(buf)
   t.same(buf, alloc(10), 'munlock did zero data')
 
   t.end()
 })
 
-tape('malloc', function (t) {
-  var empty = sodium.malloc(0)
-  var small = sodium.malloc(1)
-  var large = sodium.malloc(1e8)
+tape('sodium_malloc', function (t) {
+  var empty = sodium.sodium_malloc(0)
+  var small = sodium.sodium_malloc(1)
+  var large = sodium.sodium_malloc(1e8)
 
   t.ok(empty.length === 0, 'has correct size')
   t.ok(small.length === 1, 'has correct size')
@@ -46,7 +46,7 @@ tape('malloc', function (t) {
 
   // test gc
   for (var i = 0; i < 1e3; i++) {
-    if (sodium.malloc(256).length !== 256) {
+    if (sodium.sodium_malloc(256).length !== 256) {
       t.fail('allocated incorrect size')
     }
   }
@@ -57,17 +57,17 @@ tape('malloc', function (t) {
   t.end()
 })
 
-tape('malloc bounds', function (t) {
+tape('sodium_malloc bounds', function (t) {
   t.throws(function () {
-    sodium.malloc(-1)
+    sodium.sodium_malloc(-1)
   }, 'too small')
   t.throws(function () {
-    sodium.malloc(Number.MAX_SAFE_INTEGER)
+    sodium.sodium_malloc(Number.MAX_SAFE_INTEGER)
   }, 'too large')
   t.end()
 })
 
-tape('mprotect_noaccess', function (t) {
+tape('sodium_mprotect_noaccess', function (t) {
   t.plan(1)
   var p = fork(require.resolve('./fixtures/mprotect_noaccess'))
 
@@ -79,7 +79,7 @@ tape('mprotect_noaccess', function (t) {
   })
 })
 
-tape('mprotect_readonly', function (t) {
+tape('sodium_mprotect_readonly', function (t) {
   t.plan(2)
   var p = fork(require.resolve('./fixtures/mprotect_readonly'))
 
@@ -91,7 +91,7 @@ tape('mprotect_readonly', function (t) {
   })
 })
 
-tape('mprotect_readwrite', function (t) {
+tape('sodium_mprotect_readwrite', function (t) {
   t.plan(4)
   var p = fork(require.resolve('./fixtures/mprotect_readwrite'))
 
