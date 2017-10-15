@@ -21,11 +21,22 @@
 #define SIZE_MAX ((size_t) - 1)
 #endif
 
+#define ERRNO_EXCEPTION(errorno) \
+  Nan::ErrnoException(errorno, NULL, strerror(errorno))
+
 #define CALL_SODIUM(fn) \
   int ret = fn; \
   if (ret) { \
-    Nan::ThrowError(Nan::ErrnoException(errno, NULL, strerror(errno))); \
+    Nan::ThrowError(ERRNO_EXCEPTION(errno)); \
     return; \
+  }
+
+// SetErrorMessage is only to trigger AsyncWorker's error callback
+#define CALL_SODIUM_ASYNC_WORKER(errorno_var, fn) \
+  int ret = fn; \
+  if (ret) { \
+    SetErrorMessage("error"); \
+    errorno_var = errno; \
   }
 
 #define CALL_SODIUM_BOOL(fn) \

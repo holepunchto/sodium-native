@@ -10,9 +10,7 @@ class CryptoPwhashStrAsync : public Nan::AsyncWorker {
   ~CryptoPwhashStrAsync() {}
 
   void Execute () {
-    if (crypto_pwhash_str(out, passwd, passwdlen, opslimit, memlimit) < 0) {
-      SetErrorMessage("crypto_pwhash_str_async could not complete. The operating system most likely refused to allocate the required memory");
-    }
+    CALL_SODIUM_ASYNC_WORKER(errorno, crypto_pwhash_str(out, passwd, passwdlen, opslimit, memlimit))
   }
 
   void HandleOKCallback () {
@@ -29,7 +27,7 @@ class CryptoPwhashStrAsync : public Nan::AsyncWorker {
     Nan::HandleScope scope;
 
     v8::Local<v8::Value> argv[] = {
-        Nan::Error(ErrorMessage())
+        ERRNO_EXCEPTION(errorno)
     };
 
     callback->Call(1, argv);
@@ -41,4 +39,5 @@ class CryptoPwhashStrAsync : public Nan::AsyncWorker {
   unsigned long long passwdlen;
   unsigned long long opslimit;
   size_t memlimit;
+  int errorno;
 };
