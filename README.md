@@ -67,25 +67,25 @@ Lock the memory contained in `buffer`
 
 #### `sodium.sodium_munlock(buffer)`
 
-Unlock previously `mlock`ed memory contained in `buffer`. This will also `memzero` `buffer`
+Unlock previously `sodium_mlock`ed memory contained in `buffer`. This will also `sodium_memzero` `buffer`
 
 #### `var buffer = sodium.sodium_malloc(size)`
 
-Allocate a buffer of `size` which is memory protected. See [libsodium docs](https://download.libsodium.org/doc/helpers/memory_management.html#guarded-heap-allocations) for details. Be aware that many Buffer methods may break the security guarantees of `sodium.malloc`'ed memory.
+Allocate a buffer of `size` which is memory protected. See [libsodium docs](https://download.libsodium.org/doc/helpers/memory_management.html#guarded-heap-allocations) for details. Be aware that many Buffer methods may break the security guarantees of `sodium.sodium_malloc`'ed memory.
 
 #### `sodium.sodium_mprotect_noaccess(buffer)`
 
-Make `buffer` allocated using `sodium.malloc` inaccessible, crashing the process if any access is attempted.
+Make `buffer` allocated using `sodium.sodium_malloc` inaccessible, crashing the process if any access is attempted.
 Note that this will have no effect for normal `Buffer`s.
 
 #### `sodium.sodium_mprotect_readonly(buffer)`
 
-Make `buffer` allocated using `sodium.malloc` read-only, crashing the process if any writing is attempted.
+Make `buffer` allocated using `sodium.sodium_malloc` read-only, crashing the process if any writing is attempted.
 Note that this will have no effect for normal `Buffer`s.
 
 #### `sodium.sodium_mprotect_readwrite(buffer)`
 
-Make `buffer` allocated using `sodium.malloc` read-write, undoing `mprotect_noaccess` or `mprotect_readonly`.
+Make `buffer` allocated using `sodium.sodium_malloc` read-write, undoing `sodium_mprotect_noaccess` or `sodium_mprotect_readonly`.
 Note that this will have no effect for normal `Buffer`s.
 
 ### Generating random data
