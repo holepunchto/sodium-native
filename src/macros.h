@@ -12,7 +12,6 @@
 #define LOCAL_STRING(str) Nan::New<String>(str).ToLocalChecked()
 #define LOCAL_FUNCTION(fn) Nan::GetFunction(Nan::New<FunctionTemplate>(fn)).ToLocalChecked()
 #define EXPORT_NUMBER(name) Nan::Set(target, LOCAL_STRING(#name), Nan::New<Number>(name));
-#define EXPORT_NUMBER_PATCHED(name, val) Nan::Set(target, LOCAL_STRING(#name), Nan::New<Number>(val));
 #define EXPORT_STRING(name) Nan::Set(target, LOCAL_STRING(#name), LOCAL_STRING(name));
 #define EXPORT_FUNCTION(name) Nan::Set(target, LOCAL_STRING(#name), LOCAL_FUNCTION(name));
 
