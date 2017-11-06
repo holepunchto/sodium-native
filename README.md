@@ -57,33 +57,33 @@ Loads the bindings. If you get an module version error you probably need to rein
 Bindings to the secure memory API.
 [See the libsodium "Securing memory allocations" docs for more information](https://download.libsodium.org/doc/helpers/memory_management.html).
 
-#### `sodium.memzero(buffer)`
+#### `sodium.sodium_memzero(buffer)`
 
 Zero out the data in `buffer`.
 
-#### `sodium.mlock(buffer)`
+#### `sodium.sodium_mlock(buffer)`
 
 Lock the memory contained in `buffer`
 
-#### `sodium.munlock(buffer)`
+#### `sodium.sodium_munlock(buffer)`
 
 Unlock previously `mlock`ed memory contained in `buffer`. This will also `memzero` `buffer`
 
-#### `var buffer = sodium.malloc(size)`
+#### `var buffer = sodium.sodium_malloc(size)`
 
 Allocate a buffer of `size` which is memory protected. See [libsodium docs](https://download.libsodium.org/doc/helpers/memory_management.html#guarded-heap-allocations) for details. Be aware that many Buffer methods may break the security guarantees of `sodium.malloc`'ed memory.
 
-#### `sodium.mprotect_noaccess(buffer)`
+#### `sodium.sodium_mprotect_noaccess(buffer)`
 
 Make `buffer` allocated using `sodium.malloc` inaccessible, crashing the process if any access is attempted.
 Note that this will have no effect for normal `Buffer`s.
 
-#### `sodium.mprotect_readonly(buffer)`
+#### `sodium.sodium_mprotect_readonly(buffer)`
 
 Make `buffer` allocated using `sodium.malloc` read-only, crashing the process if any writing is attempted.
 Note that this will have no effect for normal `Buffer`s.
 
-#### `sodium.mprotect_readwrite(buffer)`
+#### `sodium.sodium_mprotect_readwrite(buffer)`
 
 Make `buffer` allocated using `sodium.malloc` read-write, undoing `mprotect_noaccess` or `mprotect_readonly`.
 Note that this will have no effect for normal `Buffer`s.
