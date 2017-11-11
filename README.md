@@ -284,7 +284,7 @@ The decrypted message will be stored in `message`.
 
 Decrypt a message encoded with the easy method.
 
-* `message` should be a buffer with length `cipher.length`.
+* `message` should be a buffer with length `cipher.length - crypto_box_MACBYTES`.
 * `cipher` should be a buffer with length at least `crypto_box_MACBYTES`.
 * `nonce` should be a buffer with length `crypto_box_NONCEBYTES`.
 * `publicKey` should be a public key.
@@ -369,7 +369,7 @@ The decrypted message will be stored in `message`.
 
 Decrypt a message encoded with the easy method.
 
-* `message` should be a buffer with length `cipher.length`.
+* `message` should be a buffer with length `cipher.length - crypto_secretbox_MACBYTES`.
 * `cipher` should be a buffer with length at least `crypto_secretbox_MACBYTES`.
 * `nonce` should be a buffer with length `crypto_secretbox_NONCEBYTES`.
 * `secretKey` should be a secret key.
