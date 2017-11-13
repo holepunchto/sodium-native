@@ -3,6 +3,30 @@ var alloc = require('buffer-alloc')
 var fill = require('buffer-fill')
 var sodium = require('../')
 
+tape('constants', function (t) {
+  t.ok(sodium.crypto_pwhash_ALG_ARGON2I13 != null, 'crypto_pwhash_ALG_ARGON2I13 is defined')
+  t.ok(sodium.crypto_pwhash_ALG_ARGON2ID13 != null, 'crypto_pwhash_ALG_ARGON2ID13 is defined')
+  t.ok(sodium.crypto_pwhash_ALG_DEFAULT === sodium.crypto_pwhash_ALG_ARGON2ID13, 'crypto_pwhash_ALG_DEFAULT is crypto_pwhash_ALG_ARGON2ID13')
+  t.ok(sodium.crypto_pwhash_BYTES_MIN != null, 'crypto_pwhash_BYTES_MIN is defined')
+  t.ok(sodium.crypto_pwhash_BYTES_MAX != null, 'crypto_pwhash_BYTES_MAX is defined')
+  t.ok(sodium.crypto_pwhash_PASSWD_MIN != null, 'crypto_pwhash_PASSWD_MIN is defined')
+  t.ok(sodium.crypto_pwhash_PASSWD_MAX != null, 'crypto_pwhash_PASSWD_MAX is defined')
+  t.ok(sodium.crypto_pwhash_SALTBYTES != null, 'crypto_pwhash_SALTBYTES is defined')
+  t.ok(sodium.crypto_pwhash_STRBYTES != null, 'crypto_pwhash_STRBYTES is defined')
+
+  t.ok(sodium.crypto_pwhash_OPSLIMIT_MIN != null, 'crypto_pwhash_OPSLIMIT_MIN is defined')
+  t.ok(sodium.crypto_pwhash_OPSLIMIT_MAX != null, 'crypto_pwhash_OPSLIMIT_MAX is defined')
+  t.ok(sodium.crypto_pwhash_MEMLIMIT_MIN != null, 'crypto_pwhash_MEMLIMIT_MIN is defined')
+  t.ok(sodium.crypto_pwhash_MEMLIMIT_MAX != null, 'crypto_pwhash_MEMLIMIT_MAX is defined')
+  t.ok(sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE != null, 'crypto_pwhash_OPSLIMIT_INTERACTIVE is defined')
+  t.ok(sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE != null, 'crypto_pwhash_MEMLIMIT_INTERACTIVE is defined')
+  t.ok(sodium.crypto_pwhash_OPSLIMIT_MODERATE != null, 'crypto_pwhash_OPSLIMIT_MODERATE is defined')
+  t.ok(sodium.crypto_pwhash_MEMLIMIT_MODERATE != null, 'crypto_pwhash_MEMLIMIT_MODERATE is defined')
+  t.ok(sodium.crypto_pwhash_OPSLIMIT_SENSITIVE != null, 'crypto_pwhash_OPSLIMIT_SENSITIVE is defined')
+  t.ok(sodium.crypto_pwhash_MEMLIMIT_SENSITIVE != null, 'crypto_pwhash_MEMLIMIT_SENSITIVE is defined')
+  t.end()
+})
+
 tape('crypto_pwhash', function (t) {
   var output = alloc(32) // can be any size
   var passwd = new Buffer('Hej, Verden!')
