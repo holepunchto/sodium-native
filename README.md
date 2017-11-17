@@ -558,6 +558,44 @@ Just like `crypto_pwhash_str` but will run password hashing on a seperate worker
 
 Just like `crypto_pwhash_str_verify` but will run password hashing on a seperate worker so it will not block the event loop. `callback(err, bool)` will receive any errors from the hashing but all argument errors will `throw`. If the verification succeeds `bool` is `true`, otherwise `false`. Due to an issue with libsodium `err` is currently never set.
 
+### Key exchange
+
+Bindings for the crypto_kx API.
+[See the libsodium crypto_kx docs for more information](https://download.libsodium.org/doc/key_exchange/).
+
+#### `crypto_kx_keypair(publicKey, secretKey)`
+
+Create a key exchange key pair.
+
+* `publicKey` should be a buffer of length `crypto_kx_PUBLICKEYBYTES`.
+* `secretKey` should be a buffer of length `crypto_kx_SECRETKEYBYTES`.
+
+#### `crypto_kx_seed_keypair(publicKey, secretKey, seed)`
+
+Create a key exchange key pair based on a seed.
+
+* `publicKey` should be a buffer of length `crypto_kx_PUBLICKEYBYTES`.
+* `secretKey` should be a buffer of length `crypto_kx_SECRETKEYBYTES`.
+* `seed` should be a buffer of length `crypto_kx_SEEDBYTES`
+
+#### `crypto_kx_client_session_keys(rx, tx, clientPublicKey, clientSecretKey, serverPublicKey)`
+
+Generate a session receive and transmission key for a client. The public / secret keys should be generated using the key pair method above.
+
+* `rx` should be a buffer of length `crypto_kx_SESSIONKEYBYTES`.
+* `tx` should be a buffer of length `crypto_kx_SESSIONKEYBYTES`.
+
+You should use the rx to decrypt incoming data and tx to encrypt outgoing.
+
+#### `crypto_kx_server_session_keys(rx, tx, serverPublicKey, serverSecretKey, clientPublicKey)`
+
+Generate a session receive and transmission key for a server. The public / secret keys should be generated using the key pair method above.
+
+* `rx` should be a buffer of length `crypto_kx_SESSIONKEYBYTES`.
+* `tx` should be a buffer of length `crypto_kx_SESSIONKEYBYTES`.
+
+You should use the rx to decrypt incoming data and tx to encrypt outgoing.
+
 ### Scalar multiplication
 
 Bindings for the crypto_scalarmult API.
