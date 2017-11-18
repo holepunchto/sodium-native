@@ -134,7 +134,7 @@ NAN_METHOD(crypto_kx_server_session_keys) {
   ASSERT_BUFFER_MIN_LENGTH(info[3], server_sk, crypto_kx_SECRETKEYBYTES)
   ASSERT_BUFFER_MIN_LENGTH(info[4], client_pk, crypto_kx_PUBLICKEYBYTES)
 
-  CALL_SODIUM(crypto_kx_client_session_keys(CDATA(rx), CDATA(tx), CDATA(server_pk), CDATA(server_sk), CDATA(client_pk)))
+  CALL_SODIUM(crypto_kx_server_session_keys(CDATA(rx), CDATA(tx), CDATA(server_pk), CDATA(server_sk), CDATA(client_pk)))
 }
 
 // crypto_sign
