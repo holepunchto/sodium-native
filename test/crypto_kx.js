@@ -48,7 +48,7 @@ tape('crypto_kx_keypair', function (t) {
   t.end()
 })
 
-tape.skip('crypto_kx_client_session_keys', function (t) {
+tape('crypto_kx_client_session_keys', function (t) {
   var clientPk = alloc(sodium.crypto_kx_PUBLICKEYBYTES)
   var clientSk = alloc(sodium.crypto_kx_SECRETKEYBYTES)
   var serverPk = alloc(sodium.crypto_kx_PUBLICKEYBYTES)
@@ -76,5 +76,14 @@ tape.skip('crypto_kx_client_session_keys', function (t) {
 
   t.same(clientRx, serverTx)
   t.same(clientTx, serverRx)
+  t.end()
+})
+
+tape('crypto_kx constants', function (t) {
+  t.same(typeof sodium.crypto_kx_SESSIONKEYBYTES, 'number')
+  t.same(typeof sodium.crypto_kx_PUBLICKEYBYTES, 'number')
+  t.same(typeof sodium.crypto_kx_SECRETKEYBYTES, 'number')
+  t.same(typeof sodium.crypto_kx_SEEDBYTES, 'number')
+  t.same(typeof sodium.crypto_kx_PRIMITIVE, 'string')
   t.end()
 })
