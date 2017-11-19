@@ -100,6 +100,43 @@ NAN_METHOD(sodium_compare) {
   info.GetReturnValue().Set(Nan::New<Number>(sodium_compare(CDATA(b1), CDATA(b2), length)));
 }
 
+// crypto_kx
+
+NAN_METHOD(crypto_kx_keypair) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], public_key, crypto_kx_PUBLICKEYBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], secret_key, crypto_kx_SECRETKEYBYTES)
+
+  CALL_SODIUM(crypto_kx_keypair(CDATA(public_key), CDATA(secret_key)))
+}
+
+NAN_METHOD(crypto_kx_seed_keypair) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], public_key, crypto_kx_PUBLICKEYBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], secret_key, crypto_kx_SECRETKEYBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[2], seed, crypto_kx_SEEDBYTES)
+
+  CALL_SODIUM(crypto_kx_seed_keypair(CDATA(public_key), CDATA(secret_key), CDATA(seed)))
+}
+
+NAN_METHOD(crypto_kx_client_session_keys) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], rx, crypto_kx_SESSIONKEYBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], tx, crypto_kx_SESSIONKEYBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[2], client_pk, crypto_kx_PUBLICKEYBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[3], client_sk, crypto_kx_SECRETKEYBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[4], server_pk, crypto_kx_PUBLICKEYBYTES)
+
+  CALL_SODIUM(crypto_kx_client_session_keys(CDATA(rx), CDATA(tx), CDATA(client_pk), CDATA(client_sk), CDATA(server_pk)))
+}
+
+NAN_METHOD(crypto_kx_server_session_keys) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], rx, crypto_kx_SESSIONKEYBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], tx, crypto_kx_SESSIONKEYBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[2], server_pk, crypto_kx_PUBLICKEYBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[3], server_sk, crypto_kx_SECRETKEYBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[4], client_pk, crypto_kx_PUBLICKEYBYTES)
+
+  CALL_SODIUM(crypto_kx_server_session_keys(CDATA(rx), CDATA(tx), CDATA(server_pk), CDATA(server_sk), CDATA(client_pk)))
+}
+
 // crypto_sign
 
 NAN_METHOD(crypto_sign_seed_keypair) {
@@ -631,6 +668,19 @@ NAN_MODULE_INIT(InitAll) {
 
   EXPORT_FUNCTION(sodium_memcmp)
   EXPORT_FUNCTION(sodium_compare)
+
+  // crypto_kx
+
+  EXPORT_NUMBER(crypto_kx_PUBLICKEYBYTES)
+  EXPORT_NUMBER(crypto_kx_SECRETKEYBYTES)
+  EXPORT_NUMBER(crypto_kx_SEEDBYTES)
+  EXPORT_NUMBER(crypto_kx_SESSIONKEYBYTES)
+  EXPORT_STRING(crypto_kx_PRIMITIVE)
+
+  EXPORT_FUNCTION(crypto_kx_keypair)
+  EXPORT_FUNCTION(crypto_kx_seed_keypair)
+  EXPORT_FUNCTION(crypto_kx_client_session_keys)
+  EXPORT_FUNCTION(crypto_kx_server_session_keys)
 
   // crypto_sign
 
