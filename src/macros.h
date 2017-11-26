@@ -90,4 +90,11 @@
   } \
   v8::Local<v8::Function> var = name.As<v8::Function>();
 
+#define ASSERT_UNWRAP(name, var, type) \
+  if (!name->IsObject()) { \
+    Nan::ThrowError(#var " must be a " #type); \
+    return; \
+  } \
+  type* var = Nan::ObjectWrap::Unwrap<type>(name->ToObject());
+
 #endif
