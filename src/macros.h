@@ -10,7 +10,7 @@
 #define CDATA(buf) (unsigned char *) node::Buffer::Data(buf)
 #define CLENGTH(buf) (unsigned long long) node::Buffer::Length(buf)
 #define LOCAL_STRING(str) Nan::New<v8::String>(str).ToLocalChecked()
-#define LOCAL_FUNCTION(fn) Nan::GetFunction(Nan::New<FunctionTemplate>(fn)).ToLocalChecked()
+#define LOCAL_FUNCTION(fn) Nan::GetFunction(Nan::New<v8::FunctionTemplate>(fn)).ToLocalChecked()
 #define EXPORT_NUMBER(name) Nan::Set(target, LOCAL_STRING(#name), Nan::New<v8::Number>(name));
 #define EXPORT_STRING(name) Nan::Set(target, LOCAL_STRING(#name), LOCAL_STRING(name));
 #define EXPORT_FUNCTION(name) Nan::Set(target, LOCAL_STRING(#name), LOCAL_FUNCTION(name));
