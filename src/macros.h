@@ -9,9 +9,9 @@
 
 #define CDATA(buf) (unsigned char *) node::Buffer::Data(buf)
 #define CLENGTH(buf) (unsigned long long) node::Buffer::Length(buf)
-#define LOCAL_STRING(str) Nan::New<String>(str).ToLocalChecked()
+#define LOCAL_STRING(str) Nan::New<v8::String>(str).ToLocalChecked()
 #define LOCAL_FUNCTION(fn) Nan::GetFunction(Nan::New<FunctionTemplate>(fn)).ToLocalChecked()
-#define EXPORT_NUMBER(name) Nan::Set(target, LOCAL_STRING(#name), Nan::New<Number>(name));
+#define EXPORT_NUMBER(name) Nan::Set(target, LOCAL_STRING(#name), Nan::New<v8::Number>(name));
 #define EXPORT_STRING(name) Nan::Set(target, LOCAL_STRING(#name), LOCAL_STRING(name));
 #define EXPORT_FUNCTION(name) Nan::Set(target, LOCAL_STRING(#name), LOCAL_FUNCTION(name));
 
@@ -47,7 +47,7 @@
     Nan::ThrowError(#var " must be a buffer"); \
     return; \
   } \
-  Local<Object> var = name->ToObject();
+  v8::Local<v8::Object> var = name->ToObject();
 
 #define ASSERT_BUFFER_SET_LENGTH(name, var) \
   ASSERT_BUFFER(name, var) \
@@ -88,6 +88,6 @@
     Nan::ThrowError(#var " must be a function"); \
     return; \
   } \
-  Local<Function> var = name.As<Function>();
+  v8::Local<v8::Function> var = name.As<v8::Function>();
 
 #endif
