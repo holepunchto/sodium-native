@@ -14,10 +14,21 @@
 #define EXPORT_NUMBER(name) Nan::Set(target, LOCAL_STRING(#name), Nan::New<v8::Number>(name));
 #define EXPORT_STRING(name) Nan::Set(target, LOCAL_STRING(#name), LOCAL_STRING(name));
 #define EXPORT_FUNCTION(name) Nan::Set(target, LOCAL_STRING(#name), LOCAL_FUNCTION(name));
+#define EXPORT_BYTE_TAG_AS_BUFFER(name) \
+  const char name##_TMP = name; \
+  Nan::Set(target, \
+           LOCAL_STRING(#name), \
+           Nan::CopyBuffer(&name##_TMP, crypto_secretstream_xchacha20poly1305_TAGBYTES_PATCH).ToLocalChecked());
 
 // workaround for old compilers
 #ifndef SIZE_MAX
 #define SIZE_MAX ((size_t) - 1)
+#endif
+
+// Warning: This is only because we know for now that tags are one byte, and
+// it is hard to expose the tag pointer to javascript, other than as a Buffer
+#ifndef crypto_secretstream_xchacha20poly1305_TAGBYTES_PATCH
+#define crypto_secretstream_xchacha20poly1305_TAGBYTES_PATCH 1U
 #endif
 
 #define ERRNO_EXCEPTION(errorno) \
