@@ -54,7 +54,7 @@ test('crypto_secretstream', function (assert) {
   sodium.crypto_secretstream_xchacha20poly1305_init_push(state, header, key)
   ret = sodium.crypto_secretstream_xchacha20poly1305_push(state, c1, m1, null, sodium.crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
   assert.same(ret, m1.length + sodium.crypto_secretstream_xchacha20poly1305_ABYTES)
-  ret = sodium.crypto_secretstream_xchacha20poly1305_push(state, c2, m2, ad.slice(0,0), sodium.crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
+  ret = sodium.crypto_secretstream_xchacha20poly1305_push(state, c2, m2, ad.slice(0, 0), sodium.crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
   assert.same(ret, m2.length + sodium.crypto_secretstream_xchacha20poly1305_ABYTES)
   ret = sodium.crypto_secretstream_xchacha20poly1305_push(state, c3, m3, ad, sodium.crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
   assert.same(ret, m3.length + sodium.crypto_secretstream_xchacha20poly1305_ABYTES)
