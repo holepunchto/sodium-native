@@ -46,7 +46,18 @@ function buildLinux () {
 }
 
 function buildBSD () {
-  buildLinux()
+  var lib = path.join(__dirname, 'lib/libsodium-' + arch + '.so.23')
+  var dst = path.join(build, 'libsodium.so.23')
+
+  if (os.platform() === 'openbsd') {
+    lib = lib + '.0'
+    dst = dst + '.0'
+  }
+
+  if (fs.existsSync(dst)) return
+  copy(lib, dst, function (err) {
+    if (err) throw err
+  })
 }
 
 function buildDarwin () {

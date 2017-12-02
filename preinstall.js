@@ -25,8 +25,10 @@ if (process.argv.indexOf('--print-lib') > -1) {
     case 'darwin':
       console.log('../lib/libsodium-' + arch + '.dylib')
       break
-    case 'freebsd':
     case 'openbsd':
+      console.log(path.join(__dirname, 'lib/libsodium-' + arch + '.so.23.0'))
+      break
+    case 'freebsd':
     case 'linux':
       console.log(path.join(__dirname, 'lib/libsodium-' + arch + '.so.23'))
       break
@@ -51,8 +53,12 @@ switch (os.platform()) {
     buildWindows()
     break
 
-  case 'freebsd':
   case 'openbsd':
+    buildUnix('so.23.0', function (err) {
+      if (err) throw err
+    })
+    break
+  case 'freebsd':
     buildBSD()
     break
 
