@@ -520,6 +520,15 @@ NAN_METHOD(crypto_pwhash_str_verify) {
   CALL_SODIUM_BOOL(crypto_pwhash_str_verify((char *) CDATA(hash), (const char *) CDATA(password), password_length))
 }
 
+NAN_METHOD(crypto_pwhash_str_needs_rehash) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], hash, crypto_pwhash_STRBYTES)
+  ASSERT_UINT_BOUNDS(info[1], opslimit, crypto_pwhash_OPSLIMIT_MIN, crypto_pwhash_OPSLIMIT_MAX)
+  ASSERT_UINT_BOUNDS(info[2], memlimit, crypto_pwhash_MEMLIMIT_MIN, crypto_pwhash_MEMLIMIT_MAX)
+
+  int ret = crypto_pwhash_str_needs_rehash((char *) CDATA(hash), opslimit, memlimit);
+  info.GetReturnValue().Set(ret == 0 ? Nan::False() : Nan::True());
+}
+
 NAN_METHOD(crypto_pwhash_async) {
   ASSERT_BUFFER_SET_LENGTH(info[0], output)
   ASSERT_BUFFER_MIN_LENGTH(info[1], password, crypto_pwhash_PASSWD_MIN)
@@ -823,6 +832,7 @@ NAN_MODULE_INIT(InitAll) {
   EXPORT_FUNCTION(crypto_pwhash)
   EXPORT_FUNCTION(crypto_pwhash_str)
   EXPORT_FUNCTION(crypto_pwhash_str_verify)
+  EXPORT_FUNCTION(crypto_pwhash_str_needs_rehash)
 
   EXPORT_FUNCTION(crypto_pwhash_async)
   EXPORT_FUNCTION(crypto_pwhash_str_async)
