@@ -523,6 +523,8 @@ Available default ops and mem limits are
 The available algorithms are
 
 * `crypto_pwhash_ALG_DEFAULT`
+* `crypto_pwhash_ALG_ARGON2ID13`
+* `crypto_pwhash_ALG_ARGON2I13`
 
 The generated hash will be stored in `output` and the entire `output` buffer will be used.
 
@@ -545,6 +547,18 @@ Verify a password hash generated with the above method.
 * `password` should be a buffer of any size.
 
 Returns `true` if the hash could be verified with the settings contained in `str`. Otherwise `false`.
+
+#### `var bool = crypto_pwhash_str_needs_rehash(hash, opslimit, memlimit)`
+
+Check if a password hash needs rehash, either because the default algorithm
+changed, opslimit or memlimit increased or because the hash is malformed.
+
+* `hash` should be a buffer with length `crypto_pwhash_STRBYTES`.
+* `opslimit` should a be number containing your ops limit setting in the range `crypto_pwhash_OPSLIMIT_MIN` - `crypto_pwhash_OPSLIMIT_MAX`.
+* `memlimit` should a be number containing your mem limit setting in the range `crypto_pwhash_MEMLIMIT_MIN` - `crypto_pwhash_OPSLIMIT_MAX`.
+
+Returns `true` if the hash should be rehashed the settings contained in `str`.
+Otherwise `false` if it is still good.
 
 #### `crypto_pwhash_async(output, password, salt, opslimit, memlimit, algorithm, callback)`
 
@@ -714,4 +728,3 @@ The generated hash is stored in `output`.
 ## License
 
 MIT
-

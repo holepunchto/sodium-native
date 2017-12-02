@@ -68,6 +68,33 @@ tape('crypto_pwhash_str', function (t) {
   t.end()
 })
 
+tape('crypto_pwhash_str_needs_rehash', function (t) {
+  var passwd = Buffer.from('secret')
+  var weakMem = alloc(sodium.crypto_pwhash_STRBYTES)
+  var weakOps = alloc(sodium.crypto_pwhash_STRBYTES)
+  var malformed = alloc(sodium.crypto_pwhash_STRBYTES)
+  var good = alloc(sodium.crypto_pwhash_STRBYTES)
+  var weakAlg = Buffer.alloc(128)
+  weakAlg.set('argon2i$p=2,v=19,m=1024$SGVsbG8=$SGVsbG8gd29ybA==')
+
+  sodium.crypto_pwhash_str(weakMem, passwd, sodium.crypto_pwhash_OPSLIMIT_MODERATE, sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE)
+  sodium.crypto_pwhash_str(weakOps, passwd, sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE, sodium.crypto_pwhash_MEMLIMIT_MODERATE)
+  sodium.crypto_pwhash_str(malformed, passwd, sodium.crypto_pwhash_OPSLIMIT_MODERATE, sodium.crypto_pwhash_MEMLIMIT_MODERATE)
+  sodium.crypto_pwhash_str(good, passwd, sodium.crypto_pwhash_OPSLIMIT_MODERATE, sodium.crypto_pwhash_MEMLIMIT_MODERATE)
+
+  var first$ = malformed.indexOf('$')
+  var second$ = malformed.indexOf('$', first$ + 1)
+  malformed.fill('p=,m=,', first$, second$, 'ascii')
+
+  t.ok(sodium.crypto_pwhash_str_needs_rehash(weakMem, sodium.crypto_pwhash_OPSLIMIT_MODERATE, sodium.crypto_pwhash_MEMLIMIT_MODERATE))
+  t.ok(sodium.crypto_pwhash_str_needs_rehash(weakOps, sodium.crypto_pwhash_OPSLIMIT_MODERATE, sodium.crypto_pwhash_MEMLIMIT_MODERATE))
+  t.ok(sodium.crypto_pwhash_str_needs_rehash(weakAlg, sodium.crypto_pwhash_OPSLIMIT_MODERATE, sodium.crypto_pwhash_MEMLIMIT_MODERATE))
+  t.notOk(sodium.crypto_pwhash_str_needs_rehash(good, sodium.crypto_pwhash_OPSLIMIT_MODERATE, sodium.crypto_pwhash_MEMLIMIT_MODERATE))
+  t.ok(sodium.crypto_pwhash_str_needs_rehash(malformed, sodium.crypto_pwhash_OPSLIMIT_MODERATE, sodium.crypto_pwhash_MEMLIMIT_MODERATE))
+
+  t.end()
+})
+
 tape('crypto_pwhash_async', function (t) {
   var output = alloc(32) // can be any size
   var passwd = new Buffer('Hej, Verden!')
