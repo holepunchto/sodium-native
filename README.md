@@ -453,7 +453,7 @@ Returns `true` if the token could be verified. Otherwise `false`.
 ### Stream encryption
 
 Bindings for the crypto_secretstream API.
-[See the libsodium crypto_auth docs for more information](https://download.libsodium.org/doc/secret-key_cryptography/secretstream.html).
+[See the libsodium crypto_secretstream docs for more information](https://download.libsodium.org/doc/secret-key_cryptography/secretstream.html).
 
 ### Constants
 
