@@ -670,7 +670,7 @@ NAN_METHOD(crypto_secretstream_xchacha20poly1305_push) {
   ASSERT_UNWRAP(info[0], obj, CryptoSecretstreamXchacha20poly1305StateWrap)
   ASSERT_BUFFER_SET_LENGTH(info[2], message)
   ASSERT_BUFFER_MIN_LENGTH(info[1], ciphertext, crypto_secretstream_xchacha20poly1305_ABYTES + message_length)
-  ASSERT_BUFFER_MIN_LENGTH(info[4], tag, crypto_secretstream_xchacha20poly1305_TAGBYTES_PATCH)
+  ASSERT_BUFFER_MIN_LENGTH(info[4], tag, crypto_secretstream_xchacha20poly1305_TAGBYTES)
 
   unsigned char *ad_data = NULL;
   size_t ad_len = 0;
@@ -964,6 +964,8 @@ NAN_MODULE_INIT(InitAll) {
   EXPORT_NUMBER(crypto_secretstream_xchacha20poly1305_HEADERBYTES)
   EXPORT_NUMBER(crypto_secretstream_xchacha20poly1305_KEYBYTES)
   EXPORT_NUMBER(crypto_secretstream_xchacha20poly1305_MESSAGEBYTES_MAX)
+  // Unofficial constant
+  EXPORT_NUMBER(crypto_secretstream_xchacha20poly1305_TAGBYTES)
 
   EXPORT_BYTE_TAG_AS_BUFFER(crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
   EXPORT_BYTE_TAG_AS_BUFFER(crypto_secretstream_xchacha20poly1305_TAG_PUSH)

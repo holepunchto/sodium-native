@@ -18,7 +18,7 @@
   const char name##_TMP = name; \
   Nan::Set(target, \
            LOCAL_STRING(#name), \
-           Nan::CopyBuffer(&name##_TMP, crypto_secretstream_xchacha20poly1305_TAGBYTES_PATCH).ToLocalChecked());
+           Nan::CopyBuffer(&name##_TMP, crypto_secretstream_xchacha20poly1305_TAGBYTES).ToLocalChecked());
 
 // workaround for old compilers
 #ifndef SIZE_MAX
@@ -27,8 +27,8 @@
 
 // Warning: This is only because we know for now that tags are one byte, and
 // it is hard to expose the tag pointer to javascript, other than as a Buffer
-#ifndef crypto_secretstream_xchacha20poly1305_TAGBYTES_PATCH
-#define crypto_secretstream_xchacha20poly1305_TAGBYTES_PATCH 1U
+#ifndef crypto_secretstream_xchacha20poly1305_TAGBYTES
+#define crypto_secretstream_xchacha20poly1305_TAGBYTES 1U
 #endif
 
 #define ERRNO_EXCEPTION(errorno) \

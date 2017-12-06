@@ -48,7 +48,8 @@ test('crypto_secretstream', function (assert) {
 
   var key = alloc(sodium.crypto_secretstream_xchacha20poly1305_KEYBYTES)
   var ret
-  var tag = Buffer.from([0xdb])
+  var tag = Buffer.alloc(sodium.crypto_secretstream_xchacha20poly1305_TAGBYTES)
+  fill(tag, 0xdb)
   sodium.crypto_secretstream_xchacha20poly1305_keygen(key)
 
   sodium.crypto_secretstream_xchacha20poly1305_init_push(state, header, key)
