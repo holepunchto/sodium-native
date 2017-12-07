@@ -9,15 +9,26 @@
 
 #define CDATA(buf) (unsigned char *) node::Buffer::Data(buf)
 #define CLENGTH(buf) (unsigned long long) node::Buffer::Length(buf)
-#define LOCAL_STRING(str) Nan::New<String>(str).ToLocalChecked()
-#define LOCAL_FUNCTION(fn) Nan::GetFunction(Nan::New<FunctionTemplate>(fn)).ToLocalChecked()
-#define EXPORT_NUMBER(name) Nan::Set(target, LOCAL_STRING(#name), Nan::New<Number>(name));
+#define LOCAL_STRING(str) Nan::New<v8::String>(str).ToLocalChecked()
+#define LOCAL_FUNCTION(fn) Nan::GetFunction(Nan::New<v8::FunctionTemplate>(fn)).ToLocalChecked()
+#define EXPORT_NUMBER(name) Nan::Set(target, LOCAL_STRING(#name), Nan::New<v8::Number>(name));
 #define EXPORT_STRING(name) Nan::Set(target, LOCAL_STRING(#name), LOCAL_STRING(name));
 #define EXPORT_FUNCTION(name) Nan::Set(target, LOCAL_STRING(#name), LOCAL_FUNCTION(name));
+#define EXPORT_BYTE_TAG_AS_BUFFER(name) \
+  const char name##_TMP = name; \
+  Nan::Set(target, \
+           LOCAL_STRING(#name), \
+           Nan::CopyBuffer(&name##_TMP, crypto_secretstream_xchacha20poly1305_TAGBYTES).ToLocalChecked());
 
 // workaround for old compilers
 #ifndef SIZE_MAX
 #define SIZE_MAX ((size_t) - 1)
+#endif
+
+// Warning: This is only because we know for now that tags are one byte, and
+// it is hard to expose the tag pointer to javascript, other than as a Buffer
+#ifndef crypto_secretstream_xchacha20poly1305_TAGBYTES
+#define crypto_secretstream_xchacha20poly1305_TAGBYTES 1U
 #endif
 
 #define ERRNO_EXCEPTION(errorno) \
@@ -47,7 +58,7 @@
     Nan::ThrowError(#var " must be a buffer"); \
     return; \
   } \
-  Local<Object> var = name->ToObject();
+  v8::Local<v8::Object> var = name->ToObject();
 
 #define ASSERT_BUFFER_SET_LENGTH(name, var) \
   ASSERT_BUFFER(name, var) \
@@ -88,6 +99,13 @@
     Nan::ThrowError(#var " must be a function"); \
     return; \
   } \
-  Local<Function> var = name.As<Function>();
+  v8::Local<v8::Function> var = name.As<v8::Function>();
+
+#define ASSERT_UNWRAP(name, var, type) \
+  if (!name->IsObject()) { \
+    Nan::ThrowError(#var " must be a " #type); \
+    return; \
+  } \
+  type* var = Nan::ObjectWrap::Unwrap<type>(name->ToObject());
 
 #endif

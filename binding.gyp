@@ -17,6 +17,7 @@
         'src/crypto_onetimeauth_wrap.cc',
         'src/crypto_stream_xor_wrap.cc',
         'src/crypto_stream_chacha20_xor_wrap.cc',
+        'src/crypto_secretstream_xchacha20poly1305_state_wrap.cc',
         'src/crypto_pwhash_async.cc',
         'src/crypto_pwhash_str_async.cc',
         'src/crypto_pwhash_str_verify_async.cc',
