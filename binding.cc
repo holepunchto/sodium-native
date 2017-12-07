@@ -101,6 +101,30 @@ NAN_METHOD(sodium_compare) {
   info.GetReturnValue().Set(Nan::New<Number>(sodium_compare(CDATA(b1), CDATA(b2), length)));
 }
 
+NAN_METHOD(sodium_pad) {
+  ASSERT_BUFFER_SET_LENGTH(info[0], buf)
+  ASSERT_UINT_BOUNDS(info[1], unpadded_buflen, 0, buf_length)
+  ASSERT_UINT_BOUNDS(info[2], blocksize, 1, buf_length)
+
+  uint32_t padded_buflen = 0;
+
+  CALL_SODIUM(sodium_pad((size_t*) &padded_buflen, CDATA(buf), (size_t) unpadded_buflen, (size_t) blocksize, (size_t) buf_length))
+
+  info.GetReturnValue().Set(Nan::New(padded_buflen));
+}
+
+NAN_METHOD(sodium_unpad) {
+  ASSERT_BUFFER_SET_LENGTH(info[0], buf)
+  ASSERT_UINT_BOUNDS(info[1], padded_buflen, 0, buf_length)
+  ASSERT_UINT_BOUNDS(info[2], blocksize, 1, buf_length)
+
+  uint32_t unpadded_buflen = 0;
+
+  CALL_SODIUM(sodium_unpad((size_t*) &unpadded_buflen, CDATA(buf), (size_t) padded_buflen, (size_t) blocksize))
+
+  info.GetReturnValue().Set(Nan::New(unpadded_buflen));
+}
+
 // crypto_kx
 
 NAN_METHOD(crypto_kx_keypair) {
@@ -761,6 +785,10 @@ NAN_MODULE_INIT(InitAll) {
 
   EXPORT_FUNCTION(sodium_memcmp)
   EXPORT_FUNCTION(sodium_compare)
+
+  // padding
+  EXPORT_FUNCTION(sodium_pad)
+  EXPORT_FUNCTION(sodium_unpad)
 
   // crypto_kx
 
