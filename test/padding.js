@@ -25,7 +25,6 @@ test('sodium_pad / sodium_unpad', function (assert) {
     var binUnpaddedLen = sodium.sodium_pad(binPaddedLen, binLen, blocksize)
     if (binUnpaddedLen !== binPaddedMaxlen) assert.fail('binUnpaddedLen was not same')
 
-
     var largeThrow = didThrow(function () {
       sodium.sodium_unpad(binPaddedLen, binUnpaddedLen, binPaddedMaxlen + 1)
     })
@@ -36,9 +35,8 @@ test('sodium_pad / sodium_unpad', function (assert) {
     })
     if (emptyThrow === false) assert.fail('did not throw')
 
-
     var len2 = sodium.sodium_unpad(binPaddedLen, binUnpaddedLen, blocksize)
-    if(len2 !== binLen) assert.fail('len2 was not same')
+    if (len2 !== binLen) assert.fail('len2 was not same')
   }
 
   assert.pass()
