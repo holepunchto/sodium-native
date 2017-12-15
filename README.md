@@ -71,7 +71,8 @@ Unlock previously `sodium_mlock`ed memory contained in `buffer`. This will also 
 
 #### `var buffer = sodium.sodium_malloc(size)`
 
-Allocate a buffer of `size` which is memory protected. See [libsodium docs](https://download.libsodium.org/doc/helpers/memory_management.html#guarded-heap-allocations) for details. Be aware that many Buffer methods may break the security guarantees of `sodium.sodium_malloc`'ed memory.
+Allocate a buffer of `size` which is memory protected. See [libsodium docs](https://download.libsodium.org/doc/helpers/memory_management.html#guarded-heap-allocations) for details. Be aware that many Buffer methods may break the security guarantees of `sodium.sodium_malloc`'ed memory. To check if a `Buffer` is a "secure" buffer,
+you can call access the getter `buffer.secure` which will be `true`.
 
 #### `sodium.sodium_mprotect_noaccess(buffer)`
 
