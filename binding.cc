@@ -44,17 +44,23 @@ static void SodiumFreeCallback (char * data, void * hint) {
   sodium_free((void *) data);
 }
 
+NAN_GETTER(SodiumMemorySecureAccessor) {
+  info.GetReturnValue().Set(Nan::New(true));
+}
+
 NAN_METHOD(sodium_malloc) {
   ASSERT_UINT_BOUNDS(info[0], size, 0, node::Buffer::kMaxLength)
 
-  Nan::MaybeLocal<v8::Object> buf = Nan::NewBuffer(
+  v8::Local<v8::Object> buf = Nan::NewBuffer(
     (char *)sodium_malloc(size),
     size,
     SodiumFreeCallback,
     NULL
-  );
+  ).ToLocalChecked();
 
-  info.GetReturnValue().Set(buf.ToLocalChecked());
+  Nan::SetAccessor(buf, LOCAL_STRING("secure"), SodiumMemorySecureAccessor);
+
+  info.GetReturnValue().Set(buf);
 }
 
 NAN_METHOD(sodium_mprotect_noaccess) {

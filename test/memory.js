@@ -27,8 +27,10 @@ tape('sodium_mlock / sodium_munlock', function (t) {
   buf.fill(0x18)
   exp.fill(0x18)
   sodium.sodium_mlock(buf)
+  t.notOk(buf.secure)
   t.same(buf, exp, 'mlock did not corrupt data')
   sodium.sodium_munlock(buf)
+  t.notOk(buf.secure)
   t.same(buf, alloc(10), 'munlock did zero data')
 
   t.end()
@@ -38,6 +40,10 @@ tape('sodium_malloc', function (t) {
   var empty = sodium.sodium_malloc(0)
   var small = sodium.sodium_malloc(1)
   var large = sodium.sodium_malloc(1e8)
+
+  t.ok(empty.secure)
+  t.ok(small.secure)
+  t.ok(large.secure)
 
   t.ok(empty.length === 0, 'has correct size')
   t.ok(small.length === 1, 'has correct size')
