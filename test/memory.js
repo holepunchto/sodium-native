@@ -63,6 +63,15 @@ tape('sodium_malloc', function (t) {
   t.end()
 })
 
+tape('sodium_malloc .secure read-only', function (t) {
+  var buf = sodium.sodium_malloc(1)
+
+  t.ok(buf.secure)
+  buf.secure = false
+  t.ok(buf.secure)
+  t.end()
+})
+
 tape('sodium_malloc bounds', function (t) {
   t.throws(function () {
     sodium.sodium_malloc(-1)
