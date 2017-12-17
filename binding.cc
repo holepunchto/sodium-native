@@ -45,7 +45,7 @@ static void SodiumFreeCallback (char * data, void * hint) {
 }
 
 NAN_GETTER(SodiumMemorySecureAccessor) {
-  info.GetReturnValue().Set(Nan::New(true));
+  info.GetReturnValue().Set(Nan::True());
 }
 
 NAN_METHOD(sodium_malloc) {
