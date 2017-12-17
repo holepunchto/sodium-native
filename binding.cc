@@ -51,8 +51,15 @@ NAN_GETTER(SodiumMemorySecureAccessor) {
 NAN_METHOD(sodium_malloc) {
   ASSERT_UINT_BOUNDS(info[0], size, 0, node::Buffer::kMaxLength)
 
+  void* ptr = sodium_malloc(size);
+
+  if (ptr == NULL) {
+    Nan::ThrowError(ERRNO_EXCEPTION(errno))
+    return;
+  }
+
   v8::Local<v8::Object> buf = Nan::NewBuffer(
-    (char *)sodium_malloc(size),
+    (char *)ptr,
     size,
     SodiumFreeCallback,
     NULL
