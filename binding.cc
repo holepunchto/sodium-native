@@ -54,7 +54,7 @@ NAN_METHOD(sodium_malloc) {
   void* ptr = sodium_malloc(size);
 
   if (ptr == NULL) {
-    Nan::ThrowError(ERRNO_EXCEPTION(errno))
+    Nan::ThrowError(ERRNO_EXCEPTION(errno));
     return;
   }
 
