@@ -31,7 +31,10 @@
     "type": "git",
     "url": "https://github.com/sodium-friends/sodium-native.git"
   },
-  "author": "Mathias Buus (@mafintosh)",
+  "contributors": [
+    "Emil Bay <github@tixz.dk> (http://bayes.dk)",
+    "Mathias Buus (@mafintosh)"
+  ],
   "license": "MIT",
   "bugs": {
     "url": "https://github.com/sodium-friends/sodium-native/issues"
