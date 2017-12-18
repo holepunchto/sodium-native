@@ -90,10 +90,27 @@ NAN_METHOD(sodium_mprotect_readwrite) {
 
 // randombytes
 
+NAN_METHOD(randombytes_random) {
+  info.GetReturnValue().Set(Nan::New(randombytes_random()));
+}
+
+NAN_METHOD(randombytes_uniform) {
+  ASSERT_UINT_BOUNDS(info[0], upper_bound, 0, 0xffffffff)
+
+  info.GetReturnValue().Set(Nan::New(randombytes_uniform(upper_bound)));
+}
+
 NAN_METHOD(randombytes_buf) {
   ASSERT_BUFFER(info[0], random)
 
   randombytes_buf(CDATA(random), CLENGTH(random));
+}
+
+NAN_METHOD(randombytes_buf_deterministic) {
+  ASSERT_BUFFER(info[0], random)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], seed, randombytes_SEEDBYTES)
+
+  randombytes_buf_deterministic(CDATA(random), CLENGTH(random), CDATA(seed));
 }
 
 // helpers
@@ -791,8 +808,12 @@ NAN_MODULE_INIT(InitAll) {
   EXPORT_FUNCTION(sodium_mprotect_readwrite)
 
   // randombytes
+  EXPORT_NUMBER(randombytes_SEEDBYTES)
 
+  EXPORT_FUNCTION(randombytes_random)
+  EXPORT_FUNCTION(randombytes_uniform)
   EXPORT_FUNCTION(randombytes_buf)
+  EXPORT_FUNCTION(randombytes_buf_deterministic)
 
   // helpers
 
