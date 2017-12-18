@@ -4,8 +4,8 @@ var sodium = require('../')
 
 test('sodium_pad / sodium_unpad', function (assert) {
   for (var i = 0; i < 2000; i++) {
-    var binLen = Math.random() * 200 | 0 // FIXME
-    var blocksize = 1 + Math.random() * 100 | 0
+    var binLen = sodium.randombytes_uniform(200)
+    var blocksize = 1 + sodium.randombytes_uniform(100)
     var binPaddedMaxlen = binLen + (blocksize - (binLen % blocksize))
     var bingPaddedLong = alloc(binPaddedMaxlen + 1)
     var binPaddedLen = bingPaddedLong.slice(0, binPaddedMaxlen)

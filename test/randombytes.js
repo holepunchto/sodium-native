@@ -55,11 +55,9 @@ tape('randombytes_deterministic', function (t) {
   sodium.randombytes_buf_deterministic(buf2, seed2)
   t.notSame(buf1, buf2, 'not equal')
 
-
   sodium.randombytes_buf_deterministic(buf1, seed2)
   sodium.randombytes_buf_deterministic(buf2, seed1)
   t.notSame(buf1, buf2, 'not equal')
-
 
   sodium.randombytes_buf_deterministic(buf1, seed2)
   sodium.randombytes_buf_deterministic(buf2, seed2)

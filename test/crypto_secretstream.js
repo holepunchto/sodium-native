@@ -21,19 +21,19 @@ test('crypto_secretstream', function (assert) {
   var state = sodium.crypto_secretstream_xchacha20poly1305_state_new()
 
   var header = alloc(sodium.crypto_secretstream_xchacha20poly1305_HEADERBYTES)
-  var ad = alloc(100 * Math.random() | 0) // Fixme
+  var ad = alloc(sodium.randombytes_uniform(100))
   sodium.randombytes_buf(ad)
 
-  var m1 = alloc(1000 * Math.random() | 0) // Fixme
+  var m1 = alloc(sodium.randombytes_uniform(1000))
   sodium.randombytes_buf(m1)
 
-  var m2 = alloc(1000 * Math.random() | 0) // Fixme
+  var m2 = alloc(sodium.randombytes_uniform(1000))
   sodium.randombytes_buf(m2)
 
-  var m3 = alloc(1000 * Math.random() | 0) // Fixme
+  var m3 = alloc(sodium.randombytes_uniform(1000))
   sodium.randombytes_buf(m3)
 
-  var m4 = alloc(1000 * Math.random() | 0) // Fixme
+  var m4 = alloc(sodium.randombytes_uniform(1000))
   sodium.randombytes_buf(m4)
 
   var m1_ = Buffer.from(m1)
