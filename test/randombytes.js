@@ -47,21 +47,26 @@ tape('randombytes_deterministic', function (t) {
   var buf1 = alloc(10)
   var buf2 = alloc(10)
 
-  sodium.randombytes_buf_deterministic(buf1, seed1)
-  sodium.randombytes_buf_deterministic(buf2, seed1)
-  t.same(buf1, buf2, 'equal')
+  for (var i = 0; i < 1e6; i++) {
+    sodium.randombytes_buf(seed1)
+    sodium.randombytes_buf(seed2)
 
-  sodium.randombytes_buf_deterministic(buf1, seed1)
-  sodium.randombytes_buf_deterministic(buf2, seed2)
-  t.notSame(buf1, buf2, 'not equal')
+    sodium.randombytes_buf_deterministic(buf1, seed1)
+    sodium.randombytes_buf_deterministic(buf2, seed1)
+    if (!buf1.equals(buf2)) t.fail('should equal')
 
-  sodium.randombytes_buf_deterministic(buf1, seed2)
-  sodium.randombytes_buf_deterministic(buf2, seed1)
-  t.notSame(buf1, buf2, 'not equal')
+    sodium.randombytes_buf_deterministic(buf1, seed1)
+    sodium.randombytes_buf_deterministic(buf2, seed2)
+    if (buf1.equals(buf2)) t.fail('should not equal')
 
-  sodium.randombytes_buf_deterministic(buf1, seed2)
-  sodium.randombytes_buf_deterministic(buf2, seed2)
-  t.same(buf1, buf2, 'equal')
+    sodium.randombytes_buf_deterministic(buf1, seed2)
+    sodium.randombytes_buf_deterministic(buf2, seed1)
+    if (buf1.equals(buf2)) t.fail('should not equal')
+
+    sodium.randombytes_buf_deterministic(buf1, seed2)
+    sodium.randombytes_buf_deterministic(buf2, seed2)
+    if (!buf1.equals(buf2)) t.fail('should equal')
+  }
 
   t.end()
 })
