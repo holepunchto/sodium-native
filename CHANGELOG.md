@@ -1,7 +1,7 @@
 # CHANGELOG
 
 ## v2.1.0
-
+- Upgrade to libsodium 1.0.16
 - Expose the new `crypto_secretstream` API
 - Expose `crypto_kx` API
 - Expose `sodium_pad` and `sodium_unpad` APIs
