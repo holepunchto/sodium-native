@@ -1,7 +1,7 @@
 #include "crypto_generichash_wrap.h"
 #include "macros.h"
 
-static Nan::Persistent<FunctionTemplate> crypto_generichash_constructor;
+static Nan::Persistent<v8::FunctionTemplate> crypto_generichash_constructor;
 
 CryptoGenericHashWrap::CryptoGenericHashWrap () {}
 
@@ -26,7 +26,7 @@ NAN_METHOD(CryptoGenericHashWrap::Final) {
 }
 
 void CryptoGenericHashWrap::Init () {
-  Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(CryptoGenericHashWrap::New);
+  v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(CryptoGenericHashWrap::New);
   crypto_generichash_constructor.Reset(tpl);
   tpl->SetClassName(Nan::New("CryptoGenericHashWrap").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
@@ -35,12 +35,12 @@ void CryptoGenericHashWrap::Init () {
   Nan::SetPrototypeMethod(tpl, "final", CryptoGenericHashWrap::Final);
 }
 
-Local<Value> CryptoGenericHashWrap::NewInstance (unsigned char *key, unsigned long long key_length, unsigned long long output_length) {
+v8::Local<v8::Value> CryptoGenericHashWrap::NewInstance (unsigned char *key, unsigned long long key_length, unsigned long long output_length) {
   Nan::EscapableHandleScope scope;
 
-  Local<Object> instance;
+  v8::Local<v8::Object> instance;
 
-  Local<FunctionTemplate> constructorHandle = Nan::New<FunctionTemplate>(crypto_generichash_constructor);
+  v8::Local<v8::FunctionTemplate> constructorHandle = Nan::New<v8::FunctionTemplate>(crypto_generichash_constructor);
   instance = Nan::NewInstance(constructorHandle->GetFunction()).ToLocalChecked();
 
   CryptoGenericHashWrap *self = Nan::ObjectWrap::Unwrap<CryptoGenericHashWrap>(instance);

@@ -4,12 +4,10 @@
 #include <nan.h>
 #include <sodium.h>
 
-using namespace v8;
-
 class CryptoOnetimeAuthWrap : public Nan::ObjectWrap {
 public:
   static void Init ();
-  static Local<Value> NewInstance (unsigned char *key);
+  static v8::Local<v8::Value> NewInstance (unsigned char *key);
   CryptoOnetimeAuthWrap ();
   ~CryptoOnetimeAuthWrap ();
 

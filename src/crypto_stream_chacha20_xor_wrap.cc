@@ -1,7 +1,7 @@
 #include "crypto_stream_chacha20_xor_wrap.h"
 #include "macros.h"
 
-static Nan::Persistent<FunctionTemplate> crypto_stream_chacha20_xor_constructor;
+static Nan::Persistent<v8::FunctionTemplate> crypto_stream_chacha20_xor_constructor;
 
 static void crypto_stream_chacha20_xor_wrap_init (CryptoStreamChacha20XorWrap *self, unsigned char *nonce, unsigned char *key) {
   self->remainder = 0;
@@ -81,7 +81,7 @@ NAN_METHOD(CryptoStreamChacha20XorWrap::Final) {
 }
 
 void CryptoStreamChacha20XorWrap::Init () {
-  Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(CryptoStreamChacha20XorWrap::New);
+  v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(CryptoStreamChacha20XorWrap::New);
   crypto_stream_chacha20_xor_constructor.Reset(tpl);
   tpl->SetClassName(Nan::New("CryptoStreamChacha20XorWrap").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
@@ -90,12 +90,12 @@ void CryptoStreamChacha20XorWrap::Init () {
   Nan::SetPrototypeMethod(tpl, "final", CryptoStreamChacha20XorWrap::Final);
 }
 
-Local<Value> CryptoStreamChacha20XorWrap::NewInstance (unsigned char *nonce, unsigned char *key) {
+v8::Local<v8::Value> CryptoStreamChacha20XorWrap::NewInstance (unsigned char *nonce, unsigned char *key) {
   Nan::EscapableHandleScope scope;
 
-  Local<Object> instance;
+  v8::Local<v8::Object> instance;
 
-  Local<FunctionTemplate> constructorHandle = Nan::New<FunctionTemplate>(crypto_stream_chacha20_xor_constructor);
+  v8::Local<v8::FunctionTemplate> constructorHandle = Nan::New<v8::FunctionTemplate>(crypto_stream_chacha20_xor_constructor);
   instance = Nan::NewInstance(constructorHandle->GetFunction()).ToLocalChecked();
 
   CryptoStreamChacha20XorWrap *self = Nan::ObjectWrap::Unwrap<CryptoStreamChacha20XorWrap>(instance);

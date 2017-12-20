@@ -4,12 +4,10 @@
 #include <nan.h>
 #include "../libsodium/src/libsodium/include/sodium.h"
 
-using namespace v8;
-
 class CryptoGenericHashWrap : public Nan::ObjectWrap {
 public:
   static void Init ();
-  static Local<Value> NewInstance (unsigned char *key, unsigned long long key_length, unsigned long long output_length);
+  static v8::Local<v8::Value> NewInstance (unsigned char *key, unsigned long long key_length, unsigned long long output_length);
   CryptoGenericHashWrap ();
   ~CryptoGenericHashWrap ();
 

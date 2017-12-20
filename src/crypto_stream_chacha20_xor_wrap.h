@@ -4,8 +4,6 @@
 #include <nan.h>
 #include "../libsodium/src/libsodium/include/sodium.h"
 
-using namespace v8;
-
 class CryptoStreamChacha20XorWrap : public Nan::ObjectWrap {
 public:
   unsigned char nonce[crypto_stream_chacha20_NONCEBYTES];
@@ -15,7 +13,7 @@ public:
   uint64_t block_counter;
 
   static void Init ();
-  static Local<Value> NewInstance (unsigned char *nonce, unsigned char *key);
+  static v8::Local<v8::Value> NewInstance (unsigned char *nonce, unsigned char *key);
   CryptoStreamChacha20XorWrap ();
   ~CryptoStreamChacha20XorWrap ();
 

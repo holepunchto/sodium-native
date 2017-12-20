@@ -1,7 +1,7 @@
 #include "crypto_onetimeauth_wrap.h"
 #include "macros.h"
 
-static Nan::Persistent<FunctionTemplate> crypto_onetimeauth_constructor;
+static Nan::Persistent<v8::FunctionTemplate> crypto_onetimeauth_constructor;
 
 CryptoOnetimeAuthWrap::CryptoOnetimeAuthWrap () {}
 
@@ -26,7 +26,7 @@ NAN_METHOD(CryptoOnetimeAuthWrap::Final) {
 }
 
 void CryptoOnetimeAuthWrap::Init () {
-  Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(CryptoOnetimeAuthWrap::New);
+  v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(CryptoOnetimeAuthWrap::New);
   crypto_onetimeauth_constructor.Reset(tpl);
   tpl->SetClassName(Nan::New("CryptoOnetimeAuthWrap").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
@@ -35,12 +35,12 @@ void CryptoOnetimeAuthWrap::Init () {
   Nan::SetPrototypeMethod(tpl, "final", CryptoOnetimeAuthWrap::Final);
 }
 
-Local<Value> CryptoOnetimeAuthWrap::NewInstance (unsigned char *key) {
+v8::Local<v8::Value> CryptoOnetimeAuthWrap::NewInstance (unsigned char *key) {
   Nan::EscapableHandleScope scope;
 
-  Local<Object> instance;
+  v8::Local<v8::Object> instance;
 
-  Local<FunctionTemplate> constructorHandle = Nan::New<FunctionTemplate>(crypto_onetimeauth_constructor);
+  v8::Local<v8::FunctionTemplate> constructorHandle = Nan::New<v8::FunctionTemplate>(crypto_onetimeauth_constructor);
   instance = Nan::NewInstance(constructorHandle->GetFunction()).ToLocalChecked();
 
   CryptoOnetimeAuthWrap *self = Nan::ObjectWrap::Unwrap<CryptoOnetimeAuthWrap>(instance);

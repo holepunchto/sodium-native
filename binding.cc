@@ -14,12 +14,6 @@
 #include "src/crypto_pwhash_str_verify_async.cc"
 #include "src/macros.h"
 
-using namespace node;
-using namespace v8;
-
-// As per Libsodium install docs
-#define SODIUM_STATIC
-
 // memory management
 
 NAN_METHOD(sodium_memzero) {
@@ -128,7 +122,7 @@ NAN_METHOD(sodium_compare) {
   ASSERT_BUFFER(info[1], b2)
   ASSERT_UINT(info[2], length)
 
-  info.GetReturnValue().Set(Nan::New<Number>(sodium_compare(CDATA(b1), CDATA(b2), length)));
+  info.GetReturnValue().Set(Nan::New<v8::Number>(sodium_compare(CDATA(b1), CDATA(b2), length)));
 }
 
 NAN_METHOD(sodium_pad) {
@@ -294,14 +288,14 @@ NAN_METHOD(crypto_generichash_batch) {
     return;
   }
 
-  Local<Array> buffers = info[1].As<Array>();
+  v8::Local<v8::Array> buffers = info[1].As<v8::Array>();
 
   crypto_generichash_state state;
   crypto_generichash_init(&state, key_data, key_len, output_length);
 
   uint32_t len = buffers->Length();
   for (uint32_t i = 0; i < len; i++) {
-    Local<Value> buf = buffers->Get(i);
+    v8::Local<v8::Value> buf = buffers->Get(i);
     if (!buf->IsObject()) {
       Nan::ThrowError("batch must be an array of buffers");
       return;

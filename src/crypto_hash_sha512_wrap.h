@@ -4,12 +4,10 @@
 #include <nan.h>
 #include "../libsodium/src/libsodium/include/sodium.h"
 
-using namespace v8;
-
 class CryptoHashSha512Wrap : public Nan::ObjectWrap {
 public:
   static void Init ();
-  static Local<Value> NewInstance ();
+  static v8::Local<v8::Value> NewInstance ();
   CryptoHashSha512Wrap ();
   ~CryptoHashSha512Wrap ();
 

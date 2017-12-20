@@ -1,7 +1,7 @@
 #include "crypto_stream_xor_wrap.h"
 #include "macros.h"
 
-static Nan::Persistent<FunctionTemplate> crypto_stream_xor_constructor;
+static Nan::Persistent<v8::FunctionTemplate> crypto_stream_xor_constructor;
 
 static void crypto_stream_xor_wrap_init (CryptoStreamXorWrap *self, unsigned char *nonce, unsigned char *key) {
   self->remainder = 0;
@@ -81,7 +81,7 @@ NAN_METHOD(CryptoStreamXorWrap::Final) {
 }
 
 void CryptoStreamXorWrap::Init () {
-  Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(CryptoStreamXorWrap::New);
+  v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(CryptoStreamXorWrap::New);
   crypto_stream_xor_constructor.Reset(tpl);
   tpl->SetClassName(Nan::New("CryptoStreamXorWrap").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
@@ -90,12 +90,12 @@ void CryptoStreamXorWrap::Init () {
   Nan::SetPrototypeMethod(tpl, "final", CryptoStreamXorWrap::Final);
 }
 
-Local<Value> CryptoStreamXorWrap::NewInstance (unsigned char *nonce, unsigned char *key) {
+v8::Local<v8::Value> CryptoStreamXorWrap::NewInstance (unsigned char *nonce, unsigned char *key) {
   Nan::EscapableHandleScope scope;
 
-  Local<Object> instance;
+  v8::Local<v8::Object> instance;
 
-  Local<FunctionTemplate> constructorHandle = Nan::New<FunctionTemplate>(crypto_stream_xor_constructor);
+  v8::Local<v8::FunctionTemplate> constructorHandle = Nan::New<v8::FunctionTemplate>(crypto_stream_xor_constructor);
   instance = Nan::NewInstance(constructorHandle->GetFunction()).ToLocalChecked();
 
   CryptoStreamXorWrap *self = Nan::ObjectWrap::Unwrap<CryptoStreamXorWrap>(instance);

@@ -1,7 +1,7 @@
 #include "crypto_hash_sha256_wrap.h"
 #include "macros.h"
 
-static Nan::Persistent<FunctionTemplate> crypto_hash_sha256_constructor;
+static Nan::Persistent<v8::FunctionTemplate> crypto_hash_sha256_constructor;
 
 CryptoHashSha256Wrap::CryptoHashSha256Wrap () {}
 
@@ -26,7 +26,7 @@ NAN_METHOD(CryptoHashSha256Wrap::Final) {
 }
 
 void CryptoHashSha256Wrap::Init () {
-  Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(CryptoHashSha256Wrap::New);
+  v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(CryptoHashSha256Wrap::New);
   crypto_hash_sha256_constructor.Reset(tpl);
   tpl->SetClassName(Nan::New("CryptoHashSha256Wrap").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
@@ -35,12 +35,12 @@ void CryptoHashSha256Wrap::Init () {
   Nan::SetPrototypeMethod(tpl, "final", CryptoHashSha256Wrap::Final);
 }
 
-Local<Value> CryptoHashSha256Wrap::NewInstance () {
+v8::Local<v8::Value> CryptoHashSha256Wrap::NewInstance () {
   Nan::EscapableHandleScope scope;
 
-  Local<Object> instance;
+  v8::Local<v8::Object> instance;
 
-  Local<FunctionTemplate> constructorHandle = Nan::New<FunctionTemplate>(crypto_hash_sha256_constructor);
+  v8::Local<v8::FunctionTemplate> constructorHandle = Nan::New<v8::FunctionTemplate>(crypto_hash_sha256_constructor);
   instance = Nan::NewInstance(constructorHandle->GetFunction()).ToLocalChecked();
 
   CryptoHashSha256Wrap *self = Nan::ObjectWrap::Unwrap<CryptoHashSha256Wrap>(instance);

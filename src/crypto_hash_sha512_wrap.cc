@@ -1,7 +1,7 @@
 #include "crypto_hash_sha512_wrap.h"
 #include "macros.h"
 
-static Nan::Persistent<FunctionTemplate> crypto_hash_sha512_constructor;
+static Nan::Persistent<v8::FunctionTemplate> crypto_hash_sha512_constructor;
 
 CryptoHashSha512Wrap::CryptoHashSha512Wrap () {}
 
@@ -26,7 +26,7 @@ NAN_METHOD(CryptoHashSha512Wrap::Final) {
 }
 
 void CryptoHashSha512Wrap::Init () {
-  Local<FunctionTemplate> tpl = Nan::New<FunctionTemplate>(CryptoHashSha512Wrap::New);
+  v8::Local<v8::FunctionTemplate> tpl = Nan::New<v8::FunctionTemplate>(CryptoHashSha512Wrap::New);
   crypto_hash_sha512_constructor.Reset(tpl);
   tpl->SetClassName(Nan::New("CryptoHashSha512Wrap").ToLocalChecked());
   tpl->InstanceTemplate()->SetInternalFieldCount(1);
@@ -35,12 +35,12 @@ void CryptoHashSha512Wrap::Init () {
   Nan::SetPrototypeMethod(tpl, "final", CryptoHashSha512Wrap::Final);
 }
 
-Local<Value> CryptoHashSha512Wrap::NewInstance () {
+v8::Local<v8::Value> CryptoHashSha512Wrap::NewInstance () {
   Nan::EscapableHandleScope scope;
 
-  Local<Object> instance;
+  v8::Local<v8::Object> instance;
 
-  Local<FunctionTemplate> constructorHandle = Nan::New<FunctionTemplate>(crypto_hash_sha512_constructor);
+  v8::Local<v8::FunctionTemplate> constructorHandle = Nan::New<v8::FunctionTemplate>(crypto_hash_sha512_constructor);
   instance = Nan::NewInstance(constructorHandle->GetFunction()).ToLocalChecked();
 
   CryptoHashSha512Wrap *self = Nan::ObjectWrap::Unwrap<CryptoHashSha512Wrap>(instance);
