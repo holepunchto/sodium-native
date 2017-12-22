@@ -7,6 +7,7 @@ var release = path.join(__dirname, 'build/Release')
 var debug = path.join(__dirname, 'build/Debug')
 var build = fs.existsSync(release) ? release : debug
 var arch = process.env.ARCH || os.arch()
+var libraryVersion = '24.0.0'
 
 switch (os.platform()) {
   case 'win32':
@@ -37,7 +38,7 @@ function buildWindows () {
 }
 
 function buildLinux () {
-  var lib = path.join(__dirname, 'lib/libsodium-' + arch + '.so.23')
+  var lib = path.join(__dirname, 'lib/libsodium-' + arch + '.so.' + libraryVersion)
   var dst = path.join(build, 'libsodium.so.23')
   if (fs.existsSync(dst)) return
   copy(lib, dst, function (err) {
@@ -46,13 +47,8 @@ function buildLinux () {
 }
 
 function buildBSD () {
-  var lib = path.join(__dirname, 'lib/libsodium-' + arch + '.so.23')
-  var dst = path.join(build, 'libsodium.so.23')
-
-  if (os.platform() === 'openbsd') {
-    lib = lib + '.0'
-    dst = dst + '.0'
-  }
+  var lib = path.join(__dirname, 'lib/libsodium-' + arch + '.so.' + libraryVersion)
+  var dst = path.join(build, 'libsodium.so.' + libraryVersion)
 
   if (fs.existsSync(dst)) return
   copy(lib, dst, function (err) {

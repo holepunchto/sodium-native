@@ -14,6 +14,7 @@ if (process.argv.indexOf('--arch') > -1) {
 }
 
 var warch = arch === 'x64' ? 'x64' : 'Win32'
+var libraryVersion = '24.0.0'
 
 if (process.argv.indexOf('--print-arch') > -1) {
   console.log(arch)
@@ -26,11 +27,11 @@ if (process.argv.indexOf('--print-lib') > -1) {
       console.log('../lib/libsodium-' + arch + '.dylib')
       break
     case 'openbsd':
-      console.log(path.join(__dirname, 'lib/libsodium-' + arch + '.so.23.0'))
+      console.log(path.join(__dirname, 'lib/libsodium-' + arch + '.so.' + libraryVersion))
       break
     case 'freebsd':
     case 'linux':
-      console.log(path.join(__dirname, 'lib/libsodium-' + arch + '.so.23'))
+      console.log(path.join(__dirname, 'lib/libsodium-' + arch + '.so.' + libraryVersion))
       break
     case 'win32':
       console.log('../libsodium/Build/ReleaseDLL/' + warch + '/libsodium.lib')
@@ -54,7 +55,7 @@ switch (os.platform()) {
     break
 
   case 'openbsd':
-    buildUnix('so.23.0', function (err) {
+    buildUnix('so.' + libraryVersion, function (err) {
       if (err) throw err
     })
     break
@@ -118,13 +119,13 @@ function buildDarwin () {
 }
 
 function buildBSD () {
-  buildUnix('so.23', function (err) {
+  buildUnix('so.' + libraryVersion, function (err) {
     if (err) throw err
   })
 }
 
 function buildLinux () {
-  buildUnix('so.23', function (err) {
+  buildUnix('so.' + libraryVersion, function (err) {
     if (err) throw err
   })
 }
