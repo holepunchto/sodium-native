@@ -7,7 +7,7 @@ var release = path.join(__dirname, 'build/Release')
 var debug = path.join(__dirname, 'build/Debug')
 var build = fs.existsSync(release) ? release : debug
 var arch = process.env.ARCH || os.arch()
-var libraryVersion = '24.0.0'
+var libraryVersion = '24.0.1'
 
 switch (os.platform()) {
   case 'win32':

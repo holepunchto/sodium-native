@@ -14,7 +14,7 @@ if (process.argv.indexOf('--arch') > -1) {
 }
 
 var warch = arch === 'x64' ? 'x64' : 'Win32'
-var libraryVersion = '24.0.0'
+var libraryVersion = '24.0.1'
 
 if (process.argv.indexOf('--print-arch') > -1) {
   console.log(arch)
