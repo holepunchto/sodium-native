@@ -4,6 +4,7 @@ var fs = require('fs')
 var os = require('os')
 var proc = require('child_process')
 var path = require('path')
+var ini = require('ini')
 
 var dir = path.join(__dirname, 'libsodium')
 var tmp = path.join(__dirname, 'tmp')
@@ -89,7 +90,9 @@ function buildUnix (ext, cb) {
       spawn('make', ['install'], {cwd: dir, stdio: 'inherit'}, function (err) {
         if (err) throw err
 
-        var lib = fs.realpathSync(path.join(tmp, 'lib/libsodium.' + ext))
+        var la = ini.decode(fs.readFileSync(path.join(tmp, 'lib/libsodium.la')).toString())
+
+        var lib = fs.realpathSync(path.join(la.libdir, la.dlname))
         fs.rename(lib, res, function (err) {
           if (err) throw err
           if (cb) cb(null, res)

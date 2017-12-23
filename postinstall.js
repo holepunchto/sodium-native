@@ -2,9 +2,11 @@ var os = require('os')
 var fs = require('fs')
 var path = require('path')
 var proc = require('child_process')
+var ini = require('ini')
 
 var release = path.join(__dirname, 'build/Release')
 var debug = path.join(__dirname, 'build/Debug')
+var tmp = path.join(__dirname, 'tmp')
 var build = fs.existsSync(release) ? release : debug
 var arch = process.env.ARCH || os.arch()
 
@@ -35,17 +37,13 @@ function buildWindows () {
 
 function buildUnix () {
   var lib = fs.realpathSync(path.join(__dirname, 'lib/libsodium-' + arch + '.so'))
-  proc.exec('objdump -p ' + lib, function (err, stdout, stderr) {
+
+  var la = ini.decode(fs.readFileSync(path.join(tmp, 'lib/libsodium.la')).toString())
+  var dst = path.join(build, la.dlname)
+
+  if (fs.existsSync(dst)) return
+  copy(lib, dst, function (err) {
     if (err) throw err
-
-    var soname = stdout.match(/\s*SONAME\s+(libsodium.+)\s+/)
-    if (soname == null) throw new Error('Unable to find .so name for linking')
-
-    var dst = path.join(build, soname[1])
-    if (fs.existsSync(dst)) return
-    copy(lib, dst, function (err) {
-      if (err) throw err
-    })
   })
 }
 
