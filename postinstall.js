@@ -7,7 +7,6 @@ var release = path.join(__dirname, 'build/Release')
 var debug = path.join(__dirname, 'build/Debug')
 var build = fs.existsSync(release) ? release : debug
 var arch = process.env.ARCH || os.arch()
-var libraryVersion = '24.0.1'
 
 switch (os.platform()) {
   case 'win32':
@@ -20,11 +19,8 @@ switch (os.platform()) {
 
   case 'freebsd':
   case 'openbsd':
-    buildBSD()
-    break
-
   default:
-    buildLinux()
+    buildUnix()
     break
 }
 
@@ -37,22 +33,19 @@ function buildWindows () {
   })
 }
 
-function buildLinux () {
-  var lib = path.join(__dirname, 'lib/libsodium-' + arch + '.so.' + libraryVersion)
-  var dst = path.join(build, 'libsodium.so.23')
-  if (fs.existsSync(dst)) return
-  copy(lib, dst, function (err) {
+function buildUnix () {
+  var lib = fs.realpathSync(path.join(__dirname, 'lib/libsodium-' + arch + '.so'))
+  proc.exec('objdump -p ' + lib, function (err, stdout, stderr) {
     if (err) throw err
-  })
-}
 
-function buildBSD () {
-  var lib = path.join(__dirname, 'lib/libsodium-' + arch + '.so.' + libraryVersion)
-  var dst = path.join(build, 'libsodium.so.' + libraryVersion)
+    var soname = stdout.match(/\s*SONAME\s+(libsodium.+)\s+/)
+    if (soname == null) throw new Error('Unable to find .so name for linking')
 
-  if (fs.existsSync(dst)) return
-  copy(lib, dst, function (err) {
-    if (err) throw err
+    var dst = path.join(build, soname[1])
+    if (fs.existsSync(dst)) return
+    copy(lib, dst, function (err) {
+      if (err) throw err
+    })
   })
 }
 

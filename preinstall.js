@@ -14,7 +14,6 @@ if (process.argv.indexOf('--arch') > -1) {
 }
 
 var warch = arch === 'x64' ? 'x64' : 'Win32'
-var libraryVersion = '24.0.1'
 
 if (process.argv.indexOf('--print-arch') > -1) {
   console.log(arch)
@@ -27,11 +26,9 @@ if (process.argv.indexOf('--print-lib') > -1) {
       console.log('../lib/libsodium-' + arch + '.dylib')
       break
     case 'openbsd':
-      console.log(path.join(__dirname, 'lib/libsodium-' + arch + '.so.' + libraryVersion))
-      break
     case 'freebsd':
     case 'linux':
-      console.log(path.join(__dirname, 'lib/libsodium-' + arch + '.so.' + libraryVersion))
+      console.log(path.join(__dirname, 'lib/libsodium-' + arch + '.so'))
       break
     case 'win32':
       console.log('../libsodium/Build/ReleaseDLL/' + warch + '/libsodium.lib')
@@ -54,17 +51,10 @@ switch (os.platform()) {
     buildWindows()
     break
 
-  case 'openbsd':
-    buildUnix('so.' + libraryVersion, function (err) {
+  default:
+    buildUnix('.so', function (err) {
       if (err) throw err
     })
-    break
-  case 'freebsd':
-    buildBSD()
-    break
-
-  default:
-    buildLinux()
     break
 }
 
@@ -89,7 +79,7 @@ function buildWindows () {
 }
 
 function buildUnix (ext, cb) {
-  var res = path.join(__dirname, 'lib/libsodium-' + arch + '.' + ext)
+  var res = path.join(__dirname, 'lib/libsodium-' + arch + '.so')
   if (fs.existsSync(res)) return cb(null, res)
 
   spawn('./configure', ['--prefix=' + tmp], {cwd: __dirname, stdio: 'inherit'}, function (err) {
@@ -99,7 +89,7 @@ function buildUnix (ext, cb) {
       spawn('make', ['install'], {cwd: dir, stdio: 'inherit'}, function (err) {
         if (err) throw err
 
-        var lib = fs.realpathSync(path.join(tmp, 'lib/libsodium.' + ext))
+        var lib = fs.realpathSync(path.join(tmp, 'lib/libsodium.so'))
         fs.rename(lib, res, function (err) {
           if (err) throw err
           if (cb) cb(null, res)
@@ -115,18 +105,6 @@ function buildDarwin () {
     spawn('install_name_tool', ['-id', res, res], {stdio: 'inherit'}, function (err) {
       if (err) throw err
     })
-  })
-}
-
-function buildBSD () {
-  buildUnix('so.' + libraryVersion, function (err) {
-    if (err) throw err
-  })
-}
-
-function buildLinux () {
-  buildUnix('so.' + libraryVersion, function (err) {
-    if (err) throw err
   })
 }
 
