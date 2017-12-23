@@ -52,7 +52,7 @@ switch (os.platform()) {
     break
 
   default:
-    buildUnix('.so', function (err) {
+    buildUnix('so', function (err) {
       if (err) throw err
     })
     break
@@ -79,7 +79,7 @@ function buildWindows () {
 }
 
 function buildUnix (ext, cb) {
-  var res = path.join(__dirname, 'lib/libsodium-' + arch + '.so')
+  var res = path.join(__dirname, 'lib/libsodium-' + arch + '.' + ext)
   if (fs.existsSync(res)) return cb(null, res)
 
   spawn('./configure', ['--prefix=' + tmp], {cwd: __dirname, stdio: 'inherit'}, function (err) {
@@ -89,7 +89,7 @@ function buildUnix (ext, cb) {
       spawn('make', ['install'], {cwd: dir, stdio: 'inherit'}, function (err) {
         if (err) throw err
 
-        var lib = fs.realpathSync(path.join(tmp, 'lib/libsodium.so'))
+        var lib = fs.realpathSync(path.join(tmp, 'lib/libsodium.' + ext))
         fs.rename(lib, res, function (err) {
           if (err) throw err
           if (cb) cb(null, res)
