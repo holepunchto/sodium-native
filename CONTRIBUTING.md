@@ -9,9 +9,3 @@ install dependencies:
 npm run fetch-libsodium
 npm install
 ```
-
-## Upgrading libsodium
-
-Please make sure to change the `version` variable in `preinstall.js` and
-`postinstall.js` to match the latest sodium library version as specified by
-`configure.ac`.
