@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## v2.1.3
+
+Rework build process so it is more versatile on UNIX operating systems by
+parsing the libtool archive files for correct .so name. This fixes builds on
+OpenBSD (#54)
+
+## v2.1.2
+
+Fix `armv7l` builds.
+
 ## v2.1.1
 
 A mistake was made in generating prebuilds for v2.1.0, this version resolves the
