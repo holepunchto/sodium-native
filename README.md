@@ -236,26 +236,33 @@ Also exposes `crypto_generichash_BYTES` and `crypto_generichash_KEYBYTES` that c
 
 Same as `crypto_generichash` except this hashes an array of buffers instead of a single one.
 
-#### `var instance = crypto_generichash_instance([key], [outputLength])`
+#### `crypto_generichash_init(state, key, outputLength)`
 
-Create a generichash instance that can hash a stream of input buffers.
+Initialise a generichash state that can calculate a hash from streaming input.
 
-* `key` is an optional buffer as above.
-* `outputLength` the buffer size of your output.
+* `state` is a `Buffer` of at least length `crypto_generichash_STATEBYTES`
+* `key` is an optionally a `Buffer` as above, leave `null` if no key.
+* `outputLength` the buffer size of your output. You can use
+  `crypto_generichash_BYTES` as a default.
 
-#### `instance.update(input)`
+#### `crypto_generichash_update(state, input)`
 
-Update the instance with a new piece of data.
+Update the state with a new piece of data.
 
-* `input` should be a buffer of any size.
+* `state` is a `Buffer` of at least length `crypto_generichash_STATEBYTES`,
+  previously initialised with `crypto_generichash_init`
+* `input` should be a `Buffer` of any size.
 
-#### `instance.final(output)`
+#### `crypto_generichash_final(state, output)`
 
-Finalize the instance.
+Finalise the state and calculate the hash digest.
 
-* `output` should be a buffer as above with the same length you gave when creating the instance.
+* `state` is a `Buffer` of at least length `crypto_generichash_STATEBYTES`,
+  previously initialised with `crypto_generichash_init`
+* `output` should be a `Buffer` as above with the same length you gave when
+  creating the instance.
 
-The generated hash is stored in `output`.
+The hash digest is stored in `output`.
 
 ### Public / secret key box encryption
 
@@ -496,86 +503,94 @@ Returns `true` if the token could be verified. Otherwise `false`.
 Bindings for the crypto_secretstream API.
 [See the libsodium crypto_secretstream docs for more information](https://download.libsodium.org/doc/secret-key_cryptography/secretstream.html).
 
-### Constants
+#### Constants
 
-#### Buffer lengths (Integer)
+##### Buffer lengths (Integer)
 
+- `crypto_secretstream_xchacha20poly1305_STATEBYTES` - NOTE: Unofficial constant
 - `crypto_secretstream_xchacha20poly1305_ABYTES`
 - `crypto_secretstream_xchacha20poly1305_HEADERBYTES`
 - `crypto_secretstream_xchacha20poly1305_KEYBYTES`
 - `crypto_secretstream_xchacha20poly1305_MESSAGEBYTES_MAX`
 - `crypto_secretstream_xchacha20poly1305_TAGBYTES` - NOTE: Unofficial constant
 
-#### Message tags (`Buffer`)
+##### Message tags (`Buffer`)
 
 - `crypto_secretstream_xchacha20poly1305_TAG_MESSAGE`
 - `crypto_secretstream_xchacha20poly1305_TAG_PUSH`
 - `crypto_secretstream_xchacha20poly1305_TAG_REKEY`
 - `crypto_secretstream_xchacha20poly1305_TAG_FINAL`
 
-### `crypto_secretstream_xchacha20poly1305_keygen(key)`
+#### `crypto_secretstream_xchacha20poly1305_keygen(key)`
 
 Generate a new encryption key.
 
-* `key` should be a buffer of length `crypto_secretstream_xchacha20poly1305_KEYBYTES`.
+* `key` must be a `Buffer` of at least length
+  `crypto_secretstream_xchacha20poly1305_KEYBYTES`.
 
 The generated key is stored in `key`.
 
-### `var state = crypto_secretstream_xchacha20poly1305_state_new()`
-
-Create a new stream state. Returns an opaque object used in the next methods.
-
-### `crypto_secretstream_xchacha20poly1305_init_push(state, header, key)`
+#### `crypto_secretstream_xchacha20poly1305_init_push(state, header, key)`
 
 Initialise `state` from the writer side with message `header` and
 encryption key `key`. The header must be sent or stored with the stream.
 The key must be exchanged securely with the receiving / reading side.
 
-* `state` should be an opaque state object.
-* `header` should be a buffer of size `crypto_secretstream_xchacha20poly1305_HEADERBYTES`.
-* `key` should be a buffer of length `crypto_secretstream_xchacha20poly1305_KEYBYTES`.
+* `state` must be a `Buffer` of at least length
+  `crypto_secretstream_xchacha20poly1305_STATEBYTES`.
+* `header` must be a `Buffer` of at least length `crypto_secretstream_xchacha20poly1305_HEADERBYTES`.
+* `key` must be a `Buffer` of at least length `crypto_secretstream_xchacha20poly1305_KEYBYTES`.
 
-### `var mlen = crypto_secretstream_xchacha20poly1305_push(state, ciphertext, message, [ad], tag)`
+#### `var mlen = crypto_secretstream_xchacha20poly1305_push(state, ciphertext, message, [ad], tag)`
 
 Encrypt a message with a certain tag and optional additional data `ad`.
 
-* `state` should be an opaque state object.
-* `ciphertext` should be a buffer of size `message.length + crypto_secretstream_xchacha20poly1305_ABYTES`.
-* `message` should be a buffer.
-* `ad` is optional and should be `null` or `Buffer`. Included in the computation
+* `state` must be a `Buffer` of at least length
+  `crypto_secretstream_xchacha20poly1305_STATEBYTES`.
+* `ciphertext` must be a `Buffer` of at least length
+  `message.length + crypto_secretstream_xchacha20poly1305_ABYTES`.
+* `message` must be a `Buffer`.
+* `ad` is optional and must be `null` or `Buffer`. Included in the computation
   of authentication tag appended to the message.
-* `tag` should be `Buffer` of length `crypto_secretstream_xchacha20poly1305_TAGBYTES`
+* `tag` must be a `Buffer` of at least length
+  `crypto_secretstream_xchacha20poly1305_TAGBYTES`
 
 Note that `tag` should be one of the `crypto_secretstream_xchacha20poly1305_TAG_*` constants.
 Returns number of encrypted bytes written to `ciphertext`.
 
-### `crypto_secretstream_xchacha20poly1305_init_pull(state, header, key)`
+#### `crypto_secretstream_xchacha20poly1305_init_pull(state, header, key)`
 
 Initialise `state` from the reader side with message `header` and
 encryption key `key`. The header must be retrieved from somewhere.
 The key must be exchanged securely with the sending / writing side.
 
-* `state` should be an opaque state object.
-* `header` should be a buffer of size `crypto_secretstream_xchacha20poly1305_HEADERBYTES`.
-* `key` should be a buffer of length `crypto_secretstream_xchacha20poly1305_KEYBYTES`.
+* `state` must be a `Buffer` of at least length
+  `crypto_secretstream_xchacha20poly1305_STATEBYTES`.
+* `header` must be a `Buffer` of at least length
+  `crypto_secretstream_xchacha20poly1305_HEADERBYTES`.
+* `key` must be a `Buffer` of at least length
+  `crypto_secretstream_xchacha20poly1305_KEYBYTES`.
 
-### `var clen = crypto_secretstream_xchacha20poly1305_pull(state, message, tag, ciphertext, [ad])`
+#### `var clen = crypto_secretstream_xchacha20poly1305_pull(state, message, tag, ciphertext, [ad])`
 
 Decrypt a message with optional additional data `ad`, and write message tag to
-`tag`. Make sure to check this!
+`tag`. Make sure to check this tag!
 
-* `state` should be an opaque state object.
-* `message` should be a buffer of size `ciphertext.length - crypto_secretstream_xchacha20poly1305_ABYTES`.
-* `tag` should be a buffer of `crypto_secretstream_xchacha20poly1305_TAGBYTES`.
+* `state` must be a `Buffer` of at least length
+  `crypto_secretstream_xchacha20poly1305_STATEBYTES`.
+* `message` must be a `Buffer` of at least length `ciphertext.length - crypto_secretstream_xchacha20poly1305_ABYTES`.
+* `tag` must be a `Buffer` of at least length
+  `crypto_secretstream_xchacha20poly1305_TAGBYTES`.
 * `ad` is optional and should be `null` or `Buffer`. Included in the computation
   of the authentication tag appended to the message.
 
 Note that `tag` should be one of the `crypto_secretstream_xchacha20poly1305_TAG_*` constants.
 Returns number of decrypted bytes written to `message`.
 
-### `crypto_secretstream_xchacha20poly1305_rekey(state)`
+#### `crypto_secretstream_xchacha20poly1305_rekey(state)`
 
-Rekey the opaque `state` object.
+Rekey the `state` `Buffer` of at least length
+`crypto_secretstream_xchacha20poly1305_STATEBYTES`.
 
 ### One-time Authentication
 

@@ -26,12 +26,6 @@
 #define SIZE_MAX ((size_t) - 1)
 #endif
 
-// Warning: This is only because we know for now that tags are one byte, and
-// it is hard to expose the tag pointer to javascript, other than as a Buffer
-#ifndef crypto_secretstream_xchacha20poly1305_TAGBYTES
-#define crypto_secretstream_xchacha20poly1305_TAGBYTES 1U
-#endif
-
 #define ERRNO_EXCEPTION(errorno) \
   Nan::ErrnoException(errorno, NULL, strerror(errorno))
 
@@ -108,5 +102,9 @@
     return; \
   } \
   type* var = Nan::ObjectWrap::Unwrap<type>(name->ToObject());
+
+#define ASSERT_BUFFER_CAST(name, var, type, length) \
+  ASSERT_BUFFER_MIN_LENGTH(name, var##_buf, length) \
+  type *var = (type *) node::Buffer::Data(var##_buf);
 
 #endif

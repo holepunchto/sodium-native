@@ -18,7 +18,7 @@ test('constants', function (assert) {
 })
 
 test('crypto_secretstream', function (assert) {
-  var state = sodium.crypto_secretstream_xchacha20poly1305_state_new()
+  var state = sodium.sodium_malloc(sodium.crypto_secretstream_xchacha20poly1305_STATEBYTES)
 
   var header = alloc(sodium.crypto_secretstream_xchacha20poly1305_HEADERBYTES)
   var ad = alloc(sodium.randombytes_uniform(100))

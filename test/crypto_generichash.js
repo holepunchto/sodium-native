@@ -50,59 +50,63 @@ tape('crypto_generichash with key', function (t) {
   t.end()
 })
 
-tape('crypto_generichash_instance', function (t) {
-  var isntance = sodium.crypto_generichash_instance()
+tape('crypto_generichash_init', function (t) {
+  var isntance = sodium.sodium_malloc(sodium.crypto_generichash_STATEBYTES)
+  sodium.crypto_generichash_init(isntance, null, sodium.crypto_generichash_BYTES)
   var buf = new Buffer('Hej, Verden')
 
-  for (var i = 0; i < 10; i++) isntance.update(buf)
+  for (var i = 0; i < 10; i++) sodium.crypto_generichash_update(isntance, buf)
 
   var out = alloc(sodium.crypto_generichash_BYTES)
-  isntance.final(out)
+  sodium.crypto_generichash_final(isntance, out)
 
   t.same(out.toString('hex'), 'cbc20f347f5dfe37dc13231cbf7eaa4ec48e585ec055a96839b213f62bd8ce00', 'streaming hash')
   t.end()
 })
 
-tape('crypto_generichash_instance with key', function (t) {
+tape('crypto_generichash_init with key', function (t) {
   var key = alloc(sodium.crypto_generichash_KEYBYTES)
   fill(key, 'lo')
 
-  var isntance = sodium.crypto_generichash_instance(key)
+  var isntance = sodium.sodium_malloc(sodium.crypto_generichash_STATEBYTES)
+  sodium.crypto_generichash_init(isntance, key, sodium.crypto_generichash_BYTES)
   var buf = new Buffer('Hej, Verden')
 
-  for (var i = 0; i < 10; i++) isntance.update(buf)
+  for (var i = 0; i < 10; i++) sodium.crypto_generichash_update(isntance, buf)
 
   var out = alloc(sodium.crypto_generichash_BYTES)
-  isntance.final(out)
+  sodium.crypto_generichash_final(isntance, out)
 
   t.same(out.toString('hex'), '405f14acbeeb30396b8030f78e6a84bab0acf08cb1376aa200a500f669f675dc', 'streaming keyed hash')
   t.end()
 })
 
-tape('crypto_generichash_instance with hash length', function (t) {
-  var isntance = sodium.crypto_generichash_instance(null, sodium.crypto_generichash_BYTES_MIN)
+tape('crypto_generichash_init with hash length', function (t) {
+  var isntance = sodium.sodium_malloc(sodium.crypto_generichash_STATEBYTES)
+  sodium.crypto_generichash_init(isntance, null, sodium.crypto_generichash_BYTES_MIN)
   var buf = new Buffer('Hej, Verden')
 
-  for (var i = 0; i < 10; i++) isntance.update(buf)
+  for (var i = 0; i < 10; i++) sodium.crypto_generichash_update(isntance, buf)
 
   var out = alloc(sodium.crypto_generichash_BYTES_MIN)
-  isntance.final(out)
+  sodium.crypto_generichash_final(isntance, out)
 
   t.same(out.toString('hex'), 'decacdcc3c61948c79d9f8dee5b6aa99', 'streaming short hash')
   t.end()
 })
 
-tape('crypto_generichash_instance with key and hash length', function (t) {
+tape('crypto_generichash_init with key and hash length', function (t) {
   var key = alloc(sodium.crypto_generichash_KEYBYTES)
   fill(key, 'lo')
 
-  var isntance = sodium.crypto_generichash_instance(key, sodium.crypto_generichash_BYTES_MIN)
+  var isntance = sodium.sodium_malloc(sodium.crypto_generichash_STATEBYTES)
+  sodium.crypto_generichash_init(isntance, key, sodium.crypto_generichash_BYTES_MIN)
   var buf = new Buffer('Hej, Verden')
 
-  for (var i = 0; i < 10; i++) isntance.update(buf)
+  for (var i = 0; i < 10; i++) sodium.crypto_generichash_update(isntance, buf)
 
   var out = alloc(sodium.crypto_generichash_BYTES_MIN)
-  isntance.final(out)
+  sodium.crypto_generichash_final(isntance, out)
 
   t.same(out.toString('hex'), 'fb43f0ab6872cbfd39ec4f8a1bc6fb37', 'streaming short keyed hash')
   t.end()

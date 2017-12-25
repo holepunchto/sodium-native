@@ -2,17 +2,16 @@
 #include <node_buffer.h>
 #include <nan.h>
 #include <sodium.h>
-#include "src/crypto_generichash_wrap.h"
 #include "src/crypto_onetimeauth_wrap.h"
 #include "src/crypto_hash_sha256_wrap.h"
 #include "src/crypto_hash_sha512_wrap.h"
 #include "src/crypto_stream_xor_wrap.h"
 #include "src/crypto_stream_chacha20_xor_wrap.h"
-#include "src/crypto_secretstream_xchacha20poly1305_state_wrap.h"
 #include "src/crypto_pwhash_async.cc"
 #include "src/crypto_pwhash_str_async.cc"
 #include "src/crypto_pwhash_str_verify_async.cc"
 #include "src/macros.h"
+#include "src/constants.h"
 
 // memory management
 
@@ -306,21 +305,34 @@ NAN_METHOD(crypto_generichash_batch) {
   crypto_generichash_final(&state, CDATA(output), output_length);
 }
 
-NAN_METHOD(crypto_generichash_instance) {
-  unsigned long long output_length = crypto_generichash_bytes();
+NAN_METHOD(crypto_generichash_init) {
+  ASSERT_BUFFER_CAST(info[0], state_ptr, crypto_generichash_state, crypto_generichash_STATEBYTES)
+  ASSERT_UINT_BOUNDS(info[2], output_length, crypto_generichash_bytes_min(), crypto_generichash_bytes_max())
+
+  unsigned char *key_data = NULL;
+  size_t key_len = 0;
 
   if (info[1]->IsObject()) {
-    output_length = CLENGTH(info[1]->ToObject());
-  } else if (info[1]->IsNumber()) {
-    output_length = info[1]->Uint32Value();
+    ASSERT_BUFFER_MIN_LENGTH(info[1], key, crypto_generichash_KEYBYTES_MIN)
+    key_data = CDATA(key);
+    key_len = key_length;
   }
 
-  if (info[0]->IsObject()) {
-    ASSERT_BUFFER_MIN_LENGTH(info[0], key, crypto_generichash_keybytes_min())
-    info.GetReturnValue().Set(CryptoGenericHashWrap::NewInstance(CDATA(key), key_length, output_length));
-  } else {
-    info.GetReturnValue().Set(CryptoGenericHashWrap::NewInstance(NULL, 0, output_length));
-  }
+  CALL_SODIUM(crypto_generichash_init(state_ptr, key_data, key_len, output_length));
+}
+
+NAN_METHOD(crypto_generichash_update) {
+  ASSERT_BUFFER_CAST(info[0], state_ptr, crypto_generichash_state, crypto_generichash_STATEBYTES)
+  ASSERT_BUFFER_SET_LENGTH(info[1], input)
+
+  CALL_SODIUM(crypto_generichash_update(state_ptr, CDATA(input), input_length));
+}
+
+NAN_METHOD(crypto_generichash_final) {
+  ASSERT_BUFFER_CAST(info[0], state_ptr, crypto_generichash_state, crypto_generichash_STATEBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], output, crypto_generichash_bytes_min())
+
+  CALL_SODIUM(crypto_generichash_final(state_ptr, CDATA(output), output_length));
 }
 
 // crypto_hash
@@ -705,10 +717,6 @@ NAN_METHOD(crypto_hash_sha512_instance) {
 
 // crypto_secretstream
 
-NAN_METHOD(crypto_secretstream_xchacha20poly1305_state_new) {
-  info.GetReturnValue().Set(CryptoSecretstreamXchacha20poly1305StateWrap::NewInstance());
-}
-
 NAN_METHOD(crypto_secretstream_xchacha20poly1305_keygen) {
   ASSERT_BUFFER_MIN_LENGTH(info[0], key, crypto_secretstream_xchacha20poly1305_keybytes())
 
@@ -716,15 +724,15 @@ NAN_METHOD(crypto_secretstream_xchacha20poly1305_keygen) {
 }
 
 NAN_METHOD(crypto_secretstream_xchacha20poly1305_init_push) {
-  ASSERT_UNWRAP(info[0], obj, CryptoSecretstreamXchacha20poly1305StateWrap)
+  ASSERT_BUFFER_CAST(info[0], state_ptr, crypto_secretstream_xchacha20poly1305_state, crypto_secretstream_xchacha20poly1305_STATEBYTES)
   ASSERT_BUFFER_MIN_LENGTH(info[1], header, crypto_secretstream_xchacha20poly1305_headerbytes())
   ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_secretstream_xchacha20poly1305_keybytes())
 
-  CALL_SODIUM(crypto_secretstream_xchacha20poly1305_init_pull(&obj->state, CDATA(header), CDATA(key)))
+  CALL_SODIUM(crypto_secretstream_xchacha20poly1305_init_pull(state_ptr, CDATA(header), CDATA(key)))
 }
 
 NAN_METHOD(crypto_secretstream_xchacha20poly1305_push) {
-  ASSERT_UNWRAP(info[0], obj, CryptoSecretstreamXchacha20poly1305StateWrap)
+  ASSERT_BUFFER_CAST(info[0], state_ptr, crypto_secretstream_xchacha20poly1305_state, crypto_secretstream_xchacha20poly1305_STATEBYTES)
   ASSERT_BUFFER_SET_LENGTH(info[2], message)
   ASSERT_BUFFER_MIN_LENGTH(info[1], ciphertext, crypto_secretstream_xchacha20poly1305_abytes() + message_length)
   ASSERT_BUFFER_MIN_LENGTH(info[4], tag, crypto_secretstream_xchacha20poly1305_TAGBYTES)
@@ -740,21 +748,21 @@ NAN_METHOD(crypto_secretstream_xchacha20poly1305_push) {
 
   unsigned long long mlen;
 
-  CALL_SODIUM(crypto_secretstream_xchacha20poly1305_push(&obj->state, CDATA(ciphertext), &mlen, CDATA(message), message_length, ad_data, ad_len, *CDATA(tag)));
+  CALL_SODIUM(crypto_secretstream_xchacha20poly1305_push(state_ptr, CDATA(ciphertext), &mlen, CDATA(message), message_length, ad_data, ad_len, *CDATA(tag)));
 
   info.GetReturnValue().Set(Nan::New((uint32_t) mlen));
 }
 
 NAN_METHOD(crypto_secretstream_xchacha20poly1305_init_pull) {
-  ASSERT_UNWRAP(info[0], obj, CryptoSecretstreamXchacha20poly1305StateWrap)
+  ASSERT_BUFFER_CAST(info[0], state_ptr, crypto_secretstream_xchacha20poly1305_state, crypto_secretstream_xchacha20poly1305_STATEBYTES)
   ASSERT_BUFFER_MIN_LENGTH(info[1], header, crypto_secretstream_xchacha20poly1305_headerbytes())
   ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_secretstream_xchacha20poly1305_keybytes())
 
-  CALL_SODIUM(crypto_secretstream_xchacha20poly1305_init_pull(&obj->state, CDATA(header), CDATA(key)))
+  CALL_SODIUM(crypto_secretstream_xchacha20poly1305_init_pull(state_ptr, CDATA(header), CDATA(key)))
 }
 
 NAN_METHOD(crypto_secretstream_xchacha20poly1305_pull) {
-  ASSERT_UNWRAP(info[0], obj, CryptoSecretstreamXchacha20poly1305StateWrap)
+  ASSERT_BUFFER_CAST(info[0], state_ptr, crypto_secretstream_xchacha20poly1305_state, crypto_secretstream_xchacha20poly1305_STATEBYTES)
   ASSERT_BUFFER_SET_LENGTH(info[3], ciphertext)
   ASSERT_BUFFER_MIN_LENGTH(info[1], message, ciphertext_length - crypto_secretstream_xchacha20poly1305_abytes())
 
@@ -775,15 +783,15 @@ NAN_METHOD(crypto_secretstream_xchacha20poly1305_pull) {
 
   unsigned long long clen = 0;
 
-  CALL_SODIUM(crypto_secretstream_xchacha20poly1305_pull(&obj->state, CDATA(message), &clen, tag_p, CDATA(ciphertext), ciphertext_length, ad_data, ad_len));
+  CALL_SODIUM(crypto_secretstream_xchacha20poly1305_pull(state_ptr, CDATA(message), &clen, tag_p, CDATA(ciphertext), ciphertext_length, ad_data, ad_len));
 
   info.GetReturnValue().Set(Nan::New((uint32_t) clen));
 }
 
 NAN_METHOD(crypto_secretstream_xchacha20poly1305_rekey) {
-  ASSERT_UNWRAP(info[0], obj, CryptoSecretstreamXchacha20poly1305StateWrap)
+  ASSERT_BUFFER_CAST(info[0], state_ptr, crypto_secretstream_xchacha20poly1305_state, crypto_secretstream_xchacha20poly1305_STATEBYTES)
 
-  crypto_secretstream_xchacha20poly1305_rekey(&obj->state);
+  crypto_secretstream_xchacha20poly1305_rekey(state_ptr);
 }
 
 NAN_MODULE_INIT(InitAll) {
@@ -849,6 +857,7 @@ NAN_MODULE_INIT(InitAll) {
 
   // crypto_generic_hash
 
+  EXPORT_NUMBER(crypto_generichash_STATEBYTES)
   EXPORT_STRING(crypto_generichash_PRIMITIVE)
   EXPORT_NUMBER_VALUE(crypto_generichash_BYTES_MIN, crypto_generichash_bytes_min())
   EXPORT_NUMBER_VALUE(crypto_generichash_BYTES_MAX, crypto_generichash_bytes_max())
@@ -857,10 +866,10 @@ NAN_MODULE_INIT(InitAll) {
   EXPORT_NUMBER_VALUE(crypto_generichash_KEYBYTES_MAX, crypto_generichash_keybytes_max())
   EXPORT_NUMBER_VALUE(crypto_generichash_KEYBYTES, crypto_generichash_keybytes())
 
-  CryptoGenericHashWrap::Init();
-
   EXPORT_FUNCTION(crypto_generichash)
-  EXPORT_FUNCTION(crypto_generichash_instance)
+  EXPORT_FUNCTION(crypto_generichash_init)
+  EXPORT_FUNCTION(crypto_generichash_update)
+  EXPORT_FUNCTION(crypto_generichash_final)
   EXPORT_FUNCTION(crypto_generichash_batch)
 
   // crypto_hash
@@ -1024,8 +1033,7 @@ NAN_MODULE_INIT(InitAll) {
 
   // crypto_secretstream
 
-  CryptoSecretstreamXchacha20poly1305StateWrap::Init();
-
+  EXPORT_NUMBER(crypto_secretstream_xchacha20poly1305_STATEBYTES)
   EXPORT_NUMBER_VALUE(crypto_secretstream_xchacha20poly1305_ABYTES, crypto_secretstream_xchacha20poly1305_abytes())
   EXPORT_NUMBER_VALUE(crypto_secretstream_xchacha20poly1305_HEADERBYTES, crypto_secretstream_xchacha20poly1305_headerbytes())
   EXPORT_NUMBER_VALUE(crypto_secretstream_xchacha20poly1305_KEYBYTES, crypto_secretstream_xchacha20poly1305_keybytes())
@@ -1039,7 +1047,6 @@ NAN_MODULE_INIT(InitAll) {
   EXPORT_BYTE_TAG_AS_BUFFER(crypto_secretstream_xchacha20poly1305_TAG_FINAL)
 
   EXPORT_FUNCTION(crypto_secretstream_xchacha20poly1305_keygen)
-  EXPORT_FUNCTION(crypto_secretstream_xchacha20poly1305_state_new)
   EXPORT_FUNCTION(crypto_secretstream_xchacha20poly1305_init_push)
   EXPORT_FUNCTION(crypto_secretstream_xchacha20poly1305_push)
   EXPORT_FUNCTION(crypto_secretstream_xchacha20poly1305_init_pull)
@@ -1068,3 +1075,4 @@ NODE_MODULE(sodium, InitAll)
 #undef ASSERT_UNWRAP
 #undef CALL_SODIUM
 #undef CALL_SODIUM_BOOL
+#undef ASSERT_BUFFER_CAST
