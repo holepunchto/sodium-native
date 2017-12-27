@@ -5,8 +5,9 @@
 #include "src/crypto_onetimeauth_wrap.h"
 #include "src/crypto_hash_sha256_wrap.h"
 #include "src/crypto_hash_sha512_wrap.h"
-#include "src/crypto_stream_xor_wrap.h"
-#include "src/crypto_stream_chacha20_xor_wrap.h"
+#include "src/crypto_stream_xor.h"
+#include "src/crypto_stream_xsalsa20_xor.h"
+#include "src/crypto_stream_chacha20_xor.h"
 #include "src/crypto_pwhash_async.cc"
 #include "src/crypto_pwhash_str_async.cc"
 #include "src/crypto_pwhash_str_verify_async.cc"
@@ -489,13 +490,6 @@ NAN_METHOD(crypto_stream_xor) {
   CALL_SODIUM(crypto_stream_xor(CDATA(ciphertext), CDATA(message), message_length, CDATA(nonce), CDATA(key)))
 }
 
-NAN_METHOD(crypto_stream_xor_instance) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], nonce, crypto_stream_noncebytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[1], key, crypto_stream_keybytes())
-
-  info.GetReturnValue().Set(CryptoStreamXorWrap::NewInstance(CDATA(nonce), CDATA(key)));
-}
-
 NAN_METHOD(crypto_stream_chacha20_xor) {
   ASSERT_BUFFER_SET_LENGTH(info[1], message)
   ASSERT_BUFFER_MIN_LENGTH(info[0], ciphertext, message_length)
@@ -505,12 +499,73 @@ NAN_METHOD(crypto_stream_chacha20_xor) {
   CALL_SODIUM(crypto_stream_chacha20_xor(CDATA(ciphertext), CDATA(message), message_length, CDATA(nonce), CDATA(key)))
 }
 
-NAN_METHOD(crypto_stream_chacha20_xor_instance) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], nonce, crypto_stream_chacha20_noncebytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[1], key, crypto_stream_chacha20_keybytes())
+NAN_METHOD(crypto_stream_xor_init) {
+  ASSERT_BUFFER_CAST(info[0], state_ptr, crypto_stream_xor_state, crypto_stream_xor_STATEBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], nonce, crypto_stream_noncebytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_stream_keybytes())
 
-  info.GetReturnValue().Set(CryptoStreamChacha20XorWrap::NewInstance(CDATA(nonce), CDATA(key)));
+  CALL_SODIUM(crypto_stream_xor_init(state_ptr, CDATA(nonce), CDATA(key)));
 }
+
+NAN_METHOD(crypto_stream_xor_update) {
+  ASSERT_BUFFER_CAST(info[0], state_ptr, crypto_stream_xor_state, crypto_stream_xor_STATEBYTES)
+  ASSERT_BUFFER_SET_LENGTH(info[2], input)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], output, input_length)
+
+  CALL_SODIUM(crypto_stream_xor_update(state_ptr, CDATA(output), CDATA(input), input_length));
+}
+
+NAN_METHOD(crypto_stream_xor_final) {
+  ASSERT_BUFFER_CAST(info[0], state_ptr, crypto_stream_xor_state, crypto_stream_xor_STATEBYTES)
+
+  CALL_SODIUM(crypto_stream_xor_final(state_ptr));
+}
+
+NAN_METHOD(crypto_stream_xsalsa20_xor_init) {
+  ASSERT_BUFFER_CAST(info[0], state_ptr, crypto_stream_xsalsa20_xor_state, crypto_stream_xsalsa20_xor_STATEBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], nonce, crypto_stream_xsalsa20_noncebytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_stream_xsalsa20_keybytes())
+
+  CALL_SODIUM(crypto_stream_xsalsa20_xor_init(state_ptr, CDATA(nonce), CDATA(key)));
+}
+
+NAN_METHOD(crypto_stream_xsalsa20_xor_update) {
+  ASSERT_BUFFER_CAST(info[0], state_ptr, crypto_stream_xsalsa20_xor_state, crypto_stream_xsalsa20_xor_STATEBYTES)
+  ASSERT_BUFFER_SET_LENGTH(info[2], input)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], output, input_length)
+
+  CALL_SODIUM(crypto_stream_xsalsa20_xor_update(state_ptr, CDATA(output), CDATA(input), input_length));
+}
+
+NAN_METHOD(crypto_stream_xsalsa20_xor_final) {
+  ASSERT_BUFFER_CAST(info[0], state_ptr, crypto_stream_xsalsa20_xor_state, crypto_stream_xsalsa20_xor_STATEBYTES)
+
+  CALL_SODIUM(crypto_stream_xsalsa20_xor_final(state_ptr));
+}
+
+NAN_METHOD(crypto_stream_chacha20_xor_init) {
+  ASSERT_BUFFER_CAST(info[0], state_ptr, crypto_stream_chacha20_xor_state, crypto_stream_chacha20_xor_STATEBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], nonce, crypto_stream_chacha20_NONCEBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_stream_chacha20_KEYBYTES)
+
+  CALL_SODIUM(crypto_stream_chacha20_xor_init(state_ptr, CDATA(nonce), CDATA(key)));
+}
+
+NAN_METHOD(crypto_stream_chacha20_xor_update) {
+  ASSERT_BUFFER_CAST(info[0], state_ptr, crypto_stream_chacha20_xor_state, crypto_stream_chacha20_xor_STATEBYTES)
+  ASSERT_BUFFER_SET_LENGTH(info[2], input)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], output, input_length)
+
+  CALL_SODIUM(crypto_stream_chacha20_xor_update(state_ptr, CDATA(output), CDATA(input), input_length));
+}
+
+NAN_METHOD(crypto_stream_chacha20_xor_final) {
+  ASSERT_BUFFER_CAST(info[0], state_ptr, crypto_stream_chacha20_xor_state, crypto_stream_chacha20_xor_STATEBYTES)
+
+  CALL_SODIUM(crypto_stream_chacha20_xor_final(state_ptr));
+}
+
+
 // crypto_auth
 
 NAN_METHOD(crypto_auth) {
@@ -915,23 +970,32 @@ NAN_MODULE_INIT(InitAll) {
 
   // crypto_stream
 
-  CryptoStreamXorWrap::Init();
-  CryptoStreamChacha20XorWrap::Init();
-
   EXPORT_NUMBER_VALUE(crypto_stream_KEYBYTES, crypto_stream_keybytes())
   EXPORT_NUMBER_VALUE(crypto_stream_NONCEBYTES, crypto_stream_noncebytes())
   EXPORT_STRING(crypto_stream_PRIMITIVE)
+  EXPORT_NUMBER(crypto_stream_xor_STATEBYTES)
+  EXPORT_NUMBER_VALUE(crypto_stream_xsalsa20_KEYBYTES, crypto_stream_xsalsa20_keybytes())
+  EXPORT_NUMBER_VALUE(crypto_stream_xsalsa20_NONCEBYTES, crypto_stream_xsalsa20_noncebytes())
 
+  EXPORT_NUMBER(crypto_stream_chacha20_xor_STATEBYTES)
   EXPORT_NUMBER_VALUE(crypto_stream_chacha20_KEYBYTES, crypto_stream_chacha20_keybytes())
   EXPORT_NUMBER_VALUE(crypto_stream_chacha20_NONCEBYTES, crypto_stream_chacha20_noncebytes())
 
 
   EXPORT_FUNCTION(crypto_stream)
   EXPORT_FUNCTION(crypto_stream_xor)
-  EXPORT_FUNCTION(crypto_stream_xor_instance)
+  EXPORT_FUNCTION(crypto_stream_xor_init)
+  EXPORT_FUNCTION(crypto_stream_xor_update)
+  EXPORT_FUNCTION(crypto_stream_xor_final)
+
+  EXPORT_FUNCTION(crypto_stream_xsalsa20_xor_init)
+  EXPORT_FUNCTION(crypto_stream_xsalsa20_xor_update)
+  EXPORT_FUNCTION(crypto_stream_xsalsa20_xor_final)
 
   EXPORT_FUNCTION(crypto_stream_chacha20_xor)
-  EXPORT_FUNCTION(crypto_stream_chacha20_xor_instance)
+  EXPORT_FUNCTION(crypto_stream_chacha20_xor_init)
+  EXPORT_FUNCTION(crypto_stream_chacha20_xor_update)
+  EXPORT_FUNCTION(crypto_stream_chacha20_xor_final)
 
   // crypto_auth
 

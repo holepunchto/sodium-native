@@ -9,6 +9,10 @@
 #define crypto_stream_xor_STATEBYTES sizeof(crypto_stream_xor_state)
 #endif
 
+#ifndef crypto_stream_xsalsa20_xor_STATEBYTES
+#define crypto_stream_xsalsa20_xor_STATEBYTES sizeof(crypto_stream_xsalsa20_xor_state)
+#endif
+
 #ifndef crypto_stream_chacha20_xor_STATEBYTES
 #define crypto_stream_chacha20_xor_STATEBYTES sizeof(crypto_stream_chacha20_xor_state)
 #endif

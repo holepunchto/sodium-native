@@ -14,8 +14,9 @@
         'src/crypto_hash_sha256_wrap.cc',
         'src/crypto_hash_sha512_wrap.cc',
         'src/crypto_onetimeauth_wrap.cc',
-        'src/crypto_stream_xor_wrap.cc',
-        'src/crypto_stream_chacha20_xor_wrap.cc',
+        'src/crypto_stream_chacha20_xor.c',
+        'src/crypto_stream_xsalsa20_xor.c',
+        'src/crypto_stream_xor.c',
         'src/crypto_pwhash_async.cc',
         'src/crypto_pwhash_str_async.cc',
         'src/crypto_pwhash_str_verify_async.cc',
@@ -23,12 +24,12 @@
       'xcode_settings': {
         'OTHER_CFLAGS': [
           '-g',
-          '-O3',
+          '-O3'
         ]
       },
       'cflags': [
         '-g',
-        '-O3',
+        '-O3'
       ],
       'libraries': [
         '<!(node preinstall.js --print-lib)'
