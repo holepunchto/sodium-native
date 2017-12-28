@@ -1,5 +1,11 @@
 # CHANGELOG
 
+## v2.1.4
+
+Only use the constants that `libsodium` compiled with instead of the ones that
+`sodium-native` compiled with. This has caused bugs for some users and may have
+led to subtle bugs.
+
 ## v2.1.3
 
 Rework build process so it is more versatile on UNIX operating systems by
