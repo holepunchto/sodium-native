@@ -2,7 +2,6 @@
 #include <node_buffer.h>
 #include <nan.h>
 #include <sodium.h>
-#include "src/crypto_onetimeauth_wrap.h"
 #include "src/crypto_hash_sha256_wrap.h"
 #include "src/crypto_hash_sha512_wrap.h"
 #include "src/crypto_stream_xor.h"
@@ -602,9 +601,25 @@ NAN_METHOD(crypto_onetimeauth_verify) {
   CALL_SODIUM_BOOL(crypto_onetimeauth_verify(CDATA(output), CDATA(input), input_length, CDATA(key)))
 }
 
-NAN_METHOD(crypto_onetimeauth_instance) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], key, crypto_onetimeauth_keybytes())
-  info.GetReturnValue().Set(CryptoOnetimeAuthWrap::NewInstance(CDATA(key)));
+NAN_METHOD(crypto_onetimeauth_init) {
+  ASSERT_BUFFER_CAST(info[0], state_ptr, crypto_onetimeauth_state, crypto_onetimeauth_statebytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], key, crypto_onetimeauth_keybytes())
+
+  CALL_SODIUM(crypto_onetimeauth_init(state_ptr, CDATA(key)))
+}
+
+NAN_METHOD(crypto_onetimeauth_update) {
+  ASSERT_BUFFER_CAST(info[0], state_ptr, crypto_onetimeauth_state, crypto_onetimeauth_statebytes())
+  ASSERT_BUFFER_SET_LENGTH(info[1], input)
+
+  CALL_SODIUM(crypto_onetimeauth_update(state_ptr, CDATA(input), input_length))
+}
+
+NAN_METHOD(crypto_onetimeauth_final) {
+  ASSERT_BUFFER_CAST(info[0], state_ptr, crypto_onetimeauth_state, crypto_onetimeauth_statebytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], out, crypto_onetimeauth_bytes())
+
+  CALL_SODIUM(crypto_onetimeauth_final(state_ptr, CDATA(out)))
 }
 
 // crypto_pwhash
@@ -1008,15 +1023,16 @@ NAN_MODULE_INIT(InitAll) {
 
   // crypto_onetimeauth
 
+  EXPORT_NUMBER_VALUE(crypto_onetimeauth_STATEBYTES, crypto_onetimeauth_statebytes())
   EXPORT_NUMBER_VALUE(crypto_onetimeauth_BYTES, crypto_onetimeauth_bytes())
   EXPORT_NUMBER_VALUE(crypto_onetimeauth_KEYBYTES, crypto_onetimeauth_keybytes())
   EXPORT_STRING(crypto_onetimeauth_PRIMITIVE)
 
-  CryptoOnetimeAuthWrap::Init();
-
   EXPORT_FUNCTION(crypto_onetimeauth)
   EXPORT_FUNCTION(crypto_onetimeauth_verify)
-  EXPORT_FUNCTION(crypto_onetimeauth_instance)
+  EXPORT_FUNCTION(crypto_onetimeauth_init)
+  EXPORT_FUNCTION(crypto_onetimeauth_update)
+  EXPORT_FUNCTION(crypto_onetimeauth_final)
 
   // crypto_pwhash
 

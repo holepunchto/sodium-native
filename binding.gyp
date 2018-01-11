@@ -13,7 +13,6 @@
         'binding.cc',
         'src/crypto_hash_sha256_wrap.cc',
         'src/crypto_hash_sha512_wrap.cc',
-        'src/crypto_onetimeauth_wrap.cc',
         'src/crypto_stream_chacha20_xor.c',
         'src/crypto_stream_xsalsa20_xor.c',
         'src/crypto_stream_xor.c',
