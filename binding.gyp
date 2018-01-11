@@ -1,13 +1,13 @@
 {
   'variables': {
-    'target_arch%': '<!(node preinstall.js --print-arch)>'
+    'target_arch%': '<!(node -p "os.arch()")>'
   },
   'targets': [
     {
       'target_name': 'sodium',
       'include_dirs' : [
         "<!(node -e \"require('nan')\")",
-        'libsodium/src/libsodium/include'
+        "<!(node -p \"require('libsodium-prebuilt/include')\")"
       ],
       'sources': [
         'binding.cc',
@@ -31,17 +31,7 @@
       'cflags': [
         '-g',
         '-O3',
-      ],
-      'libraries': [
-        '<!(node preinstall.js --print-lib)'
-      ],
-      'conditions': [
-        ['OS != "mac" and OS != "win"', {
-          'link_settings': {
-            'libraries': [ "-Wl,-rpath=\\$$ORIGIN"]
-          }
-        }],
-      ],
+      ]
     }
   ]
 }

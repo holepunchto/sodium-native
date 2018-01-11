@@ -2,7 +2,7 @@
 #define CRYPTO_HASH_SHA256_WRAP_H
 
 #include <nan.h>
-#include "../libsodium/src/libsodium/include/sodium.h"
+#include <sodium.h>
 
 class CryptoHashSha256Wrap : public Nan::ObjectWrap {
 public:

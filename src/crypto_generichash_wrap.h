@@ -2,7 +2,7 @@
 #define CRYPTO_GENERIC_HASH_WRAP_H
 
 #include <nan.h>
-#include "../libsodium/src/libsodium/include/sodium.h"
+#include <sodium.h>
 
 class CryptoGenericHashWrap : public Nan::ObjectWrap {
 public:

@@ -5,6 +5,7 @@
   "main": "index.js",
   "dependencies": {
     "ini": "^1.3.5",
+    "libsodium-prebuilt": "github:emilbayes/libsodium-prebuilt",
     "nan": "^2.4.0",
     "node-gyp-build": "^3.0.0"
   },
@@ -20,11 +21,10 @@
   },
   "scripts": {
     "dev": "node-gyp rebuild",
-    "fetch-libsodium": "git submodule update --recursive --init",
     "test": "standard && tape \"test/*.js\"",
-    "install": "node-gyp-build \"node preinstall.js\" \"node postinstall.js\"",
-    "prebuild": "prebuildify -a --strip --preinstall \"node preinstall.js\" --postinstall \"node postinstall.js\"",
-    "prebuild-ia32": "prebuildify -a --strip --preinstall \"node preinstall.js\" --postinstall \"node postinstall.js\" --arch=ia32"
+    "install": "node-gyp-build",
+    "prebuild": "prebuildify -a --strip",
+    "prebuild-ia32": "prebuildify -a --strip --arch=ia32"
   },
   "repository": {
     "type": "git",

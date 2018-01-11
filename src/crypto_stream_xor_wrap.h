@@ -2,7 +2,7 @@
 #define CRYPTO_STREAM_XOR_WRAP_H
 
 #include <nan.h>
-#include "../libsodium/src/libsodium/include/sodium.h"
+#include <sodium.h>
 
 class CryptoStreamXorWrap : public Nan::ObjectWrap {
 public:

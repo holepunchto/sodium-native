@@ -1,7 +1,7 @@
 #include <nan.h>
 #include "macros.h"
 
-#include "../libsodium/src/libsodium/include/sodium.h"
+#include <sodium.h>
 
 class CryptoPwhashStrVerifyAsync : public Nan::AsyncWorker {
  public:

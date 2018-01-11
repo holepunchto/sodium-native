@@ -2,7 +2,7 @@
 #define CRYPTO_SECRETSTREAM_XCHACHA20POLY1305_STATE_WRAP_H
 
 #include <nan.h>
-#include "../libsodium/src/libsodium/include/sodium.h"
+#include <sodium.h>
 
 class CryptoSecretstreamXchacha20poly1305StateWrap : public Nan::ObjectWrap {
 public:

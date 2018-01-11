@@ -2,7 +2,7 @@
 #define CRYPTO_STREAM_CHACHA20_XOR_WRAP_H
 
 #include <nan.h>
-#include "../libsodium/src/libsodium/include/sodium.h"
+#include <sodium.h>
 
 class CryptoStreamChacha20XorWrap : public Nan::ObjectWrap {
 public:
