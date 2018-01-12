@@ -923,6 +923,10 @@ NAN_MODULE_INIT(InitAll) {
   EXPORT_NUMBER_VALUE(crypto_stream_chacha20_KEYBYTES, crypto_stream_chacha20_keybytes())
   EXPORT_NUMBER_VALUE(crypto_stream_chacha20_NONCEBYTES, crypto_stream_chacha20_noncebytes())
 
+  EXPORT_FUNCTION(crypto_stream)
+  EXPORT_FUNCTION(crypto_stream_xor)
+  EXPORT_FUNCTION(crypto_stream_chacha20_xor)
+
   // crypto_auth
 
   EXPORT_NUMBER_VALUE(crypto_auth_BYTES, crypto_auth_bytes())
