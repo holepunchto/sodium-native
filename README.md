@@ -457,27 +457,6 @@ Also supports in-place encryption where you use the same buffer as `cipher` and 
 Encryption defaults to XSalsa20, use `crypto_stream_chacha20_xor` if you want
 to encrypt/decrypt with ChaCha20 instead.
 
-#### `crypto_stream_xor_init(state, nonce, key)` or
-#### `crypto_stream_chacha20_xor_init(state, nonce, key)` or
-#### `crypto_stream_xsalsa20_xor_init(state, nonce, key)`
-
-A streaming instance to the `crypto_stream_xor` api. Pass a state buffer, a nonce and key in the constructor.
-
-Encryption defaults to XSalsa20, use `crypto_stream_chacha20_xor_instance` if
-you want to encrypt/decrypt with ChaCha20 instead.
-
-#### `crypto_stream_xor_update(state, message)` or
-#### `crypto_stream_chacha20_xor_update(state, message)` or
-#### `crypto_stream_xsalsa20_xor_update(state, message)`
-
-Encrypt the next message
-
-#### `crypto_stream_xor_final(state)` or
-#### `crypto_stream_chacha20_xor_final(state)` or
-#### `crypto_stream_xsalsa20_xor_final(state)`
-
-Finalize the stream. Zeros out state.
-
 ### Authentication
 
 Bindings for the crypto_auth API.
