@@ -1,5 +1,14 @@
 # CHANGELOG
 
+## Next release
+
+* Intoducing new stateful API for streaming primitives. This includes
+  `crypto_secretstream`, `crypto_generichash`, `crypto_onetimeauth`,
+  `crypto_hash_sha*`
+* Remove `crypto_stream_xor_instance` and associated functions as these were an
+  extension to core `libsodium` primitives. These are now available as a
+  separate module: [`crypto-stream-xor`](https://github.com/emilbayes/crypto-stream-xor)
+
 ## v2.1.4
 
 Only use the constants that `libsodium` compiled with instead of the ones that
