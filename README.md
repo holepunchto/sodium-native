@@ -806,20 +806,24 @@ Hash a value to a short hash based on a key.
 
 The generated short hash is stored in `output`.
 
-#### `var instance = crypto_hash_sha256_instance()`
+#### `crypto_hash_sha256_init(state)`
 
-Create an instance that has stream of input data to sha256.
+Initialise a sha256 state that can calculate a hash from streaming input.
 
-#### `instance.update(input)`
+* `state` is a `Buffer` of at least length `crypto_hash_sha256_STATEBYTES`
 
-Update the instance with a new piece of data.
+#### `crypto_hash_sha256_update(state, input)`
 
+Update the state with a new piece of data.
+
+* `state` is a `Buffer` of at least length `crypto_hash_sha256_STATEBYTES`
 * `input` should be a buffer of any size.
 
-#### `instance.final(output)`
+#### `crypto_hash_sha256_final(state, output)`
 
-Finalize the instance.
+Finalize the state.
 
+* `state` is a `Buffer` of at least length `crypto_hash_sha256_STATEBYTES`
 * `output` should be a buffer of length `crypto_hash_sha256_BYTES`.
 
 The generated hash is stored in `output`.
@@ -833,21 +837,25 @@ Hash a value to a short hash based on a key.
 
 The generated short hash is stored in `output`.
 
-#### `var instance = crypto_hash_sha512_instance()`
+#### `crypto_hash_512_init(state)`
 
-Create an instance that has stream of input data to sha512.
+Initialise a 512 state that can calculate a hash from streaming input.
 
-#### `instance.update(input)`
+* `state` is a `Buffer` of at least length `crypto_hash_512_STATEBYTES`
 
-Update the instance with a new piece of data.
+#### `crypto_hash_512_update(state, input)`
 
+Update the state with a new piece of data.
+
+* `state` is a `Buffer` of at least length `crypto_hash_512_STATEBYTES`
 * `input` should be a buffer of any size.
 
-#### `instance.final(output)`
+#### `crypto_hash_512_final(state, output)`
 
-Finalize the instance.
+Finalize the state.
 
-* `output` should be a buffer of length `crypto_hash_sha512_BYTES`.
+* `state` is a `Buffer` of at least length `crypto_hash_512_STATEBYTES`
+* `output` should be a buffer of length `crypto_hash_512_BYTES`.
 
 The generated hash is stored in `output`.
 

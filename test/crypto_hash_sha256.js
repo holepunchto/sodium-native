@@ -22,9 +22,10 @@ tape('crypto_hash_sha256_instance', function (t) {
   var out = alloc(sodium.crypto_hash_sha256_BYTES)
   var inp = new Buffer('Hej, Verden!')
 
-  var instance = sodium.crypto_hash_sha256_instance()
-  instance.update(inp)
-  instance.final(out)
+  var instance = alloc(sodium.crypto_hash_sha256_STATEBYTES)
+  sodium.crypto_hash_sha256_init(instance)
+  sodium.crypto_hash_sha256_update(instance, inp)
+  sodium.crypto_hash_sha256_final(instance, out)
 
   var result = 'f0704b1e832b05d01223952fb2512181af4f843ce7bb6b443afd5ea028010e6c'
   t.same(out.toString('hex'), result, 'hashed the string')

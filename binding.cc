@@ -2,8 +2,6 @@
 #include <node_buffer.h>
 #include <nan.h>
 #include <sodium.h>
-#include "src/crypto_hash_sha256_wrap.h"
-#include "src/crypto_hash_sha512_wrap.h"
 #include "src/crypto_pwhash_async.cc"
 #include "src/crypto_pwhash_str_async.cc"
 #include "src/crypto_pwhash_str_verify_async.cc"
@@ -698,8 +696,24 @@ NAN_METHOD(crypto_hash_sha256) {
   CALL_SODIUM(crypto_hash_sha256(CDATA(output), CDATA(input), CLENGTH(input)))
 }
 
-NAN_METHOD(crypto_hash_sha256_instance) {
-  info.GetReturnValue().Set(CryptoHashSha256Wrap::NewInstance());
+NAN_METHOD(crypto_hash_sha256_init) {
+  ASSERT_BUFFER_CAST(info[0], state_ptr, crypto_hash_sha256_state, crypto_hash_sha256_STATEBYTES)
+
+  CALL_SODIUM(crypto_hash_sha256_init(state_ptr))
+}
+
+NAN_METHOD(crypto_hash_sha256_update) {
+  ASSERT_BUFFER_CAST(info[0], state_ptr, crypto_hash_sha256_state, crypto_hash_sha256_STATEBYTES)
+  ASSERT_BUFFER_SET_LENGTH(info[1], input)
+
+  CALL_SODIUM(crypto_hash_sha256_update(state_ptr, CDATA(input), input_length))
+}
+
+NAN_METHOD(crypto_hash_sha256_final) {
+  ASSERT_BUFFER_CAST(info[0], state_ptr, crypto_hash_sha256_state, crypto_hash_sha256_STATEBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], out, crypto_hash_sha256_bytes())
+
+  CALL_SODIUM(crypto_hash_sha256_final(state_ptr, CDATA(out)))
 }
 
 // crypto_hash_sha512
@@ -711,8 +725,24 @@ NAN_METHOD(crypto_hash_sha512) {
   CALL_SODIUM(crypto_hash_sha512(CDATA(output), CDATA(input), CLENGTH(input)))
 }
 
-NAN_METHOD(crypto_hash_sha512_instance) {
-  info.GetReturnValue().Set(CryptoHashSha512Wrap::NewInstance());
+NAN_METHOD(crypto_hash_sha512_init) {
+  ASSERT_BUFFER_CAST(info[0], state_ptr, crypto_hash_sha512_state, crypto_hash_sha512_STATEBYTES)
+
+  CALL_SODIUM(crypto_hash_sha512_init(state_ptr))
+}
+
+NAN_METHOD(crypto_hash_sha512_update) {
+  ASSERT_BUFFER_CAST(info[0], state_ptr, crypto_hash_sha512_state, crypto_hash_sha512_STATEBYTES)
+  ASSERT_BUFFER_SET_LENGTH(info[1], input)
+
+  CALL_SODIUM(crypto_hash_sha512_update(state_ptr, CDATA(input), input_length))
+}
+
+NAN_METHOD(crypto_hash_sha512_final) {
+  ASSERT_BUFFER_CAST(info[0], state_ptr, crypto_hash_sha512_state, crypto_hash_sha512_STATEBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], out, crypto_hash_sha512_bytes())
+
+  CALL_SODIUM(crypto_hash_sha512_final(state_ptr, CDATA(out)))
 }
 
 // crypto_secretstream
@@ -1010,21 +1040,23 @@ NAN_MODULE_INIT(InitAll) {
   EXPORT_FUNCTION(crypto_kdf_keygen)
   EXPORT_FUNCTION(crypto_kdf_derive_from_key)
 
-  // crypto_hash_256
+  // crypto_hash_sha256
 
-  CryptoHashSha256Wrap::Init();
-
+  EXPORT_NUMBER(crypto_hash_sha256_STATEBYTES)
   EXPORT_NUMBER_VALUE(crypto_hash_sha256_BYTES, crypto_hash_sha256_bytes())
   EXPORT_FUNCTION(crypto_hash_sha256)
-  EXPORT_FUNCTION(crypto_hash_sha256_instance)
+  EXPORT_FUNCTION(crypto_hash_sha256_init)
+  EXPORT_FUNCTION(crypto_hash_sha256_update)
+  EXPORT_FUNCTION(crypto_hash_sha256_final)
 
-  // crypto_hash_512
+  // crypto_hash_sha512
 
-  CryptoHashSha512Wrap::Init();
-
+  EXPORT_NUMBER(crypto_hash_sha512_STATEBYTES)
   EXPORT_NUMBER_VALUE(crypto_hash_sha512_BYTES, crypto_hash_sha512_bytes())
   EXPORT_FUNCTION(crypto_hash_sha512)
-  EXPORT_FUNCTION(crypto_hash_sha512_instance)
+  EXPORT_FUNCTION(crypto_hash_sha512_init)
+  EXPORT_FUNCTION(crypto_hash_sha512_update)
+  EXPORT_FUNCTION(crypto_hash_sha512_final)
 
   // crypto_secretstream
 

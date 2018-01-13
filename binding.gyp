@@ -11,8 +11,6 @@
       ],
       'sources': [
         'binding.cc',
-        'src/crypto_hash_sha256_wrap.cc',
-        'src/crypto_hash_sha512_wrap.cc',
         'src/crypto_pwhash_async.cc',
         'src/crypto_pwhash_str_async.cc',
         'src/crypto_pwhash_str_verify_async.cc',
