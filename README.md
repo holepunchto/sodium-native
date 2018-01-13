@@ -260,7 +260,7 @@ Finalise the state and calculate the hash digest.
 * `state` is a `Buffer` of at least length `crypto_generichash_STATEBYTES`,
   previously initialised with `crypto_generichash_init`
 * `output` should be a `Buffer` as above with the same length you gave when
-  creating the instance.
+  initialising the state.
 
 The hash digest is stored in `output`.
 
@@ -601,25 +601,28 @@ Verify a token.
 
 Returns `true` if the token could be verified. Otherwise `false`.
 
-#### `var instance = crypto_onetimeauth_instance(key)`
+#### `crypto_onetimeauth_init(state, key)`
 
-Create an instance that create a token from a onetime key and a stream of input data.
+Initialise a new state that create a token from a onetime key and a stream of input data.
 
+* `state` should be a `Buffer` of at least length `crypto_onetimeauth_STATEBYTES`.
 * `key` should be a buffer of length `crypto_onetimeauth_KEYBYTES`.
 
-#### `instance.update(input)`
+#### `crypto_onetimeauth_update(state, input)`
 
-Update the instance with a new piece of data.
+Update the state with a new piece of data.
 
+* `state` should be a `Buffer` of at least length `crypto_onetimeauth_STATEBYTES`.
 * `input` should be a buffer of any size.
 
-#### `instance.final(output)`
+#### `crypto_onetimeauth_final(state, output)`
 
-Finalize the instance.
+Finalize the state.
 
+* `state` should be a `Buffer` of at least length `crypto_onetimeauth_STATEBYTES`.
 * `output` should be a buffer of length `crypto_onetimeauth_BYTES`.
 
-The generated hash is stored in `output`.
+The generated authentication code is stored in `output`.
 
 ### Password Hashing
 
