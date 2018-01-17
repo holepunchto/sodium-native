@@ -25,7 +25,7 @@ This also makes this library useful as a foundation for more high level crypto a
 var sodium = require('sodium-native')
 
 var nonce = new Buffer(sodium.crypto_secretbox_NONCEBYTES)
-var key = new Buffer(sodium.crypto_secretbox_KEYBYTES)
+var key = sodium.sodium_malloc(sodium.crypto_secretbox_KEYBYTES) // secure buffer
 var message = new Buffer('Hello, World!')
 var cipher = new Buffer(message.length + sodium.crypto_secretbox_MACBYTES)
 
