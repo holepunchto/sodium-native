@@ -48,6 +48,8 @@ if (!sodium.crypto_secretbox_open_easy(plainText, cipher, nonce, key)) {
 
 ## API
 
+[**Go to docs for the latest release**](https://github.com/sodium-friends/sodium-native/tree/v2.1.4) (The following docs may be for a unreleased version)
+
 #### `var sodium = require('sodium-native')`
 
 Loads the bindings. If you get an module version error you probably need to reinstall the module because you switched node versions.
