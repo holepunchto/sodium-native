@@ -4,7 +4,8 @@
     },
     'targets': [{
         'target_name': 'sodium',
-        'include_dirs': ['<!(node -e "require(\'nan\')")',
+        'include_dirs': [
+            '<!(node -e "require(\'nan\')")',
             '<!(node -p "require(\'libsodium-prebuilt/paths\').include")'
         ],
         'sources': [
@@ -50,7 +51,7 @@
                     'libraries': [
                         '-L<!(node -p \'require("libsodium-prebuilt/paths").lib\')',
                         '-z lazy',
-                        '-lsodium',
+                        '-l:<!(node -p \'require("libsodium-prebuilt/paths").soname\')',
                     ]
                 }
             }]
