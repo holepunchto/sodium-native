@@ -178,7 +178,7 @@ The generated signed message will be stored in `signedMessage`.
 
 Verify and open a message.
 
-* `message` should be a buffer with length `signedMessage - crypto_sign_BYTES`.
+* `message` should be a buffer with length `signedMessage.length - crypto_sign_BYTES`.
 * `signedMessage` at least `crypto_sign_BYTES` length.
 * `publicKey` should be a public key.
 
