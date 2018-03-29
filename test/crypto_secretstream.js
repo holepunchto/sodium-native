@@ -53,6 +53,7 @@ test('crypto_secretstream', function (assert) {
   sodium.crypto_secretstream_xchacha20poly1305_keygen(key)
 
   sodium.crypto_secretstream_xchacha20poly1305_init_push(state, header, key)
+  assert.notSame(header.toString('hex'), '000000000000000000000000000000000000000000000000')
   ret = sodium.crypto_secretstream_xchacha20poly1305_push(state, c1, m1, null, sodium.crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
   assert.same(ret, m1.length + sodium.crypto_secretstream_xchacha20poly1305_ABYTES)
   ret = sodium.crypto_secretstream_xchacha20poly1305_push(state, c2, m2, ad.slice(0, 0), sodium.crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
