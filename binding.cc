@@ -720,7 +720,7 @@ NAN_METHOD(crypto_secretstream_xchacha20poly1305_init_push) {
   ASSERT_BUFFER_MIN_LENGTH(info[1], header, crypto_secretstream_xchacha20poly1305_headerbytes())
   ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_secretstream_xchacha20poly1305_keybytes())
 
-  CALL_SODIUM(crypto_secretstream_xchacha20poly1305_init_pull(&obj->state, CDATA(header), CDATA(key)))
+  CALL_SODIUM(crypto_secretstream_xchacha20poly1305_init_push(&obj->state, CDATA(header), CDATA(key)))
 }
 
 NAN_METHOD(crypto_secretstream_xchacha20poly1305_push) {
