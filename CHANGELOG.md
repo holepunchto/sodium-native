@@ -1,5 +1,10 @@
 # CHANGELOG
 
+## v2.1.5
+
+Fixes a critical bug in `crypto_secretstream_xchacha20poly1305_init_push` where
+it would call `crypto_secretstream_xchacha20poly1305_init_pull` instead.
+
 ## v2.1.4
 
 Only use the constants that `libsodium` compiled with instead of the ones that
