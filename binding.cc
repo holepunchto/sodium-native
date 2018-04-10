@@ -186,6 +186,127 @@ NAN_METHOD(crypto_kx_server_session_keys) {
   CALL_SODIUM(crypto_kx_server_session_keys(CDATA(rx), CDATA(tx), CDATA(server_pk), CDATA(server_sk), CDATA(client_pk)))
 }
 
+// crypto_aead
+
+NAN_METHOD(crypto_aead_xchacha20poly1305_ietf_keygen) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], k, crypto_aead_xchacha20poly1305_ietf_keybytes())
+  crypto_aead_xchacha20poly1305_ietf_keygen(CDATA(k));
+}
+
+// (ciphertext_buf, plaintext_buf, [ad], null, npub_buf, k_buf)
+NAN_METHOD(crypto_aead_xchacha20poly1305_ietf_encrypt) {
+  ASSERT_BUFFER_SET_LENGTH(info[1], plaintext)
+  ASSERT_BUFFER_MIN_LENGTH(info[0], ciphertext, plaintext_length + crypto_aead_xchacha20poly1305_ietf_abytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[4], npub, crypto_aead_xchacha20poly1305_ietf_npubbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[5], k, crypto_aead_xchacha20poly1305_ietf_keybytes())
+
+  const unsigned char *ad_data = NULL;
+  size_t ad_len = 0;
+  if (info[2]->IsObject()) {
+    ASSERT_BUFFER_SET_LENGTH(info[2], ad)
+    ad_data = CDATA(ad);
+    ad_len = ad_length;
+  }
+
+  const unsigned char *nsec = NULL;
+  unsigned long long clen;
+  CALL_SODIUM(crypto_aead_xchacha20poly1305_ietf_encrypt(
+    CDATA(ciphertext), &clen,
+    CDATA(plaintext), plaintext_length,
+    ad_data, ad_len,
+    nsec,
+    CDATA(npub),
+    CDATA(k)
+  ))
+
+  info.GetReturnValue().Set(Nan::New((uint32_t) clen));
+}
+
+// (plaintext, null, ciphertext, [ad], npub, k)
+NAN_METHOD(crypto_aead_xchacha20poly1305_ietf_decrypt) {
+  ASSERT_BUFFER_SET_LENGTH(info[2], ciphertext)
+  ASSERT_BUFFER_MIN_LENGTH(info[0], plaintext, ciphertext_length - crypto_aead_xchacha20poly1305_ietf_abytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[4], npub, crypto_aead_xchacha20poly1305_ietf_npubbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[5], k, crypto_aead_xchacha20poly1305_ietf_keybytes())
+
+  const unsigned char *ad_data = NULL;
+  size_t ad_len = 0;
+  if (info[3]->IsObject()) {
+    ASSERT_BUFFER_SET_LENGTH(info[3], ad)
+    ad_data = CDATA(ad);
+    ad_len = ad_length;
+  }
+
+  unsigned char *nsec = NULL;
+  unsigned long long mlen;
+  CALL_SODIUM(crypto_aead_xchacha20poly1305_ietf_decrypt(
+    CDATA(plaintext), &mlen,
+    nsec,
+    CDATA(ciphertext), ciphertext_length,
+    ad_data, ad_len,
+    CDATA(npub),
+    CDATA(k)
+  ))
+
+  info.GetReturnValue().Set(Nan::New((uint32_t) mlen));
+}
+
+// (ciphertext_buf, mac, plaintext_buf, [ad], null, npub_buf, k_buf)
+NAN_METHOD(crypto_aead_xchacha20poly1305_ietf_encrypt_detached) {
+  ASSERT_BUFFER_SET_LENGTH(info[2], plaintext)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], mac, crypto_aead_xchacha20poly1305_ietf_abytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], ciphertext, plaintext_length)
+  ASSERT_BUFFER_MIN_LENGTH(info[5], npub, crypto_aead_xchacha20poly1305_ietf_npubbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[6], k, crypto_aead_xchacha20poly1305_ietf_keybytes())
+
+  const unsigned char *ad_data = NULL;
+  size_t ad_len = 0;
+  if (info[3]->IsObject()) {
+    ASSERT_BUFFER_SET_LENGTH(info[3], ad)
+    ad_data = CDATA(ad);
+    ad_len = ad_length;
+  }
+
+  const unsigned char *nsec = NULL;
+  CALL_SODIUM(crypto_aead_xchacha20poly1305_ietf_encrypt_detached(
+    CDATA(ciphertext),
+    CDATA(mac), NULL, // From source
+    CDATA(plaintext), plaintext_length,
+    ad_data, ad_len,
+    nsec,
+    CDATA(npub),
+    CDATA(k)
+  ))
+}
+
+// (plaintext, null, ciphertext, mac, [ad], npub, k)
+NAN_METHOD(crypto_aead_xchacha20poly1305_ietf_decrypt_detached) {
+  ASSERT_BUFFER_SET_LENGTH(info[2], ciphertext)
+  ASSERT_BUFFER_MIN_LENGTH(info[0], plaintext, ciphertext_length)
+  ASSERT_BUFFER_MIN_LENGTH(info[3], mac, crypto_aead_xchacha20poly1305_ietf_abytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[4], npub, crypto_aead_xchacha20poly1305_ietf_npubbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[5], k, crypto_aead_xchacha20poly1305_ietf_keybytes())
+
+  const unsigned char *ad_data = NULL;
+  size_t ad_len = 0;
+  if (info[4]->IsObject()) {
+    ASSERT_BUFFER_SET_LENGTH(info[4], ad)
+    ad_data = CDATA(ad);
+    ad_len = ad_length;
+  }
+
+  unsigned char *nsec = NULL;
+  CALL_SODIUM(crypto_aead_xchacha20poly1305_ietf_decrypt_detached(
+    CDATA(plaintext),
+    nsec,
+    CDATA(ciphertext), ciphertext_length,
+    CDATA(mac),
+    ad_data, ad_len,
+    CDATA(npub),
+    CDATA(k)
+  ))
+}
+
 // crypto_sign
 
 NAN_METHOD(crypto_sign_seed_keypair) {
@@ -830,6 +951,17 @@ NAN_MODULE_INIT(InitAll) {
   EXPORT_FUNCTION(crypto_kx_seed_keypair)
   EXPORT_FUNCTION(crypto_kx_client_session_keys)
   EXPORT_FUNCTION(crypto_kx_server_session_keys)
+
+  // crypto_aead
+  EXPORT_NUMBER_VALUE(crypto_aead_xchacha20poly1305_ietf_KEYBYTES, crypto_aead_xchacha20poly1305_ietf_keybytes())
+  EXPORT_NUMBER_VALUE(crypto_aead_xchacha20poly1305_ietf_NPUBBYTES, crypto_aead_xchacha20poly1305_ietf_npubbytes())
+  EXPORT_NUMBER_VALUE(crypto_aead_xchacha20poly1305_ietf_ABYTES, crypto_aead_xchacha20poly1305_ietf_abytes())
+
+  EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_keygen)
+  EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_encrypt)
+  EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_decrypt)
+  EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_encrypt_detached)
+  EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_decrypt_detached)
 
   // crypto_sign
 
