@@ -268,15 +268,18 @@ NAN_METHOD(crypto_aead_xchacha20poly1305_ietf_encrypt_detached) {
   }
 
   const unsigned char *nsec = NULL;
+  unsigned long long maclen;
   CALL_SODIUM(crypto_aead_xchacha20poly1305_ietf_encrypt_detached(
     CDATA(ciphertext),
-    CDATA(mac), NULL, // From source
+    CDATA(mac), &maclen,
     CDATA(plaintext), plaintext_length,
     ad_data, ad_len,
     nsec,
     CDATA(npub),
     CDATA(k)
   ))
+
+  info.GetReturnValue().Set(Nan::New((uint32_t) maclen));
 }
 
 // (plaintext, null, ciphertext, mac, [ad], npub, k)
