@@ -158,3 +158,39 @@ tape('crypto_pwhash limits', function (t) {
   }, 'should throw on large limits')
   t.end()
 })
+
+tape('error conditions sync', function (t) {
+  var password = Buffer.from('changeme2')
+  var hashStr = Buffer.from('$argon2id$v=19$m=65536,t=2,p=1$49cWoO3+fsK3HOFu3cRc/g$BwhPqR5BtORXs3E0PU0S+uf9SSyRjMSr0AkA9VNM5yY\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000')
+  var malformedHashStr = Buffer.from('$argon2id$v=19$m=65536,t=2,p=1$49cWoO3+fsK3HOFu3cRc/g$BwhPqR5Bt ORXs3E0PU0S+uf9SSyRjMSr0AkA9VNM5yY\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000')
+
+  // Regression where errno was not set in libsodium, so mismatch would become
+  // an input error
+  t.throws(_ => sodium.crypto_pwhash_str_verify(malformedHashStr, password))
+  t.notOk(sodium.crypto_pwhash_str_verify(hashStr, password))
+  t.throws(_ => sodium.crypto_pwhash_str_verify(malformedHashStr, password))
+  t.end()
+})
+
+tape('error conditions async', function (t) {
+  var password = Buffer.from('changeme2')
+  var hashStr = Buffer.from('$argon2id$v=19$m=65536,t=2,p=1$49cWoO3+fsK3HOFu3cRc/g$BwhPqR5BtORXs3E0PU0S+uf9SSyRjMSr0AkA9VNM5yY\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000')
+  var malformedHashStr = Buffer.from('$argon2id$v=19$m=65536,t=2,p=1$49cWoO3+fsK3HOFu3cRc/g$BwhPqR5Bt ORXs3E0PU0S+uf9SSyRjMSr0AkA9VNM5yY\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000\u0000')
+
+  // Regression where errno was not set in libsodium, so mismatch would become
+  // an input error
+  sodium.crypto_pwhash_str_verify_async(malformedHashStr, password, function (err, res) {
+    t.ok(err)
+
+    sodium.crypto_pwhash_str_verify_async(hashStr, password, function (err, res) {
+      t.error(err)
+      t.notOk(res)
+
+      sodium.crypto_pwhash_str_verify_async(malformedHashStr, password, function (err, res) {
+        t.ok(err)
+
+        t.end()
+      })
+    })
+  })
+})
