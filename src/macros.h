@@ -77,7 +77,11 @@
     Nan::ThrowError(#var " must be a number"); \
     return; \
   } \
-  int64_t var = name->IntegerValue();
+  int64_t var = name->IntegerValue(); \
+  if (var < 0) { \
+    Nan::ThrowError(#var " must be at least 0"); \
+    return; \
+  }
 
 #define ASSERT_UINT_BOUNDS(name, var, min, max) \
   if (!name->IsNumber()) { \
@@ -86,7 +90,12 @@
   } \
   int64_t var = name->IntegerValue(); \
   \
-  if (var < min) { \
+  if (var < 0) { \
+    Nan::ThrowError(#var " must be at least 0"); \
+    return; \
+  } \
+  \
+  if ((uint64_t) var < min) { \
     Nan::ThrowError(#var " must be at least " #min); \
     return; \
   } \
