@@ -287,8 +287,8 @@ NAN_METHOD(crypto_aead_xchacha20poly1305_ietf_decrypt_detached) {
   ASSERT_BUFFER_SET_LENGTH(info[2], ciphertext)
   ASSERT_BUFFER_MIN_LENGTH(info[0], plaintext, ciphertext_length)
   ASSERT_BUFFER_MIN_LENGTH(info[3], mac, crypto_aead_xchacha20poly1305_ietf_abytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[4], npub, crypto_aead_xchacha20poly1305_ietf_npubbytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[5], k, crypto_aead_xchacha20poly1305_ietf_keybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[5], npub, crypto_aead_xchacha20poly1305_ietf_npubbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[6], k, crypto_aead_xchacha20poly1305_ietf_keybytes())
 
   const unsigned char *ad_data = NULL;
   size_t ad_len = 0;
