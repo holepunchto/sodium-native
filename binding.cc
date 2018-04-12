@@ -956,9 +956,12 @@ NAN_MODULE_INIT(InitAll) {
   EXPORT_FUNCTION(crypto_kx_server_session_keys)
 
   // crypto_aead
+  EXPORT_NUMBER_VALUE(crypto_aead_xchacha20poly1305_ietf_ABYTES, crypto_aead_xchacha20poly1305_ietf_abytes())
   EXPORT_NUMBER_VALUE(crypto_aead_xchacha20poly1305_ietf_KEYBYTES, crypto_aead_xchacha20poly1305_ietf_keybytes())
   EXPORT_NUMBER_VALUE(crypto_aead_xchacha20poly1305_ietf_NPUBBYTES, crypto_aead_xchacha20poly1305_ietf_npubbytes())
-  EXPORT_NUMBER_VALUE(crypto_aead_xchacha20poly1305_ietf_ABYTES, crypto_aead_xchacha20poly1305_ietf_abytes())
+  EXPORT_NUMBER_VALUE(crypto_aead_xchacha20poly1305_ietf_NSECBYTES, crypto_aead_xchacha20poly1305_ietf_nsecbytes())
+  #warning "this will overflow in JS numbers. Find fix"
+  EXPORT_NUMBER_VALUE(crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX, crypto_aead_xchacha20poly1305_ietf_messagebytes_max())
 
   EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_keygen)
   EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_encrypt)
