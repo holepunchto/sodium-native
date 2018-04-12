@@ -566,7 +566,27 @@ NAN_METHOD(crypto_pwhash_str_verify) {
   ASSERT_BUFFER_MIN_LENGTH(info[0], hash, crypto_pwhash_strbytes())
   ASSERT_BUFFER_MIN_LENGTH(info[1], password, crypto_pwhash_passwd_min())
 
-  CALL_SODIUM_BOOL(crypto_pwhash_str_verify((char *) CDATA(hash), (const char *) CDATA(password), password_length))
+  // HACK need to reset errno since some code paths cause -1, but don't set
+  // errno
+  errno = 0;
+  int ret = crypto_pwhash_str_verify((char *) CDATA(hash), (const char *) CDATA(password), password_length);
+
+  if (ret == 0) {
+    info.GetReturnValue().Set(Nan::True());
+    return;
+  }
+
+  // Mirrored in src/crypto_pwhash_str_verify_async
+  // EINVAL is set if MISMATCH or if passwordlen is too short, but we check
+  // the latter with assertions above
+  if (errno == EINVAL) {
+    info.GetReturnValue().Set(Nan::False());
+    return;
+  }
+
+  // Too long password or ENOMEM or ...
+  Nan::ThrowError(errno ? ERRNO_EXCEPTION(errno) : Nan::Error("Unknown Error. Most likely an invalid formatted str"));
+  return;
 }
 
 NAN_METHOD(crypto_pwhash_str_needs_rehash) {

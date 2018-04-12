@@ -1,4 +1,5 @@
 #include <nan.h>
+#include <errno.h>
 #include "macros.h"
 
 #include "../libsodium/src/libsodium/include/sodium.h"
@@ -10,10 +11,10 @@ class CryptoPwhashStrVerifyAsync : public Nan::AsyncWorker {
   ~CryptoPwhashStrVerifyAsync() {}
 
   void Execute () {
-    if (crypto_pwhash_str_verify(str, passwd, passwdlen) < 0) {
-      SetErrorMessage("crypto_pwhash_str_verify_async failed. Either the password is wrong or the operating system most likely refused to allocate the required memory");
-      return;
-    }
+    // HACK need to reset errno since some code paths cause -1, but don't set
+    // errno
+    errno = 0;
+    CALL_SODIUM_ASYNC_WORKER(errorno, crypto_pwhash_str_verify(str, passwd, passwdlen))
   }
 
   void HandleOKCallback () {
@@ -30,20 +31,30 @@ class CryptoPwhashStrVerifyAsync : public Nan::AsyncWorker {
   void HandleErrorCallback () {
     Nan::HandleScope scope;
 
-    v8::Local<v8::Value> argv[] = {
-        // Due to the way that crypto_pwhash_str_verify signals error different
-        // from a verification mismatch, we will count all errors as mismatch.
-        // The other possible error is wrong argument sizes, which is protected
-        // by macros in binding.cc
-        Nan::Null(),
-        Nan::False()
-    };
+    // Mirrored in binding.cc near NAN_METHOD(crypto_pwhash_str_verify)
+    // EINVAL is set if MISMATCH or if passwordlen is too short, but we check
+    // the latter with assertions above
+    if (errorno == EINVAL) {
+      v8::Local<v8::Value> argv[] = {
+          Nan::Null(),
+          Nan::False()
+      };
 
-    callback->Call(2, argv, async_resource);
+      callback->Call(2, argv, async_resource);
+      return;
+    } else {
+      // Too long password or ENOMEM or ...
+      v8::Local<v8::Value> argv[] = {
+          errorno ? ERRNO_EXCEPTION(errorno) : Nan::Error("Unknown Error. Most likely an invalid formatted str")
+      };
+
+      callback->Call(1, argv, async_resource);
+    }
   }
 
  private:
   const char * str;
   const char * const passwd;
   unsigned long long passwdlen;
+  int errorno;
 };
