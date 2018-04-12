@@ -24,7 +24,7 @@ class CryptoPwhashStrVerifyAsync : public Nan::AsyncWorker {
         Nan::True()
     };
 
-    callback->Call(2, argv);
+    callback->Call(2, argv, async_resource);
   }
 
   void HandleErrorCallback () {
@@ -39,7 +39,7 @@ class CryptoPwhashStrVerifyAsync : public Nan::AsyncWorker {
         Nan::False()
     };
 
-    callback->Call(2, argv);
+    callback->Call(2, argv, async_resource);
   }
 
  private:

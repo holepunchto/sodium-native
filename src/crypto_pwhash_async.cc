@@ -20,7 +20,7 @@ class CryptoPwhashAsync : public Nan::AsyncWorker {
         Nan::Null()
     };
 
-    callback->Call(1, argv);
+    callback->Call(1, argv, async_resource);
   }
 
   void HandleErrorCallback () {
@@ -30,7 +30,7 @@ class CryptoPwhashAsync : public Nan::AsyncWorker {
         ERRNO_EXCEPTION(errorno)
     };
 
-    callback->Call(1, argv);
+    callback->Call(1, argv, async_resource);
   }
 
  private:
