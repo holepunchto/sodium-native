@@ -61,8 +61,8 @@ tape('crypto_pwhash_str', function (t) {
 
   sodium.crypto_pwhash_str(output, passwd, opslimit, memlimit)
 
-  t.notEqual(output, alloc(output.length), 'not blank')
-  t.notOk(sodium.crypto_pwhash_str_verify(alloc(output.length), passwd), 'does not verify')
+  t.notSame(output, alloc(output.length), 'not blank')
+  t.notOk(sodium.crypto_pwhash_str_verify(output, Buffer.from('Hello world')), 'does not verify')
   t.ok(sodium.crypto_pwhash_str_verify(output, passwd), 'verifies')
 
   t.end()
@@ -133,8 +133,8 @@ tape('crypto_pwhash_str_async', function (t) {
 
   sodium.crypto_pwhash_str_async(output, passwd, opslimit, memlimit, function (err) {
     t.error(err)
-    t.notEqual(output, alloc(output.length), 'not blank')
-    sodium.crypto_pwhash_str_verify_async(alloc(output.length), passwd, function (err, bool) {
+    t.notSame(output, alloc(output.length), 'not blank')
+    sodium.crypto_pwhash_str_verify_async(output, Buffer.from('hello world'), function (err, bool) {
       t.error(err)
       t.ok(bool === false, 'does not verify')
 
