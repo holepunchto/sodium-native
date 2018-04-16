@@ -95,11 +95,11 @@
     return; \
   } \
   \
-  if ((uint64_t) var < min) { \
+  if (((uint64_t) var) < min) { \
     Nan::ThrowError(#var " must be at least " #min); \
     return; \
   } \
-  if ((uint64_t) var > max) { \
+  if (((uint64_t) var) > max) { \
     Nan::ThrowError(#var " must be at most " #max); \
     return; \
   }
