@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Next
+
+* Additional check `x < 0` before cast on uint assert macro
+
 ## v2.1.5
 
 Fixes a critical bug in `crypto_secretstream_xchacha20poly1305_init_push` where
