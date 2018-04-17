@@ -194,3 +194,79 @@ tape('error conditions async', function (t) {
     })
   })
 })
+
+tape('minifuzz - sync', function (t) {
+  var i = 1000
+
+  var opslimit = sodium.crypto_pwhash_OPSLIMIT_MIN
+  var memlimit = sodium.crypto_pwhash_MEMLIMIT_MIN
+
+  var passwords = [Buffer.from('hi'), Buffer.from('hello')]
+  var hashes = passwords.map(function (pwd) {
+    var hash = Buffer.alloc(sodium.crypto_pwhash_STRBYTES)
+    sodium.crypto_pwhash_str(hash, pwd, opslimit, memlimit)
+    return hash
+  })
+  hashes.push(Buffer.from(hashes[0]))
+  hashes[2][30] = 45
+
+  while (i--) {
+    var pi = sodium.randombytes_uniform(passwords.length)
+    var hi = sodium.randombytes_uniform(hashes.length)
+
+    try {
+      var correct = sodium.crypto_pwhash_str_verify(hashes[hi], passwords[pi])
+    } catch (ex) {
+      if (hi === pi) t.fail('caused error when should match')
+      continue
+    }
+
+    if (correct && hi !== pi) t.fail('verified when should not match')
+    if (!correct && hi === pi) t.fail('failed when should match')
+  }
+
+  t.end()
+})
+
+tape('minifuzz - async', function (t) {
+  var i = 1000
+
+  var opslimit = sodium.crypto_pwhash_OPSLIMIT_MIN
+  var memlimit = sodium.crypto_pwhash_MEMLIMIT_MIN
+
+  var passwords = [Buffer.from('hi'), Buffer.from('hello')]
+  var hashes = [
+    Buffer.alloc(sodium.crypto_pwhash_STRBYTES),
+    Buffer.alloc(sodium.crypto_pwhash_STRBYTES),
+    Buffer.alloc(sodium.crypto_pwhash_STRBYTES)
+  ]
+
+  sodium.crypto_pwhash_str_async(hashes[0], passwords[0], opslimit, memlimit, function (err) {
+    t.error(err)
+
+    sodium.crypto_pwhash_str_async(hashes[1], passwords[1], opslimit, memlimit, function (err) {
+      t.error(err)
+
+      hashes[2].set(hashes[0])
+      hashes[2][30] = 45
+
+      iterLoop(i)
+    })
+  })
+
+  function iterLoop (n) {
+    if (n === 0) return t.end()
+
+    var pi = sodium.randombytes_uniform(passwords.length)
+    var hi = sodium.randombytes_uniform(hashes.length)
+
+    sodium.crypto_pwhash_str_verify_async(hashes[hi], passwords[pi], function (err, correct) {
+      if (err && hi === pi) t.fail('caused error when should match')
+
+      if (correct && hi !== pi) t.fail('verified when should not match')
+      if (!correct && hi === pi) t.fail('failed when should match')
+
+      iterLoop(n - 1)
+    })
+  }
+})
