@@ -8,7 +8,6 @@ test('constants', function (assert) {
   assert.equal(typeof sodium.crypto_aead_xchacha20poly1305_ietf_NSECBYTES, 'number')
   assert.equal(sodium.crypto_aead_xchacha20poly1305_ietf_NSECBYTES, 0)
   assert.equal(typeof sodium.crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX, 'number')
-  assert.equal()
 
   assert.end()
 })
@@ -156,3 +155,95 @@ test('simple', function (assert) {
 
   assert.end()
 })
+
+test('keygen', function (assert) {
+  var key1 = sodium.sodium_malloc(sodium.crypto_aead_xchacha20poly1305_ietf_KEYBYTES)
+  var key2 = sodium.sodium_malloc(sodium.crypto_aead_xchacha20poly1305_ietf_KEYBYTES)
+
+  sodium.crypto_aead_xchacha20poly1305_ietf_keygen(key1)
+  sodium.crypto_aead_xchacha20poly1305_ietf_keygen(key2)
+
+  assert.notSame(key1, key2)
+  assert.end()
+})
+
+test('different keys', function (assert) {
+  var m = Buffer.from('Ladies and Gentlemen of the class of \'99: If I could offer you only one tip for the future, sunscreen would be it.')
+
+  var key1 = sodium.sodium_malloc(sodium.crypto_aead_xchacha20poly1305_ietf_KEYBYTES)
+  var key2 = sodium.sodium_malloc(sodium.crypto_aead_xchacha20poly1305_ietf_KEYBYTES)
+  sodium.crypto_aead_xchacha20poly1305_ietf_keygen(key1)
+  sodium.crypto_aead_xchacha20poly1305_ietf_keygen(key2)
+
+  var nonce = sodium.sodium_malloc(sodium.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES)
+  sodium.randombytes_buf(nonce)
+
+  var clen = m.byteLength + sodium.crypto_aead_xchacha20poly1305_ietf_ABYTES
+  var c1 = sodium.sodium_malloc(clen)
+  var c2 = sodium.sodium_malloc(clen)
+
+  var m1 = sodium.sodium_malloc(m.byteLength)
+  var m2 = sodium.sodium_malloc(m.byteLength)
+
+  assert.equal(sodium.crypto_aead_xchacha20poly1305_ietf_encrypt(c1, m, null, null, nonce, key1), clen)
+  assert.notOk(c1.equals(c2))
+  assert.notOk(c1.equals(m))
+  assert.equal(sodium.crypto_aead_xchacha20poly1305_ietf_encrypt(c2, m, null, null, nonce, key2), clen)
+  assert.notOk(c1.equals(c2))
+  assert.notOk(c2.equals(m))
+
+  assert.throws(_ => sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(m1, null, c1, null, nonce, key2))
+  assert.throws(_ => sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(m2, null, c2, null, nonce, key1))
+
+  assert.equal(sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(m1, null, c1, null, nonce, key1), m.byteLength)
+  assert.ok(m.equals(m1))
+  assert.equal(sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(m2, null, c2, null, nonce, key2), m.byteLength)
+  assert.ok(m.equals(m2))
+
+  assert.end()
+})
+
+test('different nonce', function (assert) {
+  var m = Buffer.from('Ladies and Gentlemen of the class of \'99: If I could offer you only one tip for the future, sunscreen would be it.')
+
+  var key = sodium.sodium_malloc(sodium.crypto_aead_xchacha20poly1305_ietf_KEYBYTES)
+  sodium.crypto_aead_xchacha20poly1305_ietf_keygen(key)
+
+  var n1 = sodium.sodium_malloc(sodium.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES)
+  var n2 = sodium.sodium_malloc(sodium.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES)
+  sodium.randombytes_buf(n1)
+  sodium.randombytes_buf(n2)
+
+  var clen = m.byteLength + sodium.crypto_aead_xchacha20poly1305_ietf_ABYTES
+  var c1 = sodium.sodium_malloc(clen)
+  var c2 = sodium.sodium_malloc(clen)
+
+  var m1 = sodium.sodium_malloc(m.byteLength)
+  var m2 = sodium.sodium_malloc(m.byteLength)
+
+  assert.equal(sodium.crypto_aead_xchacha20poly1305_ietf_encrypt(c1, m, null, null, n1, key), clen)
+  assert.notOk(c1.equals(c2))
+  assert.notOk(c1.equals(m))
+  assert.equal(sodium.crypto_aead_xchacha20poly1305_ietf_encrypt(c2, m, null, null, n2, key), clen)
+  assert.notOk(c1.equals(c2))
+  assert.notOk(c2.equals(m))
+
+  assert.throws(_ => sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(m1, null, c1, null, n2, key))
+  assert.throws(_ => sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(m2, null, c2, null, n1, key))
+
+  assert.equal(sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(m1, null, c1, null, n1, key), m.byteLength)
+  assert.ok(m.equals(m1))
+  assert.equal(sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(m2, null, c2, null, n2, key), m.byteLength)
+  assert.ok(m.equals(m2))
+
+  assert.end()
+})
+
+/**
+ * Need to test in-place encryption
+ * detach can talk to non detach
+ * encrypt - decrypt
+ * different nonce
+ * different key
+ * return values
+ */
