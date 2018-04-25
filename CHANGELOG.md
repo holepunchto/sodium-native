@@ -3,6 +3,7 @@
 ## Next
 
 * Additional check `x < 0` before cast on uint assert macro
+* Add prebuilds for Node 10
 
 ## v2.1.5
 
