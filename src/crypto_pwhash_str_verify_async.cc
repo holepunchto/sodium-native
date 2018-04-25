@@ -6,7 +6,7 @@
 class CryptoPwhashStrVerifyAsync : public Nan::AsyncWorker {
  public:
   CryptoPwhashStrVerifyAsync(Nan::Callback *callback, const char * str, const char * const passwd, unsigned long long passwdlen)
-    : Nan::AsyncWorker(callback), str(str), passwd(passwd), passwdlen(passwdlen) {}
+    : Nan::AsyncWorker(callback, "sodium-native:crypto_pwhash_str_verify_async"), str(str), passwd(passwd), passwdlen(passwdlen) {}
   ~CryptoPwhashStrVerifyAsync() {}
 
   void Execute () {
