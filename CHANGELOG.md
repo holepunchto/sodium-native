@@ -1,6 +1,6 @@
 # CHANGELOG
 
-## Next
+## v2.1.6
 
 * Additional check `x < 0` before cast on uint assert macro
 * Add prebuilds for Node 10
