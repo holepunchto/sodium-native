@@ -2,11 +2,12 @@ sudo: false
 
 language: node_js
 node_js:
-  - "node"
-  - "9"
-  - "8"
-  - "6"
-  - "4"
+  - node
+  - lts/*
+  - '10'
+  - '8'
+  - '6'
+  - '4'
 
 os:
   - osx
