@@ -6,7 +6,7 @@
 class CryptoPwhashStrAsync : public Nan::AsyncWorker {
  public:
   CryptoPwhashStrAsync(Nan::Callback *callback, char * out, const char * const passwd, unsigned long long passwdlen, unsigned long long opslimit, size_t memlimit)
-    : Nan::AsyncWorker(callback), out(out), passwd(passwd), passwdlen(passwdlen), opslimit(opslimit), memlimit(memlimit) {}
+    : Nan::AsyncWorker(callback, "sodium-native:crypto_pwhash_str_async"), out(out), passwd(passwd), passwdlen(passwdlen), opslimit(opslimit), memlimit(memlimit) {}
   ~CryptoPwhashStrAsync() {}
 
   void Execute () {
