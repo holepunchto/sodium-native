@@ -691,15 +691,15 @@ Otherwise `false` if it is still good.
 
 #### `crypto_pwhash_async(output, password, salt, opslimit, memlimit, algorithm, callback)`
 
-Just like `crypto_pwhash` but will run password hashing on a seperate worker so it will not block the event loop. `callback(err)` will receive any errors from the hashing but all argument errors will `throw`. The resulting hash is written to `output`.
+Just like `crypto_pwhash` but will run password hashing on a seperate worker so it will not block the event loop. `callback(err)` will receive any errors from the hashing but all argument errors will `throw`. The resulting hash is written to `output`. This function also supports [`async_hook`s](https://nodejs.org/dist/latest/docs/api/async_hooks.html) as the type `sodium-native:crypto_pwhash_async`
 
 #### `crypto_pwhash_str_async(output, password, opslimit, memlimit, callback)`
 
-Just like `crypto_pwhash_str` but will run password hashing on a seperate worker so it will not block the event loop. `callback(err)` will receive any errors from the hashing but all argument errors will `throw`. The resulting hash with parameters is written to `output`.
+Just like `crypto_pwhash_str` but will run password hashing on a seperate worker so it will not block the event loop. `callback(err)` will receive any errors from the hashing but all argument errors will `throw`. The resulting hash with parameters is written to `output`. This function also supports [`async_hook`s](https://nodejs.org/dist/latest/docs/api/async_hooks.html) as the type `sodium-native:crypto_pwhash_str_async`
 
 #### `crypto_pwhash_str_verify_async(str, password, callback)`
 
-Just like `crypto_pwhash_str_verify` but will run password hashing on a seperate worker so it will not block the event loop. `callback(err, bool)` will receive any errors from the hashing but all argument errors will `throw`. If the verification succeeds `bool` is `true`, otherwise `false`. Due to an issue with libsodium `err` is currently never set.
+Just like `crypto_pwhash_str_verify` but will run password hashing on a seperate worker so it will not block the event loop. `callback(err, bool)` will receive any errors from the hashing but all argument errors will `throw`. If the verification succeeds `bool` is `true`, otherwise `false`. Due to an issue with libsodium `err` is currently never set. This function also supports [`async_hook`s](https://nodejs.org/dist/latest/docs/api/async_hooks.html) as the type `sodium-native:crypto_pwhash_str_verify_async`
 
 ### Key exchange
 
