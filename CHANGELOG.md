@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Next
+
+* Register tags for `async_hook`s on `crypto_pwhash_*_async` functions
+
 ## v2.1.6
 
 * Additional check `x < 0` before cast on uint assert macro
