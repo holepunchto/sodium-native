@@ -2,6 +2,76 @@ var tape = require('tape')
 var sodium = require('../')
 var fork = require('child_process').fork
 
+tape.only('Type support', function (t) {
+  t.throws(_ => sodium.sodium_memzero([]), 'throws on array')
+  t.throws(_ => sodium.sodium_memzero('str'), 'throws on string')
+  t.throws(_ => sodium.sodium_memzero({}), 'throws on object')
+  t.throws(_ => sodium.sodium_memzero(1 | 0), 'throws on int')
+  t.throws(_ => sodium.sodium_memzero(1.1), 'throws on Number')
+
+  var u8 = new Uint8Array(32)
+  sodium.randombytes_buf(u8)
+  t.ok(u8.some(b => b !== 0), 'u8 has non-zero element')
+  sodium.sodium_memzero(u8)
+  t.ok(u8.every(b => b === 0), 'u8 did zero out')
+
+  var u16 = new Uint16Array(32)
+  sodium.randombytes_buf(u16)
+  t.ok(u16.some(b => b !== 0), 'u16 has non-zero element')
+  sodium.sodium_memzero(u16)
+  t.ok(u16.every(b => b === 0), 'u16 did zero out')
+
+  var u32 = new Uint32Array(32)
+  sodium.randombytes_buf(u32)
+  t.ok(u32.some(b => b !== 0), 'u32 has non-zero element')
+  sodium.sodium_memzero(u32)
+  t.ok(u32.every(b => b === 0), 'u32 did zero out')
+
+  var s8 = new Int8Array(32)
+  sodium.randombytes_buf(s8)
+  t.ok(s8.some(b => b !== 0), 's8 has non-zero element')
+  sodium.sodium_memzero(s8)
+  t.ok(s8.every(b => b === 0), 's8 did zero out')
+
+  var s16 = new Int16Array(32)
+  sodium.randombytes_buf(s16)
+  t.ok(s16.some(b => b !== 0), 's16 has non-zero element')
+  sodium.sodium_memzero(s16)
+  t.ok(s16.every(b => b === 0), 's16 did zero out')
+
+  var s32 = new Int32Array(32)
+  sodium.randombytes_buf(s32)
+  t.ok(s32.some(b => b !== 0), 's32 has non-zero element')
+  sodium.sodium_memzero(s32)
+  t.ok(s32.every(b => b === 0), 's32 did zero out')
+
+  var float = new Float32Array(32)
+  sodium.randombytes_buf(float)
+  t.ok(float.some(b => b !== 0), 'float has non-zero element')
+  sodium.sodium_memzero(float)
+  t.ok(float.every(b => b === 0), 'float did zero out')
+
+  var double = new Float64Array(32)
+  sodium.randombytes_buf(double)
+  t.ok(double.some(b => b !== 0), 'double has non-zero element')
+  sodium.sodium_memzero(double)
+  t.ok(double.every(b => b === 0), 'double did zero out')
+
+  var buf = Buffer.alloc(32)
+  sodium.randombytes_buf(buf)
+  t.ok(buf.some(b => b !== 0), 'buf has non-zero element')
+  sodium.sodium_memzero(buf)
+  t.ok(buf.every(b => b === 0), 'buf did zero out')
+
+  var sbuf = sodium.sodium_malloc(32)
+  sodium.randombytes_buf(sbuf)
+  t.ok(sbuf.some(b => b !== 0), 'sbuf has non-zero element')
+  sodium.sodium_memzero(sbuf)
+  t.ok(sbuf.every(b => b === 0), 'sbuf did zero out')
+
+  t.end()
+})
+
 tape('sodium_memzero', function (t) {
   var buf = Buffer.alloc(10, 0xab)
   var exp = Buffer.alloc(10, 0xab)

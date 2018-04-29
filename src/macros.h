@@ -59,7 +59,7 @@
   info.GetReturnValue().Set(ret == 1 ? Nan::True() : Nan::False());
 
 #define ASSERT_BUFFER(name, var) \
-  if (!name->IsUint8Array()) { \
+  if (!node::Buffer::HasInstance(name)) { \
     Nan::ThrowError(#var " must be a buffer"); \
     return; \
   } \
