@@ -960,7 +960,7 @@ NAN_MODULE_INIT(InitAll) {
   EXPORT_NUMBER_VALUE(crypto_aead_xchacha20poly1305_ietf_KEYBYTES, crypto_aead_xchacha20poly1305_ietf_keybytes())
   EXPORT_NUMBER_VALUE(crypto_aead_xchacha20poly1305_ietf_NPUBBYTES, crypto_aead_xchacha20poly1305_ietf_npubbytes())
   EXPORT_NUMBER_VALUE(crypto_aead_xchacha20poly1305_ietf_NSECBYTES, crypto_aead_xchacha20poly1305_ietf_nsecbytes())
-  #warning "Not the actual value, instead maximum safe integer in js"
+// WARNING: "Not the actual value, instead maximum safe integer in js")
   EXPORT_NUMBER_VALUE(crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX, 0x1fffffffffffff)
 
   EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_keygen)
