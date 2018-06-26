@@ -480,7 +480,7 @@ Decrypt a message with (`npub`, `key`) and optional additional data `ad`.
 Returns how many bytes were written to `message`. Note that in-place
 encryption is possible.
 
-### `var clen = crypto_aead_xchacha20poly1305_ietf_encrypt_detached(ciphertext, mac, message, [ad], null, npub, key)`
+### `var maclen = crypto_aead_xchacha20poly1305_ietf_encrypt_detached(ciphertext, mac, message, [ad], null, npub, key)`
 
 Encrypt a message with (`npub`, `key`) and optional additional data `ad`.
 
@@ -494,10 +494,10 @@ Encrypt a message with (`npub`, `key`) and optional additional data `ad`.
 * `npub` should be `Buffer` of length `crypto_aead_xchacha20poly1305_ietf_NPUBBYTES`.
 * `key` should be a `Buffer` of length `crypto_aead_xchacha20poly1305_ietf_KEYBYTES`.
 
-Returns how many bytes were written to `ciphertext`. Note that in-place
+Returns how many bytes were written to `mac`. Note that in-place
 encryption is possible.
 
-### `var mlen = crypto_aead_xchacha20poly1305_ietf_decrypt_detached(message, null, ciphertext, mac, [ad], npub, key)`
+### `crypto_aead_xchacha20poly1305_ietf_decrypt_detached(message, null, ciphertext, mac, [ad], npub, key)`
 
 Decrypt a message with (`npub`, `key`) and optional additional data `ad`.
 
@@ -511,8 +511,8 @@ Decrypt a message with (`npub`, `key`) and optional additional data `ad`.
 * `npub` should be `Buffer` of length `crypto_aead_xchacha20poly1305_ietf_NPUBBYTES`.
 * `key` should be a `Buffer` of length `crypto_aead_xchacha20poly1305_ietf_KEYBYTES`.
 
-Returns how many bytes were written to `message`. Note that in-place
-encryption is possible.
+Returns nothing, but will throw on in case the MAC cannot be authenticated. Note
+that in-place encryption is possible.
 
 ### Non-authenticated streaming encryption
 
