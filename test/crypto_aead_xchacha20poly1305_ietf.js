@@ -239,6 +239,53 @@ test('different nonce', function (assert) {
   assert.end()
 })
 
+test('detached -> non-detached', function (assert) {
+  var m = Buffer.from('Ladies and Gentlemen of the class of \'99: If I could offer you only one tip for the future, sunscreen would be it.')
+
+  var key = sodium.sodium_malloc(sodium.crypto_aead_xchacha20poly1305_ietf_KEYBYTES)
+  sodium.crypto_aead_xchacha20poly1305_ietf_keygen(key)
+
+  var nonce = sodium.sodium_malloc(sodium.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES)
+  sodium.randombytes_buf(nonce)
+
+  var mac = sodium.sodium_malloc(sodium.crypto_aead_xchacha20poly1305_ietf_ABYTES)
+  var clen = m.byteLength
+  var c = sodium.sodium_malloc(clen)
+
+  assert.equal(sodium.crypto_aead_xchacha20poly1305_ietf_encrypt_detached(c, mac, m, null, null, nonce, key), mac.byteLength)
+
+  var m1 = sodium.sodium_malloc(m.byteLength)
+  assert.equal(sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(m1, null, Buffer.concat([c, mac]), null, nonce, key), m.byteLength)
+
+  assert.same(m, m1)
+
+  assert.end()
+})
+
+test('non-detached -> detached', function (assert) {
+  var m = Buffer.from('Ladies and Gentlemen of the class of \'99: If I could offer you only one tip for the future, sunscreen would be it.')
+
+  var key = sodium.sodium_malloc(sodium.crypto_aead_xchacha20poly1305_ietf_KEYBYTES)
+  sodium.crypto_aead_xchacha20poly1305_ietf_keygen(key)
+
+  var nonce = sodium.sodium_malloc(sodium.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES)
+  sodium.randombytes_buf(nonce)
+
+  var clen = m.byteLength + sodium.crypto_aead_xchacha20poly1305_ietf_ABYTES
+  var c = sodium.sodium_malloc(clen)
+
+  assert.equal(sodium.crypto_aead_xchacha20poly1305_ietf_encrypt(c, m, null, null, nonce, key), c.byteLength)
+
+  var m1 = sodium.sodium_malloc(m.byteLength)
+  var csub = c.subarray(0, clen - sodium.crypto_aead_xchacha20poly1305_ietf_ABYTES)
+  var macsub = c.subarray(csub.byteLength)
+  sodium.crypto_aead_xchacha20poly1305_ietf_decrypt_detached(m1, null, csub, macsub, null, nonce, key)
+
+  assert.same(m, m1)
+
+  assert.end()
+})
+
 /**
  * Need to test in-place encryption
  * detach can talk to non detach
