@@ -125,6 +125,26 @@ NAN_METHOD(sodium_compare) {
   info.GetReturnValue().Set(Nan::New<v8::Number>(sodium_compare(CDATA(b1), CDATA(b2), length)));
 }
 
+NAN_METHOD(sodium_add) {
+  ASSERT_BUFFER_SET_LENGTH(info[0], a)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], b, a_length)
+
+  sodium_add(CDATA(a), CDATA(b), a_length);
+}
+
+NAN_METHOD(sodium_increment) {
+  ASSERT_BUFFER_SET_LENGTH(info[0], n)
+
+  sodium_increment(CDATA(n), n_length);
+}
+
+NAN_METHOD(sodium_is_zero) {
+  ASSERT_UINT(info[1], length)
+  ASSERT_BUFFER_MIN_LENGTH(info[0], n, length)
+
+  CALL_SODIUM_BOOL_INV(sodium_is_zero(CDATA(n), length))
+}
+
 NAN_METHOD(sodium_pad) {
   ASSERT_BUFFER_SET_LENGTH(info[0], buf)
   ASSERT_UINT_BOUNDS(info[1], unpadded_buflen, 0, 0, `buf.length`, buf_length)
@@ -1050,6 +1070,9 @@ NAN_MODULE_INIT(InitAll) {
 
   EXPORT_FUNCTION(sodium_memcmp)
   EXPORT_FUNCTION(sodium_compare)
+  EXPORT_FUNCTION(sodium_add)
+  EXPORT_FUNCTION(sodium_increment)
+  EXPORT_FUNCTION(sodium_is_zero)
 
   // padding
   EXPORT_FUNCTION(sodium_pad)
