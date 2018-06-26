@@ -54,6 +54,10 @@
   int ret = fn; \
   info.GetReturnValue().Set(ret == 0 ? Nan::True() : Nan::False());
 
+#define CALL_SODIUM_BOOL_INV(fn) \
+  int ret = fn; \
+  info.GetReturnValue().Set(ret == 1 ? Nan::True() : Nan::False());
+
 #define ASSERT_BUFFER(name, var) \
   if (!name->IsObject()) { \
     Nan::ThrowError(#var " must be a buffer"); \
