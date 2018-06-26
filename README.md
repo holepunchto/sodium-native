@@ -436,7 +436,7 @@ Currently only `crypto_aead_xchacha20poly1305_ietf` is exposed.
 - `crypto_aead_xchacha20poly1305_ietf_KEYBYTES`
 - `crypto_aead_xchacha20poly1305_ietf_NPUBBYTES`
 - `crypto_aead_xchacha20poly1305_ietf_NSECBYTES`
-- `crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX`
+- `crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX` - Note this is `Number.MAX_SAFE_INTEGER` for now
 
 #### `crypto_aead_xchacha20poly1305_ietf_keygen(key)`
 

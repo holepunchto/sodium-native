@@ -8,6 +8,7 @@ test('constants', function (assert) {
   assert.equal(typeof sodium.crypto_aead_xchacha20poly1305_ietf_NSECBYTES, 'number')
   assert.equal(sodium.crypto_aead_xchacha20poly1305_ietf_NSECBYTES, 0)
   assert.equal(typeof sodium.crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX, 'number')
+  assert.equal(sodium.crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX, Number.MAX_SAFE_INTEGER) // to make sure, see note in binding.cc
 
   assert.end()
 })
