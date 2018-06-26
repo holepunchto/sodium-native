@@ -110,17 +110,17 @@ NAN_METHOD(randombytes_buf_deterministic) {
 // helpers
 
 NAN_METHOD(sodium_memcmp) {
-  ASSERT_BUFFER(info[0], b1)
-  ASSERT_BUFFER(info[1], b2)
   ASSERT_UINT(info[2], length)
+  ASSERT_BUFFER_MIN_LENGTH(info[0], b1, length)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], b2, length)
 
   CALL_SODIUM_BOOL(sodium_memcmp(CDATA(b1), CDATA(b2), length))
 }
 
 NAN_METHOD(sodium_compare) {
-  ASSERT_BUFFER(info[0], b1)
-  ASSERT_BUFFER(info[1], b2)
   ASSERT_UINT(info[2], length)
+  ASSERT_BUFFER_MIN_LENGTH(info[0], b1, length)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], b2, length)
 
   info.GetReturnValue().Set(Nan::New<v8::Number>(sodium_compare(CDATA(b1), CDATA(b2), length)));
 }
