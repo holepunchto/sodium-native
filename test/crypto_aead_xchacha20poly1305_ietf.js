@@ -13,7 +13,7 @@ test('constants', function (assert) {
   assert.end()
 })
 
-test('simple', function (assert) {
+test('ported from libsodium', function (assert) {  /* eslint-disable */
   var mlen = 114
   var adlen = 12
   var clen = mlen + sodium.crypto_aead_xchacha20poly1305_ietf_ABYTES
@@ -155,6 +155,7 @@ test('simple', function (assert) {
   assert.throws(_ => m2len = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(c, null, c, null, nonce, key2))
 
   assert.end()
+  /* eslint-enable */
 })
 
 test('keygen', function (assert) {
