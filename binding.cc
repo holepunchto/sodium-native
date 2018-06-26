@@ -862,7 +862,7 @@ NAN_METHOD(crypto_scalarmult) {
 NAN_METHOD(crypto_core_ed25519_is_valid_point) {
   ASSERT_BUFFER_MIN_LENGTH(info[0], p, crypto_core_ed25519_bytes())
 
-  CALL_SODIUM(crypto_core_ed25519_is_valid_point(CDATA(p)))
+  CALL_SODIUM_BOOL_INV(crypto_core_ed25519_is_valid_point(CDATA(p)))
 }
 
 NAN_METHOD(crypto_core_ed25519_from_uniform) {
