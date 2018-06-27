@@ -3,6 +3,9 @@
 ## Next
 
 * Register tags for `async_hook`s on `crypto_pwhash_*_async` functions
+* Add constants and methods for `crypto_aead_xchacha20poly1305_ietf_*`. Please
+  note the special circumstances around the bindings of `MESSAGEBYTES_MAX` and
+  `crypto_aead_xchacha20poly1305_ietf_*_detached`.
 
 ## v2.1.6
 
