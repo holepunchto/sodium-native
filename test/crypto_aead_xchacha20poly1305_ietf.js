@@ -56,7 +56,7 @@ test('ported from libsodium', function (assert) {  /* eslint-disable */
   var i = 0
 
   assert.equal(message.length, mlen)
-  m.set(message)
+  message.copy(m)
 
   found_clen = sodium.crypto_aead_xchacha20poly1305_ietf_encrypt(c, m, ad, null, nonce, firstkey)
   assert.equal(found_clen, mlen + sodium.crypto_aead_xchacha20poly1305_ietf_ABYTES)
@@ -123,8 +123,7 @@ test('ported from libsodium', function (assert) {  /* eslint-disable */
 
   assert.same(m2, m)
 
-
-  c.set(m)
+  m.copy(c)
 
   found_clen = sodium.crypto_aead_xchacha20poly1305_ietf_encrypt(c, c.slice(0, mlen), null, null, nonce, firstkey);
 
