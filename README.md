@@ -27,19 +27,19 @@ var sodium = require('sodium-native')
 var nonce = new Buffer(sodium.crypto_secretbox_NONCEBYTES)
 var key = sodium.sodium_malloc(sodium.crypto_secretbox_KEYBYTES) // secure buffer
 var message = new Buffer('Hello, World!')
-var cipher = new Buffer(message.length + sodium.crypto_secretbox_MACBYTES)
+var ciphertext = new Buffer(message.length + sodium.crypto_secretbox_MACBYTES)
 
 sodium.randombytes_buf(nonce) // insert random data into nonce
 sodium.randombytes_buf(key)  // insert random data into key
 
-// encrypted message is stored in cipher.
-sodium.crypto_secretbox_easy(cipher, message, nonce, key)
+// encrypted message is stored in ciphertext.
+sodium.crypto_secretbox_easy(ciphertext, message, nonce, key)
 
-console.log('Encrypted message:', cipher)
+console.log('Encrypted message:', ciphertext)
 
-var plainText = new Buffer(cipher.length - sodium.crypto_secretbox_MACBYTES)
+var plainText = new Buffer(ciphertext.length - sodium.crypto_secretbox_MACBYTES)
 
-if (!sodium.crypto_secretbox_open_easy(plainText, cipher, nonce, key)) {
+if (!sodium.crypto_secretbox_open_easy(plainText, ciphertext, nonce, key)) {
   console.log('Decryption failed!')
 } else {
   console.log('Decrypted message:', plainText, '(' + plainText.toString() + ')')
@@ -283,38 +283,38 @@ Create a new keypair.
 
 The generated public and secret key will be stored in passed in buffers.
 
-#### `crypto_box_detached(cipher, mac, message, nonce, publicKey, secretKey)`
+#### `crypto_box_detached(ciphertext, mac, message, nonce, publicKey, secretKey)`
 
 Encrypt a message.
 
-* `cipher` should be a buffer with length `message.length`.
+* `ciphertext` should be a buffer with length `message.length`.
 * `mac` should be a buffer with length `crypto_box_MACBYTES`.
 * `message` should be a buffer of any length.
 * `nonce` should be a buffer with length `crypto_box_NONCEBYTES`.
 * `publicKey` should be a public key.
 * `secretKey` should be a secret key.
 
-The encrypted message will be stored in `cipher` and the authentification code will be stored in `mac`.
+The encrypted message will be stored in `ciphertext` and the authentification code will be stored in `mac`.
 
-#### `crypto_box_easy(cipher, message, nonce, publicKey, secretKey)`
+#### `crypto_box_easy(ciphertext, message, nonce, publicKey, secretKey)`
 
 Same as `crypto_box_detached` except it encodes the mac in the message.
 
-* `cipher` should be a buffer with length `message.length + crypto_box_MACBYTES`.
+* `ciphertext` should be a buffer with length `message.length + crypto_box_MACBYTES`.
 * `message` should be a buffer of any length.
 * `nonce` should be a buffer with length `crypto_box_NONCEBYTES`.
 * `publicKey` should be a public key.
 * `secretKey` should be a secret key.
 
-The encrypted message and authentification code  will be stored in `cipher`.
+The encrypted message and authentification code  will be stored in `ciphertext`.
 
-#### `var bool = crypto_box_open_detached(message, cipher, mac, nonce, publicKey, secretKey)`
+#### `var bool = crypto_box_open_detached(message, ciphertext, mac, nonce, publicKey, secretKey)`
 
 Decrypt a message.
 
-* `message` should be a buffer with length `cipher.length`.
+* `message` should be a buffer with length `ciphertext.length`.
 * `mac` should be a buffer with length `crypto_box_MACBYTES`.
-* `cipher` should be a buffer of any length.
+* `ciphertext` should be a buffer of any length.
 * `nonce` should be a buffer with length `crypto_box_NONCEBYTES`.
 * `publicKey` should be a public key.
 * `secretKey` should be a secret key.
@@ -323,12 +323,12 @@ Returns `true` if the message could be decrypted. Otherwise `false`.
 
 The decrypted message will be stored in `message`.
 
-#### `var bool = crypto_box_open_easy(message, cipher, nonce, publicKey, secretKey)`
+#### `var bool = crypto_box_open_easy(message, ciphertext, nonce, publicKey, secretKey)`
 
 Decrypt a message encoded with the easy method.
 
-* `message` should be a buffer with length `cipher.length - crypto_box_MACBYTES`.
-* `cipher` should be a buffer with length at least `crypto_box_MACBYTES`.
+* `message` should be a buffer with length `ciphertext.length - crypto_box_MACBYTES`.
+* `ciphertext` should be a buffer with length at least `crypto_box_MACBYTES`.
 * `nonce` should be a buffer with length `crypto_box_NONCEBYTES`.
 * `publicKey` should be a public key.
 * `secretKey` should be a secret key.
@@ -344,22 +344,22 @@ Bindings for the crypto_box_seal API.
 
 Keypairs can be generated with `crypto_box_keypair()` or `crypto_box_seed_keypair()`.
 
-#### `crypto_box_seal(cipher, message, publicKey)`
+#### `crypto_box_seal(ciphertext, message, publicKey)`
 
 Encrypt a message in a sealed box using a throwaway keypair.
 The ciphertext cannot be associated with the sender due to the sender's key
 being a single use keypair that is overwritten during encryption.
 
-* `cipher` should be a buffer with length at least `message.length + crypto_box_SEALBYTES`.
+* `ciphertext` should be a buffer with length at least `message.length + crypto_box_SEALBYTES`.
 * `message` should be a buffer with any length.
 * `publicKey` should be the receipent's public key.
 
-#### `var bool = crypto_box_seal_open(message, cipher, publicKey, secretKey)`
+#### `var bool = crypto_box_seal_open(message, ciphertext, publicKey, secretKey)`
 
 Decrypt a message encoded with the sealed box method.
 
-* `message` should be a buffer with length at least  `cipher.length - crypto_box_SEALBYTES`.
-* `cipher` should be a buffer with length at least `crypto_box_SEALBYTES`.
+* `message` should be a buffer with length at least  `ciphertext.length - crypto_box_SEALBYTES`.
+* `ciphertext` should be a buffer with length at least `crypto_box_SEALBYTES`.
 * `publicKey` should be the receipient's public key.
 * `secretKey` should be the receipient's secret key.
 
@@ -373,34 +373,34 @@ the nonce. The throwaway public key generated by the sender is stored in the fir
 Bindings for the crypto_secretbox API.
 [See the libsodium crypto_secretbox docs for more information](https://download.libsodium.org/doc/secret-key_cryptography/authenticated_encryption.html).
 
-#### `crypto_secretbox_detached(cipher, mac, message, nonce, secretKey)`
+#### `crypto_secretbox_detached(ciphertext, mac, message, nonce, secretKey)`
 
 Encrypt a message.
 
-* `cipher` should be a buffer with length `message.length`.
+* `ciphertext` should be a buffer with length `message.length`.
 * `mac` should be a buffer with length `crypto_secretbox_MACBYTES`.
 * `message` should be a buffer of any length.
 * `nonce` should be a buffer with length `crypto_secretbox_NONCEBYTES`.
 * `secretKey` should be a secret key with legnth `crypto_secretbox_KEYBYTES`.
 
-The encrypted message will be stored in `cipher` and the authentification code will be stored in `mac`.
+The encrypted message will be stored in `ciphertext` and the authentification code will be stored in `mac`.
 
-#### `crypto_secretbox_easy(cipher, message, nonce, secretKey)`
+#### `crypto_secretbox_easy(ciphertext, message, nonce, secretKey)`
 
 Same as `crypto_secretbox_detached` except it encodes the mac in the message.
 
-* `cipher` should be a buffer with length `message.length + crypto_secretbox_MACBYTES`.
+* `ciphertext` should be a buffer with length `message.length + crypto_secretbox_MACBYTES`.
 * `message` should be a buffer of any length.
 * `nonce` should be a buffer with length `crypto_secretbox_NONCEBYTES`.
 * `secretKey` should be a secret key with legnth `crypto_secretbox_KEYBYTES`.
 
-#### `var bool = crypto_secretbox_open_detached(message, cipher, mac, nonce, secretKey)`
+#### `var bool = crypto_secretbox_open_detached(message, ciphertext, mac, nonce, secretKey)`
 
 Decrypt a message.
 
-* `message` should be a buffer with length `cipher.length`.
+* `message` should be a buffer with length `ciphertext.length`.
 * `mac` should be a buffer with length `crypto_secretbox_MACBYTES`.
-* `cipher` should be a buffer of any length.
+* `ciphertext` should be a buffer of any length.
 * `nonce` should be a buffer with length `crypto_secretbox_NONCEBYTES`.
 * `secretKey` should be a secret key.
 
@@ -408,12 +408,12 @@ Returns `true` if the message could be decrypted. Otherwise `false`.
 
 The decrypted message will be stored in `message`.
 
-#### `var bool = crypto_secretbox_open_easy(message, cipher, nonce, secretKey)`
+#### `var bool = crypto_secretbox_open_easy(message, ciphertext, nonce, secretKey)`
 
 Decrypt a message encoded with the easy method.
 
-* `message` should be a buffer with length `cipher.length - crypto_secretbox_MACBYTES`.
-* `cipher` should be a buffer with length at least `crypto_secretbox_MACBYTES`.
+* `message` should be a buffer with length `ciphertext.length - crypto_secretbox_MACBYTES`.
+* `ciphertext` should be a buffer with length at least `crypto_secretbox_MACBYTES`.
 * `nonce` should be a buffer with length `crypto_secretbox_NONCEBYTES`.
 * `secretKey` should be a secret key.
 
@@ -519,28 +519,28 @@ that in-place encryption is possible.
 Bindings for the crypto_stream API.
 [See the libsodium crypto_stream docs for more information](https://download.libsodium.org/doc/advanced/xsalsa20.html).
 
-#### `crypto_stream(cipher, nonce, key)`
+#### `crypto_stream(ciphertext, nonce, key)`
 
-Generate random data based on a nonce and key into the cipher.
+Generate random data based on a nonce and key into the ciphertext.
 
-* `cipher` should be a buffer of any size.
+* `ciphertext` should be a buffer of any size.
 * `nonce` should be a buffer with length `crypto_stream_NONCEBYTES`.
 * `key` should be a secret key with length `crypto_stream_KEYBYTES`.
 
-The generated data is stored in `cipher`.
+The generated data is stored in `ciphertext`.
 
-#### `crypto_stream_xor(cipher, message, nonce, key)` or
-#### `crypto_stream_chacha20_xor(cipher, message, nonce, key)`
+#### `crypto_stream_xor(ciphertext, message, nonce, key)` or
+#### `crypto_stream_chacha20_xor(ciphertext, message, nonce, key)`
 
 Encrypt, but *not* authenticate, a message based on a nonce and key
 
-* `cipher` should be a buffer with length `message.length`.
+* `ciphertext` should be a buffer with length `message.length`.
 * `message` should be a buffer of any size.
 * `nonce` should be a buffer with length `crypto_stream_NONCEBYTES`.
 * `key` should be a secret key with length `crypto_stream_KEYBYTES`.
 
-The encrypted data is stored in `cipher`. To decrypt, swap `cipher` and `message`.
-Also supports in-place encryption where you use the same buffer as `cipher` and `message`.
+The encrypted data is stored in `ciphertext`. To decrypt, swap `ciphertext` and `message`.
+Also supports in-place encryption where you use the same buffer as `ciphertext` and `message`.
 
 Encryption defaults to XSalsa20, use `crypto_stream_chacha20_xor` if you want
 to encrypt/decrypt with ChaCha20 instead.
@@ -553,7 +553,7 @@ A streaming instance to the `crypto_stream_xor` api. Pass a nonce and key in the
 Encryption defaults to XSalsa20, use `crypto_stream_chacha20_xor_instance` if
 you want to encrypt/decrypt with ChaCha20 instead.
 
-#### `instance.update(cipher, message)`
+#### `instance.update(ciphertext, message)`
 
 Encrypt the next message
 

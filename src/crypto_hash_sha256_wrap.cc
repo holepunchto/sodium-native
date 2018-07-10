@@ -21,7 +21,7 @@ NAN_METHOD(CryptoHashSha256Wrap::Update) {
 
 NAN_METHOD(CryptoHashSha256Wrap::Final) {
   CryptoHashSha256Wrap *self = Nan::ObjectWrap::Unwrap<CryptoHashSha256Wrap>(info.This());
-  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_hash_sha256_BYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_hash_sha256_BYTES, crypto_hash_sha256_bytes())
   crypto_hash_sha256_final(&(self->state), CDATA(output));
 }
 

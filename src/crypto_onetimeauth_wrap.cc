@@ -21,7 +21,7 @@ NAN_METHOD(CryptoOnetimeAuthWrap::Update) {
 
 NAN_METHOD(CryptoOnetimeAuthWrap::Final) {
   CryptoOnetimeAuthWrap *self = Nan::ObjectWrap::Unwrap<CryptoOnetimeAuthWrap>(info.This());
-  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_onetimeauth_BYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_onetimeauth_BYTES, crypto_onetimeauth_bytes())
   crypto_onetimeauth_final(&(self->state), CDATA(output));
 }
 

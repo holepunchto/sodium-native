@@ -71,7 +71,7 @@ NAN_METHOD(CryptoStreamChacha20XorWrap::New) {
 NAN_METHOD(CryptoStreamChacha20XorWrap::Update) {
   CryptoStreamChacha20XorWrap *self = Nan::ObjectWrap::Unwrap<CryptoStreamChacha20XorWrap>(info.This());
   ASSERT_BUFFER_SET_LENGTH(info[1], message)
-  ASSERT_BUFFER_MIN_LENGTH(info[0], cipher, message_length)
+  ASSERT_BUFFER_MIN_LENGTH(info[0], cipher, "message.length", message_length)
   crypto_stream_chacha20_xor_wrap_update(self, CDATA(cipher), CDATA(message), message_length);
 }
 
