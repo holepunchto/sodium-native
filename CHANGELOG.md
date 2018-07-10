@@ -6,6 +6,8 @@
 * Add constants and methods for `crypto_aead_xchacha20poly1305_ietf_*`. Please
   note the special circumstances around the bindings of `MESSAGEBYTES_MAX` and
   `crypto_aead_xchacha20poly1305_ietf_*_detached`.
+* Improved error messages; now reports the constants and argument names
+  documented from javascript.
 
 ## v2.1.6
 
