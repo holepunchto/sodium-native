@@ -21,7 +21,7 @@ NAN_METHOD(CryptoGenericHashWrap::Update) {
 
 NAN_METHOD(CryptoGenericHashWrap::Final) {
   CryptoGenericHashWrap *self = Nan::ObjectWrap::Unwrap<CryptoGenericHashWrap>(info.This());
-  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_generichash_BYTES_MIN)
+  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_generichash_BYTES_MIN, crypto_generichash_bytes_min())
   crypto_generichash_final(&(self->state), CDATA(output), output_length);
 }
 

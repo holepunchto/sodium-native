@@ -65,10 +65,10 @@
   ASSERT_BUFFER(name, var) \
   unsigned long long var##_length = CLENGTH(var);
 
-#define ASSERT_BUFFER_MIN_LENGTH(name, var, length) \
+#define ASSERT_BUFFER_MIN_LENGTH(name, var, length_name, length) \
   ASSERT_BUFFER_SET_LENGTH(name, var) \
   if (length > 0 && var##_length < length) { \
-    Nan::ThrowError(#var " must be a buffer of size " STR(length)); \
+    Nan::ThrowError(#var " must be a buffer of size " #length_name); \
     return; \
   }
 
@@ -83,7 +83,7 @@
     return; \
   }
 
-#define ASSERT_UINT_BOUNDS(name, var, min, max) \
+#define ASSERT_UINT_BOUNDS(name, var, min_name, min, max_name, max) \
   if (!name->IsNumber()) { \
     Nan::ThrowError(#var " must be a number"); \
     return; \
@@ -96,11 +96,11 @@
   } \
   \
   if (((uint64_t) var) < min) { \
-    Nan::ThrowError(#var " must be at least " #min); \
+    Nan::ThrowError(#var " must be at least " #min_name); \
     return; \
   } \
   if (((uint64_t) var) > max) { \
-    Nan::ThrowError(#var " must be at most " #max); \
+    Nan::ThrowError(#var " must be at most " #max_name); \
     return; \
   }
 

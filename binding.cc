@@ -43,7 +43,7 @@ NAN_GETTER(SodiumMemorySecureAccessor) {
 }
 
 NAN_METHOD(sodium_malloc) {
-  ASSERT_UINT_BOUNDS(info[0], size, 0, node::Buffer::kMaxLength)
+  ASSERT_UINT_BOUNDS(info[0], size, 0, 0, `buffer.constants.MAX_LENGTH`, node::Buffer::kMaxLength)
 
   void* ptr = sodium_malloc(size);
 
@@ -89,7 +89,7 @@ NAN_METHOD(randombytes_random) {
 }
 
 NAN_METHOD(randombytes_uniform) {
-  ASSERT_UINT_BOUNDS(info[0], upper_bound, 0, 0xffffffff)
+  ASSERT_UINT_BOUNDS(info[0], upper_bound, 0, 0, 0xffffffff, 0xffffffff)
 
   info.GetReturnValue().Set(Nan::New(randombytes_uniform(upper_bound)));
 }
@@ -102,7 +102,7 @@ NAN_METHOD(randombytes_buf) {
 
 NAN_METHOD(randombytes_buf_deterministic) {
   ASSERT_BUFFER(info[0], random)
-  ASSERT_BUFFER_MIN_LENGTH(info[1], seed, randombytes_seedbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], seed, randombytes_SEEDBYTES, randombytes_seedbytes())
 
   randombytes_buf_deterministic(CDATA(random), CLENGTH(random), CDATA(seed));
 }
@@ -127,8 +127,8 @@ NAN_METHOD(sodium_compare) {
 
 NAN_METHOD(sodium_pad) {
   ASSERT_BUFFER_SET_LENGTH(info[0], buf)
-  ASSERT_UINT_BOUNDS(info[1], unpadded_buflen, 0, buf_length)
-  ASSERT_UINT_BOUNDS(info[2], blocksize, 1, buf_length)
+  ASSERT_UINT_BOUNDS(info[1], unpadded_buflen, 0, 0, `buf.length`, buf_length)
+  ASSERT_UINT_BOUNDS(info[2], blocksize, 1, 1, `buf.length`, buf_length)
 
   uint32_t padded_buflen = 0;
 
@@ -139,8 +139,8 @@ NAN_METHOD(sodium_pad) {
 
 NAN_METHOD(sodium_unpad) {
   ASSERT_BUFFER_SET_LENGTH(info[0], buf)
-  ASSERT_UINT_BOUNDS(info[1], padded_buflen, 0, buf_length)
-  ASSERT_UINT_BOUNDS(info[2], blocksize, 1, buf_length)
+  ASSERT_UINT_BOUNDS(info[1], padded_buflen, 0, 0, `buf.length`, buf_length)
+  ASSERT_UINT_BOUNDS(info[2], blocksize, 1, 1, `buf.length`, buf_length)
 
   uint32_t unpadded_buflen = 0;
 
@@ -152,36 +152,36 @@ NAN_METHOD(sodium_unpad) {
 // crypto_kx
 
 NAN_METHOD(crypto_kx_keypair) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], public_key, crypto_kx_publickeybytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[1], secret_key, crypto_kx_secretkeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], public_key, crypto_kx_PUBLICKEYBYTES, crypto_kx_publickeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], secret_key, crypto_kx_SECRETKEYBYTES, crypto_kx_secretkeybytes())
 
   CALL_SODIUM(crypto_kx_keypair(CDATA(public_key), CDATA(secret_key)))
 }
 
 NAN_METHOD(crypto_kx_seed_keypair) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], public_key, crypto_kx_publickeybytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[1], secret_key, crypto_kx_secretkeybytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[2], seed, crypto_kx_seedbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], public_key, crypto_kx_PUBLICKEYBYTES, crypto_kx_publickeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], secret_key, crypto_kx_SECRETKEYBYTES, crypto_kx_secretkeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], seed, crypto_kx_SEEDBYTES, crypto_kx_seedbytes())
 
   CALL_SODIUM(crypto_kx_seed_keypair(CDATA(public_key), CDATA(secret_key), CDATA(seed)))
 }
 
 NAN_METHOD(crypto_kx_client_session_keys) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], rx, crypto_kx_sessionkeybytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[1], tx, crypto_kx_sessionkeybytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[2], client_pk, crypto_kx_publickeybytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[3], client_sk, crypto_kx_secretkeybytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[4], server_pk, crypto_kx_publickeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], rx, crypto_kx_SESSIONKEYBYTES, crypto_kx_sessionkeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], tx, crypto_kx_SESSIONKEYBYTES, crypto_kx_sessionkeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], client_pk, crypto_kx_PUBLICKEYBYTES, crypto_kx_publickeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[3], client_sk, crypto_kx_SECRETKEYBYTES, crypto_kx_secretkeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[4], server_pk, crypto_kx_PUBLICKEYBYTES, crypto_kx_publickeybytes())
 
   CALL_SODIUM(crypto_kx_client_session_keys(CDATA(rx), CDATA(tx), CDATA(client_pk), CDATA(client_sk), CDATA(server_pk)))
 }
 
 NAN_METHOD(crypto_kx_server_session_keys) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], rx, crypto_kx_sessionkeybytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[1], tx, crypto_kx_sessionkeybytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[2], server_pk, crypto_kx_publickeybytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[3], server_sk, crypto_kx_secretkeybytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[4], client_pk, crypto_kx_publickeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], rx, crypto_kx_SESSIONKEYBYTES, crypto_kx_sessionkeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], tx, crypto_kx_SESSIONKEYBYTES, crypto_kx_sessionkeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], server_pk, crypto_kx_PUBLICKEYBYTES, crypto_kx_publickeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[3], server_sk, crypto_kx_SECRETKEYBYTES, crypto_kx_secretkeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[4], client_pk, crypto_kx_PUBLICKEYBYTES, crypto_kx_publickeybytes())
 
   CALL_SODIUM(crypto_kx_server_session_keys(CDATA(rx), CDATA(tx), CDATA(server_pk), CDATA(server_sk), CDATA(client_pk)))
 }
@@ -189,16 +189,24 @@ NAN_METHOD(crypto_kx_server_session_keys) {
 // crypto_aead
 
 NAN_METHOD(crypto_aead_xchacha20poly1305_ietf_keygen) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], k, crypto_aead_xchacha20poly1305_ietf_keybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], k,
+    crypto_aead_xchacha20poly1305_ietf_KEYBYTES,
+    crypto_aead_xchacha20poly1305_ietf_keybytes())
   crypto_aead_xchacha20poly1305_ietf_keygen(CDATA(k));
 }
 
-// (ciphertext_buf, plaintext_buf, [ad], null, npub_buf, k_buf)
+// (ciphertext_buf, message_buf, [ad], null, npub_buf, k_buf)
 NAN_METHOD(crypto_aead_xchacha20poly1305_ietf_encrypt) {
-  ASSERT_BUFFER_SET_LENGTH(info[1], plaintext)
-  ASSERT_BUFFER_MIN_LENGTH(info[0], ciphertext, plaintext_length + crypto_aead_xchacha20poly1305_ietf_abytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[4], npub, crypto_aead_xchacha20poly1305_ietf_npubbytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[5], k, crypto_aead_xchacha20poly1305_ietf_keybytes())
+  ASSERT_BUFFER_SET_LENGTH(info[1], message)
+  ASSERT_BUFFER_MIN_LENGTH(info[0], ciphertext,
+    `message.length + crypto_aead_xchacha20poly1305_ietf_ABYTES`,
+    message_length + crypto_aead_xchacha20poly1305_ietf_abytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[4], npub,
+    crypto_aead_xchacha20poly1305_ietf_NPUBBYTES,
+    crypto_aead_xchacha20poly1305_ietf_npubbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[5], k,
+    crypto_aead_xchacha20poly1305_ietf_KEYBYTES,
+    crypto_aead_xchacha20poly1305_ietf_keybytes())
 
   const unsigned char *ad_data = NULL;
   size_t ad_len = 0;
@@ -212,7 +220,7 @@ NAN_METHOD(crypto_aead_xchacha20poly1305_ietf_encrypt) {
   unsigned long long clen;
   CALL_SODIUM(crypto_aead_xchacha20poly1305_ietf_encrypt(
     CDATA(ciphertext), &clen,
-    CDATA(plaintext), plaintext_length,
+    CDATA(message), message_length,
     ad_data, ad_len,
     nsec,
     CDATA(npub),
@@ -222,12 +230,18 @@ NAN_METHOD(crypto_aead_xchacha20poly1305_ietf_encrypt) {
   info.GetReturnValue().Set(Nan::New((uint32_t) clen));
 }
 
-// (plaintext, null, ciphertext, [ad], npub, k)
+// (message, null, ciphertext, [ad], npub, k)
 NAN_METHOD(crypto_aead_xchacha20poly1305_ietf_decrypt) {
   ASSERT_BUFFER_SET_LENGTH(info[2], ciphertext)
-  ASSERT_BUFFER_MIN_LENGTH(info[0], plaintext, ciphertext_length - crypto_aead_xchacha20poly1305_ietf_abytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[4], npub, crypto_aead_xchacha20poly1305_ietf_npubbytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[5], k, crypto_aead_xchacha20poly1305_ietf_keybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], message,
+    `ciphertext.length - crypto_aead_xchacha20poly1305_ietf_ABYTES`,
+    ciphertext_length - crypto_aead_xchacha20poly1305_ietf_abytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[4], npub,
+    crypto_aead_xchacha20poly1305_ietf_NPUBBYTES,
+    crypto_aead_xchacha20poly1305_ietf_npubbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[5], k,
+    crypto_aead_xchacha20poly1305_ietf_KEYBYTES,
+    crypto_aead_xchacha20poly1305_ietf_keybytes())
 
   const unsigned char *ad_data = NULL;
   size_t ad_len = 0;
@@ -240,7 +254,7 @@ NAN_METHOD(crypto_aead_xchacha20poly1305_ietf_decrypt) {
   unsigned char *nsec = NULL;
   unsigned long long mlen;
   CALL_SODIUM(crypto_aead_xchacha20poly1305_ietf_decrypt(
-    CDATA(plaintext), &mlen,
+    CDATA(message), &mlen,
     nsec,
     CDATA(ciphertext), ciphertext_length,
     ad_data, ad_len,
@@ -251,13 +265,21 @@ NAN_METHOD(crypto_aead_xchacha20poly1305_ietf_decrypt) {
   info.GetReturnValue().Set(Nan::New((uint32_t) mlen));
 }
 
-// (ciphertext_buf, mac, plaintext_buf, [ad], null, npub_buf, k_buf)
+// (ciphertext_buf, mac, message_buf, [ad], null, npub_buf, k_buf)
 NAN_METHOD(crypto_aead_xchacha20poly1305_ietf_encrypt_detached) {
-  ASSERT_BUFFER_SET_LENGTH(info[2], plaintext)
-  ASSERT_BUFFER_MIN_LENGTH(info[1], mac, crypto_aead_xchacha20poly1305_ietf_abytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[0], ciphertext, plaintext_length)
-  ASSERT_BUFFER_MIN_LENGTH(info[5], npub, crypto_aead_xchacha20poly1305_ietf_npubbytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[6], k, crypto_aead_xchacha20poly1305_ietf_keybytes())
+  ASSERT_BUFFER_SET_LENGTH(info[2], message)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], mac,
+    crypto_aead_xchacha20poly1305_ietf_ABYTES,
+    crypto_aead_xchacha20poly1305_ietf_abytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], ciphertext,
+    `message.length`,
+    message_length)
+  ASSERT_BUFFER_MIN_LENGTH(info[5], npub,
+    crypto_aead_xchacha20poly1305_ietf_NPUBBYTES,
+    crypto_aead_xchacha20poly1305_ietf_npubbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[6], k,
+    crypto_aead_xchacha20poly1305_ietf_KEYBYTES,
+    crypto_aead_xchacha20poly1305_ietf_keybytes())
 
   const unsigned char *ad_data = NULL;
   size_t ad_len = 0;
@@ -272,7 +294,7 @@ NAN_METHOD(crypto_aead_xchacha20poly1305_ietf_encrypt_detached) {
   CALL_SODIUM(crypto_aead_xchacha20poly1305_ietf_encrypt_detached(
     CDATA(ciphertext),
     CDATA(mac), &maclen,
-    CDATA(plaintext), plaintext_length,
+    CDATA(message), message_length,
     ad_data, ad_len,
     nsec,
     CDATA(npub),
@@ -282,13 +304,19 @@ NAN_METHOD(crypto_aead_xchacha20poly1305_ietf_encrypt_detached) {
   info.GetReturnValue().Set(Nan::New((uint32_t) maclen));
 }
 
-// (plaintext, null, ciphertext, mac, [ad], npub, k)
+// (message, null, ciphertext, mac, [ad], npub, k)
 NAN_METHOD(crypto_aead_xchacha20poly1305_ietf_decrypt_detached) {
   ASSERT_BUFFER_SET_LENGTH(info[2], ciphertext)
-  ASSERT_BUFFER_MIN_LENGTH(info[0], plaintext, ciphertext_length)
-  ASSERT_BUFFER_MIN_LENGTH(info[3], mac, crypto_aead_xchacha20poly1305_ietf_abytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[5], npub, crypto_aead_xchacha20poly1305_ietf_npubbytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[6], k, crypto_aead_xchacha20poly1305_ietf_keybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], message, `ciphertext.length`, ciphertext_length)
+  ASSERT_BUFFER_MIN_LENGTH(info[3], mac,
+    crypto_aead_xchacha20poly1305_ietf_ABYTES,
+    crypto_aead_xchacha20poly1305_ietf_abytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[5], npub,
+    crypto_aead_xchacha20poly1305_ietf_NPUBBYTES,
+    crypto_aead_xchacha20poly1305_ietf_npubbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[6], k,
+    crypto_aead_xchacha20poly1305_ietf_KEYBYTES,
+    crypto_aead_xchacha20poly1305_ietf_keybytes())
 
   const unsigned char *ad_data = NULL;
   size_t ad_len = 0;
@@ -300,7 +328,7 @@ NAN_METHOD(crypto_aead_xchacha20poly1305_ietf_decrypt_detached) {
 
   unsigned char *nsec = NULL;
   CALL_SODIUM(crypto_aead_xchacha20poly1305_ietf_decrypt_detached(
-    CDATA(plaintext),
+    CDATA(message),
     nsec,
     CDATA(ciphertext), ciphertext_length,
     CDATA(mac),
@@ -313,24 +341,38 @@ NAN_METHOD(crypto_aead_xchacha20poly1305_ietf_decrypt_detached) {
 // crypto_sign
 
 NAN_METHOD(crypto_sign_seed_keypair) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], public_key, crypto_sign_publickeybytes());
-  ASSERT_BUFFER_MIN_LENGTH(info[1], secret_key, crypto_sign_secretkeybytes());
-  ASSERT_BUFFER_MIN_LENGTH(info[2], seed, crypto_sign_seedbytes());
+  ASSERT_BUFFER_MIN_LENGTH(info[0], public_key,
+    crypto_sign_PUBLICKEYBYTES,
+    crypto_sign_publickeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], secret_key,
+    crypto_sign_PUBLICKEYBYTES,
+    crypto_sign_secretkeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], seed,
+    crypto_sign_PUBLICKEYBYTES,
+    crypto_sign_seedbytes())
 
   CALL_SODIUM(crypto_sign_seed_keypair(CDATA(public_key), CDATA(secret_key), CDATA(seed)))
 }
 
 NAN_METHOD(crypto_sign_keypair) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], public_key, crypto_sign_publickeybytes());
-  ASSERT_BUFFER_MIN_LENGTH(info[1], secret_key, crypto_sign_secretkeybytes());
+  ASSERT_BUFFER_MIN_LENGTH(info[0], public_key,
+    crypto_sign_PUBLICKEYBYTES,
+    crypto_sign_publickeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], secret_key,
+    crypto_sign_PUBLICKEYBYTES,
+    crypto_sign_secretkeybytes())
 
   CALL_SODIUM(crypto_sign_keypair(CDATA(public_key), CDATA(secret_key)))
 }
 
 NAN_METHOD(crypto_sign) {
-  ASSERT_BUFFER_SET_LENGTH(info[1], message);
-  ASSERT_BUFFER_MIN_LENGTH(info[0], signed_message, message_length + crypto_sign_bytes());
-  ASSERT_BUFFER_MIN_LENGTH(info[2], secret_key, crypto_sign_secretkeybytes());
+  ASSERT_BUFFER_SET_LENGTH(info[1], message)
+  ASSERT_BUFFER_MIN_LENGTH(info[0], signed_message,
+    `message.length + crypto_sign_BYTES`,
+    message_length + crypto_sign_bytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], secret_key,
+    crypto_sign_PUBLICKEYBYTES,
+    crypto_sign_secretkeybytes())
 
   unsigned long long signed_message_length_dummy;  // TODO: what is this used for?
 
@@ -338,9 +380,11 @@ NAN_METHOD(crypto_sign) {
 }
 
 NAN_METHOD(crypto_sign_open) {
-  ASSERT_BUFFER_MIN_LENGTH(info[1], signed_message, crypto_sign_bytes());
-  ASSERT_BUFFER_MIN_LENGTH(info[0], message, signed_message_length - crypto_sign_bytes());
-  ASSERT_BUFFER_MIN_LENGTH(info[2], public_key, crypto_sign_publickeybytes());
+  ASSERT_BUFFER_MIN_LENGTH(info[1], signed_message, crypto_sign_BYTES, crypto_sign_bytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], message,
+    `signedMessage.length - crypto_sign_BYTES`,
+    signed_message_length - crypto_sign_bytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], public_key, crypto_sign_PUBLICKEYBYTES, crypto_sign_publickeybytes())
 
   unsigned long long message_length_dummy;  // TODO: what is this used for?
 
@@ -348,9 +392,9 @@ NAN_METHOD(crypto_sign_open) {
 }
 
 NAN_METHOD(crypto_sign_detached) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], signature, crypto_sign_bytes());
-  ASSERT_BUFFER(info[1], message);
-  ASSERT_BUFFER_MIN_LENGTH(info[2], secret_key, crypto_sign_secretkeybytes());
+  ASSERT_BUFFER_MIN_LENGTH(info[0], signature, crypto_sign_BYTES, crypto_sign_bytes())
+  ASSERT_BUFFER(info[1], message)
+  ASSERT_BUFFER_MIN_LENGTH(info[2], secret_key, crypto_sign_SECRETKEYBYTES, crypto_sign_secretkeybytes())
 
   unsigned long long signature_length_dummy; // TODO: what is this used for?
 
@@ -358,21 +402,21 @@ NAN_METHOD(crypto_sign_detached) {
 }
 
 NAN_METHOD(crypto_sign_ed25519_pk_to_curve25519) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], curve25519_pk, crypto_box_publickeybytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[1], ed25519_pk, crypto_sign_publickeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], curve25519_pk, crypto_box_PUBLICKEYBYTES, crypto_box_publickeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], ed25519_pk, crypto_sign_PUBLICKEYBYTES, crypto_sign_publickeybytes())
   CALL_SODIUM(crypto_sign_ed25519_pk_to_curve25519(CDATA(curve25519_pk), CDATA(ed25519_pk)))
 }
 
 NAN_METHOD(crypto_sign_ed25519_sk_to_curve25519) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], curve25519_sk, crypto_box_secretkeybytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[1], ed25519_sk, crypto_sign_secretkeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], curve25519_sk, crypto_box_SECRETKEYBYTES, crypto_box_secretkeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], ed25519_sk, crypto_sign_SECRETKEYBYTES, crypto_sign_secretkeybytes())
   CALL_SODIUM(crypto_sign_ed25519_sk_to_curve25519(CDATA(curve25519_sk), CDATA(ed25519_sk)))
 }
 
 NAN_METHOD(crypto_sign_verify_detached) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], signature, crypto_sign_bytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], signature, crypto_sign_BYTES, crypto_sign_bytes())
   ASSERT_BUFFER(info[1], message)
-  ASSERT_BUFFER_MIN_LENGTH(info[2], public_key, crypto_sign_publickeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], public_key, crypto_sign_PUBLICKEYBYTES, crypto_sign_publickeybytes())
 
   CALL_SODIUM_BOOL(crypto_sign_verify_detached(CDATA(signature), CDATA(message), CLENGTH(message), CDATA(public_key)))
 }
@@ -380,14 +424,14 @@ NAN_METHOD(crypto_sign_verify_detached) {
 // crypto_generic_hash
 
 NAN_METHOD(crypto_generichash) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_generichash_bytes_min())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_generichash_BYTES_MIN, crypto_generichash_bytes_min())
   ASSERT_BUFFER(info[1], input)
 
   unsigned char *key_data = NULL;
   size_t key_len = 0;
 
   if (info[2]->IsObject()) {
-    ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_generichash_keybytes_min())
+    ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_generichash_KEYBYTES_MIN, crypto_generichash_keybytes_min())
     key_data = CDATA(key);
     key_len = key_length;
   }
@@ -396,13 +440,13 @@ NAN_METHOD(crypto_generichash) {
 }
 
 NAN_METHOD(crypto_generichash_batch) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_generichash_bytes_min())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_generichash_BYTES_MIN, crypto_generichash_bytes_min())
 
   unsigned char *key_data = NULL;
   size_t key_len = 0;
 
   if (info[2]->IsObject()) {
-    ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_generichash_keybytes_min())
+    ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_generichash_KEYBYTES_MIN, crypto_generichash_keybytes_min())
     key_data = CDATA(key);
     key_len = key_length;
   }
@@ -440,7 +484,7 @@ NAN_METHOD(crypto_generichash_instance) {
   }
 
   if (info[0]->IsObject()) {
-    ASSERT_BUFFER_MIN_LENGTH(info[0], key, crypto_generichash_keybytes_min())
+    ASSERT_BUFFER_MIN_LENGTH(info[0], key, crypto_generichash_KEYBYTES_MIN, crypto_generichash_keybytes_min())
     info.GetReturnValue().Set(CryptoGenericHashWrap::NewInstance(CDATA(key), key_length, output_length));
   } else {
     info.GetReturnValue().Set(CryptoGenericHashWrap::NewInstance(NULL, 0, output_length));
@@ -450,7 +494,7 @@ NAN_METHOD(crypto_generichash_instance) {
 // crypto_hash
 
 NAN_METHOD(crypto_hash) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_hash_bytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_hash_BYTES, crypto_hash_bytes())
   ASSERT_BUFFER(info[1], input)
 
   CALL_SODIUM(crypto_hash(CDATA(output), CDATA(input), CLENGTH(input)))
@@ -459,27 +503,27 @@ NAN_METHOD(crypto_hash) {
 // crypto_box
 
 NAN_METHOD(crypto_box_seed_keypair) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], public_key, crypto_box_publickeybytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[1], secret_key, crypto_box_secretkeybytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[2], seed, crypto_box_seedbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], public_key, crypto_box_PUBLICKEYBYTES, crypto_box_publickeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], secret_key, crypto_box_SECRETKEYBYTES, crypto_box_secretkeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], seed, crypto_box_SEEDBYTES, crypto_box_seedbytes())
 
   CALL_SODIUM(crypto_box_seed_keypair(CDATA(public_key), CDATA(secret_key), CDATA(seed)))
 }
 
 NAN_METHOD(crypto_box_keypair) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], public_key, crypto_box_publickeybytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[1], secret_key, crypto_box_secretkeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], public_key, crypto_box_PUBLICKEYBYTES, crypto_box_publickeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], secret_key, crypto_box_SECRETKEYBYTES, crypto_box_secretkeybytes())
 
   CALL_SODIUM(crypto_box_keypair(CDATA(public_key), CDATA(secret_key)))
 }
 
 NAN_METHOD(crypto_box_detached) {
   ASSERT_BUFFER_SET_LENGTH(info[2], message)
-  ASSERT_BUFFER_MIN_LENGTH(info[0], ciphertext, message_length)
-  ASSERT_BUFFER_MIN_LENGTH(info[1], mac, crypto_box_macbytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[3], nonce, crypto_box_noncebytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[4], public_key, crypto_box_publickeybytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[5], secret_key, crypto_box_secretkeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], ciphertext, `message.length`, message_length)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], mac, crypto_box_MACBYTES, crypto_box_macbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[3], nonce, crypto_box_NONCEBYTES, crypto_box_noncebytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[4], public_key, crypto_box_PUBLICKEYBYTES, crypto_box_publickeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[5], secret_key, crypto_box_SECRETKEYBYTES, crypto_box_secretkeybytes())
 
   CALL_SODIUM(crypto_box_detached(
     CDATA(ciphertext), CDATA(mac), CDATA(message), message_length, CDATA(nonce), CDATA(public_key), CDATA(secret_key)
@@ -488,21 +532,21 @@ NAN_METHOD(crypto_box_detached) {
 
 NAN_METHOD(crypto_box_easy) {
   ASSERT_BUFFER_SET_LENGTH(info[1], message)
-  ASSERT_BUFFER_MIN_LENGTH(info[0], ciphertext, message_length + crypto_box_macbytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[2], nonce, crypto_box_noncebytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[3], public_key, crypto_box_publickeybytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[4], secret_key, crypto_box_secretkeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], ciphertext, `message.length + crypto_box_MACBYTES`, message_length + crypto_box_macbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], nonce, crypto_box_NONCEBYTES, crypto_box_noncebytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[3], public_key, crypto_box_PUBLICKEYBYTES, crypto_box_publickeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[4], secret_key, crypto_box_SECRETKEYBYTES, crypto_box_secretkeybytes())
 
   CALL_SODIUM(crypto_box_easy(CDATA(ciphertext), CDATA(message), message_length, CDATA(nonce), CDATA(public_key), CDATA(secret_key)))
 }
 
 NAN_METHOD(crypto_box_open_detached) {
   ASSERT_BUFFER_SET_LENGTH(info[1], ciphertext)
-  ASSERT_BUFFER_MIN_LENGTH(info[0], message, ciphertext_length)
-  ASSERT_BUFFER_MIN_LENGTH(info[2], mac, crypto_box_macbytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[3], nonce, crypto_box_noncebytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[4], public_key, crypto_box_publickeybytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[5], secret_key, crypto_box_secretkeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], message, `ciphertext.length`, ciphertext_length)
+  ASSERT_BUFFER_MIN_LENGTH(info[2], mac, crypto_box_MACBYTES, crypto_box_macbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[3], nonce, crypto_box_NONCEBYTES, crypto_box_noncebytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[4], public_key, crypto_box_PUBLICKEYBYTES, crypto_box_publickeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[5], secret_key, crypto_box_SECRETKEYBYTES, crypto_box_secretkeybytes())
 
   CALL_SODIUM_BOOL(crypto_box_open_detached(
     CDATA(message), CDATA(ciphertext), CDATA(mac), ciphertext_length, CDATA(nonce), CDATA(public_key), CDATA(secret_key)
@@ -510,11 +554,11 @@ NAN_METHOD(crypto_box_open_detached) {
 }
 
 NAN_METHOD(crypto_box_open_easy) {
-  ASSERT_BUFFER_MIN_LENGTH(info[1], ciphertext, crypto_box_macbytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[0], message, ciphertext_length - crypto_box_macbytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[2], nonce, crypto_box_noncebytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[3], public_key, crypto_box_publickeybytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[4], secret_key, crypto_box_secretkeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], ciphertext, crypto_box_MACBYTES, crypto_box_macbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], message, `ciphertext.length - crypto_box_MACBYTES`, ciphertext_length - crypto_box_macbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], nonce, crypto_box_NONCEBYTES, crypto_box_noncebytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[3], public_key, crypto_box_PUBLICKEYBYTES, crypto_box_publickeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[4], secret_key, crypto_box_SECRETKEYBYTES, crypto_box_secretkeybytes())
 
   CALL_SODIUM_BOOL(crypto_box_open_easy(
     CDATA(message), CDATA(ciphertext), ciphertext_length, CDATA(nonce), CDATA(public_key), CDATA(secret_key)
@@ -525,19 +569,19 @@ NAN_METHOD(crypto_box_open_easy) {
 
 NAN_METHOD(crypto_box_seal) {
   ASSERT_BUFFER_SET_LENGTH(info[1], message)
-  ASSERT_BUFFER_MIN_LENGTH(info[0], ciphertext, message_length + crypto_box_sealbytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[2], public_key, crypto_box_publickeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], ciphertext, `message.length + crypto_box_SEALBYTES`, message_length + crypto_box_sealbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], public_key, crypto_box_PUBLICKEYBYTES, crypto_box_publickeybytes())
 
   CALL_SODIUM(crypto_box_seal(CDATA(ciphertext), CDATA(message), message_length, CDATA(public_key)))
 }
 
 NAN_METHOD(crypto_box_seal_open) {
   ASSERT_BUFFER_SET_LENGTH(info[1], ciphertext)
-  ASSERT_BUFFER_MIN_LENGTH(info[0], message, ciphertext_length - crypto_box_sealbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], message, `ciphertext.length - crypto_box_SEALBYTES`, ciphertext_length - crypto_box_sealbytes())
   // according to libsodium docs, public key is not required here...
   // see: https://download.libsodium.org/doc/public-key_cryptography/sealed_boxes.html
-  ASSERT_BUFFER_MIN_LENGTH(info[2], public_key, crypto_box_publickeybytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[3], secret_key, crypto_box_secretkeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], public_key, crypto_box_PUBLICKEYBYTES, crypto_box_publickeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[3], secret_key, crypto_box_SECRETKEYBYTES, crypto_box_secretkeybytes())
 
   CALL_SODIUM_BOOL(crypto_box_seal_open(CDATA(message), CDATA(ciphertext), ciphertext_length, CDATA(public_key), CDATA(secret_key)))
 }
@@ -546,38 +590,38 @@ NAN_METHOD(crypto_box_seal_open) {
 
 NAN_METHOD(crypto_secretbox_detached) {
   ASSERT_BUFFER_SET_LENGTH(info[2], message)
-  ASSERT_BUFFER_MIN_LENGTH(info[0], ciphertext, message_length)
-  ASSERT_BUFFER_MIN_LENGTH(info[1], mac, crypto_secretbox_macbytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[3], nonce, crypto_secretbox_noncebytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[4], key, crypto_secretbox_keybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], ciphertext, `message.length`, message_length)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], mac, crypto_secretbox_MACBYTES, crypto_secretbox_macbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[3], nonce, crypto_secretbox_NONCEBYTES, crypto_secretbox_noncebytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[4], key, crypto_secretbox_KEYBYTES, crypto_secretbox_keybytes())
 
   CALL_SODIUM(crypto_secretbox_detached(CDATA(ciphertext), CDATA(mac), CDATA(message), message_length, CDATA(nonce), CDATA(key)))
 }
 
 NAN_METHOD(crypto_secretbox_easy) {
   ASSERT_BUFFER_SET_LENGTH(info[1], message)
-  ASSERT_BUFFER_MIN_LENGTH(info[0], ciphertext, crypto_secretbox_macbytes() + message_length)
-  ASSERT_BUFFER_MIN_LENGTH(info[2], nonce, crypto_secretbox_noncebytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[3], key, crypto_secretbox_keybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], ciphertext, `message.length + crypto_secretbox_MACBYTES`, crypto_secretbox_macbytes() + message_length)
+  ASSERT_BUFFER_MIN_LENGTH(info[2], nonce, crypto_secretbox_NONCEBYTES, crypto_secretbox_noncebytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[3], key, crypto_secretbox_KEYBYTES, crypto_secretbox_keybytes())
 
   CALL_SODIUM(crypto_secretbox_easy(CDATA(ciphertext), CDATA(message), message_length, CDATA(nonce), CDATA(key)))
 }
 
 NAN_METHOD(crypto_secretbox_open_detached) {
   ASSERT_BUFFER_SET_LENGTH(info[1], ciphertext)
-  ASSERT_BUFFER_MIN_LENGTH(info[0], message, ciphertext_length)
-  ASSERT_BUFFER_MIN_LENGTH(info[2], mac, crypto_secretbox_macbytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[3], nonce, crypto_secretbox_noncebytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[4], key, crypto_secretbox_keybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], message, `ciphertext.length`, ciphertext_length)
+  ASSERT_BUFFER_MIN_LENGTH(info[2], mac, crypto_secretbox_MACBYTES, crypto_secretbox_macbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[3], nonce, crypto_secretbox_NONCEBYTES, crypto_secretbox_noncebytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[4], key, crypto_secretbox_KEYBYTES, crypto_secretbox_keybytes())
 
   CALL_SODIUM_BOOL(crypto_secretbox_open_detached(CDATA(message), CDATA(ciphertext), CDATA(mac), ciphertext_length, CDATA(nonce), CDATA(key)))
 }
 
 NAN_METHOD(crypto_secretbox_open_easy) {
-  ASSERT_BUFFER_MIN_LENGTH(info[1], ciphertext, crypto_secretbox_macbytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[0], message, ciphertext_length - crypto_secretbox_macbytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[2], nonce, crypto_secretbox_noncebytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[3], key, crypto_secretbox_keybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], ciphertext, crypto_secretbox_MACBYTES, crypto_secretbox_macbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], message, `ciphertext.length - crypto_secretbox_MACBYTES`, ciphertext_length - crypto_secretbox_macbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], nonce, crypto_secretbox_NONCEBYTES, crypto_secretbox_noncebytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[3], key, crypto_secretbox_KEYBYTES, crypto_secretbox_keybytes())
 
   CALL_SODIUM_BOOL(crypto_secretbox_open_easy(CDATA(message), CDATA(ciphertext), ciphertext_length, CDATA(nonce), CDATA(key)))
 }
@@ -586,57 +630,57 @@ NAN_METHOD(crypto_secretbox_open_easy) {
 
 NAN_METHOD(crypto_stream) {
   ASSERT_BUFFER(info[0], ciphertext)
-  ASSERT_BUFFER_MIN_LENGTH(info[1], nonce, crypto_stream_noncebytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_stream_keybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], nonce, crypto_stream_NONCEBYTES, crypto_stream_noncebytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_stream_KEYBYTES, crypto_stream_keybytes())
 
   CALL_SODIUM(crypto_stream(CDATA(ciphertext), CLENGTH(ciphertext), CDATA(nonce), CDATA(key)))
 }
 
 NAN_METHOD(crypto_stream_xor) {
   ASSERT_BUFFER_SET_LENGTH(info[1], message)
-  ASSERT_BUFFER_MIN_LENGTH(info[0], ciphertext, message_length)
-  ASSERT_BUFFER_MIN_LENGTH(info[2], nonce, crypto_stream_noncebytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[3], key, crypto_stream_keybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], ciphertext, `message.length`, message_length)
+  ASSERT_BUFFER_MIN_LENGTH(info[2], nonce, crypto_stream_NONCEBYTES, crypto_stream_noncebytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[3], key, crypto_stream_KEYBYTES, crypto_stream_keybytes())
 
   CALL_SODIUM(crypto_stream_xor(CDATA(ciphertext), CDATA(message), message_length, CDATA(nonce), CDATA(key)))
 }
 
 NAN_METHOD(crypto_stream_xor_instance) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], nonce, crypto_stream_noncebytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[1], key, crypto_stream_keybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], nonce, crypto_stream_NONCEBYTES, crypto_stream_noncebytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], key, crypto_stream_KEYBYTES, crypto_stream_keybytes())
 
   info.GetReturnValue().Set(CryptoStreamXorWrap::NewInstance(CDATA(nonce), CDATA(key)));
 }
 
 NAN_METHOD(crypto_stream_chacha20_xor) {
   ASSERT_BUFFER_SET_LENGTH(info[1], message)
-  ASSERT_BUFFER_MIN_LENGTH(info[0], ciphertext, message_length)
-  ASSERT_BUFFER_MIN_LENGTH(info[2], nonce, crypto_stream_chacha20_noncebytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[3], key, crypto_stream_chacha20_keybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], ciphertext, `message.length`, message_length)
+  ASSERT_BUFFER_MIN_LENGTH(info[2], nonce, crypto_stream_chacha20_NONCEBYTES, crypto_stream_chacha20_noncebytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[3], key, crypto_stream_chacha20_KEYBYTES, crypto_stream_chacha20_keybytes())
 
   CALL_SODIUM(crypto_stream_chacha20_xor(CDATA(ciphertext), CDATA(message), message_length, CDATA(nonce), CDATA(key)))
 }
 
 NAN_METHOD(crypto_stream_chacha20_xor_instance) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], nonce, crypto_stream_chacha20_noncebytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[1], key, crypto_stream_chacha20_keybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], nonce, crypto_stream_chacha20_NONCEBYTES, crypto_stream_chacha20_noncebytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], key, crypto_stream_chacha20_KEYBYTES, crypto_stream_chacha20_keybytes())
 
   info.GetReturnValue().Set(CryptoStreamChacha20XorWrap::NewInstance(CDATA(nonce), CDATA(key)));
 }
 // crypto_auth
 
 NAN_METHOD(crypto_auth) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_auth_bytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_auth_BYTES, crypto_auth_bytes())
   ASSERT_BUFFER(info[1], input)
-  ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_auth_keybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_auth_KEYBYTES, crypto_auth_keybytes())
 
   CALL_SODIUM(crypto_auth(CDATA(output), CDATA(input), CLENGTH(input), CDATA(key)))
 }
 
 NAN_METHOD(crypto_auth_verify) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], hmac, crypto_auth_bytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], hmac, crypto_auth_BYTES, crypto_auth_bytes())
   ASSERT_BUFFER(info[1], input)
-  ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_auth_keybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_auth_KEYBYTES, crypto_auth_keybytes())
 
   CALL_SODIUM_BOOL(crypto_auth_verify(CDATA(hmac), CDATA(input), CLENGTH(input), CDATA(key)))
 }
@@ -644,59 +688,71 @@ NAN_METHOD(crypto_auth_verify) {
 // crypto_onetimeauth
 
 NAN_METHOD(crypto_onetimeauth) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_onetimeauth_bytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_onetimeauth_BYTES, crypto_onetimeauth_bytes())
   ASSERT_BUFFER_SET_LENGTH(info[1], input)
-  ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_onetimeauth_keybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_onetimeauth_KEYBYTES, crypto_onetimeauth_keybytes())
 
   CALL_SODIUM(crypto_onetimeauth(CDATA(output), CDATA(input), input_length, CDATA(key)))
 }
 
 NAN_METHOD(crypto_onetimeauth_verify) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_onetimeauth_bytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_onetimeauth_BYTES, crypto_onetimeauth_bytes())
   ASSERT_BUFFER_SET_LENGTH(info[1], input)
-  ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_onetimeauth_keybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_onetimeauth_KEYBYTES, crypto_onetimeauth_keybytes())
 
   CALL_SODIUM_BOOL(crypto_onetimeauth_verify(CDATA(output), CDATA(input), input_length, CDATA(key)))
 }
 
 NAN_METHOD(crypto_onetimeauth_instance) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], key, crypto_onetimeauth_keybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], key, crypto_onetimeauth_KEYBYTES, crypto_onetimeauth_keybytes())
   info.GetReturnValue().Set(CryptoOnetimeAuthWrap::NewInstance(CDATA(key)));
 }
 
 // crypto_pwhash
 
 NAN_METHOD(crypto_pwhash) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_pwhash_bytes_min())
-  ASSERT_BUFFER_MIN_LENGTH(info[1], password, crypto_pwhash_passwd_min())
-  ASSERT_BUFFER_MIN_LENGTH(info[2], salt, crypto_pwhash_saltbytes())
-  ASSERT_UINT_BOUNDS(info[3], opslimit, crypto_pwhash_opslimit_min(), crypto_pwhash_opslimit_max())
-  ASSERT_UINT_BOUNDS(info[4], memlimit, crypto_pwhash_memlimit_min(), crypto_pwhash_memlimit_max())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_pwhash_BYTES_MIN, crypto_pwhash_bytes_min())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], password, crypto_pwhash_PASSWD_MIN, crypto_pwhash_passwd_min())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], salt, crypto_pwhash_SALTBYTES, crypto_pwhash_saltbytes())
+  ASSERT_UINT_BOUNDS(info[3], opslimit,
+    crypto_pwhash_OPSLIMIT_MIN, crypto_pwhash_opslimit_min(),
+    crypto_pwhash_OPSLIMIT_MAX, crypto_pwhash_opslimit_max())
+  ASSERT_UINT_BOUNDS(info[4], memlimit,
+    crypto_pwhash_MEMLIMIT_MIN, crypto_pwhash_memlimit_min(),
+    crypto_pwhash_MEMLIMIT_MAX, crypto_pwhash_memlimit_max())
   ASSERT_UINT(info[5], algo)
 
   CALL_SODIUM(crypto_pwhash(CDATA(output), output_length, (const char *) CDATA(password), password_length, CDATA(salt), opslimit, memlimit, algo))
 }
 
 NAN_METHOD(crypto_pwhash_str) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], hash, crypto_pwhash_strbytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[1], password, crypto_pwhash_passwd_min())
-  ASSERT_UINT_BOUNDS(info[2], opslimit, crypto_pwhash_opslimit_min(), crypto_pwhash_opslimit_max())
-  ASSERT_UINT_BOUNDS(info[3], memlimit, crypto_pwhash_memlimit_min(), crypto_pwhash_memlimit_max())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], hash, crypto_pwhash_STRBYTES, crypto_pwhash_strbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], password, crypto_pwhash_PASSWD_MIN, crypto_pwhash_passwd_min())
+  ASSERT_UINT_BOUNDS(info[2], opslimit,
+    crypto_pwhash_OPSLIMIT_MIN, crypto_pwhash_opslimit_min(),
+    crypto_pwhash_OPSLIMIT_MAX, crypto_pwhash_opslimit_max())
+  ASSERT_UINT_BOUNDS(info[3], memlimit,
+    crypto_pwhash_MEMLIMIT_MIN, crypto_pwhash_memlimit_min(),
+    crypto_pwhash_MEMLIMIT_MAX, crypto_pwhash_memlimit_max())
 
   CALL_SODIUM(crypto_pwhash_str((char *) CDATA(hash), (const char *) CDATA(password), password_length, opslimit, memlimit))
 }
 
 NAN_METHOD(crypto_pwhash_str_verify) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], hash, crypto_pwhash_strbytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[1], password, crypto_pwhash_passwd_min())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], hash, crypto_pwhash_STRBYTES, crypto_pwhash_strbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], password, crypto_pwhash_PASSWD_MIN, crypto_pwhash_passwd_min())
 
   CALL_SODIUM_BOOL(crypto_pwhash_str_verify((char *) CDATA(hash), (const char *) CDATA(password), password_length))
 }
 
 NAN_METHOD(crypto_pwhash_str_needs_rehash) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], hash, crypto_pwhash_strbytes())
-  ASSERT_UINT_BOUNDS(info[1], opslimit, crypto_pwhash_opslimit_min(), crypto_pwhash_opslimit_max())
-  ASSERT_UINT_BOUNDS(info[2], memlimit, crypto_pwhash_memlimit_min(), crypto_pwhash_memlimit_max())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], hash, crypto_pwhash_STRBYTES, crypto_pwhash_strbytes())
+  ASSERT_UINT_BOUNDS(info[1], opslimit,
+    crypto_pwhash_OPSLIMIT_MIN, crypto_pwhash_opslimit_min(),
+    crypto_pwhash_OPSLIMIT_MAX, crypto_pwhash_opslimit_max())
+  ASSERT_UINT_BOUNDS(info[2], memlimit,
+    crypto_pwhash_MEMLIMIT_MIN, crypto_pwhash_memlimit_min(),
+    crypto_pwhash_MEMLIMIT_MAX, crypto_pwhash_memlimit_max())
 
   int ret = crypto_pwhash_str_needs_rehash((char *) CDATA(hash), opslimit, memlimit);
   info.GetReturnValue().Set(ret == 0 ? Nan::False() : Nan::True());
@@ -704,10 +760,14 @@ NAN_METHOD(crypto_pwhash_str_needs_rehash) {
 
 NAN_METHOD(crypto_pwhash_async) {
   ASSERT_BUFFER_SET_LENGTH(info[0], output)
-  ASSERT_BUFFER_MIN_LENGTH(info[1], password, crypto_pwhash_passwd_min())
-  ASSERT_BUFFER_MIN_LENGTH(info[2], salt, crypto_pwhash_saltbytes())
-  ASSERT_UINT_BOUNDS(info[3], opslimit, crypto_pwhash_opslimit_min(), crypto_pwhash_opslimit_max())
-  ASSERT_UINT_BOUNDS(info[4], memlimit, crypto_pwhash_memlimit_min(), crypto_pwhash_memlimit_max())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], password, crypto_pwhash_PASSWD_MIN, crypto_pwhash_passwd_min())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], salt, crypto_pwhash_SALTBYTES, crypto_pwhash_saltbytes())
+  ASSERT_UINT_BOUNDS(info[3], opslimit,
+    crypto_pwhash_OPSLIMIT_MIN, crypto_pwhash_opslimit_min(),
+    crypto_pwhash_OPSLIMIT_MAX, crypto_pwhash_opslimit_max())
+  ASSERT_UINT_BOUNDS(info[4], memlimit,
+    crypto_pwhash_MEMLIMIT_MIN, crypto_pwhash_memlimit_min(),
+    crypto_pwhash_MEMLIMIT_MAX, crypto_pwhash_memlimit_max())
   ASSERT_UINT(info[5], algo)
 
   ASSERT_FUNCTION(info[6], callback)
@@ -726,10 +786,14 @@ NAN_METHOD(crypto_pwhash_async) {
 }
 
 NAN_METHOD(crypto_pwhash_str_async) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], hash, crypto_pwhash_strbytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[1], password, crypto_pwhash_passwd_min())
-  ASSERT_UINT_BOUNDS(info[2], opslimit, crypto_pwhash_opslimit_min(), crypto_pwhash_opslimit_max())
-  ASSERT_UINT_BOUNDS(info[3], memlimit, crypto_pwhash_memlimit_min(), crypto_pwhash_memlimit_max())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], hash, crypto_pwhash_STRBYTES, crypto_pwhash_strbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], password, crypto_pwhash_PASSWD_MIN, crypto_pwhash_passwd_min())
+  ASSERT_UINT_BOUNDS(info[2], opslimit,
+    crypto_pwhash_OPSLIMIT_MIN, crypto_pwhash_opslimit_min(),
+    crypto_pwhash_OPSLIMIT_MAX, crypto_pwhash_opslimit_max())
+  ASSERT_UINT_BOUNDS(info[3], memlimit,
+    crypto_pwhash_MEMLIMIT_MIN, crypto_pwhash_memlimit_min(),
+    crypto_pwhash_MEMLIMIT_MAX, crypto_pwhash_memlimit_max())
 
   ASSERT_FUNCTION(info[4], callback)
 
@@ -744,8 +808,8 @@ NAN_METHOD(crypto_pwhash_str_async) {
 }
 
 NAN_METHOD(crypto_pwhash_str_verify_async) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], hash, crypto_pwhash_strbytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[1], password, crypto_pwhash_passwd_min())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], hash, crypto_pwhash_STRBYTES, crypto_pwhash_strbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], password, crypto_pwhash_PASSWD_MIN, crypto_pwhash_passwd_min())
 
   ASSERT_FUNCTION(info[2], callback)
 
@@ -760,16 +824,16 @@ NAN_METHOD(crypto_pwhash_str_verify_async) {
 // crypto_scalarmult
 
 NAN_METHOD(crypto_scalarmult_base) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], public_key, crypto_scalarmult_bytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[1], secret_key, crypto_scalarmult_scalarbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], public_key, crypto_scalarmult_BYTES, crypto_scalarmult_bytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], secret_key, crypto_scalarmult_SCALARBYTES, crypto_scalarmult_scalarbytes())
 
   CALL_SODIUM(crypto_scalarmult_base(CDATA(public_key), CDATA(secret_key)))
 }
 
 NAN_METHOD(crypto_scalarmult) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], shared_secret, crypto_scalarmult_bytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[1], secret_key, crypto_scalarmult_scalarbytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[2], public_key, crypto_scalarmult_bytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], shared_secret, crypto_scalarmult_BYTES, crypto_scalarmult_bytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], secret_key, crypto_scalarmult_SCALARBYTES, crypto_scalarmult_scalarbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], public_key, crypto_scalarmult_BYTES, crypto_scalarmult_bytes())
 
   CALL_SODIUM(crypto_scalarmult(CDATA(shared_secret), CDATA(secret_key), CDATA(public_key)))
 }
@@ -777,9 +841,9 @@ NAN_METHOD(crypto_scalarmult) {
 // crypto_shorthash
 
 NAN_METHOD(crypto_shorthash) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_shorthash_bytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_shorthash_BYTES, crypto_shorthash_bytes())
   ASSERT_BUFFER(info[1], input)
-  ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_shorthash_keybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_shorthash_KEYBYTES, crypto_shorthash_keybytes())
 
   CALL_SODIUM(crypto_shorthash(CDATA(output), CDATA(input), CLENGTH(input), CDATA(key)))
 }
@@ -787,16 +851,16 @@ NAN_METHOD(crypto_shorthash) {
 // crypto_kdf
 
 NAN_METHOD(crypto_kdf_keygen) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], key, crypto_kdf_keybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], key, crypto_kdf_KEYBYTES, crypto_kdf_keybytes())
 
   crypto_kdf_keygen(CDATA(key)); // void return value
 }
 
 NAN_METHOD(crypto_kdf_derive_from_key) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], subkey, crypto_kdf_bytes_min())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], subkey, crypto_kdf_BYTES_MIN, crypto_kdf_bytes_min())
   ASSERT_UINT(info[1], subkey_id)
-  ASSERT_BUFFER_MIN_LENGTH(info[2], context, crypto_kdf_contextbytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[3], key, crypto_kdf_keybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], context, crypto_kdf_CONTEXTBYTES, crypto_kdf_contextbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[3], key, crypto_kdf_KEYBYTES, crypto_kdf_keybytes())
 
   CALL_SODIUM(crypto_kdf_derive_from_key(CDATA(subkey), subkey_length, subkey_id, (const char *) CDATA(context), CDATA(key)))
 }
@@ -804,7 +868,7 @@ NAN_METHOD(crypto_kdf_derive_from_key) {
 // crypto_hash_sha256
 
 NAN_METHOD(crypto_hash_sha256) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_hash_sha256_bytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_hash_sha256_BYTES, crypto_hash_sha256_bytes())
   ASSERT_BUFFER(info[1], input)
 
   CALL_SODIUM(crypto_hash_sha256(CDATA(output), CDATA(input), CLENGTH(input)))
@@ -817,7 +881,7 @@ NAN_METHOD(crypto_hash_sha256_instance) {
 // crypto_hash_sha512
 
 NAN_METHOD(crypto_hash_sha512) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_hash_sha512_bytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_hash_sha512_BYTES, crypto_hash_sha512_bytes())
   ASSERT_BUFFER(info[1], input)
 
   CALL_SODIUM(crypto_hash_sha512(CDATA(output), CDATA(input), CLENGTH(input)))
@@ -834,15 +898,15 @@ NAN_METHOD(crypto_secretstream_xchacha20poly1305_state_new) {
 }
 
 NAN_METHOD(crypto_secretstream_xchacha20poly1305_keygen) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], key, crypto_secretstream_xchacha20poly1305_keybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], key, crypto_secretstream_xchacha20poly1305_KEYBYTES, crypto_secretstream_xchacha20poly1305_keybytes())
 
   crypto_secretstream_xchacha20poly1305_keygen(CDATA(key));
 }
 
 NAN_METHOD(crypto_secretstream_xchacha20poly1305_init_push) {
   ASSERT_UNWRAP(info[0], obj, CryptoSecretstreamXchacha20poly1305StateWrap)
-  ASSERT_BUFFER_MIN_LENGTH(info[1], header, crypto_secretstream_xchacha20poly1305_headerbytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_secretstream_xchacha20poly1305_keybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], header, crypto_secretstream_xchacha20poly1305_HEADERBYTES, crypto_secretstream_xchacha20poly1305_headerbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_secretstream_xchacha20poly1305_KEYBYTES, crypto_secretstream_xchacha20poly1305_keybytes())
 
   CALL_SODIUM(crypto_secretstream_xchacha20poly1305_init_push(&obj->state, CDATA(header), CDATA(key)))
 }
@@ -850,8 +914,10 @@ NAN_METHOD(crypto_secretstream_xchacha20poly1305_init_push) {
 NAN_METHOD(crypto_secretstream_xchacha20poly1305_push) {
   ASSERT_UNWRAP(info[0], obj, CryptoSecretstreamXchacha20poly1305StateWrap)
   ASSERT_BUFFER_SET_LENGTH(info[2], message)
-  ASSERT_BUFFER_MIN_LENGTH(info[1], ciphertext, crypto_secretstream_xchacha20poly1305_abytes() + message_length)
-  ASSERT_BUFFER_MIN_LENGTH(info[4], tag, crypto_secretstream_xchacha20poly1305_TAGBYTES)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], ciphertext,
+    `message.length + crypto_secretstream_xchacha20poly1305_ABYTES`,
+    message_length + crypto_secretstream_xchacha20poly1305_abytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[4], tag, crypto_secretstream_xchacha20poly1305_TAGBYTES, crypto_secretstream_xchacha20poly1305_TAGBYTES)
 
   unsigned char *ad_data = NULL;
   size_t ad_len = 0;
@@ -871,8 +937,8 @@ NAN_METHOD(crypto_secretstream_xchacha20poly1305_push) {
 
 NAN_METHOD(crypto_secretstream_xchacha20poly1305_init_pull) {
   ASSERT_UNWRAP(info[0], obj, CryptoSecretstreamXchacha20poly1305StateWrap)
-  ASSERT_BUFFER_MIN_LENGTH(info[1], header, crypto_secretstream_xchacha20poly1305_headerbytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_secretstream_xchacha20poly1305_keybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], header, crypto_secretstream_xchacha20poly1305_HEADERBYTES, crypto_secretstream_xchacha20poly1305_headerbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], key, crypto_secretstream_xchacha20poly1305_KEYBYTES, crypto_secretstream_xchacha20poly1305_keybytes())
 
   CALL_SODIUM(crypto_secretstream_xchacha20poly1305_init_pull(&obj->state, CDATA(header), CDATA(key)))
 }
@@ -880,7 +946,9 @@ NAN_METHOD(crypto_secretstream_xchacha20poly1305_init_pull) {
 NAN_METHOD(crypto_secretstream_xchacha20poly1305_pull) {
   ASSERT_UNWRAP(info[0], obj, CryptoSecretstreamXchacha20poly1305StateWrap)
   ASSERT_BUFFER_SET_LENGTH(info[3], ciphertext)
-  ASSERT_BUFFER_MIN_LENGTH(info[1], message, ciphertext_length - crypto_secretstream_xchacha20poly1305_abytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], message,
+    `ciphertext.length - crypto_secretstream_xchacha20poly1305_ABYTES`,
+    ciphertext_length - crypto_secretstream_xchacha20poly1305_abytes())
 
   unsigned char *ad_data = NULL;
   size_t ad_len = 0;
