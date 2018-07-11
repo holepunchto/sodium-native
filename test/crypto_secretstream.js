@@ -1,6 +1,4 @@
 var test = require('tape')
-var alloc = require('buffer-alloc')
-var fill = require('buffer-fill')
 var sodium = require('../')
 
 test('constants', function (assert) {
@@ -20,20 +18,20 @@ test('constants', function (assert) {
 test('crypto_secretstream', function (assert) {
   var state = sodium.crypto_secretstream_xchacha20poly1305_state_new()
 
-  var header = alloc(sodium.crypto_secretstream_xchacha20poly1305_HEADERBYTES)
-  var ad = alloc(sodium.randombytes_uniform(100))
+  var header = Buffer.alloc(sodium.crypto_secretstream_xchacha20poly1305_HEADERBYTES)
+  var ad = Buffer.alloc(sodium.randombytes_uniform(100))
   sodium.randombytes_buf(ad)
 
-  var m1 = alloc(sodium.randombytes_uniform(1000))
+  var m1 = Buffer.alloc(sodium.randombytes_uniform(1000))
   sodium.randombytes_buf(m1)
 
-  var m2 = alloc(sodium.randombytes_uniform(1000))
+  var m2 = Buffer.alloc(sodium.randombytes_uniform(1000))
   sodium.randombytes_buf(m2)
 
-  var m3 = alloc(sodium.randombytes_uniform(1000))
+  var m3 = Buffer.alloc(sodium.randombytes_uniform(1000))
   sodium.randombytes_buf(m3)
 
-  var m4 = alloc(sodium.randombytes_uniform(1000))
+  var m4 = Buffer.alloc(sodium.randombytes_uniform(1000))
   sodium.randombytes_buf(m4)
 
   var m1_ = Buffer.from(m1)
@@ -41,15 +39,15 @@ test('crypto_secretstream', function (assert) {
   var m3_ = Buffer.from(m3)
   var m4_ = Buffer.from(m4)
 
-  var c1 = alloc(m1.length + sodium.crypto_secretstream_xchacha20poly1305_ABYTES)
-  var c2 = alloc(m2.length + sodium.crypto_secretstream_xchacha20poly1305_ABYTES)
-  var c3 = alloc(m3.length + sodium.crypto_secretstream_xchacha20poly1305_ABYTES)
-  var c4 = alloc(m4.length + sodium.crypto_secretstream_xchacha20poly1305_ABYTES)
+  var c1 = Buffer.alloc(m1.length + sodium.crypto_secretstream_xchacha20poly1305_ABYTES)
+  var c2 = Buffer.alloc(m2.length + sodium.crypto_secretstream_xchacha20poly1305_ABYTES)
+  var c3 = Buffer.alloc(m3.length + sodium.crypto_secretstream_xchacha20poly1305_ABYTES)
+  var c4 = Buffer.alloc(m4.length + sodium.crypto_secretstream_xchacha20poly1305_ABYTES)
 
-  var key = alloc(sodium.crypto_secretstream_xchacha20poly1305_KEYBYTES)
+  var key = Buffer.alloc(sodium.crypto_secretstream_xchacha20poly1305_KEYBYTES)
   var ret
-  var tag = Buffer.alloc(sodium.crypto_secretstream_xchacha20poly1305_TAGBYTES)
-  fill(tag, 0xdb)
+  var tag = Buffer.alloc(sodium.crypto_secretstream_xchacha20poly1305_TAGBYTES, 0xdb)
+
   sodium.crypto_secretstream_xchacha20poly1305_keygen(key)
 
   sodium.crypto_secretstream_xchacha20poly1305_init_push(state, header, key)
@@ -64,15 +62,15 @@ test('crypto_secretstream', function (assert) {
   assert.same(ret, m4.length + sodium.crypto_secretstream_xchacha20poly1305_ABYTES)
 
   sodium.crypto_secretstream_xchacha20poly1305_init_pull(state, header, key)
-  fill(m1, 0)
-  fill(tag, 0xdb)
+  m1.fill(0)
+  tag.fill(0xdb)
   ret = sodium.crypto_secretstream_xchacha20poly1305_pull(state, m1, tag, c1, null)
   assert.same(ret, c1.length - sodium.crypto_secretstream_xchacha20poly1305_ABYTES)
   assert.same(tag, sodium.crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
   assert.ok(m1.equals(m1_))
 
-  fill(m2, 0)
-  fill(tag, 0xdb)
+  m2.fill(0)
+  tag.fill(0xdb)
   ret = sodium.crypto_secretstream_xchacha20poly1305_pull(state, m2, tag, c2, null)
   assert.same(ret, c2.length - sodium.crypto_secretstream_xchacha20poly1305_ABYTES)
   assert.same(tag, sodium.crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
@@ -84,15 +82,15 @@ test('crypto_secretstream', function (assert) {
     })
   }
 
-  fill(m3, 0)
-  fill(tag, 0xdb)
+  m3.fill(0)
+  tag.fill(0xdb)
   ret = sodium.crypto_secretstream_xchacha20poly1305_pull(state, m3, tag, c3, ad)
   assert.same(ret, c3.length - sodium.crypto_secretstream_xchacha20poly1305_ABYTES)
   assert.same(tag, sodium.crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
   assert.ok(m3.equals(m3_))
 
-  fill(m4, 0)
-  fill(tag, 0xdb)
+  m4.fill(0)
+  tag.fill(0xdb)
   ret = sodium.crypto_secretstream_xchacha20poly1305_pull(state, m4, tag, c4, null)
   assert.same(ret, c4.length - sodium.crypto_secretstream_xchacha20poly1305_ABYTES)
   assert.same(tag, sodium.crypto_secretstream_xchacha20poly1305_TAG_FINAL)
@@ -121,10 +119,10 @@ test('crypto_secretstream', function (assert) {
   sodium.crypto_secretstream_xchacha20poly1305_push(state, c2, m2, null, sodium.crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
 
   sodium.crypto_secretstream_xchacha20poly1305_init_pull(state, header, key)
-  fill(tag, 0xdb)
+  tag.fill(0xdb)
   sodium.crypto_secretstream_xchacha20poly1305_pull(state, m1, tag, c1, null)
   assert.same(tag, sodium.crypto_secretstream_xchacha20poly1305_TAG_REKEY)
-  fill(tag, 0xdb)
+  tag.fill(0xdb)
   sodium.crypto_secretstream_xchacha20poly1305_pull(state, m2, tag, c2, null)
   assert.same(tag, sodium.crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
 
@@ -136,7 +134,7 @@ test('crypto_secretstream', function (assert) {
   sodium.crypto_secretstream_xchacha20poly1305_push(state, c2, m2, null, sodium.crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
 
   sodium.crypto_secretstream_xchacha20poly1305_init_pull(state, header, key)
-  fill(tag, 0xdb)
+  tag.fill(0xdb)
   sodium.crypto_secretstream_xchacha20poly1305_pull(state, m1, tag, c1, null)
   assert.same(tag, sodium.crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
 
@@ -145,7 +143,7 @@ test('crypto_secretstream', function (assert) {
   })
 
   sodium.crypto_secretstream_xchacha20poly1305_rekey(state)
-  fill(tag, 0xdb)
+  tag.fill(0xdb)
   sodium.crypto_secretstream_xchacha20poly1305_pull(state, m2, tag, c2, null)
   assert.same(tag, sodium.crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
 

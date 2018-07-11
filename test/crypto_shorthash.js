@@ -1,14 +1,13 @@
 var tape = require('tape')
 var sodium = require('../')
-var alloc = require('buffer-alloc')
 
 tape('crypto_shorthash', function (t) {
-  var out = alloc(sodium.crypto_shorthash_BYTES)
-  var inp = new Buffer('Hej, Verden!')
-  var key = alloc(sodium.crypto_shorthash_KEYBYTES)
+  var out = Buffer.alloc(sodium.crypto_shorthash_BYTES)
+  var inp = Buffer.from('Hej, Verden!')
+  var key = Buffer.alloc(sodium.crypto_shorthash_KEYBYTES)
 
   t.throws(function () {
-    sodium.crypto_shorthash(alloc(0), inp)
+    sodium.crypto_shorthash(Buffer.alloc(0), inp)
   }, 'throws on bad input')
 
   sodium.crypto_shorthash(out, inp, key)

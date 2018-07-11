@@ -9,8 +9,6 @@
     "node-gyp-build": "^3.0.0"
   },
   "devDependencies": {
-    "buffer-alloc": "^1.1.0",
-    "buffer-fill": "^0.1.0",
     "node-gyp": "^3.6.1",
     "prebuildify": "^2.3.3",
     "sodium-test": "^0.7.0",

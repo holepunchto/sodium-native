@@ -1,14 +1,10 @@
 var tape = require('tape')
 var sodium = require('../')
-var alloc = require('buffer-alloc')
-var fill = require('buffer-fill')
 
 tape('crypto_kx_seed_keypair', function (t) {
-  var pk = alloc(sodium.crypto_kx_PUBLICKEYBYTES)
-  var sk = alloc(sodium.crypto_kx_SECRETKEYBYTES)
-  var seed = alloc(sodium.crypto_kx_SEEDBYTES)
-
-  fill(seed, 'lo')
+  var pk = Buffer.alloc(sodium.crypto_kx_PUBLICKEYBYTES)
+  var sk = Buffer.alloc(sodium.crypto_kx_SECRETKEYBYTES)
+  var seed = Buffer.alloc(sodium.crypto_kx_SEEDBYTES, 'lo')
 
   t.throws(function () {
     sodium.crypto_kx_seed_keypair()
@@ -29,13 +25,13 @@ tape('crypto_kx_seed_keypair', function (t) {
 })
 
 tape('crypto_kx_keypair', function (t) {
-  var pk = alloc(sodium.crypto_kx_PUBLICKEYBYTES)
-  var sk = alloc(sodium.crypto_kx_SECRETKEYBYTES)
+  var pk = Buffer.alloc(sodium.crypto_kx_PUBLICKEYBYTES)
+  var sk = Buffer.alloc(sodium.crypto_kx_SECRETKEYBYTES)
 
   sodium.crypto_kx_keypair(pk, sk)
 
-  t.notEqual(pk, alloc(pk.length), 'made public key')
-  t.notEqual(sk, alloc(sk.length), 'made secret key')
+  t.notEqual(pk, Buffer.alloc(pk.length), 'made public key')
+  t.notEqual(sk, Buffer.alloc(sk.length), 'made secret key')
 
   t.throws(function () {
     sodium.crypto_kx_keypair()
@@ -49,16 +45,16 @@ tape('crypto_kx_keypair', function (t) {
 })
 
 tape('crypto_kx_client_session_keys', function (t) {
-  var clientPk = alloc(sodium.crypto_kx_PUBLICKEYBYTES)
-  var clientSk = alloc(sodium.crypto_kx_SECRETKEYBYTES)
-  var serverPk = alloc(sodium.crypto_kx_PUBLICKEYBYTES)
-  var serverSk = alloc(sodium.crypto_kx_SECRETKEYBYTES)
+  var clientPk = Buffer.alloc(sodium.crypto_kx_PUBLICKEYBYTES)
+  var clientSk = Buffer.alloc(sodium.crypto_kx_SECRETKEYBYTES)
+  var serverPk = Buffer.alloc(sodium.crypto_kx_PUBLICKEYBYTES)
+  var serverSk = Buffer.alloc(sodium.crypto_kx_SECRETKEYBYTES)
 
-  var serverRx = alloc(sodium.crypto_kx_SESSIONKEYBYTES)
-  var serverTx = alloc(sodium.crypto_kx_SESSIONKEYBYTES)
+  var serverRx = Buffer.alloc(sodium.crypto_kx_SESSIONKEYBYTES)
+  var serverTx = Buffer.alloc(sodium.crypto_kx_SESSIONKEYBYTES)
 
-  var clientRx = alloc(sodium.crypto_kx_SESSIONKEYBYTES)
-  var clientTx = alloc(sodium.crypto_kx_SESSIONKEYBYTES)
+  var clientRx = Buffer.alloc(sodium.crypto_kx_SESSIONKEYBYTES)
+  var clientTx = Buffer.alloc(sodium.crypto_kx_SESSIONKEYBYTES)
 
   sodium.crypto_kx_keypair(serverPk, serverSk)
   sodium.crypto_kx_keypair(clientPk, clientSk)

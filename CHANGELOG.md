@@ -8,6 +8,7 @@
   `crypto_aead_xchacha20poly1305_ietf_*_detached`.
 * Improved error messages; now reports the constants and argument names
   documented from javascript.
+* Use `Buffer.alloc`/`Buffer.fill`/`Buffer.from` in tests and examples
 
 ## v2.1.6
 

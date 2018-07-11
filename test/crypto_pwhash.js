@@ -1,6 +1,4 @@
 var tape = require('tape')
-var alloc = require('buffer-alloc')
-var fill = require('buffer-fill')
 var sodium = require('../')
 
 tape('constants', function (t) {
@@ -28,14 +26,12 @@ tape('constants', function (t) {
 })
 
 tape('crypto_pwhash', function (t) {
-  var output = alloc(32) // can be any size
-  var passwd = new Buffer('Hej, Verden!')
-  var salt = alloc(sodium.crypto_pwhash_SALTBYTES)
+  var output = Buffer.alloc(32) // can be any size
+  var passwd = Buffer.from('Hej, Verden!')
+  var salt = Buffer.alloc(sodium.crypto_pwhash_SALTBYTES, 'lo')
   var opslimit = sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE
   var memlimit = sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE
   var algo = sodium.crypto_pwhash_ALG_DEFAULT
-
-  fill(salt, 'lo')
 
   sodium.crypto_pwhash(output, passwd, salt, opslimit, memlimit, algo)
 
@@ -50,8 +46,8 @@ tape('crypto_pwhash', function (t) {
 })
 
 tape('crypto_pwhash_str', function (t) {
-  var output = alloc(sodium.crypto_pwhash_STRBYTES)
-  var passwd = new Buffer('Hej, Verden!')
+  var output = Buffer.alloc(sodium.crypto_pwhash_STRBYTES)
+  var passwd = Buffer.from('Hej, Verden!')
   var opslimit = sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE
   var memlimit = sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE
 
@@ -61,8 +57,8 @@ tape('crypto_pwhash_str', function (t) {
 
   sodium.crypto_pwhash_str(output, passwd, opslimit, memlimit)
 
-  t.notEqual(output, alloc(output.length), 'not blank')
-  t.notOk(sodium.crypto_pwhash_str_verify(alloc(output.length), passwd), 'does not verify')
+  t.notEqual(output, Buffer.alloc(output.length), 'not blank')
+  t.notOk(sodium.crypto_pwhash_str_verify(Buffer.alloc(output.length), passwd), 'does not verify')
   t.ok(sodium.crypto_pwhash_str_verify(output, passwd), 'verifies')
 
   t.end()
@@ -70,10 +66,10 @@ tape('crypto_pwhash_str', function (t) {
 
 tape('crypto_pwhash_str_needs_rehash', function (t) {
   var passwd = Buffer.from('secret')
-  var weakMem = alloc(sodium.crypto_pwhash_STRBYTES)
-  var weakOps = alloc(sodium.crypto_pwhash_STRBYTES)
-  var malformed = alloc(sodium.crypto_pwhash_STRBYTES)
-  var good = alloc(sodium.crypto_pwhash_STRBYTES)
+  var weakMem = Buffer.alloc(sodium.crypto_pwhash_STRBYTES)
+  var weakOps = Buffer.alloc(sodium.crypto_pwhash_STRBYTES)
+  var malformed = Buffer.alloc(sodium.crypto_pwhash_STRBYTES)
+  var good = Buffer.alloc(sodium.crypto_pwhash_STRBYTES)
   var weakAlg = Buffer.alloc(128)
   weakAlg.set('argon2i$p=2,v=19,m=1024$SGVsbG8=$SGVsbG8gd29ybA==')
 
@@ -96,14 +92,12 @@ tape('crypto_pwhash_str_needs_rehash', function (t) {
 })
 
 tape('crypto_pwhash_async', function (t) {
-  var output = alloc(32) // can be any size
-  var passwd = new Buffer('Hej, Verden!')
-  var salt = alloc(sodium.crypto_pwhash_SALTBYTES)
+  var output = Buffer.alloc(32) // can be any size
+  var passwd = Buffer.from('Hej, Verden!')
+  var salt = Buffer.alloc(sodium.crypto_pwhash_SALTBYTES, 'lo')
   var opslimit = sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE
   var memlimit = sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE
   var algo = sodium.crypto_pwhash_ALG_DEFAULT
-
-  fill(salt, 'lo')
 
   sodium.crypto_pwhash_async(output, passwd, salt, opslimit, memlimit, algo, function (err) {
     t.error(err)
@@ -122,8 +116,8 @@ tape('crypto_pwhash_async', function (t) {
 })
 
 tape('crypto_pwhash_str_async', function (t) {
-  var output = alloc(sodium.crypto_pwhash_STRBYTES)
-  var passwd = new Buffer('Hej, Verden!')
+  var output = Buffer.alloc(sodium.crypto_pwhash_STRBYTES)
+  var passwd = Buffer.from('Hej, Verden!')
   var opslimit = sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE
   var memlimit = sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE
 
@@ -133,8 +127,8 @@ tape('crypto_pwhash_str_async', function (t) {
 
   sodium.crypto_pwhash_str_async(output, passwd, opslimit, memlimit, function (err) {
     t.error(err)
-    t.notEqual(output, alloc(output.length), 'not blank')
-    sodium.crypto_pwhash_str_verify_async(alloc(output.length), passwd, function (err, bool) {
+    t.notEqual(output, Buffer.alloc(output.length), 'not blank')
+    sodium.crypto_pwhash_str_verify_async(Buffer.alloc(output.length), passwd, function (err, bool) {
       t.error(err)
       t.ok(bool === false, 'does not verify')
 
@@ -148,8 +142,8 @@ tape('crypto_pwhash_str_async', function (t) {
 })
 
 tape('crypto_pwhash limits', function (t) {
-  var output = alloc(sodium.crypto_pwhash_STRBYTES)
-  var passwd = new Buffer('Hej, Verden!')
+  var output = Buffer.alloc(sodium.crypto_pwhash_STRBYTES)
+  var passwd = Buffer.from('Hej, Verden!')
   var opslimit = Number.MAX_SAFE_INTEGER
   var memlimit = Number.MAX_SAFE_INTEGER
 

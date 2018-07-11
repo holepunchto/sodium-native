@@ -1,4 +1,3 @@
-var alloc = require('buffer-alloc')
 var test = require('tape')
 var sodium = require('../')
 
@@ -7,7 +6,7 @@ test('sodium_pad / sodium_unpad', function (assert) {
     var binLen = sodium.randombytes_uniform(200)
     var blocksize = 1 + sodium.randombytes_uniform(100)
     var binPaddedMaxlen = binLen + (blocksize - (binLen % blocksize))
-    var bingPaddedLong = alloc(binPaddedMaxlen + 1)
+    var bingPaddedLong = Buffer.alloc(binPaddedMaxlen + 1)
     var binPaddedLen = bingPaddedLong.slice(0, binPaddedMaxlen)
     sodium.randombytes_buf(binPaddedLen)
 

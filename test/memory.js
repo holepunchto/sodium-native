@@ -1,14 +1,11 @@
-var alloc = require('buffer-alloc')
 var tape = require('tape')
 var sodium = require('../')
 var fork = require('child_process').fork
 
 tape('sodium_memzero', function (t) {
-  var buf = alloc(10)
-  var exp = alloc(10)
-  var zero = alloc(10)
-  buf.fill(0xab)
-  exp.fill(0xab)
+  var buf = Buffer.alloc(10, 0xab)
+  var exp = Buffer.alloc(10, 0xab)
+  var zero = Buffer.alloc(10)
 
   t.same(buf, exp, 'buffers start out with same content')
   t.notSame(buf, zero, 'buffer is not zero')
@@ -21,17 +18,15 @@ tape('sodium_memzero', function (t) {
 })
 
 tape('sodium_mlock / sodium_munlock', function (t) {
-  var buf = alloc(10)
-  var exp = alloc(10)
+  var buf = Buffer.alloc(10, 0x18)
+  var exp = Buffer.alloc(10, 0x18)
 
-  buf.fill(0x18)
-  exp.fill(0x18)
   sodium.sodium_mlock(buf)
   t.notOk(buf.secure)
   t.same(buf, exp, 'mlock did not corrupt data')
   sodium.sodium_munlock(buf)
   t.notOk(buf.secure)
-  t.same(buf, alloc(10), 'munlock did zero data')
+  t.same(buf, Buffer.alloc(10), 'munlock did zero data')
 
   t.end()
 })
