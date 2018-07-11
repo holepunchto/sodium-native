@@ -71,7 +71,7 @@ NAN_METHOD(CryptoStreamXorWrap::New) {
 NAN_METHOD(CryptoStreamXorWrap::Update) {
   CryptoStreamXorWrap *self = Nan::ObjectWrap::Unwrap<CryptoStreamXorWrap>(info.This());
   ASSERT_BUFFER_SET_LENGTH(info[1], message)
-  ASSERT_BUFFER_MIN_LENGTH(info[0], cipher, "message.length", message_length)
+  ASSERT_BUFFER_MIN_LENGTH(info[0], cipher, `message.length`, message_length)
   crypto_stream_xor_wrap_update(self, CDATA(cipher), CDATA(message), message_length);
 }
 
