@@ -110,24 +110,24 @@ NAN_METHOD(randombytes_buf_deterministic) {
 // helpers
 
 NAN_METHOD(sodium_memcmp) {
-  ASSERT_UINT(info[2], length)
-  ASSERT_BUFFER_MIN_LENGTH(info[0], b1, length)
-  ASSERT_BUFFER_MIN_LENGTH(info[1], b2, length)
+  ASSERT_UINT(info[2], len)
+  ASSERT_BUFFER_MIN_LENGTH(info[0], b1, len, len)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], b2, len, len)
 
-  CALL_SODIUM_BOOL(sodium_memcmp(CDATA(b1), CDATA(b2), length))
+  CALL_SODIUM_BOOL(sodium_memcmp(CDATA(b1), CDATA(b2), len))
 }
 
 NAN_METHOD(sodium_compare) {
-  ASSERT_UINT(info[2], length)
-  ASSERT_BUFFER_MIN_LENGTH(info[0], b1, length)
-  ASSERT_BUFFER_MIN_LENGTH(info[1], b2, length)
+  ASSERT_UINT(info[2], len)
+  ASSERT_BUFFER_MIN_LENGTH(info[0], b1, len, len)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], b2, len, len)
 
   info.GetReturnValue().Set(Nan::New<v8::Number>(sodium_compare(CDATA(b1), CDATA(b2), length)));
 }
 
 NAN_METHOD(sodium_add) {
   ASSERT_BUFFER_SET_LENGTH(info[0], a)
-  ASSERT_BUFFER_MIN_LENGTH(info[1], b, a_length)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], b, `a.length`, a_length)
 
   sodium_add(CDATA(a), CDATA(b), a_length);
 }
@@ -139,10 +139,10 @@ NAN_METHOD(sodium_increment) {
 }
 
 NAN_METHOD(sodium_is_zero) {
-  ASSERT_UINT(info[1], length)
-  ASSERT_BUFFER_MIN_LENGTH(info[0], n, length)
+  ASSERT_UINT(info[1], len)
+  ASSERT_BUFFER_MIN_LENGTH(info[0], n, len, len)
 
-  CALL_SODIUM_BOOL_INV(sodium_is_zero(CDATA(n), length))
+  CALL_SODIUM_BOOL_INV(sodium_is_zero(CDATA(n), len))
 }
 
 NAN_METHOD(sodium_pad) {
@@ -860,45 +860,45 @@ NAN_METHOD(crypto_scalarmult) {
 
 
 NAN_METHOD(crypto_core_ed25519_is_valid_point) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], p, crypto_core_ed25519_bytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], p, crypto_core_ed25519_BYTES, crypto_core_ed25519_bytes())
 
   CALL_SODIUM_BOOL_INV(crypto_core_ed25519_is_valid_point(CDATA(p)))
 }
 
 NAN_METHOD(crypto_core_ed25519_from_uniform) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], p, crypto_core_ed25519_bytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[1], r, crypto_core_ed25519_uniformbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], p, crypto_core_ed25519_BYTES, crypto_core_ed25519_bytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], r, crypto_core_ed25519_UNIFORMBYTES, crypto_core_ed25519_uniformbytes())
 
   CALL_SODIUM(crypto_core_ed25519_from_uniform(CDATA(p), CDATA(r)))
 }
 
 NAN_METHOD(crypto_scalarmult_ed25519) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], q, crypto_scalarmult_ed25519_bytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[1], n, crypto_scalarmult_ed25519_scalarbytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[2], p, crypto_scalarmult_ed25519_bytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], q, crypto_scalarmult_ed25519_BYTES, crypto_scalarmult_ed25519_bytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], n, crypto_scalarmult_ed25519_SCALARBYTES, crypto_scalarmult_ed25519_scalarbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], p, crypto_scalarmult_ed25519_BYTES, crypto_scalarmult_ed25519_bytes())
 
   CALL_SODIUM(crypto_scalarmult_ed25519(CDATA(q), CDATA(n), CDATA(p)))
 }
 
 NAN_METHOD(crypto_scalarmult_ed25519_base) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], q, crypto_scalarmult_ed25519_bytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[1], n, crypto_scalarmult_ed25519_scalarbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], q, crypto_scalarmult_ed25519_BYTES, crypto_scalarmult_ed25519_bytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], n, crypto_scalarmult_ed25519_SCALARBYTES, crypto_scalarmult_ed25519_scalarbytes())
 
   CALL_SODIUM(crypto_scalarmult_ed25519_base(CDATA(q), CDATA(n)))
 }
 
 NAN_METHOD(crypto_core_ed25519_add) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], r, crypto_scalarmult_ed25519_bytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[1], p, crypto_scalarmult_ed25519_bytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[2], q, crypto_scalarmult_ed25519_bytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], r, crypto_scalarmult_ed25519_BYTES, crypto_scalarmult_ed25519_bytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], p, crypto_scalarmult_ed25519_BYTES, crypto_scalarmult_ed25519_bytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], q, crypto_scalarmult_ed25519_BYTES, crypto_scalarmult_ed25519_bytes())
 
   CALL_SODIUM(crypto_core_ed25519_add(CDATA(r), CDATA(p), CDATA(q)))
 }
 
 NAN_METHOD(crypto_core_ed25519_sub) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], r, crypto_scalarmult_ed25519_bytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[1], p, crypto_scalarmult_ed25519_bytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[2], q, crypto_scalarmult_ed25519_bytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[0], r, crypto_scalarmult_ed25519_BYTES, crypto_scalarmult_ed25519_bytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], p, crypto_scalarmult_ed25519_BYTES, crypto_scalarmult_ed25519_bytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], q, crypto_scalarmult_ed25519_BYTES, crypto_scalarmult_ed25519_bytes())
 
   CALL_SODIUM(crypto_core_ed25519_sub(CDATA(r), CDATA(p), CDATA(q)))
 }
