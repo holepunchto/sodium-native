@@ -114,6 +114,61 @@ Fill `buffer` with random data.
 Fill `buffer` with random data, generated from `seed`. `seed` must be a Buffer
 of at least `sodium.randombytes_SEEDBYTES` length
 
+### Helpers
+
+Bindings to various helper functions.
+[See the libsodium padding docs for more information](https://download.libsodium.org/doc/helpers/).
+
+### `var bool = sodium_memcmp(b1, b2, len)`
+
+Compare `b1` with `b2` for `len` bytes, in **constant-time** for `len`.
+
+* `b1` must be `Buffer`
+* `b2` must be `Buffer`
+* `len` must be integer at most the length of `b1` or `b2`
+
+Returns `true` when equal, otherwise `false`.
+
+### `var direction = sodium_compare(b1, b2, len)`
+
+Compare `b1` with `b2` for `len` bytes, regarding either as little-endian encoded
+number.
+
+* `b1` must be `Buffer`
+* `b2` must be `Buffer`
+* `len` must be integer at most the length of `b1` or `b2`
+
+Returns `1`, `0` or `-1` on whether `b1` is greater, equal or less than `b2`.
+This is the same scheme as `Array.prototype.sort` expect.
+
+### `sodium_add(a, b, len)`
+
+Adds `b` to `a` as a `len` byte number (wrapping), regarding either as
+little-endian encoded number, and writing the result into `a`. This operation is
+**constant-time** for `len`.
+
+* `a` must be `Buffer`
+* `b` must be `Buffer`
+* `len` must be integer at most the length of `b1` or `b2`. This is also the
+  modulo for the addition
+
+
+### `sodium_increment(buf)`
+
+Increment `buf` as a little-endian number. This operation is **constant-time**
+for the length of `buf`.
+
+* `buf` must be `Buffer`
+
+### `var bool = sodium_is_zero(buf, len)`
+
+Test whether `buf` is all zero for `len` bytes. This operation is
+**constant-time** for `len`.
+
+* `len` must be integer at most the length of `buf`
+
+Returns `true` if all `len` bytes are zero, otherwise `false`.
+
 ### Padding
 
 Bindings to the padding API.
