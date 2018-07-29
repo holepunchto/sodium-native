@@ -133,16 +133,16 @@ NAN_METHOD(sodium_add) {
 }
 
 NAN_METHOD(sodium_increment) {
-  ASSERT_BUFFER_SET_LENGTH(info[0], n)
+  ASSERT_BUFFER_SET_LENGTH(info[0], buf)
 
-  sodium_increment(CDATA(n), n_length);
+  sodium_increment(CDATA(buf), buf_length);
 }
 
 NAN_METHOD(sodium_is_zero) {
   ASSERT_UINT(info[1], len)
-  ASSERT_BUFFER_MIN_LENGTH(info[0], n, len, len)
+  ASSERT_BUFFER_MIN_LENGTH(info[0], buf, len, len)
 
-  CALL_SODIUM_BOOL_INV(sodium_is_zero(CDATA(n), len))
+  CALL_SODIUM_BOOL_INV(sodium_is_zero(CDATA(buf), len))
 }
 
 NAN_METHOD(sodium_pad) {
