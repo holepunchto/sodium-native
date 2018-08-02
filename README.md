@@ -424,7 +424,7 @@ The decrypted message will be stored in `message`.
 ### AEAD (Authenticated Encryption with Additional Data)
 
 Bindings for the crypto_aead_* APIs.
-[See the libsodium crypto_secretbox docs for more information](https://download.libsodium.org/doc/secret-key_cryptography/aead.html).
+[See the libsodium AEAD docs for more information](https://download.libsodium.org/doc/secret-key_cryptography/aead.html).
 
 Currently only `crypto_aead_xchacha20poly1305_ietf` is exposed.
 
