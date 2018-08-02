@@ -110,19 +110,17 @@ NAN_METHOD(randombytes_buf_deterministic) {
 // helpers
 
 NAN_METHOD(sodium_memcmp) {
-  ASSERT_UINT(info[2], len)
-  ASSERT_BUFFER_MIN_LENGTH(info[0], b1, len, len)
-  ASSERT_BUFFER_MIN_LENGTH(info[1], b2, len, len)
+  ASSERT_BUFFER_SET_LENGTH(info[0], b1)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], b2, `b1.length`, b1_length)
 
-  CALL_SODIUM_BOOL(sodium_memcmp(CDATA(b1), CDATA(b2), len))
+  CALL_SODIUM_BOOL(sodium_memcmp(CDATA(b1), CDATA(b2), b1_length))
 }
 
 NAN_METHOD(sodium_compare) {
-  ASSERT_UINT(info[2], len)
-  ASSERT_BUFFER_MIN_LENGTH(info[0], b1, len, len)
-  ASSERT_BUFFER_MIN_LENGTH(info[1], b2, len, len)
+  ASSERT_BUFFER_SET_LENGTH(info[0], b1)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], b2, `b1.length`, b1_length)
 
-  info.GetReturnValue().Set(Nan::New<v8::Number>(sodium_compare(CDATA(b1), CDATA(b2), length)));
+  info.GetReturnValue().Set(Nan::New<v8::Number>(sodium_compare(CDATA(b1), CDATA(b2), b1_length)));
 }
 
 NAN_METHOD(sodium_add) {
@@ -139,10 +137,9 @@ NAN_METHOD(sodium_increment) {
 }
 
 NAN_METHOD(sodium_is_zero) {
-  ASSERT_UINT(info[1], len)
-  ASSERT_BUFFER_MIN_LENGTH(info[0], buf, len, len)
+  ASSERT_BUFFER_SET_LENGTH(info[0], buf)
 
-  CALL_SODIUM_BOOL_INV(sodium_is_zero(CDATA(buf), len))
+  CALL_SODIUM_BOOL_INV(sodium_is_zero(CDATA(buf), buf_length))
 }
 
 NAN_METHOD(sodium_pad) {
