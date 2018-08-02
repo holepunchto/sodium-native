@@ -11,6 +11,8 @@
 * Use `Buffer.alloc`/`Buffer.fill`/`Buffer.from` in tests and examples
 * Add more libsodium helpers; `sodium_memcmp`, `sodium_compare`, `sodium_add`,
   `sodium_increment`, `sodium_is_zero`
+* Make it possible to pass only one of `rx` or `tx` to `crypto_kx_*`
+
 ## v2.1.6
 
 * Additional check `x < 0` before cast on uint assert macro
