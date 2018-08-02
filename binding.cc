@@ -187,23 +187,53 @@ NAN_METHOD(crypto_kx_seed_keypair) {
 }
 
 NAN_METHOD(crypto_kx_client_session_keys) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], rx, crypto_kx_SESSIONKEYBYTES, crypto_kx_sessionkeybytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[1], tx, crypto_kx_SESSIONKEYBYTES, crypto_kx_sessionkeybytes())
   ASSERT_BUFFER_MIN_LENGTH(info[2], client_pk, crypto_kx_PUBLICKEYBYTES, crypto_kx_publickeybytes())
   ASSERT_BUFFER_MIN_LENGTH(info[3], client_sk, crypto_kx_SECRETKEYBYTES, crypto_kx_secretkeybytes())
   ASSERT_BUFFER_MIN_LENGTH(info[4], server_pk, crypto_kx_PUBLICKEYBYTES, crypto_kx_publickeybytes())
 
-  CALL_SODIUM(crypto_kx_client_session_keys(CDATA(rx), CDATA(tx), CDATA(client_pk), CDATA(client_sk), CDATA(server_pk)))
+  unsigned char *rx = NULL;
+  unsigned char *tx = NULL;
+  if (info[0]->IsObject()) {
+    ASSERT_BUFFER_MIN_LENGTH(info[0], rx_buf, crypto_kx_SESSIONKEYBYTES, crypto_kx_sessionkeybytes())
+    rx = CDATA(rx_buf);
+  }
+
+  if (info[1]->IsObject()) {
+    ASSERT_BUFFER_MIN_LENGTH(info[1], tx_buf, crypto_kx_SESSIONKEYBYTES, crypto_kx_sessionkeybytes())
+    tx = CDATA(tx_buf);
+  }
+
+  if (tx == NULL && rx == NULL) {
+    Nan::ThrowError("Either tx or rx must be non-null");
+    return;
+  }
+
+  CALL_SODIUM(crypto_kx_client_session_keys(rx, tx, CDATA(client_pk), CDATA(client_sk), CDATA(server_pk)))
 }
 
 NAN_METHOD(crypto_kx_server_session_keys) {
-  ASSERT_BUFFER_MIN_LENGTH(info[0], rx, crypto_kx_SESSIONKEYBYTES, crypto_kx_sessionkeybytes())
-  ASSERT_BUFFER_MIN_LENGTH(info[1], tx, crypto_kx_SESSIONKEYBYTES, crypto_kx_sessionkeybytes())
   ASSERT_BUFFER_MIN_LENGTH(info[2], server_pk, crypto_kx_PUBLICKEYBYTES, crypto_kx_publickeybytes())
   ASSERT_BUFFER_MIN_LENGTH(info[3], server_sk, crypto_kx_SECRETKEYBYTES, crypto_kx_secretkeybytes())
   ASSERT_BUFFER_MIN_LENGTH(info[4], client_pk, crypto_kx_PUBLICKEYBYTES, crypto_kx_publickeybytes())
 
-  CALL_SODIUM(crypto_kx_server_session_keys(CDATA(rx), CDATA(tx), CDATA(server_pk), CDATA(server_sk), CDATA(client_pk)))
+  unsigned char *rx = NULL;
+  unsigned char *tx = NULL;
+  if (info[0]->IsObject()) {
+    ASSERT_BUFFER_MIN_LENGTH(info[0], rx_buf, crypto_kx_SESSIONKEYBYTES, crypto_kx_sessionkeybytes())
+    rx = CDATA(rx_buf);
+  }
+
+  if (info[1]->IsObject()) {
+    ASSERT_BUFFER_MIN_LENGTH(info[1], tx_buf, crypto_kx_SESSIONKEYBYTES, crypto_kx_sessionkeybytes())
+    tx = CDATA(tx_buf);
+  }
+
+  if (tx == NULL && rx == NULL) {
+    Nan::ThrowError("Either tx or rx must be non-null");
+    return;
+  }
+
+  CALL_SODIUM(crypto_kx_server_session_keys(rx, tx, CDATA(server_pk), CDATA(server_sk), CDATA(client_pk)))
 }
 
 // crypto_aead

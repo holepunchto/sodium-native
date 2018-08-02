@@ -75,6 +75,48 @@ tape('crypto_kx_client_session_keys', function (t) {
   t.end()
 })
 
+tape('crypto_kx_client_session_keys one NULL', function (t) {
+  var clientPk = Buffer.alloc(sodium.crypto_kx_PUBLICKEYBYTES)
+  var clientSk = Buffer.alloc(sodium.crypto_kx_SECRETKEYBYTES)
+  var serverPk = Buffer.alloc(sodium.crypto_kx_PUBLICKEYBYTES)
+  var serverSk = Buffer.alloc(sodium.crypto_kx_SECRETKEYBYTES)
+
+  var serverRx = Buffer.alloc(sodium.crypto_kx_SESSIONKEYBYTES)
+  var serverTx = Buffer.alloc(sodium.crypto_kx_SESSIONKEYBYTES)
+
+  var clientRx = Buffer.alloc(sodium.crypto_kx_SESSIONKEYBYTES)
+  var clientTx = Buffer.alloc(sodium.crypto_kx_SESSIONKEYBYTES)
+
+  sodium.crypto_kx_keypair(serverPk, serverSk)
+  sodium.crypto_kx_keypair(clientPk, clientSk)
+
+  t.throws(function () {
+    sodium.crypto_kx_client_session_keys()
+  }, 'should validate')
+
+  t.throws(function () {
+    sodium.crypto_kx_server_session_keys()
+  }, 'should validate')
+
+  t.throws(function () {
+    sodium.crypto_kx_server_session_keys(null, null, clientPk, clientSk, serverPk)
+  }, 'should validate')
+
+  t.throws(function () {
+    sodium.crypto_kx_client_session_keys(null, null, clientPk, clientSk, serverPk)
+  }, 'should validate')
+
+  sodium.crypto_kx_client_session_keys(clientRx, null, clientPk, clientSk, serverPk)
+  sodium.crypto_kx_server_session_keys(null, serverTx, serverPk, serverSk, clientPk)
+
+  t.same(clientRx, serverTx)
+
+  sodium.crypto_kx_client_session_keys(null, clientTx, clientPk, clientSk, serverPk)
+  sodium.crypto_kx_server_session_keys(serverRx, null, serverPk, serverSk, clientPk)
+  t.same(clientTx, serverRx)
+  t.end()
+})
+
 tape('crypto_kx constants', function (t) {
   t.same(typeof sodium.crypto_kx_SESSIONKEYBYTES, 'number')
   t.same(typeof sodium.crypto_kx_PUBLICKEYBYTES, 'number')
