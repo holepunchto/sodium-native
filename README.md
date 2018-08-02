@@ -119,48 +119,41 @@ of at least `sodium.randombytes_SEEDBYTES` length
 Bindings to various helper functions.
 [See the libsodium padding docs for more information](https://download.libsodium.org/doc/helpers/).
 
-### `var bool = sodium_memcmp(b1, b2, len)`
+### `var bool = sodium.sodium_memcmp(b1, b2)`
 
-Compare `b1` with `b2` for `len` bytes, in **constant-time** for `len`.
+Compare `b1` with `b2`, in **constant-time** for `b1.length`.
 
 * `b1` must be `Buffer`
-* `b2` must be `Buffer`
-* `len` must be integer at most the length of `b1` or `b2`
+* `b2` must be `Buffer` and must be `b1.length` bytes
 
 Returns `true` when equal, otherwise `false`.
 
-### `var direction = sodium_compare(b1, b2, len)`
+### `var direction = sodium.sodium_compare(b1, b2)`
 
-Compare `b1` with `b2` for `len` bytes, regarding either as little-endian encoded
-number.
+Compare `b1` with `b2`, regarding either as little-endian encoded number.
 
 * `b1` must be `Buffer`
-* `b2` must be `Buffer`
-* `len` must be integer at most the length of `b1` or `b2`
+* `b2` must be `Buffer` and must be `b1.length` bytes
 
 Returns `1`, `0` or `-1` on whether `b1` is greater, equal or less than `b2`.
 This is the same scheme as `Array.prototype.sort` expect.
 
-### `sodium_add(a, b, len)`
+### `sodium.sodium_add(a, b)`
 
-Adds `b` to `a` as a `len` byte number (wrapping), regarding either as
-little-endian encoded number, and writing the result into `a`. This operation is
-**constant-time** for `len`.
+Adds `b` to `a` (wrapping), regarding either as little-endian encoded number,
+and writing the result into `a`.
 
 * `a` must be `Buffer`
-* `b` must be `Buffer`
-* `len` must be integer at most the length of `b1` or `b2`. This is also the
-  modulo for the addition
+* `b` must be `Buffer` and must be `a.length` bytes
 
-
-### `sodium_increment(buf)`
+### `sodium.sodium_increment(buf)`
 
 Increment `buf` as a little-endian number. This operation is **constant-time**
 for the length of `buf`.
 
 * `buf` must be `Buffer`
 
-### `var bool = sodium_is_zero(buf, len)`
+### `var bool = sodium.sodium_is_zero(buf, len)`
 
 Test whether `buf` is all zero for `len` bytes. This operation is
 **constant-time** for `len`.
