@@ -59,7 +59,7 @@
   info.GetReturnValue().Set(ret == 1 ? Nan::True() : Nan::False());
 
 #define ASSERT_BUFFER(name, var) \
-  if (!node::Buffer::HasInstance(name)) { \
+  if (!name->IsArrayBufferView()) { \
     Nan::ThrowError(#var " must be a buffer"); \
     return; \
   } \

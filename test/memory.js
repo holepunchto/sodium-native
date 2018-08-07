@@ -2,7 +2,7 @@ var tape = require('tape')
 var sodium = require('../')
 var fork = require('child_process').fork
 
-tape.only('Type support', function (t) {
+tape('Type support', function (t) {
   t.throws(_ => sodium.sodium_memzero([]), 'throws on array')
   t.throws(_ => sodium.sodium_memzero('str'), 'throws on string')
   t.throws(_ => sodium.sodium_memzero({}), 'throws on object')
