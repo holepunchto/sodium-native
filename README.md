@@ -886,7 +886,7 @@ You should use the `rx` to decrypt incoming data and `tx` to encrypt outgoing.
 If you need to make a one-way or half-duplex channel you can give only one of
 `rx` or `tx`.
 
-### Scalar multiplication
+### Diffie-Hellman (Scalar multiplication)
 
 Bindings for the crypto_scalarmult API.
 [See the libsodium crypto_scalarmult docs for more information](https://download.libsodium.org/doc/advanced/scalar_multiplication.html).
@@ -909,6 +909,79 @@ Derive a shared secret from a local secret key and a remote public key.
 * `remotePublicKey` should be a buffer of length `crypto_scalarmult_BYTES`.
 
 The generated shared secret is stored in `sharedSecret`.
+
+### Elliptic curve point aritmhetic
+
+Bindings for the crypto_core_ed25519 and crypto_co_ed25519 API.
+[See the libsodium crypto_core_ed25519 docs for more information](https://download.libsodium.org/doc/advanced/point-arithmetic.html).
+
+#### Constants
+
+* `crypto_scalarmult_ed25519_BYTES`
+* `crypto_scalarmult_ed25519_SCALARBYTES`
+* `crypto_core_ed25519_BYTES`
+* `crypto_core_ed25519_UNIFORMBYTES`
+
+#### `var bool = crypto_core_ed25519_is_valid_point(p)`
+
+> The crypto_core_ed25519_is_valid_point() function checks that p represents
+> a point on the edwards25519 curve, in canonical form, on the main subgroup,
+> and that the point doesn't have a small order.
+
+* `p` must be `Buffer` of at least `crypto_core_ed25519_BYTES` bytes
+
+Returns `true` or `false`
+
+#### `crypto_core_ed25519_from_uniform(p, r)`
+
+Maps a `crypto_core_ed25519_UNIFORMBYTES` bytes vector (usually the output of
+a hash function) to a a valid curve point and stores its compressed
+representation in `p`.
+
+The point is guaranteed to be on the main subgroup.
+
+* `p` must be `Buffer` of at least `crypto_core_ed25519_BYTES` bytes
+* `r` must be `Buffer` of at least `crypto_core_ed25519_UNIFORMBYTES` bytes
+
+#### `crypto_scalarmult_ed25519(q, n, p)`
+
+Multiply point `p` by scalar `n` and store its compressed representation in `q`.
+
+* `q` must be `Buffer` of at least `crypto_scalarmult_ed25519_BYTES` bytes
+* `n` must be `Buffer` of at least `crypto_scalarmult_ed25519_SCALARBYTES` bytes
+* `p` must be `Buffer` of at least `crypto_scalarmult_ed25519_BYTES` bytes
+
+Note this function will throw if `n` is zero or `p` is an invalid curve point.
+
+#### `crypto_scalarmult_ed25519_base(q, n)`
+
+Multiply the basepoint by scalar `n` and store its compressed representation in
+`q`. Note that `n` will be clamped.
+
+* `q` must be `Buffer` of at least `crypto_scalarmult_ed25519_BYTES` bytes
+* `n` must be `Buffer` of at least `crypto_scalarmult_ed25519_SCALARBYTES` bytes
+
+Note this function will throw if `n` is zero
+
+#### `crypto_core_ed25519_add(r, p, q)`
+
+Add point `q` to `p`, storing the result to `r`.
+
+* `r` must be `Buffer` of at least `crypto_core_ed25519_BYTES` bytes
+* `p` must be `Buffer` of at least `crypto_core_ed25519_BYTES` bytes
+* `q` must be `Buffer` of at least `crypto_core_ed25519_BYTES` bytes
+
+Will throw if `p`, `q` are not valid curve points
+
+#### `crypto_core_ed25519_sub(r, p, q)`
+
+Subtract point `q` to `p`, storing the result to `r`.
+
+* `r` must be `Buffer` of at least `crypto_core_ed25519_BYTES` bytes
+* `p` must be `Buffer` of at least `crypto_core_ed25519_BYTES` bytes
+* `q` must be `Buffer` of at least `crypto_core_ed25519_BYTES` bytes
+
+Will throw if `p`, `q` are not valid curve points
 
 ### Short hashes
 
