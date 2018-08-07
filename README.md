@@ -48,7 +48,7 @@ if (!sodium.crypto_secretbox_open_easy(plainText, ciphertext, nonce, key)) {
 
 ## API
 
-[**Go to docs for the latest release**](https://github.com/sodium-friends/sodium-native/tree/v2.1.6) (The following docs may be for a unreleased version)
+[**Go to docs for the latest release**](https://github.com/sodium-friends/sodium-native/tree/v2.2.0) (The following docs may be for a unreleased version)
 
 #### `var sodium = require('sodium-native')`
 
