@@ -12,6 +12,7 @@
 * Add more libsodium helpers; `sodium_memcmp`, `sodium_compare`, `sodium_add`,
   `sodium_increment`, `sodium_is_zero`
 * Make it possible to pass only one of `rx` or `tx` to `crypto_kx_*`
+* Add `crypto_scalarmult_ed25519_*` and `crypto_core_ed25519_*` operations
 
 ## v2.1.6
 
