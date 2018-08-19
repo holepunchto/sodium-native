@@ -392,10 +392,10 @@ NAN_METHOD(crypto_sign_seed_keypair) {
     crypto_sign_PUBLICKEYBYTES,
     crypto_sign_publickeybytes())
   ASSERT_BUFFER_MIN_LENGTH(info[1], secret_key,
-    crypto_sign_PUBLICKEYBYTES,
+    crypto_sign_SECRETKEYBYTES,
     crypto_sign_secretkeybytes())
   ASSERT_BUFFER_MIN_LENGTH(info[2], seed,
-    crypto_sign_PUBLICKEYBYTES,
+    crypto_sign_SEEDBYTES,
     crypto_sign_seedbytes())
 
   CALL_SODIUM(crypto_sign_seed_keypair(CDATA(public_key), CDATA(secret_key), CDATA(seed)))
@@ -406,7 +406,7 @@ NAN_METHOD(crypto_sign_keypair) {
     crypto_sign_PUBLICKEYBYTES,
     crypto_sign_publickeybytes())
   ASSERT_BUFFER_MIN_LENGTH(info[1], secret_key,
-    crypto_sign_PUBLICKEYBYTES,
+    crypto_sign_SECRETKEYBYTES,
     crypto_sign_secretkeybytes())
 
   CALL_SODIUM(crypto_sign_keypair(CDATA(public_key), CDATA(secret_key)))
@@ -418,7 +418,7 @@ NAN_METHOD(crypto_sign) {
     `message.length + crypto_sign_BYTES`,
     message_length + crypto_sign_bytes())
   ASSERT_BUFFER_MIN_LENGTH(info[2], secret_key,
-    crypto_sign_PUBLICKEYBYTES,
+    crypto_sign_SECRETKEYBYTES,
     crypto_sign_secretkeybytes())
 
   unsigned long long signed_message_length_dummy;  // TODO: what is this used for?
