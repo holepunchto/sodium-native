@@ -1,5 +1,15 @@
 # CHANGELOG
 
+## v2.2.2
+
+* Document release process
+* Wrong error messages wrt. `crypto_sign`. Thanks @jackschmidt
+* Build for Electron v3.0.0
+
+## v2.2.1
+
+* Fix CHANGELOG
+
 ## v2.2.0
 
 * Register tags for `async_hook`s on `crypto_pwhash_*_async` functions
