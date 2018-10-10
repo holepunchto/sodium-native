@@ -65,7 +65,7 @@ function buildWindows () {
 
   spawn('.\\msvc-scripts\\process.bat', [], {cwd: dir, stdio: 'inherit'}, function (err) {
     if (err) throw err
-    var msbuild = path.resolve('/', 'Program Files (x86)', 'MSBuild/14.0/Bin/MSBuild.exe')
+    var msbuild = path.resolve(process.env.SystemDrive || '/', 'Program Files (x86)', 'MSBuild/14.0/Bin/MSBuild.exe')
     var args = ['/p:Configuration=ReleaseDLL;Platform=' + warch, '/nologo']
     spawn(msbuild, args, {cwd: dir, stdio: 'inherit'}, function (err) {
       if (err) throw err
