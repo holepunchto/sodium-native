@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## v2.2.3
+
+* Add Node 11 to build matrix
+
 ## v2.2.2
 
 * Document release process
