@@ -1,5 +1,9 @@
 # CHANGELOG
 
+## Next
+
+* Updated cross-references to libsodium documentation (thanks @stripedpajamas)
+
 ## v2.2.3
 
 * Add Node 11 to build matrix
