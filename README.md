@@ -117,7 +117,7 @@ of at least `sodium.randombytes_SEEDBYTES` length
 ### Helpers
 
 Bindings to various helper functions.
-[See the libsodium padding docs for more information](https://download.libsodium.org/doc/helpers/).
+[See the libsodium helpers docs for more information](https://download.libsodium.org/doc/helpers/).
 
 ### `var bool = sodium.sodium_memcmp(b1, b2)`
 
