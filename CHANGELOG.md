@@ -3,6 +3,7 @@
 ## Next
 
 * Updated cross-references to libsodium documentation (thanks @stripedpajamas)
+* Fix documentation typo (thanks @ralphtheninja)
 
 ## v2.2.3
 
