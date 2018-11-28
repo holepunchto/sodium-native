@@ -20,9 +20,9 @@
     "dev": "node-gyp rebuild",
     "fetch-libsodium": "git submodule update --recursive --init",
     "test": "standard && tape \"test/*.js\"",
-    "install": "node-gyp-build \"node preinstall.js\" \"node postinstall.js\"",
-    "prebuild": "prebuildify -a --strip --preinstall \"node preinstall.js\" --postinstall \"node postinstall.js\"",
-    "prebuild-ia32": "prebuildify -a --strip --preinstall \"node preinstall.js\" --postinstall \"node postinstall.js\" --arch=ia32"
+    "install": "node-gyp-build ./preinstall.js ./postinstall.js",
+    "prebuild": "prebuildify -a --strip --preinstall ./preinstall.js --postinstall ./postinstall.js",
+    "prebuild-ia32": "prebuildify -a --strip --preinstall ./preinstall.js --postinstall ./postinstall.js --arch=ia32"
   },
   "repository": {
     "type": "git",
