@@ -59,13 +59,48 @@ switch (os.platform()) {
     break
 }
 
+function findMsBuild () {
+  var programmFiles
+
+  if (arch === 'x64') {
+    programmFiles = process.env['PROGRAMFILES(X86)']
+  } else {
+    programmFiles = process.env['PROGRAMFILES']
+  }
+
+  var possiblePaths = [
+    programmFiles + '/Microsoft Visual Studio/2017/BuildTools/MSBuild/15.0/Bin/msbuild.exe',
+    programmFiles + '/Microsoft Visual Studio/2017/Enterprise/MSBuild/15.0/Bin/msbuild.exe',
+    programmFiles + '/Microsoft Visual Studio/2017/Professional/MSBuild/15.0/Bin/msbuild.exe',
+    programmFiles + '/Microsoft Visual Studio/2017/Community/MSBuild/15.0/Bin/msbuild.exe',
+    programmFiles + '/MSBuild/14.0/Bin/MSBuild.exe',
+    programmFiles + '/MSBuild/12.0/Bin/MSBuild.exe',
+    process.env.WINDIR + '/Microsoft.NET/Framework/v4.0.30319/MSBuild.exe'
+  ]
+
+  for (var counter = 0; counter < possiblePaths.length; counter++) {
+    var possiblePath = path.resolve(possiblePaths[counter])
+    try {
+      fs.accessSync(possiblePath)
+      return possiblePath
+    } catch (error) {
+      // Binary not found checking next path
+    }
+  }
+
+  console.error('MSBuild not found')
+  console.error('You can run "npm install --global --production windows-build-tools" to fix this.')
+
+  process.exit(1)
+}
+
 function buildWindows () {
   var res = path.join(__dirname, 'lib/libsodium-' + arch + '.dll')
   if (fs.existsSync(res)) return
 
   spawn('.\\msvc-scripts\\process.bat', [], { cwd: dir, stdio: 'inherit' }, function (err) {
     if (err) throw err
-    var msbuild = path.resolve('/', 'Program Files (x86)', 'MSBuild/14.0/Bin/MSBuild.exe')
+    var msbuild = findMsBuild()
     var args = ['/p:Configuration=ReleaseDLL;Platform=' + warch, '/nologo']
     spawn(msbuild, args, { cwd: dir, stdio: 'inherit' }, function (err) {
       if (err) throw err
