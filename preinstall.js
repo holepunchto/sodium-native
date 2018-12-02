@@ -82,7 +82,7 @@ function findMsBuild () {
     var possiblePath = possiblePaths[counter]
 
     try {
-      fs.accessSync(path.resolve(possiblePath), fs.constants.R_OK | fs.constants.X_OK)
+      fs.accessSync(path.resolve(possiblePath))
       return possiblePath
     } catch (error) {
       // Binary not found checking next path
@@ -90,7 +90,7 @@ function findMsBuild () {
   }
 
   console.error('MSBuild not found')
-  console.info('You can run "npm install --global --production windows-build-tools" to fix this.')
+  console.error('You can run "npm install --global --production windows-build-tools" to fix this.')
 
   process.exit(1)
 }
