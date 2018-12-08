@@ -11,8 +11,6 @@ node_js:
   - '4'
 
 os:
-  - osx
-  - linux
   - windows
 
 osx_image: xcode9.2
@@ -26,7 +24,6 @@ addons:
 
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export CC=gcc-7 && CXX=g++-7; fi
-  - if [[ "$TRAVIS_OS_NAME" == "windows" ]]; then npm config set msvs_version 2017; fi
   - npm run fetch-libsodium
 
 before_deploy:
