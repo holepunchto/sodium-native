@@ -11,7 +11,7 @@ tape('crypto_kx_seed_keypair', function (t) {
   }, 'should validate input')
 
   t.throws(function () {
-    sodium.crypto_kx_seed_keypair(new Buffer(0), new Buffer(0), new Buffer(0))
+    sodium.crypto_kx_seed_keypair(Buffer.alloc(0), Buffer.alloc(0), Buffer.alloc(0))
   }, 'should validate input length')
 
   sodium.crypto_kx_seed_keypair(pk, sk, seed)
@@ -38,7 +38,7 @@ tape('crypto_kx_keypair', function (t) {
   }, 'should validate input')
 
   t.throws(function () {
-    sodium.crypto_kx_keypair(new Buffer(0), new Buffer(0))
+    sodium.crypto_kx_keypair(Buffer.alloc(0), Buffer.alloc(0))
   }, 'should validate input length')
 
   t.end()

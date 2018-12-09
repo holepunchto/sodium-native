@@ -6,7 +6,7 @@ var message = Buffer.from('Hello, World!')
 var cipher = Buffer.alloc(message.length + sodium.crypto_secretbox_MACBYTES)
 
 sodium.randombytes_buf(nonce) // insert random data into nonce
-sodium.randombytes_buf(key)  // insert random data into key
+sodium.randombytes_buf(key) // insert random data into key
 
 // encrypted message is stored in cipher.
 sodium.crypto_secretbox_easy(cipher, message, nonce, key)

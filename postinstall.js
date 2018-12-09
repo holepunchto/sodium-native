@@ -53,9 +53,9 @@ function buildDarwin () {
   if (fs.existsSync(dst)) return
   copy(lib, dst, function (err) {
     if (err) throw err
-    proc.exec('install_name_tool -id "@loader_path/libsodium.dylib" libsodium.dylib', {cwd: build}, function (err) {
+    proc.exec('install_name_tool -id "@loader_path/libsodium.dylib" libsodium.dylib', { cwd: build }, function (err) {
       if (err) throw err
-      proc.exec('install_name_tool -change "' + lib + '" "@loader_path/libsodium.dylib" sodium.node', {cwd: build}, function (err) {
+      proc.exec('install_name_tool -change "' + lib + '" "@loader_path/libsodium.dylib" sodium.node', { cwd: build }, function (err) {
         if (err) throw err
       })
     })
