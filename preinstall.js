@@ -63,11 +63,11 @@ function buildWindows () {
   var res = path.join(__dirname, 'lib/libsodium-' + arch + '.dll')
   if (fs.existsSync(res)) return
 
-  spawn('.\\msvc-scripts\\process.bat', [], {cwd: dir, stdio: 'inherit'}, function (err) {
+  spawn('.\\msvc-scripts\\process.bat', [], { cwd: dir, stdio: 'inherit' }, function (err) {
     if (err) throw err
     var msbuild = path.resolve('/', 'Program Files (x86)', 'MSBuild/14.0/Bin/MSBuild.exe')
     var args = ['/p:Configuration=ReleaseDLL;Platform=' + warch, '/nologo']
-    spawn(msbuild, args, {cwd: dir, stdio: 'inherit'}, function (err) {
+    spawn(msbuild, args, { cwd: dir, stdio: 'inherit ' }, function (err) {
       if (err) throw err
 
       var dll = path.join(dir, 'Build/ReleaseDLL/' + warch + '/libsodium.dll')
@@ -83,11 +83,11 @@ function buildUnix (ext, cb) {
   var res = path.join(__dirname, 'lib/libsodium-' + arch + '.' + ext)
   if (fs.existsSync(res)) return cb(null, res)
 
-  spawn('./configure', ['--prefix=' + tmp], {cwd: __dirname, stdio: 'inherit'}, function (err) {
+  spawn('./configure', ['--prefix=' + tmp], { cwd: __dirname, stdio: 'inherit' }, function (err) {
     if (err) throw err
-    spawn('make', ['clean'], {cwd: dir, stdio: 'inherit'}, function (err) {
+    spawn('make', ['clean'], { cwd: dir, stdio: 'inherit' }, function (err) {
       if (err) throw err
-      spawn('make', ['install'], {cwd: dir, stdio: 'inherit'}, function (err) {
+      spawn('make', ['install'], { cwd: dir, stdio: 'inherit' }, function (err) {
         if (err) throw err
 
         var la = ini.decode(fs.readFileSync(path.join(tmp, 'lib/libsodium.la')).toString())
@@ -105,7 +105,7 @@ function buildUnix (ext, cb) {
 function buildDarwin () {
   buildUnix('dylib', function (err, res) {
     if (err) throw err
-    spawn('install_name_tool', ['-id', res, res], {stdio: 'inherit'}, function (err) {
+    spawn('install_name_tool', ['-id', res, res], { stdio: 'inherit' }, function (err) {
       if (err) throw err
     })
   })
