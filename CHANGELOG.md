@@ -4,6 +4,12 @@
 
 * Updated cross-references to libsodium documentation (thanks @stripedpajamas)
 * Fix documentation typo (thanks @ralphtheninja)
+* Fix [DEP0005] DeprecationWarning: `Buffer()` (thanks @ralphtheninja)
+* Upgrade and be compliant with standard@12
+* Improve robustness of Windows builds. This means that we now use the "best"
+  possible MSBuild. Thank you for all the work @enko
+* Due to the previous effort we can now build all artifacts on Travis and their
+  new Windows offering
 
 ## v2.2.3
 
