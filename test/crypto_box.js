@@ -11,7 +11,7 @@ tape('crypto_box_seed_keypair', function (t) {
   }, 'should validate input')
 
   t.throws(function () {
-    sodium.crypto_box_seed_keypair(new Buffer(0), new Buffer(0), new Buffer(0))
+    sodium.crypto_box_seed_keypair(Buffer.alloc(0), Buffer.alloc(0), Buffer.alloc(0))
   }, 'should validate input length')
 
   sodium.crypto_box_seed_keypair(pk, sk, seed)
@@ -38,7 +38,7 @@ tape('crypto_box_keypair', function (t) {
   }, 'should validate input')
 
   t.throws(function () {
-    sodium.crypto_box_keypair(new Buffer(0), new Buffer(0))
+    sodium.crypto_box_keypair(Buffer.alloc(0), Buffer.alloc(0))
   }, 'should validate input length')
 
   t.end()
@@ -51,7 +51,7 @@ tape('crypto_box_detached', function (t) {
 
   sodium.crypto_box_keypair(pk, sk)
 
-  var message = new Buffer('Hello, World!')
+  var message = Buffer.from('Hello, World!')
   var mac = Buffer.alloc(sodium.crypto_box_MACBYTES)
   var cipher = Buffer.alloc(message.length)
 
@@ -74,7 +74,7 @@ tape('crypto_box_easy', function (t) {
 
   sodium.crypto_box_keypair(pk, sk)
 
-  var message = new Buffer('Hello, World!')
+  var message = Buffer.from('Hello, World!')
   var cipher = Buffer.alloc(message.length + sodium.crypto_box_MACBYTES)
 
   sodium.crypto_box_easy(cipher, message, nonce, pk, sk)
@@ -100,7 +100,7 @@ tape('crypto_box_seal', function (t) {
 
   sodium.crypto_box_keypair(pk2, sk2)
 
-  var message = new Buffer('Hello, sealed World!')
+  var message = Buffer.from('Hello, sealed World!')
   var cipher = Buffer.alloc(message.length + sodium.crypto_box_SEALBYTES)
 
   sodium.crypto_box_seal(cipher, message, pk)
