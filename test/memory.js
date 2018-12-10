@@ -42,7 +42,7 @@ tape('sodium_malloc', function (t) {
 
   t.ok(empty.length === 0, 'has correct size')
   t.ok(small.length === 1, 'has correct size')
-  t.same(small, Buffer([0xdb]), 'has canary content')
+  t.same(small, Buffer.from([0xdb]), 'has canary content')
   t.ok(large.length === 1e8, 'has correct size')
 
   // test gc
