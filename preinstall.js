@@ -60,23 +60,20 @@ switch (os.platform()) {
 }
 
 function findMsBuild () {
-  var programmFiles
-
-  if (arch === 'x64') {
-    programmFiles = process.env['PROGRAMFILES(X86)']
-  } else {
-    programmFiles = process.env['PROGRAMFILES']
-  }
-
-  var possiblePaths = [
-    programmFiles + '/Microsoft Visual Studio/2017/BuildTools/MSBuild/15.0/Bin/msbuild.exe',
-    programmFiles + '/Microsoft Visual Studio/2017/Enterprise/MSBuild/15.0/Bin/msbuild.exe',
-    programmFiles + '/Microsoft Visual Studio/2017/Professional/MSBuild/15.0/Bin/msbuild.exe',
-    programmFiles + '/Microsoft Visual Studio/2017/Community/MSBuild/15.0/Bin/msbuild.exe',
-    programmFiles + '/MSBuild/14.0/Bin/MSBuild.exe',
-    programmFiles + '/MSBuild/12.0/Bin/MSBuild.exe',
-    process.env.WINDIR + '/Microsoft.NET/Framework/v4.0.30319/MSBuild.exe'
+  var possiblePathSuffixes = [
+    '/Microsoft Visual Studio/2017/BuildTools/MSBuild/15.0/Bin/msbuild.exe',
+    '/Microsoft Visual Studio/2017/Enterprise/MSBuild/15.0/Bin/msbuild.exe',
+    '/Microsoft Visual Studio/2017/Professional/MSBuild/15.0/Bin/msbuild.exe',
+    '/Microsoft Visual Studio/2017/Community/MSBuild/15.0/Bin/msbuild.exe',
+    '/MSBuild/14.0/Bin/MSBuild.exe',
+    '/MSBuild/12.0/Bin/MSBuild.exe'
   ]
+
+  // First try X86 paths (on 64 bit machine which is most likely) then 32 bit
+  var possiblePaths = possiblePathSuffixes.map(p => process.env['PROGRAMFILES(X86)'] + p)
+    .concat(possiblePathSuffixes.map(p => process.env['PROGRAMFILES'] + p))
+
+  possiblePaths.push(process.env.WINDIR + '/Microsoft.NET/Framework/v4.0.30319/MSBuild.exe')
 
   for (var counter = 0; counter < possiblePaths.length; counter++) {
     var possiblePath = path.resolve(possiblePaths[counter])
