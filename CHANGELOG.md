@@ -8,8 +8,10 @@
 * Upgrade and be compliant with standard@12
 * Improve robustness of Windows builds. This means that we now use the "best"
   possible MSBuild. Thank you for all the work @enko
-* Due to the previous effort we can now build all artifacts on Travis and their
+* Due to the previous effort we can now build all artefacts on Travis and their
   new Windows offering
+* Amend the new MSBuild finding algorithm to look for "Program Files (x86)"
+  first, such that cross-compiling works
 
 ## v2.2.3
 
