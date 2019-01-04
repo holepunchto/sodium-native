@@ -1,6 +1,8 @@
 # CHANGELOG
 
-## Next
+## Current
+
+## v2.2.4
 
 * Updated cross-references to libsodium documentation (thanks @stripedpajamas)
 * Fix documentation typo (thanks @ralphtheninja)
