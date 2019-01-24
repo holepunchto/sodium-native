@@ -2,6 +2,10 @@
 
 ## Current
 
+## v2.2.5
+
+* Rebuilding the electron prebuild to get 4.0.0 support to work.
+
 ## v2.2.4
 
 * Updated cross-references to libsodium documentation (thanks @stripedpajamas)
