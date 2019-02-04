@@ -2,6 +2,11 @@
 
 ## Current
 
+## v2.2.6
+
+* Rebuilding the electron prebuild to get 4.0.4 support to work. This has a fix
+  for an ABI mismatch.
+
 ## v2.2.5
 
 * Rebuilding the electron prebuild to get 4.0.0 support to work.
