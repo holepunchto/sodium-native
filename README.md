@@ -143,6 +143,14 @@ and writing the result into `a`.
 * `a` must be `Buffer`
 * `b` must be `Buffer` and must be `a.length` bytes
 
+### `sodium.sodium_sub(a, b)`
+
+Subtractss `b` from `a` (wrapping), regarding either as little-endian encoded
+number, and writing the result into `a`.
+
+* `a` must be `Buffer`
+* `b` must be `Buffer` and must be `a.length` bytes
+
 ### `sodium.sodium_increment(buf)`
 
 Increment `buf` as a little-endian number. This operation is **constant-time**

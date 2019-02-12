@@ -3,6 +3,7 @@
 ## Current
 
 * Upgrade to libsodium 1.0.17
+* Add new `sodium_sub` (opposite of `sodium_add`)
 
 ## v2.2.6
 

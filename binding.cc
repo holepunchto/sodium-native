@@ -130,6 +130,13 @@ NAN_METHOD(sodium_add) {
   sodium_add(CDATA(a), CDATA(b), a_length);
 }
 
+NAN_METHOD(sodium_sub) {
+  ASSERT_BUFFER_SET_LENGTH(info[0], a)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], b, `a.length`, a_length)
+
+  sodium_sub(CDATA(a), CDATA(b), a_length);
+}
+
 NAN_METHOD(sodium_increment) {
   ASSERT_BUFFER_SET_LENGTH(info[0], buf)
 
@@ -1098,6 +1105,7 @@ NAN_MODULE_INIT(InitAll) {
   EXPORT_FUNCTION(sodium_memcmp)
   EXPORT_FUNCTION(sodium_compare)
   EXPORT_FUNCTION(sodium_add)
+  EXPORT_FUNCTION(sodium_sub)
   EXPORT_FUNCTION(sodium_increment)
   EXPORT_FUNCTION(sodium_is_zero)
 

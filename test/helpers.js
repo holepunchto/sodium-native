@@ -57,6 +57,26 @@ test('sodium_add', function (assert) {
   assert.end()
 })
 
+test('sub', function (assert) {
+  var large = Buffer.alloc(32)
+  large[23] = 0b00000011
+  var largeLessOne = Buffer.alloc(32)
+  largeLessOne[23] = 0b00000001
+
+  var c = Buffer.from(large)
+
+  sodium.sodium_sub(c, largeLessOne)
+  assert.ok(large[23], 2)
+
+  var overflow = Buffer.alloc(56, 0x00)
+  var one = Buffer.alloc(56)
+  one[0] = 1
+  sodium.sodium_sub(overflow, one)
+
+  assert.ok(sodium.sodium_memcmp(overflow, Buffer.alloc(56, 0xff)))
+  assert.end()
+})
+
 test('sodium_increment', function (assert) {
   var zero = Buffer.alloc(4)
   sodium.sodium_increment(zero)
