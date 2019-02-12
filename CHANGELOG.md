@@ -2,6 +2,8 @@
 
 ## Current
 
+* Upgrade to libsodium 1.0.17
+
 ## v2.2.6
 
 * Rebuilding the electron prebuild to get 4.0.4 support to work. This has a fix
