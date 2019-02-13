@@ -467,6 +467,13 @@ NAN_METHOD(crypto_sign_ed25519_sk_to_curve25519) {
   CALL_SODIUM(crypto_sign_ed25519_sk_to_curve25519(CDATA(curve25519_sk), CDATA(ed25519_sk)))
 }
 
+NAN_METHOD(crypto_sign_ed25519_sk_to_pk) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], ed25519_pk, crypto_sign_PUBLICKEYBYTES, crypto_sign_publickeybytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], ed25519_sk, crypto_sign_SECRETKEYBYTES, crypto_sign_secretkeybytes())
+  CALL_SODIUM(crypto_sign_ed25519_sk_to_pk(CDATA(ed25519_pk), CDATA(ed25519_sk)))
+}
+
+
 NAN_METHOD(crypto_sign_verify_detached) {
   ASSERT_BUFFER_MIN_LENGTH(info[0], signature, crypto_sign_BYTES, crypto_sign_bytes())
   ASSERT_BUFFER(info[1], message)
@@ -1220,6 +1227,7 @@ NAN_MODULE_INIT(InitAll) {
   EXPORT_FUNCTION(crypto_sign_verify_detached)
   EXPORT_FUNCTION(crypto_sign_ed25519_pk_to_curve25519)
   EXPORT_FUNCTION(crypto_sign_ed25519_sk_to_curve25519)
+  EXPORT_FUNCTION(crypto_sign_ed25519_sk_to_pk)
 
   // crypto_generic_hash
 

@@ -1,6 +1,18 @@
 var tape = require('tape')
 var sodium = require('../')
 
+tape('crypto_sign_ed25519_sk_to_pk', function (t) {
+  var pk = Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES)
+  var pke = Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES)
+  var sk = Buffer.alloc(sodium.crypto_sign_SECRETKEYBYTES)
+
+  sodium.crypto_sign_keypair(pk, sk)
+  sodium.crypto_sign_ed25519_sk_to_pk(pke, sk)
+
+  t.ok(pk.equals(pke))
+  t.end()
+})
+
 tape('crypto_sign_seed_keypair', function (t) {
   var pk = Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES)
   var sk = Buffer.alloc(sodium.crypto_sign_SECRETKEYBYTES)

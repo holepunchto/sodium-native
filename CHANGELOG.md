@@ -5,6 +5,7 @@
 * Upgrade to libsodium 1.0.17
 * Add new `sodium_sub` (opposite of `sodium_add`)
 * Add new finite field operations `crypto_core_ed25519_*` and constants
+* Add `crypto_sign_ed25519_sk_to_pk`
 
 ## v2.2.6
 
