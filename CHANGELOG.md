@@ -4,6 +4,7 @@
 
 * Upgrade to libsodium 1.0.17
 * Add new `sodium_sub` (opposite of `sodium_add`)
+* Add new finite field operations `crypto_core_ed25519_*` and constants
 
 ## v2.2.6
 

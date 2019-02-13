@@ -921,6 +921,21 @@ NAN_METHOD(crypto_scalarmult_ed25519_base) {
   CALL_SODIUM(crypto_scalarmult_ed25519_base(CDATA(q), CDATA(n)))
 }
 
+NAN_METHOD(crypto_scalarmult_ed25519_noclamp) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], q, crypto_scalarmult_ed25519_BYTES, crypto_scalarmult_ed25519_bytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], n, crypto_scalarmult_ed25519_SCALARBYTES, crypto_scalarmult_ed25519_scalarbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], p, crypto_scalarmult_ed25519_BYTES, crypto_scalarmult_ed25519_bytes())
+
+  CALL_SODIUM(crypto_scalarmult_ed25519_noclamp(CDATA(q), CDATA(n), CDATA(p)))
+}
+
+NAN_METHOD(crypto_scalarmult_ed25519_base_noclamp) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], q, crypto_scalarmult_ed25519_BYTES, crypto_scalarmult_ed25519_bytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], n, crypto_scalarmult_ed25519_SCALARBYTES, crypto_scalarmult_ed25519_scalarbytes())
+
+  CALL_SODIUM(crypto_scalarmult_ed25519_base_noclamp(CDATA(q), CDATA(n)))
+}
+
 NAN_METHOD(crypto_core_ed25519_add) {
   ASSERT_BUFFER_MIN_LENGTH(info[0], r, crypto_scalarmult_ed25519_BYTES, crypto_scalarmult_ed25519_bytes())
   ASSERT_BUFFER_MIN_LENGTH(info[1], p, crypto_scalarmult_ed25519_BYTES, crypto_scalarmult_ed25519_bytes())
@@ -935,6 +950,56 @@ NAN_METHOD(crypto_core_ed25519_sub) {
   ASSERT_BUFFER_MIN_LENGTH(info[2], q, crypto_scalarmult_ed25519_BYTES, crypto_scalarmult_ed25519_bytes())
 
   CALL_SODIUM(crypto_core_ed25519_sub(CDATA(r), CDATA(p), CDATA(q)))
+}
+
+NAN_METHOD(crypto_core_ed25519_scalar_random) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], r, crypto_core_ed25519_SCALARBYTES, crypto_core_ed25519_scalarbytes())
+
+  crypto_core_ed25519_scalar_random(CDATA(r));
+}
+
+NAN_METHOD(crypto_core_ed25519_scalar_reduce) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], r, crypto_core_ed25519_SCALARBYTES, crypto_core_ed25519_scalarbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], s, crypto_core_ed25519_NONREDUCEDSCALARBYTES, crypto_core_ed25519_nonreducedscalarbytes())
+
+  crypto_core_ed25519_scalar_reduce(CDATA(r), CDATA(s));
+}
+
+NAN_METHOD(crypto_core_ed25519_scalar_invert) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], recip, crypto_core_ed25519_SCALARBYTES, crypto_core_ed25519_scalarbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], s, crypto_core_ed25519_SCALARBYTES, crypto_core_ed25519_scalarbytes())
+
+  CALL_SODIUM(crypto_core_ed25519_scalar_invert(CDATA(recip), CDATA(s)))
+}
+
+NAN_METHOD(crypto_core_ed25519_scalar_negate) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], neg, crypto_core_ed25519_SCALARBYTES, crypto_core_ed25519_scalarbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], s, crypto_core_ed25519_SCALARBYTES, crypto_core_ed25519_scalarbytes())
+
+  crypto_core_ed25519_scalar_negate(CDATA(neg), CDATA(s));
+}
+
+NAN_METHOD(crypto_core_ed25519_scalar_complement) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], comp, crypto_core_ed25519_SCALARBYTES, crypto_core_ed25519_scalarbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], s, crypto_core_ed25519_SCALARBYTES, crypto_core_ed25519_scalarbytes())
+
+  crypto_core_ed25519_scalar_complement(CDATA(comp), CDATA(s));
+}
+
+NAN_METHOD(crypto_core_ed25519_scalar_add) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], z, crypto_core_ed25519_SCALARBYTES, crypto_core_ed25519_bytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], x, crypto_core_ed25519_SCALARBYTES, crypto_core_ed25519_bytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], y, crypto_core_ed25519_SCALARBYTES, crypto_core_ed25519_bytes())
+
+  crypto_core_ed25519_scalar_add(CDATA(z), CDATA(x), CDATA(y));
+}
+
+NAN_METHOD(crypto_core_ed25519_scalar_sub) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], z, crypto_core_ed25519_SCALARBYTES, crypto_core_ed25519_bytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], x, crypto_core_ed25519_SCALARBYTES, crypto_core_ed25519_bytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], y, crypto_core_ed25519_SCALARBYTES, crypto_core_ed25519_bytes())
+
+  crypto_core_ed25519_scalar_sub(CDATA(z), CDATA(x), CDATA(y));
 }
 
 // crypto_shorthash
@@ -1301,13 +1366,25 @@ NAN_MODULE_INIT(InitAll) {
   EXPORT_NUMBER_VALUE(crypto_scalarmult_ed25519_SCALARBYTES, crypto_scalarmult_ed25519_scalarbytes())
   EXPORT_NUMBER_VALUE(crypto_core_ed25519_BYTES, crypto_core_ed25519_bytes())
   EXPORT_NUMBER_VALUE(crypto_core_ed25519_UNIFORMBYTES, crypto_core_ed25519_uniformbytes())
+  EXPORT_NUMBER_VALUE(crypto_core_ed25519_SCALARBYTES, crypto_core_ed25519_scalarbytes())
+  EXPORT_NUMBER_VALUE(crypto_core_ed25519_NONREDUCEDSCALARBYTES, crypto_core_ed25519_nonreducedscalarbytes())
 
   EXPORT_FUNCTION(crypto_core_ed25519_is_valid_point)
   EXPORT_FUNCTION(crypto_core_ed25519_from_uniform)
   EXPORT_FUNCTION(crypto_scalarmult_ed25519)
   EXPORT_FUNCTION(crypto_scalarmult_ed25519_base)
+  EXPORT_FUNCTION(crypto_scalarmult_ed25519_noclamp)
+  EXPORT_FUNCTION(crypto_scalarmult_ed25519_base_noclamp)
   EXPORT_FUNCTION(crypto_core_ed25519_add)
   EXPORT_FUNCTION(crypto_core_ed25519_sub)
+
+  EXPORT_FUNCTION(crypto_core_ed25519_scalar_random)
+  EXPORT_FUNCTION(crypto_core_ed25519_scalar_reduce)
+  EXPORT_FUNCTION(crypto_core_ed25519_scalar_invert)
+  EXPORT_FUNCTION(crypto_core_ed25519_scalar_negate)
+  EXPORT_FUNCTION(crypto_core_ed25519_scalar_complement)
+  EXPORT_FUNCTION(crypto_core_ed25519_scalar_add)
+  EXPORT_FUNCTION(crypto_core_ed25519_scalar_sub)
 
   // crypto_shorthash
 
