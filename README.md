@@ -1022,7 +1022,7 @@ Will throw if `p`, `q` are not valid curve points
 
 #### `crypto_core_ed25519_scalar_random(r)`
 
-Generate random point, storing it in `r`.
+Generate random scalar in `]0..L[`, storing it in `r`.
 
 * `r` must be `Buffer` of at least `crypto_core_ed25519_SCALARBYTES` bytes
 
