@@ -2,6 +2,8 @@
 
 ## Current
 
+* Fix documentation error (thanks @jedisct1)
+
 ## v2.3.0
 
 * Upgrade to libsodium 1.0.17
