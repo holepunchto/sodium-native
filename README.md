@@ -272,8 +272,8 @@ Convert an ed25519 secret key to curve25519 (which can be used with `box` and `s
 * `curve_sk` should be a buffer with length `crypto_box_SECRETKEYBYTES`
 * `ed_sk` should be a buffer with length `crypto_sign_SECRETKEYBYTES`
 
-#### `crypto_sign_ed25519_sk_to_curve25519(pk, sk)`
-m
+#### `crypto_sign_ed25519_sk_to_pk(pk, sk)`
+
 Extract an ed25519 public key from an ed25519 secret key
 
 * `pk` must be `Buffer` of at least `crypto_sign_PUBLICKEYBYTES` bytes
