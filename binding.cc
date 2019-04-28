@@ -12,6 +12,9 @@
 #include "src/crypto_pwhash_async.cc"
 #include "src/crypto_pwhash_str_async.cc"
 #include "src/crypto_pwhash_str_verify_async.cc"
+#include "src/crypto_pwhash_scryptsalsa208sha256_async.cc"
+#include "src/crypto_pwhash_scryptsalsa208sha256_str_async.cc"
+#include "src/crypto_pwhash_scryptsalsa208sha256_str_verify_async.cc"
 #include "src/macros.h"
 
 // memory management
@@ -882,6 +885,114 @@ NAN_METHOD(crypto_pwhash_str_verify_async) {
   ));
 }
 
+NAN_METHOD(crypto_pwhash_scryptsalsa208sha256) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], output, crypto_pwhash_scryptsalsa208sha256_BYTES_MIN, crypto_pwhash_scryptsalsa208sha256_bytes_min())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], password, crypto_pwhash_scryptsalsa208sha256_PASSWD_MIN, crypto_pwhash_scryptsalsa208sha256_passwd_min())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], salt, crypto_pwhash_scryptsalsa208sha256_SALTBYTES, crypto_pwhash_scryptsalsa208sha256_saltbytes())
+  ASSERT_UINT_BOUNDS(info[3], opslimit,
+    crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN, crypto_pwhash_scryptsalsa208sha256_opslimit_min(),
+    crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, crypto_pwhash_scryptsalsa208sha256_opslimit_max())
+  ASSERT_UINT_BOUNDS(info[4], memlimit,
+    crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, crypto_pwhash_scryptsalsa208sha256_memlimit_min(),
+    crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, crypto_pwhash_scryptsalsa208sha256_memlimit_max())
+
+  CALL_SODIUM(crypto_pwhash_scryptsalsa208sha256(CDATA(output), output_length, (const char *) CDATA(password), password_length, CDATA(salt), opslimit, memlimit))
+}
+
+NAN_METHOD(crypto_pwhash_scryptsalsa208sha256_str) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], hash, crypto_pwhash_scryptsalsa208sha256_STRBYTES, crypto_pwhash_scryptsalsa208sha256_strbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], password, crypto_pwhash_scryptsalsa208sha256_PASSWD_MIN, crypto_pwhash_scryptsalsa208sha256_passwd_min())
+  ASSERT_UINT_BOUNDS(info[2], opslimit,
+    crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN, crypto_pwhash_scryptsalsa208sha256_opslimit_min(),
+    crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, crypto_pwhash_scryptsalsa208sha256_opslimit_max())
+  ASSERT_UINT_BOUNDS(info[3], memlimit,
+    crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, crypto_pwhash_scryptsalsa208sha256_memlimit_min(),
+    crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, crypto_pwhash_scryptsalsa208sha256_memlimit_max())
+
+  CALL_SODIUM(crypto_pwhash_scryptsalsa208sha256_str((char *) CDATA(hash), (const char *) CDATA(password), password_length, opslimit, memlimit))
+}
+
+NAN_METHOD(crypto_pwhash_scryptsalsa208sha256_str_verify) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], hash, crypto_pwhash_scryptsalsa208sha256_STRBYTES, crypto_pwhash_scryptsalsa208sha256_strbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], password, crypto_pwhash_scryptsalsa208sha256_PASSWD_MIN, crypto_pwhash_scryptsalsa208sha256_passwd_min())
+
+  CALL_SODIUM_BOOL(crypto_pwhash_scryptsalsa208sha256_str_verify((char *) CDATA(hash), (const char *) CDATA(password), password_length))
+}
+
+NAN_METHOD(crypto_pwhash_scryptsalsa208sha256_str_needs_rehash) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], hash, crypto_pwhash_scryptsalsa208sha256_STRBYTES, crypto_pwhash_scryptsalsa208sha256_strbytes())
+  ASSERT_UINT_BOUNDS(info[1], opslimit,
+    crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN, crypto_pwhash_scryptsalsa208sha256_opslimit_min(),
+    crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, crypto_pwhash_scryptsalsa208sha256_opslimit_max())
+  ASSERT_UINT_BOUNDS(info[2], memlimit,
+    crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, crypto_pwhash_scryptsalsa208sha256_memlimit_min(),
+    crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, crypto_pwhash_scryptsalsa208sha256_memlimit_max())
+
+  int ret = crypto_pwhash_scryptsalsa208sha256_str_needs_rehash((char *) CDATA(hash), opslimit, memlimit);
+  info.GetReturnValue().Set(ret == 0 ? Nan::False() : Nan::True());
+}
+
+NAN_METHOD(crypto_pwhash_scryptsalsa208sha256_async) {
+  ASSERT_BUFFER_SET_LENGTH(info[0], output)
+  ASSERT_BUFFER_MIN_LENGTH(info[1], password, crypto_pwhash_scryptsalsa208sha256_PASSWD_MIN, crypto_pwhash_scryptsalsa208sha256_passwd_min())
+  ASSERT_BUFFER_MIN_LENGTH(info[2], salt, crypto_pwhash_scryptsalsa208sha256_SALTBYTES, crypto_pwhash_scryptsalsa208sha256_saltbytes())
+  ASSERT_UINT_BOUNDS(info[3], opslimit,
+    crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN, crypto_pwhash_scryptsalsa208sha256_opslimit_min(),
+    crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, crypto_pwhash_scryptsalsa208sha256_opslimit_max())
+  ASSERT_UINT_BOUNDS(info[4], memlimit,
+    crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, crypto_pwhash_scryptsalsa208sha256_memlimit_min(),
+    crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, crypto_pwhash_scryptsalsa208sha256_memlimit_max())
+
+  ASSERT_FUNCTION(info[5], callback)
+
+  Nan::AsyncQueueWorker(new CryptoPwhashScryptsalsa208sha256Async(
+    new Nan::Callback(callback),
+    CDATA(output),
+    output_length,
+    (const char *) CDATA(password),
+    password_length,
+    CDATA(salt),
+    opslimit,
+    memlimit
+  ));
+}
+
+NAN_METHOD(crypto_pwhash_scryptsalsa208sha256_str_async) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], hash, crypto_pwhash_scryptsalsa208sha256_STRBYTES, crypto_pwhash_scryptsalsa208sha256_strbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], password, crypto_pwhash_scryptsalsa208sha256_PASSWD_MIN, crypto_pwhash_scryptsalsa208sha256_passwd_min())
+  ASSERT_UINT_BOUNDS(info[2], opslimit,
+    crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN, crypto_pwhash_scryptsalsa208sha256_opslimit_min(),
+    crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, crypto_pwhash_scryptsalsa208sha256_opslimit_max())
+  ASSERT_UINT_BOUNDS(info[3], memlimit,
+    crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, crypto_pwhash_scryptsalsa208sha256_memlimit_min(),
+    crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, crypto_pwhash_scryptsalsa208sha256_memlimit_max())
+
+  ASSERT_FUNCTION(info[4], callback)
+
+  Nan::AsyncQueueWorker(new CryptoPwhashScryptsalsa208sha256StrAsync(
+    new Nan::Callback(callback),
+    (char *) CDATA(hash),
+    (const char *) CDATA(password),
+    password_length,
+    opslimit,
+    memlimit
+  ));
+}
+
+NAN_METHOD(crypto_pwhash_scryptsalsa208sha256_str_verify_async) {
+  ASSERT_BUFFER_MIN_LENGTH(info[0], hash, crypto_pwhash_scryptsalsa208sha256_STRBYTES, crypto_pwhash_scryptsalsa208sha256_strbytes())
+  ASSERT_BUFFER_MIN_LENGTH(info[1], password, crypto_pwhash_scryptsalsa208sha256_PASSWD_MIN, crypto_pwhash_scryptsalsa208sha256_passwd_min())
+
+  ASSERT_FUNCTION(info[2], callback)
+
+  Nan::AsyncQueueWorker(new CryptoPwhashScryptsalsa208sha256StrVerifyAsync(
+    new Nan::Callback(callback),
+    (char *) CDATA(hash),
+    (const char *) CDATA(password),
+    password_length
+  ));
+}
+
 // crypto_scalarmult
 
 NAN_METHOD(crypto_scalarmult_base) {
@@ -1359,6 +1470,31 @@ NAN_MODULE_INIT(InitAll) {
   EXPORT_FUNCTION(crypto_pwhash_async)
   EXPORT_FUNCTION(crypto_pwhash_str_async)
   EXPORT_FUNCTION(crypto_pwhash_str_verify_async)
+
+  EXPORT_NUMBER_VALUE(crypto_pwhash_scryptsalsa208sha256_BYTES_MIN, crypto_pwhash_scryptsalsa208sha256_bytes_min())
+  EXPORT_NUMBER_VALUE(crypto_pwhash_scryptsalsa208sha256_BYTES_MAX, crypto_pwhash_scryptsalsa208sha256_bytes_max())
+  EXPORT_NUMBER_VALUE(crypto_pwhash_scryptsalsa208sha256_PASSWD_MIN, crypto_pwhash_scryptsalsa208sha256_passwd_min())
+  EXPORT_NUMBER_VALUE(crypto_pwhash_scryptsalsa208sha256_PASSWD_MAX, crypto_pwhash_scryptsalsa208sha256_passwd_max())
+  EXPORT_NUMBER_VALUE(crypto_pwhash_scryptsalsa208sha256_SALTBYTES, crypto_pwhash_scryptsalsa208sha256_saltbytes())
+  EXPORT_NUMBER_VALUE(crypto_pwhash_scryptsalsa208sha256_STRBYTES, crypto_pwhash_scryptsalsa208sha256_strbytes())
+  EXPORT_STRING(crypto_pwhash_scryptsalsa208sha256_STRPREFIX)
+  EXPORT_NUMBER_VALUE(crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN, crypto_pwhash_scryptsalsa208sha256_opslimit_min())
+  EXPORT_NUMBER_VALUE(crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, crypto_pwhash_scryptsalsa208sha256_opslimit_max())
+  EXPORT_NUMBER_VALUE(crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, crypto_pwhash_scryptsalsa208sha256_memlimit_min())
+  EXPORT_NUMBER_VALUE(crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, crypto_pwhash_scryptsalsa208sha256_memlimit_max())
+  EXPORT_NUMBER_VALUE(crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE, crypto_pwhash_scryptsalsa208sha256_opslimit_interactive())
+  EXPORT_NUMBER_VALUE(crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE, crypto_pwhash_scryptsalsa208sha256_memlimit_interactive())
+  EXPORT_NUMBER_VALUE(crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_SENSITIVE, crypto_pwhash_scryptsalsa208sha256_opslimit_sensitive())
+  EXPORT_NUMBER_VALUE(crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_SENSITIVE, crypto_pwhash_scryptsalsa208sha256_memlimit_sensitive())
+
+  EXPORT_FUNCTION(crypto_pwhash_scryptsalsa208sha256)
+  EXPORT_FUNCTION(crypto_pwhash_scryptsalsa208sha256_str)
+  EXPORT_FUNCTION(crypto_pwhash_scryptsalsa208sha256_str_verify)
+  EXPORT_FUNCTION(crypto_pwhash_scryptsalsa208sha256_str_needs_rehash)
+
+  EXPORT_FUNCTION(crypto_pwhash_scryptsalsa208sha256_async)
+  EXPORT_FUNCTION(crypto_pwhash_scryptsalsa208sha256_str_async)
+  EXPORT_FUNCTION(crypto_pwhash_scryptsalsa208sha256_str_verify_async)
 
   // crypto_scalarmult
 

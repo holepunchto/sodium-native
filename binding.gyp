@@ -21,6 +21,9 @@
         'src/crypto_pwhash_async.cc',
         'src/crypto_pwhash_str_async.cc',
         'src/crypto_pwhash_str_verify_async.cc',
+        'src/crypto_pwhash_scryptsalsa208sha256_async.cc',
+        'src/crypto_pwhash_scryptsalsa208sha256_str_async.cc',
+        'src/crypto_pwhash_scryptsalsa208sha256_str_verify_async.cc'
       ],
       'xcode_settings': {
         'OTHER_CFLAGS': [
