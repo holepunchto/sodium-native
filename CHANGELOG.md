@@ -2,9 +2,13 @@
 
 ## Current
 
+## v2.4.2
+
+* Do travis release on `lts/*` node version
+
 ## v2.4.1
 
-* We cannot yet support Node 12 or Electron 5, so explicit versions on prebuildify
+* We cannot yet support Node 12 or Electron 5, so explicit versions on prebuildify.
 
 ## v2.4.0
 
