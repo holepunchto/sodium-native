@@ -2,7 +2,10 @@
 
 ## Current
 
+## v2.4.0
+
 * Fix documentation error (thanks @jedisct1)
+* Add `crypto_pwhash_scryptsalsa208sha256_*` functions and constants.
 
 ## v2.3.0
 
