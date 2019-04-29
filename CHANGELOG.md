@@ -2,6 +2,10 @@
 
 ## Current
 
+## v2.4.1
+
+* We cannot yet support Node 12 or Electron 5, so explicit versions on prebuildify
+
 ## v2.4.0
 
 * Fix documentation error (thanks @jedisct1)
