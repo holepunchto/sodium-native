@@ -21,8 +21,8 @@
     "fetch-libsodium": "git submodule update --recursive --init",
     "test": "standard && tape \"test/*.js\"",
     "install": "node-gyp-build \"node preinstall.js\" \"node postinstall.js\"",
-    "prebuild": "prebuildify -t node@5.0.0 -t node@6.0.0 -t node@7.0.0 -t node@8.0.0 -t node@9.0.0 -t node@10.0.0 -t node@11.0.0 -t electron@0.36.0 -t electron@1.1.0 -t electron@1.3.0 -t electron@1.4.0 -t electron@1.5.0 -t electron@1.6.0 -t electron@1.7.0 -t electron@1.8.0 -t electron@2.0.0 -t electron@3.0.0 -t electron@4.0.0 -t electron@4.0.4 --strip --preinstall \"node preinstall.js\" --postinstall \"node postinstall.js\"",
-    "prebuild-ia32": "prebuildify -t node@5.0.0 -t node@6.0.0 -t node@7.0.0 -t node@8.0.0 -t node@9.0.0 -t node@10.0.0 -t node@11.0.0 -t electron@0.36.0 -t electron@1.1.0 -t electron@1.3.0 -t electron@1.4.0 -t electron@1.5.0 -t electron@1.6.0 -t electron@1.7.0 -t electron@1.8.0 -t electron@2.0.0 -t electron@3.0.0 -t electron@4.0.0 -t electron@4.0.4 --strip --preinstall \"node preinstall.js\" --postinstall \"node postinstall.js\" --arch=ia32"
+    "prebuild": "prebuildify --napi --strip --preinstall \"node preinstall.js\" --postinstall \"node postinstall.js\"",
+    "prebuild-ia32": "prebuildify --arch=ia32 --napi --strip --preinstall \"node preinstall.js\" --postinstall \"node postinstall.js\""
   },
   "repository": {
     "type": "git",
