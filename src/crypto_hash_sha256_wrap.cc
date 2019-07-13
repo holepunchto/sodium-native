@@ -41,7 +41,7 @@ v8::Local<v8::Value> CryptoHashSha256Wrap::NewInstance () {
   v8::Local<v8::Object> instance;
 
   v8::Local<v8::FunctionTemplate> constructorHandle = Nan::New<v8::FunctionTemplate>(crypto_hash_sha256_constructor);
-  instance = Nan::NewInstance(constructorHandle->GetFunction()).ToLocalChecked();
+  instance = Nan::NewInstance(constructorHandle->GetFunction(v8::Isolate::GetCurrent()->GetCurrentContext()).ToLocalChecked()).ToLocalChecked();
 
   CryptoHashSha256Wrap *self = Nan::ObjectWrap::Unwrap<CryptoHashSha256Wrap>(instance);
   crypto_hash_sha256_init(&(self->state));
