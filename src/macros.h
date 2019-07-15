@@ -92,7 +92,7 @@
     Nan::ThrowError(#var " must be a number"); \
     return; \
   } \
-  int64_t var = static_cast<int64_t>(name.As<v8::Number>()->Value()); \
+  int64_t var = name.As<v8::Number>()->Value(); \
   \
   if (var < 0) { \
     Nan::ThrowError(#var " must be at least 0"); \
