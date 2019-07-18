@@ -41,7 +41,7 @@ v8::Local<v8::Value> CryptoHashSha512Wrap::NewInstance () {
   v8::Local<v8::Object> instance;
 
   v8::Local<v8::FunctionTemplate> constructorHandle = Nan::New<v8::FunctionTemplate>(crypto_hash_sha512_constructor);
-  instance = Nan::NewInstance(constructorHandle->GetFunction(v8::Isolate::GetCurrent()->GetCurrentContext()).ToLocalChecked()).ToLocalChecked();
+  instance = Nan::NewInstance(Nan::GetFunction(constructorHandle).ToLocalChecked()).ToLocalChecked();
 
   CryptoHashSha512Wrap *self = Nan::ObjectWrap::Unwrap<CryptoHashSha512Wrap>(instance);
   crypto_hash_sha512_init(&(self->state));
