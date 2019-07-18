@@ -96,7 +96,7 @@ v8::Local<v8::Value> CryptoStreamChacha20XorWrap::NewInstance (unsigned char *no
   v8::Local<v8::Object> instance;
 
   v8::Local<v8::FunctionTemplate> constructorHandle = Nan::New<v8::FunctionTemplate>(crypto_stream_chacha20_xor_constructor);
-  instance = Nan::NewInstance(constructorHandle->GetFunction(v8::Isolate::GetCurrent()->GetCurrentContext()).ToLocalChecked()).ToLocalChecked();
+  instance = Nan::NewInstance(Nan::GetFunction(constructorHandle).ToLocalChecked()).ToLocalChecked();
 
   CryptoStreamChacha20XorWrap *self = Nan::ObjectWrap::Unwrap<CryptoStreamChacha20XorWrap>(instance);
   crypto_stream_chacha20_xor_wrap_init(self, nonce, key);

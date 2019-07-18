@@ -542,9 +542,9 @@ NAN_METHOD(crypto_generichash_instance) {
   unsigned long long output_length = crypto_generichash_bytes();
 
   if (info[1]->IsObject()) {
-    output_length = CLENGTH(info[1]->ToObject(v8::Isolate::GetCurrent()->GetCurrentContext()).ToLocalChecked());
+    output_length = CLENGTH(Nan::To<v8::Object>(info[1]).ToLocalChecked());
   } else if (info[1]->IsNumber()) {
-    output_length = info[1].As<v8::Uint32>()->Value();
+    output_length = info[1].As<v8::Number>()->Value();
   }
 
   if (info[0]->IsObject()) {
