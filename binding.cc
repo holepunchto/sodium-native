@@ -542,9 +542,9 @@ NAN_METHOD(crypto_generichash_instance) {
   unsigned long long output_length = crypto_generichash_bytes();
 
   if (info[1]->IsObject()) {
-    output_length = CLENGTH(info[1]->ToObject());
+    output_length = CLENGTH(info[1]->TO_OBJECT());
   } else if (info[1]->IsNumber()) {
-    output_length = info[1]->Uint32Value();
+    output_length = info[1]->UINT32_VALUE();
   }
 
   if (info[0]->IsObject()) {

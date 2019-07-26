@@ -31,7 +31,7 @@ v8::Local<v8::Value> CryptoSecretstreamXchacha20poly1305StateWrap::NewInstance (
   v8::Local<v8::Object> instance;
 
   v8::Local<v8::FunctionTemplate> constructorHandle = Nan::New<v8::FunctionTemplate>(crypto_secretstream_xchacha20poly1305_state_constructor);
-  instance = Nan::NewInstance(constructorHandle->GetFunction()).ToLocalChecked();
+  instance = Nan::NewInstance(constructorHandle->GET_FUNCTION()).ToLocalChecked();
 
   return scope.Escape(instance);
 }

@@ -41,7 +41,7 @@ v8::Local<v8::Value> CryptoGenericHashWrap::NewInstance (unsigned char *key, uns
   v8::Local<v8::Object> instance;
 
   v8::Local<v8::FunctionTemplate> constructorHandle = Nan::New<v8::FunctionTemplate>(crypto_generichash_constructor);
-  instance = Nan::NewInstance(constructorHandle->GetFunction()).ToLocalChecked();
+  instance = Nan::NewInstance(constructorHandle->GET_FUNCTION()).ToLocalChecked();
 
   CryptoGenericHashWrap *self = Nan::ObjectWrap::Unwrap<CryptoGenericHashWrap>(instance);
   crypto_generichash_init(&(self->state), key, key_length, output_length);

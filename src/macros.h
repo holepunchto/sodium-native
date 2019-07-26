@@ -7,6 +7,28 @@
 #define STR_HELPER(x) #x
 #define STR(x) STR_HELPER(x)
 
+#define IS_CONTEXT_AWARE NODE_MODULE_VERSION >= NODE_CONTEXT_AWARE_VERSION
+#define GET_CURRENT_CONTEXT v8::Isolate::GetCurrent()->GetCurrentContext()
+
+#if IS_CONTEXT_AWARE
+    #define TO_STRING() ToString(GET_CURRENT_CONTEXT).FromMaybe(v8::Local<v8::String>())
+    #define TO_OBJECT() ToObject(GET_CURRENT_CONTEXT).FromMaybe(v8::Local<v8::Object>())
+    #define INTEGER_VALUE() IntegerValue(GET_CURRENT_CONTEXT).FromMaybe(0)
+    #define UINT32_VALUE() Uint32Value(GET_CURRENT_CONTEXT).FromMaybe(0)
+    #define TO_BOOLEAN() ToBoolean(isolate)
+    #define UTF_8_VALUE(x) String::Utf8Value(isolate, x)
+    #define GET_FUNCTION() GetFunction(GET_CURRENT_CONTEXT).FromMaybe(v8::Local<v8::Function>())
+#else
+    #define TO_STRING() ToString()
+    #define TO_OBJECT() ToObject()
+    #define INTEGER_VALUE() IntegerValue()
+    #define UINT32_VALUE() Uint32Value()
+    #define TO_BOOLEAN() ToBoolean()
+    #define UTF_8_VALUE(x) String::Utf8Value(x)
+    #define GET_FUNCTION() GetFunction()
+#endif
+
+
 #define CDATA(buf) (unsigned char *) node::Buffer::Data(buf)
 #define CLENGTH(buf) (unsigned long long) node::Buffer::Length(buf)
 #define LOCAL_STRING(str) Nan::New<v8::String>(str).ToLocalChecked()
@@ -63,7 +85,7 @@
     Nan::ThrowError(#var " must be a buffer"); \
     return; \
   } \
-  v8::Local<v8::Object> var = name->ToObject();
+  v8::Local<v8::Object> var = name->TO_OBJECT();
 
 #define ASSERT_BUFFER_SET_LENGTH(name, var) \
   ASSERT_BUFFER(name, var) \
@@ -81,7 +103,7 @@
     Nan::ThrowError(#var " must be a number"); \
     return; \
   } \
-  int64_t var = name->IntegerValue(); \
+  int64_t var = name->INTEGER_VALUE(); \
   if (var < 0) { \
     Nan::ThrowError(#var " must be at least 0"); \
     return; \
@@ -92,7 +114,7 @@
     Nan::ThrowError(#var " must be a number"); \
     return; \
   } \
-  int64_t var = name->IntegerValue(); \
+  int64_t var = name->INTEGER_VALUE(); \
   \
   if (var < 0) { \
     Nan::ThrowError(#var " must be at least 0"); \
@@ -120,6 +142,6 @@
     Nan::ThrowError(#var " must be a " #type); \
     return; \
   } \
-  type* var = Nan::ObjectWrap::Unwrap<type>(name->ToObject());
+  type* var = Nan::ObjectWrap::Unwrap<type>(name->TO_OBJECT());
 
 #endif

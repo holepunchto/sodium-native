@@ -41,7 +41,7 @@ v8::Local<v8::Value> CryptoOnetimeAuthWrap::NewInstance (unsigned char *key) {
   v8::Local<v8::Object> instance;
 
   v8::Local<v8::FunctionTemplate> constructorHandle = Nan::New<v8::FunctionTemplate>(crypto_onetimeauth_constructor);
-  instance = Nan::NewInstance(constructorHandle->GetFunction()).ToLocalChecked();
+  instance = Nan::NewInstance(constructorHandle->GET_FUNCTION()).ToLocalChecked();
 
   CryptoOnetimeAuthWrap *self = Nan::ObjectWrap::Unwrap<CryptoOnetimeAuthWrap>(instance);
   crypto_onetimeauth_init(&(self->state), key);

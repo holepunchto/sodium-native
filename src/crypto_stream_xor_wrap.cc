@@ -96,7 +96,7 @@ v8::Local<v8::Value> CryptoStreamXorWrap::NewInstance (unsigned char *nonce, uns
   v8::Local<v8::Object> instance;
 
   v8::Local<v8::FunctionTemplate> constructorHandle = Nan::New<v8::FunctionTemplate>(crypto_stream_xor_constructor);
-  instance = Nan::NewInstance(constructorHandle->GetFunction()).ToLocalChecked();
+  instance = Nan::NewInstance(constructorHandle->GET_FUNCTION()).ToLocalChecked();
 
   CryptoStreamXorWrap *self = Nan::ObjectWrap::Unwrap<CryptoStreamXorWrap>(instance);
   crypto_stream_xor_wrap_init(self, nonce, key);
