@@ -527,7 +527,7 @@ NAN_METHOD(crypto_generichash_batch) {
 
   uint32_t len = buffers->Length();
   for (uint32_t i = 0; i < len; i++) {
-    v8::Local<v8::Value> buf = buffers->Get(v8::Isolate::GetCurrent()->GetCurrentContext(), i).ToLocalChecked();
+    v8::Local<v8::Value> buf = buffers->Get(Nan::GetCurrentContext(), i).ToLocalChecked();
     if (!buf->IsObject()) {
       Nan::ThrowError("batch must be an array of buffers");
       return;
@@ -542,9 +542,9 @@ NAN_METHOD(crypto_generichash_instance) {
   unsigned long long output_length = crypto_generichash_bytes();
 
   if (info[1]->IsObject()) {
-    output_length = CLENGTH(Nan::To<v8::Object>(info[1]).ToLocalChecked());
+    output_length = CLENGTH(info[1]->ToObject(Nan::GetCurrentContext()).ToLocalChecked());
   } else if (info[1]->IsNumber()) {
-    output_length = info[1].As<v8::Number>()->Value();
+    output_length = Nan::To<uint32_t>(info[1]).ToChecked();
   }
 
   if (info[0]->IsObject()) {
