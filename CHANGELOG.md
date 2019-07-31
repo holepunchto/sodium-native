@@ -2,6 +2,10 @@
 
 ## Current
 
+## v2.4.3
+
+* Add Node 12 and Electron 5 support (thanks @davedoesdev)
+
 ## v2.4.2
 
 * Do travis release on `lts/*` node version
