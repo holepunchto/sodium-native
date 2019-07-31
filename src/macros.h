@@ -63,7 +63,7 @@
     Nan::ThrowError(#var " must be a buffer"); \
     return; \
   } \
-  v8::Local<v8::Object> var = name->ToObject(v8::Isolate::GetCurrent()->GetCurrentContext()).ToLocalChecked();
+  v8::Local<v8::Object> var = name->ToObject(Nan::GetCurrentContext()).ToLocalChecked();
 
 #define ASSERT_BUFFER_SET_LENGTH(name, var) \
   ASSERT_BUFFER(name, var) \
@@ -81,7 +81,7 @@
     Nan::ThrowError(#var " must be a number"); \
     return; \
   } \
-  int64_t var = name.As<v8::Number>()->Value(); \
+  int64_t var = Nan::To<int64_t>(name).ToChecked(); \
   if (var < 0) { \
     Nan::ThrowError(#var " must be at least 0"); \
     return; \
@@ -92,7 +92,7 @@
     Nan::ThrowError(#var " must be a number"); \
     return; \
   } \
-  int64_t var = name.As<v8::Number>()->Value(); \
+  int64_t var = Nan::To<int64_t>(name).ToChecked(); \
   \
   if (var < 0) { \
     Nan::ThrowError(#var " must be at least 0"); \
@@ -120,6 +120,6 @@
     Nan::ThrowError(#var " must be a " #type); \
     return; \
   } \
-  type* var = Nan::ObjectWrap::Unwrap<type>(name->ToObject(v8::Isolate::GetCurrent()->GetCurrentContext()).ToLocalChecked());
+  type* var = Nan::ObjectWrap::Unwrap<type>(name->ToObject(Nan::GetCurrentContext()).ToLocalChecked());
 
 #endif
