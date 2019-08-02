@@ -13,7 +13,6 @@ napi_value sn_randombytes_random (napi_env env, napi_callback_info info) {
 napi_value sn_randombytes_uniform (napi_env env, napi_callback_info info) {
   NAPI_ARGV(1, randombytes_uniform);
   NAPI_TYPE_ASSERT(upper_bound, argv[0], napi_number, "upper_bound must be a Number");
-  NAPI_UINT32(upper_bound, argv[0]);
 
   uint32_t upper_bound;
   assert(napi_get_value_uint32(env, argv[0], &upper_bound) == napi_ok);

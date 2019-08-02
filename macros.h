@@ -5,17 +5,9 @@
   }
 
 #define NAPI_TYPE_ASSERT(name, var, type, message) \
-  napi_valuetype valuetype_##name; \
-  NAPI_STATUS_THROWS(napi_typeof(env, var, &valuetype_##name), ""); \
-  if (valuetype_##name != type) { \
-    napi_throw_type_error(env, NULL, message); \
-    return NULL; \
-  }
-
-#define NAPI_UINT32(name, var) \
-  uint32 #name; \
-  NAPI_STATUS_THROWS(napi_get_value_uint32(env, var, &#name), ""); \
-  if (valuetype_##name != type) { \
+  napi_valuetype name##_valuetype; \
+  NAPI_STATUS_THROWS(napi_typeof(env, var, &name##_valuetype), ""); \
+  if (name##_valuetype != type) { \
     napi_throw_type_error(env, NULL, message); \
     return NULL; \
   }

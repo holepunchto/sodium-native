@@ -9,7 +9,7 @@
         'libsodium/src/libsodium/include'
       ],
       'sources': [
-        'binding.cc'
+        'binding.c'
       ],
       'xcode_settings': {
         'OTHER_CFLAGS': [
