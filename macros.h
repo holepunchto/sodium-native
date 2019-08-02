@@ -54,3 +54,12 @@
     NAPI_STATUS_THROWS(napi_create_uint32(env, num, &name##_num), "") \
     NAPI_STATUS_THROWS(napi_set_named_property(env, exports, #name, name##_num), "") \
   }
+
+#define NAPI_TYPEDARRAY(name, var) \
+  napi_typedarray_type name##_type; \
+  size_t name##_length; \
+  void * name##_data; \
+  assert(napi_get_typedarray_info(env, (var), &name##_type, &name##_length, &name##_data, NULL, NULL) == napi_ok); \
+  uint8_t name##_width = typedarray_width(name##_type); \
+  NAPI_THROWS(name##_width == 0, "Unexpected TypedArray type"); \
+  size_t name##_size = name##_length * name##_width;

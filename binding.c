@@ -41,8 +41,8 @@ uint8_t typedarray_width(napi_typedarray_type type) {
 
 napi_value sn_sodium_memcmp(napi_env env, napi_callback_info info) {
   NAPI_ARGV(2, sodium_memcmp);
-  NAPI_TYPEDARRAY_ASSERT(b1, argv[0], "b1 must be instancee of TypedArray");
-  NAPI_TYPEDARRAY_ASSERT(b2, argv[1], "b1 must be instancee of TypedArray");
+  NAPI_TYPEDARRAY_ASSERT(b1, argv[0], "b1 must be instance of TypedArray");
+  NAPI_TYPEDARRAY_ASSERT(b2, argv[1], "b1 must be instance of TypedArray");
 
   napi_typedarray_type b1_type;
   size_t b1_length;
@@ -73,6 +73,31 @@ napi_value sn_sodium_memcmp(napi_env env, napi_callback_info info) {
   return result;
 }
 
+napi_value sn_sodium_increment(napi_env env, napi_callback_info info) {
+  NAPI_ARGV(1, sodium_increment);
+  NAPI_TYPEDARRAY_ASSERT(n, argv[0], "n must be an instance of TypedArray");
+
+  NAPI_TYPEDARRAY(n, argv[0])
+
+  sodium_increment(n_data, n_size);
+
+  return NULL;
+}
+
+napi_value sn_sodium_add(napi_env env, napi_callback_info info) {
+  NAPI_ARGV(2, sodium_add);
+  NAPI_TYPEDARRAY_ASSERT(a, argv[0], "a must be an instance of TypedArray");
+  NAPI_TYPEDARRAY_ASSERT(b, argv[1], "b must be an instance of TypedArray");
+
+  NAPI_TYPEDARRAY(a, argv[0])
+  NAPI_TYPEDARRAY(b, argv[1])
+
+  NAPI_THROWS(a_size != b_size, "buffers must be of same length")
+  sodium_add(a_data, b_data, a_size);
+
+  return NULL;
+}
+
 napi_value create_sodium_native(napi_env env) {
   napi_value exports;
   assert(napi_create_object(env, &exports) == napi_ok);
@@ -80,6 +105,8 @@ napi_value create_sodium_native(napi_env env) {
   NAPI_EXPORT_FUNCTION(randombytes_uniform, sn_randombytes_uniform)
   NAPI_EXPORT_FUNCTION(randombytes_random, sn_randombytes_random)
   NAPI_EXPORT_FUNCTION(sodium_memcmp, sn_sodium_memcmp)
+  NAPI_EXPORT_FUNCTION(sodium_increment, sn_sodium_increment)
+  NAPI_EXPORT_FUNCTION(sodium_add, sn_sodium_add)
 
   return exports;
 }
