@@ -5,10 +5,10 @@
   "main": "index.js",
   "dependencies": {
     "ini": "^1.3.5",
-    "nan": "^2.14.0"
+    "nan": "^2.14.0",
+    "node-gyp-build": "^4.1.0"
   },
   "devDependencies": {
-    "node-gyp-build": "^4.1.0",
     "prebuildify": "^3.0.2",
     "sodium-test": "^0.7.0",
     "sodium-vectors": "^1.0.0",
