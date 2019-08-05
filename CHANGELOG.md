@@ -2,6 +2,10 @@
 
 ## Current
 
+## v2.4.4
+
+* Fix issue with node-gyp using the node 6.0.0 headers for electron 6.0.0 when prebuilding
+
 ## v2.4.3
 
 * Add Node 12 and Electron 5 support (thanks @davedoesdev)
