@@ -2,6 +2,10 @@
 
 ## Current
 
+## v2.4.5
+
+* node-gyp-build was accidentally added as a dev dependency.
+
 ## v2.4.4
 
 * Fix issue with node-gyp using the node 6.0.0 headers for electron 6.0.0 when prebuilding
