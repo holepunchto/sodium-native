@@ -77,7 +77,7 @@ napi_value sn_sodium_increment(napi_env env, napi_callback_info info) {
   NAPI_ARGV(1, sodium_increment);
   NAPI_TYPEDARRAY_ASSERT(n, argv[0], "n must be an instance of TypedArray");
 
-  NAPI_TYPEDARRAY(n, argv[0])
+  NAPI_TYPEDARRAY(n, argv[0]);
 
   sodium_increment(n_data, n_size);
 
@@ -89,13 +89,58 @@ napi_value sn_sodium_add(napi_env env, napi_callback_info info) {
   NAPI_TYPEDARRAY_ASSERT(a, argv[0], "a must be an instance of TypedArray");
   NAPI_TYPEDARRAY_ASSERT(b, argv[1], "b must be an instance of TypedArray");
 
-  NAPI_TYPEDARRAY(a, argv[0])
-  NAPI_TYPEDARRAY(b, argv[1])
+  NAPI_TYPEDARRAY(a, argv[0]);
+  NAPI_TYPEDARRAY(b, argv[1]);
 
-  NAPI_THROWS(a_size != b_size, "buffers must be of same length")
+  NAPI_THROWS(a_size != b_size, "buffers must be of same length");
   sodium_add(a_data, b_data, a_size);
 
   return NULL;
+}
+
+napi_value sn_sodium_sub(napi_env env, napi_callback_info info) {
+  NAPI_ARGV(2, sodium_sub);
+  NAPI_TYPEDARRAY_ASSERT(a, argv[0], "a must be an instance of TypedArray");
+  NAPI_TYPEDARRAY_ASSERT(b, argv[1], "b must be an instance of TypedArray");
+
+  NAPI_TYPEDARRAY(a, argv[0]);
+  NAPI_TYPEDARRAY(b, argv[1]);
+
+  NAPI_THROWS(a_size != b_size, "buffers must be of same length");
+  sodium_sub(a_data, b_data, a_size);
+
+  return NULL;
+}
+
+napi_value sn_sodium_compare(napi_env env, napi_callback_info info) {
+  NAPI_ARGV(2, sodium_compare);
+  NAPI_TYPEDARRAY_ASSERT(a, argv[0], "a must be an instance of TypedArray");
+  NAPI_TYPEDARRAY_ASSERT(b, argv[1], "b must be an instance of TypedArray");
+
+  NAPI_TYPEDARRAY(a, argv[0]);
+  NAPI_TYPEDARRAY(b, argv[1]);
+
+  NAPI_THROWS(a_size != b_size, "buffers must be of same length");
+  int cmp = sodium_compare(a_data, b_data, a_size);
+
+  napi_value result;
+  napi_create_int32(env, cmp, &result);
+
+  return result;
+}
+
+napi_value sn_sodium_is_zero(napi_env env, napi_callback_info info) {
+  NAPI_ARGV(1, sodium_is_zero);
+  NAPI_TYPEDARRAY_ASSERT(a, argv[0], "a must be an instance of TypedArray");
+
+  NAPI_TYPEDARRAY(a, argv[0]);
+
+  sodium_is_zero(a_data, a_size);
+  int cmp = sodium_is_zero(a_data, a_size);
+
+  napi_value result;
+  assert(napi_get_boolean(env, cmp == 1, &result) == napi_ok);
+  return result;
 }
 
 napi_value create_sodium_native(napi_env env) {
@@ -107,6 +152,9 @@ napi_value create_sodium_native(napi_env env) {
   NAPI_EXPORT_FUNCTION(sodium_memcmp, sn_sodium_memcmp)
   NAPI_EXPORT_FUNCTION(sodium_increment, sn_sodium_increment)
   NAPI_EXPORT_FUNCTION(sodium_add, sn_sodium_add)
+  NAPI_EXPORT_FUNCTION(sodium_sub, sn_sodium_sub)
+  NAPI_EXPORT_FUNCTION(sodium_compare, sn_sodium_compare)
+  NAPI_EXPORT_FUNCTION(sodium_is_zero, sn_sodium_is_zero)
 
   return exports;
 }
