@@ -8,7 +8,7 @@ var release = path.join(__dirname, 'build/Release')
 var debug = path.join(__dirname, 'build/Debug')
 var tmp = path.join(__dirname, 'tmp')
 var build = fs.existsSync(release) ? release : debug
-var arch = process.env.ARCH || os.arch()
+var arch = process.env.PREBUILD_ARCH || os.arch()
 
 switch (os.platform()) {
   case 'win32':
