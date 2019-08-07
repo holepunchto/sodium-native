@@ -22,6 +22,9 @@ addons:
     packages:
     - g++-7
 
+cache:
+  npm: false
+
 before_install:
   - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export CC=gcc-7 && CXX=g++-7; fi
   - npm run fetch-libsodium
