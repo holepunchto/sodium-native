@@ -15,11 +15,15 @@
         'OTHER_CFLAGS': [
           '-g',
           '-O3',
+          '-Wall',
+          '-pedantic-errors',
         ]
       },
       'cflags': [
         '-g',
         '-O3',
+        '-Wall',
+        '-pedantic-errors',
       ],
       'libraries': [
         '<!(node preinstall.js --print-lib)'
