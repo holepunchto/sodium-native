@@ -443,7 +443,7 @@ Encrypt a message.
 * `mac` should be a buffer with length `crypto_secretbox_MACBYTES`.
 * `message` should be a buffer of any length.
 * `nonce` should be a buffer with length `crypto_secretbox_NONCEBYTES`.
-* `secretKey` should be a secret key with legnth `crypto_secretbox_KEYBYTES`.
+* `secretKey` should be a secret key with length `crypto_secretbox_KEYBYTES`.
 
 The encrypted message will be stored in `ciphertext` and the authentification code will be stored in `mac`.
 
@@ -454,7 +454,7 @@ Same as `crypto_secretbox_detached` except it encodes the mac in the message.
 * `ciphertext` should be a buffer with length `message.length + crypto_secretbox_MACBYTES`.
 * `message` should be a buffer of any length.
 * `nonce` should be a buffer with length `crypto_secretbox_NONCEBYTES`.
-* `secretKey` should be a secret key with legnth `crypto_secretbox_KEYBYTES`.
+* `secretKey` should be a secret key with length `crypto_secretbox_KEYBYTES`.
 
 #### `var bool = crypto_secretbox_open_detached(message, ciphertext, mac, nonce, secretKey)`
 
@@ -634,7 +634,7 @@ Create an authentication token.
 
 * `output` should be a buffer of length `crypto_auth_BYTES`.
 * `input` should be a buffer of any size.
-* `key` should be a buffer of lenght `crypto_auth_KEYBYTES`.
+* `key` should be a buffer of length `crypto_auth_KEYBYTES`.
 
 The generated token is stored in `output`.
 
@@ -644,7 +644,7 @@ Verify a token.
 
 * `output` should be a buffer of length `crypto_auth_BYTES`.
 * `input` should be a buffer of any size.
-* `key` should be a buffer of lenght `crypto_auth_KEYBYTES`.
+* `key` should be a buffer of length `crypto_auth_KEYBYTES`.
 
 Returns `true` if the token could be verified. Otherwise `false`.
 
@@ -745,7 +745,7 @@ Create a authentication token based on a onetime key.
 
 * `output` should be a buffer of length `crypto_onetimauth_BYTES`.
 * `input` should be a buffer of any size.
-* `key` should be a buffer of lenght `crypto_onetimeauth_KEYBYTES`.
+* `key` should be a buffer of length `crypto_onetimeauth_KEYBYTES`.
 
 The generated token is stored in `output`.
 
@@ -755,7 +755,7 @@ Verify a token.
 
 * `output` should be a buffer of length `crypto_onetimeauth_BYTES`.
 * `input` should be a buffer of any size.
-* `key` should be a buffer of lenght `crypto_onetimeauth_KEYBYTES`.
+* `key` should be a buffer of length `crypto_onetimeauth_KEYBYTES`.
 
 Returns `true` if the token could be verified. Otherwise `false`.
 
@@ -846,15 +846,15 @@ Otherwise `false` if it is still good.
 
 #### `crypto_pwhash_async(output, password, salt, opslimit, memlimit, algorithm, callback)`
 
-Just like `crypto_pwhash` but will run password hashing on a seperate worker so it will not block the event loop. `callback(err)` will receive any errors from the hashing but all argument errors will `throw`. The resulting hash is written to `output`. This function also supports [`async_hook`s](https://nodejs.org/dist/latest/docs/api/async_hooks.html) as the type `sodium-native:crypto_pwhash_async`
+Just like `crypto_pwhash` but will run password hashing on a separate worker so it will not block the event loop. `callback(err)` will receive any errors from the hashing but all argument errors will `throw`. The resulting hash is written to `output`. This function also supports [`async_hook`s](https://nodejs.org/dist/latest/docs/api/async_hooks.html) as the type `sodium-native:crypto_pwhash_async`
 
 #### `crypto_pwhash_str_async(output, password, opslimit, memlimit, callback)`
 
-Just like `crypto_pwhash_str` but will run password hashing on a seperate worker so it will not block the event loop. `callback(err)` will receive any errors from the hashing but all argument errors will `throw`. The resulting hash with parameters is written to `output`. This function also supports [`async_hook`s](https://nodejs.org/dist/latest/docs/api/async_hooks.html) as the type `sodium-native:crypto_pwhash_str_async`
+Just like `crypto_pwhash_str` but will run password hashing on a separate worker so it will not block the event loop. `callback(err)` will receive any errors from the hashing but all argument errors will `throw`. The resulting hash with parameters is written to `output`. This function also supports [`async_hook`s](https://nodejs.org/dist/latest/docs/api/async_hooks.html) as the type `sodium-native:crypto_pwhash_str_async`
 
 #### `crypto_pwhash_str_verify_async(str, password, callback)`
 
-Just like `crypto_pwhash_str_verify` but will run password hashing on a seperate worker so it will not block the event loop. `callback(err, bool)` will receive any errors from the hashing but all argument errors will `throw`. If the verification succeeds `bool` is `true`, otherwise `false`. Due to an issue with libsodium `err` is currently never set. This function also supports [`async_hook`s](https://nodejs.org/dist/latest/docs/api/async_hooks.html) as the type `sodium-native:crypto_pwhash_str_verify_async`
+Just like `crypto_pwhash_str_verify` but will run password hashing on a separate worker so it will not block the event loop. `callback(err, bool)` will receive any errors from the hashing but all argument errors will `throw`. If the verification succeeds `bool` is `true`, otherwise `false`. Due to an issue with libsodium `err` is currently never set. This function also supports [`async_hook`s](https://nodejs.org/dist/latest/docs/api/async_hooks.html) as the type `sodium-native:crypto_pwhash_str_verify_async`
 
 ### Password Hashing (Scrypt)
 
@@ -914,15 +914,15 @@ Otherwise `false` if it is still good.
 
 #### `crypto_pwhash_scryptsalsa208sha256_async(output, password, salt, opslimit, memlimit, callback)`
 
-Just like `crypto_pwhash_scryptsalsa208sha256` but will run password hashing on a seperate worker so it will not block the event loop. `callback(err)` will receive any errors from the hashing but all argument errors will `throw`. The resulting hash is written to `output`. This function also supports [`async_hook`s](https://nodejs.org/dist/latest/docs/api/async_hooks.html) as the type `sodium-native:crypto_pwhash_scryptsalsa208sha256_async`
+Just like `crypto_pwhash_scryptsalsa208sha256` but will run password hashing on a separate worker so it will not block the event loop. `callback(err)` will receive any errors from the hashing but all argument errors will `throw`. The resulting hash is written to `output`. This function also supports [`async_hook`s](https://nodejs.org/dist/latest/docs/api/async_hooks.html) as the type `sodium-native:crypto_pwhash_scryptsalsa208sha256_async`
 
 #### `crypto_pwhash_scryptsalsa208sha256_str_async(output, password, opslimit, memlimit, callback)`
 
-Just like `crypto_pwhash_scryptsalsa208sha256_str` but will run password hashing on a seperate worker so it will not block the event loop. `callback(err)` will receive any errors from the hashing but all argument errors will `throw`. The resulting hash with parameters is written to `output`. This function also supports [`async_hook`s](https://nodejs.org/dist/latest/docs/api/async_hooks.html) as the type `sodium-native:crypto_pwhash_scryptsalsa208sha256_str_async`
+Just like `crypto_pwhash_scryptsalsa208sha256_str` but will run password hashing on a separate worker so it will not block the event loop. `callback(err)` will receive any errors from the hashing but all argument errors will `throw`. The resulting hash with parameters is written to `output`. This function also supports [`async_hook`s](https://nodejs.org/dist/latest/docs/api/async_hooks.html) as the type `sodium-native:crypto_pwhash_scryptsalsa208sha256_str_async`
 
 #### `crypto_pwhash_scryptsalsa208sha256_str_verify_async(str, password, callback)`
 
-Just like `crypto_pwhash_scryptsalsa208sha256_str_verify` but will run password hashing on a seperate worker so it will not block the event loop. `callback(err, bool)` will receive any errors from the hashing but all argument errors will `throw`. If the verification succeeds `bool` is `true`, otherwise `false`. Due to an issue with libsodium `err` is currently never set. This function also supports [`async_hook`s](https://nodejs.org/dist/latest/docs/api/async_hooks.html) as the type `sodium-native:crypto_pwhash_scryptsalsa208sha256_str_verify_async`
+Just like `crypto_pwhash_scryptsalsa208sha256_str_verify` but will run password hashing on a separate worker so it will not block the event loop. `callback(err, bool)` will receive any errors from the hashing but all argument errors will `throw`. If the verification succeeds `bool` is `true`, otherwise `false`. Due to an issue with libsodium `err` is currently never set. This function also supports [`async_hook`s](https://nodejs.org/dist/latest/docs/api/async_hooks.html) as the type `sodium-native:crypto_pwhash_scryptsalsa208sha256_str_verify_async`
 
 ### Key exchange
 
