@@ -2,6 +2,14 @@
 
 ## Current
 
+## v2.4.7
+
+* Prebuilds for Node 13 and new Electron
+
+## v2.4.6
+
+* Prebuildify fixes
+
 ## v2.4.5
 
 * node-gyp-build was accidentally added as a dev dependency.
