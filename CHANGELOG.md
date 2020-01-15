@@ -2,6 +2,10 @@
 
 ## Current
 
+## v2.4.8
+
+* Removing Node 4 and 6 from Travis as the config does not work there. We still build for 4 and 6 though.
+
 ## v2.4.7
 
 * Prebuilds for Node 13 and new Electron
