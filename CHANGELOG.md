@@ -2,6 +2,10 @@
 
 ## Current
 
+## v2.4.9
+
+* Downgrades npm on travis to 6.11.x as we cannot build prebuilds with node-gyp@5.0.5. Can be upgraded again when npm ships node-gyp@6.
+
 ## v2.4.8
 
 * Removing Node 4 and 6 from Travis as the config does not work there. We still build for 4 and 6 though.
