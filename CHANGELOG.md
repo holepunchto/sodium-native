@@ -2,6 +2,10 @@
 
 ## Current
 
+## v2.4.10
+
+* Prebuilds for Electron 8
+
 ## v2.4.9
 
 * Downgrades npm on travis to 6.11.x as we cannot build prebuilds with node-gyp@5.0.5. Can be upgraded again when npm ships node-gyp@6.
