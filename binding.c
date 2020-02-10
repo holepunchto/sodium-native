@@ -387,7 +387,6 @@ napi_value sn_crypto_box_seal(napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_box_seal(ciphertext_data, message_data, message_size, pk_data), "failed to create seal")
 }
 
-
 napi_value sn_crypto_box_seal_open(napi_env env, napi_callback_info info) {
   SN_ARGV(4, crypto_box_seal_open)
 
@@ -402,6 +401,71 @@ napi_value sn_crypto_box_seal_open(napi_env env, napi_callback_info info) {
   SN_THROWS(pk_size != crypto_box_PUBLICKEYBYTES, "public key must be 32 bytes")
 
   SN_RETURN_BOOLEAN(crypto_box_seal_open(message_data, ciphertext_data, ciphertext_size, pk_data, sk_data))
+}
+
+napi_value sn_crypto_secretbox_easy(napi_env env, napi_callback_info info) {
+  SN_ARGV(4, crypto_secretbox_easy)
+
+  SN_ARGV_TYPEDARRAY(ciphertext, 0)
+  SN_ARGV_TYPEDARRAY(message, 1)
+  SN_ARGV_TYPEDARRAY(nonce, 2)
+  SN_ARGV_TYPEDARRAY(key, 3)
+
+  SN_THROWS(ciphertext_size != message_size + crypto_secretbox_MACBYTES, "ciphertext buffer must be 16 bytes longer than input")
+  SN_THROWS(nonce_size != crypto_secretbox_NONCEBYTES, "nonce must be 24 bytes")
+  SN_THROWS(key_size != crypto_secretbox_KEYBYTES, "key must be 32 bytes")
+
+  SN_RETURN(crypto_secretbox_easy(ciphertext_data, message_data, message_size, nonce_data, key_data), "crypto secretbox failed")
+}
+
+napi_value sn_crypto_secretbox_open_easy(napi_env env, napi_callback_info info) {
+  SN_ARGV(4, crypto_secretbox_open_easy)
+
+  SN_ARGV_TYPEDARRAY(message, 0)
+  SN_ARGV_TYPEDARRAY(ciphertext, 1)
+  SN_ARGV_TYPEDARRAY(nonce, 2)
+  SN_ARGV_TYPEDARRAY(key, 3)
+
+  SN_THROWS(message_size != ciphertext_size - crypto_secretbox_MACBYTES, "message buffer must be 16 bytes shorter than input")
+  SN_THROWS(ciphertext_size < crypto_secretbox_MACBYTES, "ciphertext must be at least 16 bytes")
+  SN_THROWS(nonce_size != crypto_secretbox_NONCEBYTES, "nonce must be 24 bytes")
+  SN_THROWS(key_size != crypto_secretbox_KEYBYTES, "key must be 32 bytes")
+
+  SN_RETURN_BOOLEAN(crypto_secretbox_open_easy(message_data, ciphertext_data, ciphertext_size, nonce_data, key_data))
+}
+
+napi_value sn_crypto_secretbox_detached(napi_env env, napi_callback_info info) {
+  SN_ARGV(5, crypto_secretbox_detached)
+
+  SN_ARGV_TYPEDARRAY(ciphertext, 0)
+  SN_ARGV_TYPEDARRAY(mac, 1)
+  SN_ARGV_TYPEDARRAY(message, 2)
+  SN_ARGV_TYPEDARRAY(nonce, 3)
+  SN_ARGV_TYPEDARRAY(key, 4)
+
+  SN_THROWS(ciphertext_size != message_size, "ciphertext buffer must be equal in length to message")
+  SN_THROWS(mac_size != crypto_secretbox_MACBYTES, "mac must be 16 bytes")
+  SN_THROWS(nonce_size != crypto_secretbox_NONCEBYTES, "nonce must be 24 bytes")
+  SN_THROWS(key_size != crypto_secretbox_KEYBYTES, "key must be 32 bytes")
+
+  SN_RETURN(crypto_secretbox_detached(ciphertext_data, mac_data, message_data, message_size, nonce_data, key_data), "failed to open box")
+}
+
+napi_value sn_crypto_secretbox_open_detached(napi_env env, napi_callback_info info) {
+  SN_ARGV(5, crypto_secretbox_open_detached)
+
+  SN_ARGV_TYPEDARRAY(message, 0)
+  SN_ARGV_TYPEDARRAY(ciphertext, 1)
+  SN_ARGV_TYPEDARRAY(mac, 2)
+  SN_ARGV_TYPEDARRAY(nonce, 3)
+  SN_ARGV_TYPEDARRAY(key, 4)
+
+  SN_THROWS(message_size != ciphertext_size, "message buffer must be equal in length to ciphertext")
+  SN_THROWS(mac_size != crypto_secretbox_MACBYTES, "mac must be 16 bytes")
+  SN_THROWS(nonce_size != crypto_secretbox_NONCEBYTES, "nonce must be 24 bytes")
+  SN_THROWS(key_size != crypto_secretbox_KEYBYTES, "key must be 32 bytes")
+
+  SN_RETURN_BOOLEAN(crypto_secretbox_open_detached(message_data, ciphertext_data, mac_data, ciphertext_size, nonce_data, key_data))
 }
 
 napi_value create_sodium_native(napi_env env) {
@@ -436,6 +500,10 @@ napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_box_open_detached, sn_crypto_box_open_detached)
   SN_EXPORT_FUNCTION(crypto_box_seal, sn_crypto_box_seal)
   SN_EXPORT_FUNCTION(crypto_box_seal_open, sn_crypto_box_seal_open)
+  SN_EXPORT_FUNCTION(crypto_secretbox_easy, sn_crypto_secretbox_easy)
+  SN_EXPORT_FUNCTION(crypto_secretbox_open_easy, sn_crypto_secretbox_open_easy)
+  SN_EXPORT_FUNCTION(crypto_secretbox_detached, sn_crypto_secretbox_detached)
+  SN_EXPORT_FUNCTION(crypto_secretbox_open_detached, sn_crypto_secretbox_open_detached)
 
   return exports;
 }
