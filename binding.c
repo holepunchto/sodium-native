@@ -3,22 +3,6 @@
 #include "macros.h"
 #include <sodium.h>
 
-napi_value sn_randombytes_random (napi_env env, napi_callback_info info) {
-  napi_value result;
-
-  assert(napi_create_uint32(env, randombytes_random(), &result) == napi_ok);
-  return result;
-}
-
-napi_value sn_randombytes_uniform (napi_env env, napi_callback_info info) {
-  SN_ARGV(1, randombytes_uniform);
-  SN_ARGV_UINT32(upper_bound, 0)
-
-  napi_value result;
-  assert(napi_create_uint32(env, randombytes_uniform(upper_bound), &result) == napi_ok);
-  return result;
-}
-
 uint8_t typedarray_width(napi_typedarray_type type) {
   switch (type) {
     case napi_int8_array: return 1;
@@ -36,6 +20,45 @@ uint8_t typedarray_width(napi_typedarray_type type) {
   }
 }
 
+napi_value sn_sodium_memzero (napi_env env, napi_callback_info info) {
+  SN_ARGV(1, sodium_memzero)
+  SN_ARGV_TYPEDARRAY(buf, 0)
+
+  sodium_memzero(buf_data, buf_size);
+
+  return NULL;
+}
+
+napi_value sn_sodium_mlock (napi_env env, napi_callback_info info) {
+  SN_ARGV(1, sodium_mlock)
+  SN_ARGV_TYPEDARRAY(buf, 0)
+
+  SN_RETURN(sodium_mlock(buf_data, buf_size), "memory lock failed")
+}
+
+napi_value sn_sodium_munlock (napi_env env, napi_callback_info info) {
+  SN_ARGV(1, sodium_munlock)
+  SN_ARGV_TYPEDARRAY(buf, 0)
+
+  SN_RETURN(sodium_munlock(buf_data, buf_size), "memory unlock failed")
+}
+
+napi_value sn_randombytes_random (napi_env env, napi_callback_info info) {
+  napi_value result;
+
+  assert(napi_create_uint32(env, randombytes_random(), &result) == napi_ok);
+  return result;
+}
+
+napi_value sn_randombytes_uniform (napi_env env, napi_callback_info info) {
+  SN_ARGV(1, randombytes_uniform);
+  SN_ARGV_UINT32(upper_bound, 0)
+
+  napi_value result;
+  assert(napi_create_uint32(env, randombytes_uniform(upper_bound), &result) == napi_ok);
+  return result;
+}
+
 napi_value sn_randombytes_buf (napi_env env, napi_callback_info info) {
   SN_ARGV(1, randombytes_buf)
 
@@ -45,7 +68,6 @@ napi_value sn_randombytes_buf (napi_env env, napi_callback_info info) {
 
   return NULL;
 }
-
 
 napi_value sn_randombytes_buf_deterministic (napi_env env, napi_callback_info info) {
   SN_ARGV(2, randombytes_buf)
@@ -472,6 +494,9 @@ napi_value create_sodium_native(napi_env env) {
   napi_value exports;
   assert(napi_create_object(env, &exports) == napi_ok);
 
+  SN_EXPORT_FUNCTION(sodium_memzero, sn_sodium_memzero)
+  SN_EXPORT_FUNCTION(sodium_mlock, sn_sodium_mlock)
+  SN_EXPORT_FUNCTION(sodium_munlock, sn_sodium_munlock)
   SN_EXPORT_FUNCTION(randombytes_buf, sn_randombytes_buf)
   SN_EXPORT_FUNCTION(randombytes_buf_deterministic, sn_randombytes_buf_deterministic)
   SN_EXPORT_FUNCTION(randombytes_uniform, sn_randombytes_uniform)
