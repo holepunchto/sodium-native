@@ -220,7 +220,41 @@ napi_value sn_crypto_sign_open(napi_env env, napi_callback_info info) {
   SN_THROWS(signed_message_size < crypto_sign_BYTES, "signed message must be at least 64 bytes")
   SN_THROWS(pk_size != crypto_sign_PUBLICKEYBYTES, "secret key must be 64 bytes")
 
-  SN_RETURN(crypto_sign_open(message_data, NULL, signed_message_data, signed_message_size, pk_data), "signature verification failed")
+  int valid = crypto_sign_open(message_data, NULL, signed_message_data, signed_message_size, pk_data);
+
+  napi_value result;
+  assert(napi_get_boolean(env, valid == 0, &result) == napi_ok);
+  return result;
+}
+
+napi_value sn_crypto_sign_detached(napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_sign_detached)
+
+  SN_ARGV_TYPEDARRAY(signature, 0)
+  SN_ARGV_TYPEDARRAY(message, 1)
+  SN_ARGV_TYPEDARRAY(sk, 2)
+
+  SN_THROWS(signature_size != crypto_sign_BYTES, "signed message buffer must be 64 bytes")
+  SN_THROWS(sk_size != crypto_sign_SECRETKEYBYTES, "secret key must be 64 bytes")
+
+  SN_RETURN(crypto_sign_detached(signature_data, NULL, message_data, message_size, sk_data), "signature failed")
+}
+
+napi_value sn_crypto_sign_verify_detached(napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_sign_verify_detached)
+
+  SN_ARGV_TYPEDARRAY(signature, 0)
+  SN_ARGV_TYPEDARRAY(message, 1)
+  SN_ARGV_TYPEDARRAY(pk, 2)
+
+  SN_THROWS(signature_size != crypto_sign_BYTES, "signed message must be at least 64 bytes")
+  SN_THROWS(pk_size != crypto_sign_PUBLICKEYBYTES, "secret key must be 64 bytes")
+
+  int valid = crypto_sign_verify_detached(signature_data, message_data, message_size, pk_data);
+
+  napi_value result;
+  assert(napi_get_boolean(env, valid == 0, &result) == napi_ok);
+  return result;
 }
 
 napi_value create_sodium_native(napi_env env) {
@@ -243,6 +277,8 @@ napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_sign_seed_keypair, sn_crypto_sign_seed_keypair)
   SN_EXPORT_FUNCTION(crypto_sign, sn_crypto_sign)
   SN_EXPORT_FUNCTION(crypto_sign_open, sn_crypto_sign_open)
+  SN_EXPORT_FUNCTION(crypto_sign_detached, sn_crypto_sign_detached)
+  SN_EXPORT_FUNCTION(crypto_sign_verify_detached, sn_crypto_sign_verify_detached)
 
   return exports;
 }
