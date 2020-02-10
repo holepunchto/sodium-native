@@ -170,6 +170,24 @@ napi_value sn_sodium_unpad(napi_env env, napi_callback_info info) {
   return result;
 }
 
+napi_value sn_crypto_sign_seed_keypair(napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_sign_seed_keypair)
+
+  SN_ARGV_TYPEDARRAY(pk, 0)
+  SN_ARGV_TYPEDARRAY(sk, 1)
+  SN_ARGV_TYPEDARRAY(seed, 2)
+
+  SN_THROWS(pk_size != crypto_sign_PUBLICKEYBYTES, "public key must be 32 bytes")
+  SN_THROWS(sk_size != crypto_sign_SECRETKEYBYTES, "secret key must be 64 bytes")
+  SN_THROWS(seed_size != crypto_sign_SEEDBYTES, "seed must be 32 bytes")
+
+  int success = crypto_sign_seed_keypair(pk_data, sk_data, seed_data);
+
+  SN_THROWS(success != 0, "keypair generation failed")
+
+  return NULL;
+}
+
 napi_value create_sodium_native(napi_env env) {
   napi_value exports;
   assert(napi_create_object(env, &exports) == napi_ok);
@@ -186,6 +204,7 @@ napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(sodium_is_zero, sn_sodium_is_zero)
   SN_EXPORT_FUNCTION(sodium_pad, sn_sodium_pad)
   SN_EXPORT_FUNCTION(sodium_unpad, sn_sodium_unpad)
+  SN_EXPORT_FUNCTION(crypto_sign_seed_keypair, sn_crypto_sign_seed_keypair)
 
   return exports;
 }
