@@ -336,10 +336,43 @@ napi_value sn_crypto_box_open_easy(napi_env env, napi_callback_info info) {
   SN_RETURN_BOOLEAN(crypto_box_open_easy(message_data, ciphertext_data, ciphertext_size, nonce_data, pk_data, sk_data))
 }
 
-napi_value sn_(napi_env env, napi_callback_info info) {
-  SN_ARGV_OPTS(2, 3, crypto_generichash)
+napi_value sn_crypto_box_detached(napi_env env, napi_callback_info info) {
+  SN_ARGV(6, crypto_box_detached)
+
+  SN_ARGV_TYPEDARRAY(ciphertext, 0)
+  SN_ARGV_TYPEDARRAY(mac, 1)
+  SN_ARGV_TYPEDARRAY(message, 2)
+  SN_ARGV_TYPEDARRAY(nonce, 3)
+  SN_ARGV_TYPEDARRAY(pk, 4)
+  SN_ARGV_TYPEDARRAY(sk, 5)
+
+  SN_THROWS(ciphertext_size != message_size, "ciphertext buffer must be equal in length to message")
+  SN_THROWS(mac_size != crypto_box_MACBYTES, "mac must be 16 bytes")
+  SN_THROWS(nonce_size != crypto_box_NONCEBYTES, "nonce must be 24 bytes")
+  SN_THROWS(sk_size != crypto_sign_SECRETKEYBYTES, "secret key must be 32 bytes")
+  SN_THROWS(pk_size != crypto_sign_PUBLICKEYBYTES, "public key must be 32 bytes")
+
+  SN_RETURN(crypto_box_detached(ciphertext_data, mac_data, message_data, message_size, nonce_data, pk_data, sk_data), "signature failed")
 }
 
+napi_value sn_crypto_box_open_detached(napi_env env, napi_callback_info info) {
+  SN_ARGV(6, crypto_box_open_detached)
+
+  SN_ARGV_TYPEDARRAY(message, 0)
+  SN_ARGV_TYPEDARRAY(ciphertext, 1)
+  SN_ARGV_TYPEDARRAY(mac, 2)
+  SN_ARGV_TYPEDARRAY(nonce, 3)
+  SN_ARGV_TYPEDARRAY(pk, 4)
+  SN_ARGV_TYPEDARRAY(sk, 5)
+
+  SN_THROWS(message_size != ciphertext_size, "message buffer must be equal in length to ciphertext")
+  SN_THROWS(mac_size != crypto_box_MACBYTES, "mac must be 16 bytes")
+  SN_THROWS(nonce_size != crypto_box_NONCEBYTES, "nonce must be 24 bytes")
+  SN_THROWS(sk_size != crypto_sign_SECRETKEYBYTES, "secret key must be 32 bytes")
+  SN_THROWS(pk_size != crypto_sign_PUBLICKEYBYTES, "public key must be 32 bytes")
+
+  SN_RETURN_BOOLEAN(crypto_box_open_detached(message_data, ciphertext_data, mac_data, ciphertext_size, nonce_data, pk_data, sk_data))
+}
 
 napi_value create_sodium_native(napi_env env) {
   napi_value exports;
@@ -369,6 +402,8 @@ napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_box_seed_keypair, sn_crypto_box_seed_keypair)
   SN_EXPORT_FUNCTION(crypto_box_easy, sn_crypto_box_easy)
   SN_EXPORT_FUNCTION(crypto_box_open_easy, sn_crypto_box_open_easy)
+  SN_EXPORT_FUNCTION(crypto_box_detached, sn_crypto_box_detached)
+  SN_EXPORT_FUNCTION(crypto_box_open_detached, sn_crypto_box_open_detached)
 
   return exports;
 }
