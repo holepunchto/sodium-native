@@ -238,11 +238,19 @@ napi_value sn_crypto_sign_verify_detached(napi_env env, napi_callback_info info)
   SN_THROWS(signature_size != crypto_sign_BYTES, "signed message must be at least 64 bytes")
   SN_THROWS(pk_size != crypto_sign_PUBLICKEYBYTES, "secret key must be 64 bytes")
 
-  int valid = crypto_sign_verify_detached(signature_data, message_data, message_size, pk_data);
+  SN_RETURN_BOOLEAN(crypto_sign_verify_detached(signature_data, message_data, message_size, pk_data))
+}
 
-  napi_value result;
-  assert(napi_get_boolean(env, valid == 0, &result) == napi_ok);
-  return result;
+napi_value sn_crypto_sign_ed25519_sk_to_pk(napi_env env, napi_callback_info info) {
+  SN_ARGV(2, crypto_sign_ed25519_sk_to_pk)
+
+  SN_ARGV_TYPEDARRAY(pk, 0)
+  SN_ARGV_TYPEDARRAY(sk, 1)
+
+  SN_THROWS(pk_size != crypto_sign_PUBLICKEYBYTES, "public key buffer must be 32 bytes")
+  SN_THROWS(sk_size != crypto_sign_SECRETKEYBYTES, "secret key must be 64 bytes")
+
+  SN_RETURN(crypto_sign_ed25519_sk_to_pk(pk_data, sk_data), "public key generation failed")
 }
 
 napi_value create_sodium_native(napi_env env) {
@@ -267,6 +275,7 @@ napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_sign_open, sn_crypto_sign_open)
   SN_EXPORT_FUNCTION(crypto_sign_detached, sn_crypto_sign_detached)
   SN_EXPORT_FUNCTION(crypto_sign_verify_detached, sn_crypto_sign_verify_detached)
+  SN_EXPORT_FUNCTION(crypto_sign_ed25519_sk_to_pk, sn_crypto_sign_ed25519_sk_to_pk)
 
   return exports;
 }
