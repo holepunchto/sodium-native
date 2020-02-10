@@ -275,6 +275,72 @@ napi_value sn_crypto_generichash(napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_generichash(output_data, output_size, input_data, input_size, key_data, key_size), "hash failed")
 }
 
+napi_value sn_crypto_box_keypair(napi_env env, napi_callback_info info) {
+  SN_ARGV(2, crypto_box_keypair)
+
+  SN_ARGV_TYPEDARRAY(pk, 0)
+  SN_ARGV_TYPEDARRAY(sk, 1)
+
+  SN_THROWS(pk_size != crypto_box_PUBLICKEYBYTES, "public key must be 32 bytes")
+  SN_THROWS(sk_size != crypto_box_SECRETKEYBYTES, "secret key must be 32 bytes")
+
+  SN_RETURN(crypto_box_keypair(pk_data, sk_data), "keypair generation failed")
+}
+
+napi_value sn_crypto_box_seed_keypair(napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_box_seed_keypair)
+
+  SN_ARGV_TYPEDARRAY(pk, 0)
+  SN_ARGV_TYPEDARRAY(sk, 1)
+  SN_ARGV_TYPEDARRAY(seed, 2)
+
+  SN_THROWS(pk_size != crypto_box_PUBLICKEYBYTES, "public key must be 32 bytes")
+  SN_THROWS(sk_size != crypto_box_SECRETKEYBYTES, "secret key must be 32 bytes")
+  SN_THROWS(seed_size != crypto_box_SEEDBYTES, "seed must be 32 bytes")
+
+  SN_RETURN(crypto_box_seed_keypair(pk_data, sk_data, seed_data), "keypair generation failed")
+}
+
+napi_value sn_crypto_box_easy(napi_env env, napi_callback_info info) {
+  SN_ARGV(5, crypto_box_easy)
+
+  SN_ARGV_TYPEDARRAY(ciphertext, 0)
+  SN_ARGV_TYPEDARRAY(message, 1)
+  SN_ARGV_TYPEDARRAY(nonce, 2)
+  SN_ARGV_TYPEDARRAY(pk, 3)
+  SN_ARGV_TYPEDARRAY(sk, 4)
+
+  SN_THROWS(ciphertext_size != message_size + crypto_box_MACBYTES, "ciphertext buffer must be 16 bytes longer than input")
+  SN_THROWS(nonce_size != crypto_box_NONCEBYTES, "nonce must be 24 bytes")
+  SN_THROWS(sk_size != crypto_sign_SECRETKEYBYTES, "secret key must be 32 bytes")
+  SN_THROWS(pk_size != crypto_sign_PUBLICKEYBYTES, "public key must be 32 bytes")
+
+  SN_RETURN(crypto_box_easy(ciphertext_data, message_data, message_size, nonce_data, pk_data, sk_data), "crypto box failed")
+}
+
+napi_value sn_crypto_box_open_easy(napi_env env, napi_callback_info info) {
+  SN_ARGV(5, crypto_box_open_easy)
+
+  SN_ARGV_TYPEDARRAY(message, 0)
+  SN_ARGV_TYPEDARRAY(ciphertext, 1)
+  SN_ARGV_TYPEDARRAY(nonce, 2)
+  SN_ARGV_TYPEDARRAY(pk, 3)
+  SN_ARGV_TYPEDARRAY(sk, 4)
+
+  SN_THROWS(message_size != ciphertext_size - crypto_box_MACBYTES, "message buffer must be 16 bytes shorter than input")
+  SN_THROWS(ciphertext_size < crypto_box_MACBYTES, "ciphertext must be at least 16 bytes")
+  SN_THROWS(nonce_size != crypto_box_NONCEBYTES, "nonce must be 24 bytes")
+  SN_THROWS(sk_size != crypto_sign_SECRETKEYBYTES, "secret key must be 32 bytes")
+  SN_THROWS(pk_size != crypto_sign_PUBLICKEYBYTES, "public key must be 32 bytes")
+
+  SN_RETURN_BOOLEAN(crypto_box_open_easy(message_data, ciphertext_data, ciphertext_size, nonce_data, pk_data, sk_data))
+}
+
+napi_value sn_(napi_env env, napi_callback_info info) {
+  SN_ARGV_OPTS(2, 3, crypto_generichash)
+}
+
+
 napi_value create_sodium_native(napi_env env) {
   napi_value exports;
   assert(napi_create_object(env, &exports) == napi_ok);
@@ -299,6 +365,10 @@ napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_sign_verify_detached, sn_crypto_sign_verify_detached)
   SN_EXPORT_FUNCTION(crypto_sign_ed25519_sk_to_pk, sn_crypto_sign_ed25519_sk_to_pk)
   SN_EXPORT_FUNCTION(crypto_generichash, sn_crypto_generichash)
+  SN_EXPORT_FUNCTION(crypto_box_keypair, sn_crypto_box_keypair)
+  SN_EXPORT_FUNCTION(crypto_box_seed_keypair, sn_crypto_box_seed_keypair)
+  SN_EXPORT_FUNCTION(crypto_box_easy, sn_crypto_box_easy)
+  SN_EXPORT_FUNCTION(crypto_box_open_easy, sn_crypto_box_open_easy)
 
   return exports;
 }
