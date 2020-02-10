@@ -81,3 +81,7 @@
   SN_TYPE_ASSERT(name, name##_argv, napi_number, #name " must be an instance of Number") \
   SN_UINT32(name, name##_argv)
 
+#define SN_RETURN(call, message) \
+  int success = call; \
+  SN_THROWS(success != 0, " signature failed") \
+  return NULL;

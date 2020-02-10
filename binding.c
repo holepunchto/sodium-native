@@ -179,11 +179,7 @@ napi_value sn_crypto_sign_keypair(napi_env env, napi_callback_info info) {
   SN_THROWS(pk_size != crypto_sign_PUBLICKEYBYTES, "public key must be 32 bytes")
   SN_THROWS(sk_size != crypto_sign_SECRETKEYBYTES, "secret key must be 64 bytes")
 
-  int success = crypto_sign_keypair(pk_data, sk_data);
-
-  SN_THROWS(success != 0, "keypair generation failed")
-
-  return NULL;
+  SN_RETURN(crypto_sign_keypair(pk_data, sk_data), "keypair generation failed")
 }
 
 napi_value sn_crypto_sign_seed_keypair(napi_env env, napi_callback_info info) {
