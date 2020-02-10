@@ -4,8 +4,9 @@
 #include <sodium.h>
 
 napi_value sn_randombytes_random (napi_env env, napi_callback_info info) {
-  napi_value result;
+  uint32_t upp
 
+  napi_value result;
   assert(napi_create_uint32(env, randombytes_random(), &result) == napi_ok);
   return result;
 }
@@ -44,25 +45,8 @@ napi_value sn_sodium_memcmp(napi_env env, napi_callback_info info) {
   NAPI_TYPEDARRAY_ASSERT(b1, argv[0], "b1 must be instance of TypedArray");
   NAPI_TYPEDARRAY_ASSERT(b2, argv[1], "b1 must be instance of TypedArray");
 
-  napi_typedarray_type b1_type;
-  size_t b1_length;
-  void * b1_data;
-
-  napi_typedarray_type b2_type;
-  size_t b2_length;
-  void * b2_data;
-
-  assert(napi_get_typedarray_info(env, argv[0], &b1_type, &b1_length, &b1_data, NULL, NULL) == napi_ok);
-
-  uint8_t b1_width = typedarray_width(b1_type);
-  NAPI_THROWS(b1_width == 0, "Unexpected TypedArray type");
-  size_t b1_size = b1_length * b1_width;
-
-  assert(napi_get_typedarray_info(env, argv[1], &b2_type, &b2_length, &b2_data, NULL, NULL) == napi_ok);
-
-  uint8_t b2_width = typedarray_width(b2_type);
-  NAPI_THROWS(b2_width == 0, "Unexpected TypedArray type");
-  size_t b2_size = b2_length * b2_width;
+  NAPI_TYPEDARRAY(b1, argv[0])
+  NAPI_TYPEDARRAY(b2, argv[1])
 
   NAPI_THROWS(b1_size != b2_size, "buffers must be of same length");
 
