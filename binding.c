@@ -253,6 +253,28 @@ napi_value sn_crypto_sign_ed25519_sk_to_pk(napi_env env, napi_callback_info info
   SN_RETURN(crypto_sign_ed25519_sk_to_pk(pk_data, sk_data), "public key generation failed")
 }
 
+
+napi_value sn_crypto_generichash(napi_env env, napi_callback_info info) {
+  SN_ARGV_OPTS(2, 3, crypto_generichash)
+
+  SN_ARGV_TYPEDARRAY(output, 0)
+  SN_ARGV_TYPEDARRAY(input, 1)
+
+  SN_THROWS(output_size < crypto_generichash_BYTES_MIN, "output buffer must be at least 16 bytes")
+  SN_THROWS(output_size > crypto_generichash_BYTES_MAX, "output buffer must be at least 64 bytes")
+
+  void *key_data = NULL;
+  size_t key_size = 0;
+
+  if (argc == 3) {
+    SN_OPT_ARGV_TYPEDARRAY(key, 2)
+    SN_THROWS(key_size < crypto_generichash_KEYBYTES_MIN, "key must be at least 16 bytes")
+    SN_THROWS(key_size > crypto_generichash_KEYBYTES_MAX, "key must be at least 64 bytes")
+  }
+
+  SN_RETURN(crypto_generichash(output_data, output_size, input_data, input_size, key_data, key_size), "hash failed")
+}
+
 napi_value create_sodium_native(napi_env env) {
   napi_value exports;
   assert(napi_create_object(env, &exports) == napi_ok);
@@ -276,6 +298,7 @@ napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_sign_detached, sn_crypto_sign_detached)
   SN_EXPORT_FUNCTION(crypto_sign_verify_detached, sn_crypto_sign_verify_detached)
   SN_EXPORT_FUNCTION(crypto_sign_ed25519_sk_to_pk, sn_crypto_sign_ed25519_sk_to_pk)
+  SN_EXPORT_FUNCTION(crypto_generichash, sn_crypto_generichash)
 
   return exports;
 }
