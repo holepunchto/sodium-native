@@ -312,8 +312,8 @@ napi_value sn_crypto_box_easy(napi_env env, napi_callback_info info) {
 
   SN_THROWS(ciphertext_size != message_size + crypto_box_MACBYTES, "ciphertext buffer must be 16 bytes longer than input")
   SN_THROWS(nonce_size != crypto_box_NONCEBYTES, "nonce must be 24 bytes")
-  SN_THROWS(sk_size != crypto_sign_SECRETKEYBYTES, "secret key must be 32 bytes")
-  SN_THROWS(pk_size != crypto_sign_PUBLICKEYBYTES, "public key must be 32 bytes")
+  SN_THROWS(sk_size != crypto_box_SECRETKEYBYTES, "secret key must be 32 bytes")
+  SN_THROWS(pk_size != crypto_box_PUBLICKEYBYTES, "public key must be 32 bytes")
 
   SN_RETURN(crypto_box_easy(ciphertext_data, message_data, message_size, nonce_data, pk_data, sk_data), "crypto box failed")
 }
@@ -330,8 +330,8 @@ napi_value sn_crypto_box_open_easy(napi_env env, napi_callback_info info) {
   SN_THROWS(message_size != ciphertext_size - crypto_box_MACBYTES, "message buffer must be 16 bytes shorter than input")
   SN_THROWS(ciphertext_size < crypto_box_MACBYTES, "ciphertext must be at least 16 bytes")
   SN_THROWS(nonce_size != crypto_box_NONCEBYTES, "nonce must be 24 bytes")
-  SN_THROWS(sk_size != crypto_sign_SECRETKEYBYTES, "secret key must be 32 bytes")
-  SN_THROWS(pk_size != crypto_sign_PUBLICKEYBYTES, "public key must be 32 bytes")
+  SN_THROWS(sk_size != crypto_box_SECRETKEYBYTES, "secret key must be 32 bytes")
+  SN_THROWS(pk_size != crypto_box_PUBLICKEYBYTES, "public key must be 32 bytes")
 
   SN_RETURN_BOOLEAN(crypto_box_open_easy(message_data, ciphertext_data, ciphertext_size, nonce_data, pk_data, sk_data))
 }
@@ -349,8 +349,8 @@ napi_value sn_crypto_box_detached(napi_env env, napi_callback_info info) {
   SN_THROWS(ciphertext_size != message_size, "ciphertext buffer must be equal in length to message")
   SN_THROWS(mac_size != crypto_box_MACBYTES, "mac must be 16 bytes")
   SN_THROWS(nonce_size != crypto_box_NONCEBYTES, "nonce must be 24 bytes")
-  SN_THROWS(sk_size != crypto_sign_SECRETKEYBYTES, "secret key must be 32 bytes")
-  SN_THROWS(pk_size != crypto_sign_PUBLICKEYBYTES, "public key must be 32 bytes")
+  SN_THROWS(sk_size != crypto_box_SECRETKEYBYTES, "secret key must be 32 bytes")
+  SN_THROWS(pk_size != crypto_box_PUBLICKEYBYTES, "public key must be 32 bytes")
 
   SN_RETURN(crypto_box_detached(ciphertext_data, mac_data, message_data, message_size, nonce_data, pk_data, sk_data), "signature failed")
 }
@@ -368,8 +368,8 @@ napi_value sn_crypto_box_open_detached(napi_env env, napi_callback_info info) {
   SN_THROWS(message_size != ciphertext_size, "message buffer must be equal in length to ciphertext")
   SN_THROWS(mac_size != crypto_box_MACBYTES, "mac must be 16 bytes")
   SN_THROWS(nonce_size != crypto_box_NONCEBYTES, "nonce must be 24 bytes")
-  SN_THROWS(sk_size != crypto_sign_SECRETKEYBYTES, "secret key must be 32 bytes")
-  SN_THROWS(pk_size != crypto_sign_PUBLICKEYBYTES, "public key must be 32 bytes")
+  SN_THROWS(sk_size != crypto_box_SECRETKEYBYTES, "secret key must be 32 bytes")
+  SN_THROWS(pk_size != crypto_box_PUBLICKEYBYTES, "public key must be 32 bytes")
 
   SN_RETURN_BOOLEAN(crypto_box_open_detached(message_data, ciphertext_data, mac_data, ciphertext_size, nonce_data, pk_data, sk_data))
 }
