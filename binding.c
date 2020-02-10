@@ -140,13 +140,34 @@ napi_value sn_sodium_pad(napi_env env, napi_callback_info info) {
   SN_ARGV(3, sodium_pad);
 
   SN_ARGV_TYPEDARRAY(buf, 0, "buf must be an instance of TypedArray");
-  SN_TYPE_ASSERT(unpadded_buflen, argv[1], napi_number, "unpadded_buflen must be a Number");
+  SN_ARGV_UINT32(unpadded_buflen, 1, "unpadded_buflen must be a Number")
+  SN_ARGV_UINT32(blocksize, 2, "blocksize must be a Number")
 
-  uint32_t unpadded_buflen;
-  assert(napi_get_value_uint32(env, argv[1], &unpadded_buflen) == napi_ok);
+  SN_THROWS(unpadded_buflen > (int) buf_size, "unpadded length cannot exceed buffer length")
+  SN_THROWS(blocksize > (int) buf_size, "block size cannot exceed buffer length")
 
-  printf("%u\n", unpadded_buflen);
-  // SN_UINT32_ASSERT(unpadded_buflen, argv[1]);
+  napi_value result;
+  size_t padded_buflen;
+  sodium_pad(&padded_buflen, buf_data, unpadded_buflen, blocksize, buf_size);
+  assert(napi_create_uint32(env, padded_buflen, &result) == napi_ok);
+  return result;
+}
+
+napi_value sn_sodium_unpad(napi_env env, napi_callback_info info) {
+  SN_ARGV(3, sodium_pad);
+
+  SN_ARGV_TYPEDARRAY(buf, 0, "buf must be an instance of TypedArray");
+  SN_ARGV_UINT32(padded_buflen, 1, "padded_buflen must be a Number")
+  SN_ARGV_UINT32(blocksize, 2, "blocksize must be a Number")
+
+  SN_THROWS(padded_buflen > (int) buf_size, "unpadded length cannot exceed buffer length")
+  SN_THROWS(blocksize > (int) buf_size, "block size cannot exceed buffer length")
+
+  napi_value result;
+  size_t unpadded_buflen;
+  sodium_unpad(&unpadded_buflen, buf_data, padded_buflen, blocksize);
+  assert(napi_create_uint32(env, unpadded_buflen, &result) == napi_ok);
+  return result;
 }
 
 napi_value create_sodium_native(napi_env env) {
@@ -164,6 +185,7 @@ napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(sodium_compare, sn_sodium_compare)
   SN_EXPORT_FUNCTION(sodium_is_zero, sn_sodium_is_zero)
   SN_EXPORT_FUNCTION(sodium_pad, sn_sodium_pad)
+  SN_EXPORT_FUNCTION(sodium_unpad, sn_sodium_unpad)
 
   return exports;
 }
