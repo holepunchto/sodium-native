@@ -71,13 +71,13 @@
     return NULL; \
   }
 
-#define SN_ARGV_TYPEDARRAY(name, index, message) \
+#define SN_ARGV_TYPEDARRAY(name, index) \
   napi_value name##_argv = argv[index]; \
-  SN_TYPEDARRAY_ASSERT(name, name##_argv, message) \
+  SN_TYPEDARRAY_ASSERT(name, name##_argv, #name " must be an instance of TypedArray") \
   SN_TYPEDARRAY(name, name##_argv)
 
-#define SN_ARGV_UINT32(name, index, message) \
+#define SN_ARGV_UINT32(name, index) \
   napi_value name##_argv = argv[index]; \
-  SN_TYPE_ASSERT(name, name##_argv, napi_number, message) \
+  SN_TYPE_ASSERT(name, name##_argv, napi_number, #name " must be an instance of Number") \
   SN_UINT32(name, name##_argv)
 
