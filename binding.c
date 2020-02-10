@@ -374,6 +374,36 @@ napi_value sn_crypto_box_open_detached(napi_env env, napi_callback_info info) {
   SN_RETURN_BOOLEAN(crypto_box_open_detached(message_data, ciphertext_data, mac_data, ciphertext_size, nonce_data, pk_data, sk_data))
 }
 
+napi_value sn_crypto_box_seal(napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_box_seal)
+
+  SN_ARGV_TYPEDARRAY(ciphertext, 0)
+  SN_ARGV_TYPEDARRAY(message, 1)
+  SN_ARGV_TYPEDARRAY(pk, 2)
+
+  SN_THROWS(ciphertext_size != message_size + crypto_box_SEALBYTES, "ciphertext buffer must be 48 bytes longer than input")
+  SN_THROWS(pk_size != crypto_box_PUBLICKEYBYTES, "public key must be 32 bytes")
+
+  SN_RETURN(crypto_box_seal(ciphertext_data, message_data, message_size, pk_data), "failed to create seal")
+}
+
+
+napi_value sn_crypto_box_seal_open(napi_env env, napi_callback_info info) {
+  SN_ARGV(4, crypto_box_seal_open)
+
+  SN_ARGV_TYPEDARRAY(message, 0)
+  SN_ARGV_TYPEDARRAY(ciphertext, 1)
+  SN_ARGV_TYPEDARRAY(pk, 2)
+  SN_ARGV_TYPEDARRAY(sk, 3)
+
+  SN_THROWS(message_size != ciphertext_size - crypto_box_SEALBYTES, "message buffer must be 48 bytes shorter than input")
+  SN_THROWS(ciphertext_size < crypto_box_SEALBYTES, "ciphertext must be at least 48 bytes")
+  SN_THROWS(sk_size != crypto_box_SECRETKEYBYTES, "secret key must be 32 bytes")
+  SN_THROWS(pk_size != crypto_box_PUBLICKEYBYTES, "public key must be 32 bytes")
+
+  SN_RETURN_BOOLEAN(crypto_box_seal_open(message_data, ciphertext_data, ciphertext_size, pk_data, sk_data))
+}
+
 napi_value create_sodium_native(napi_env env) {
   napi_value exports;
   assert(napi_create_object(env, &exports) == napi_ok);
@@ -404,6 +434,8 @@ napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_box_open_easy, sn_crypto_box_open_easy)
   SN_EXPORT_FUNCTION(crypto_box_detached, sn_crypto_box_detached)
   SN_EXPORT_FUNCTION(crypto_box_open_detached, sn_crypto_box_open_detached)
+  SN_EXPORT_FUNCTION(crypto_box_seal, sn_crypto_box_seal)
+  SN_EXPORT_FUNCTION(crypto_box_seal_open, sn_crypto_box_seal_open)
 
   return exports;
 }
