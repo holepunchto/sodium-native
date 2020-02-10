@@ -10,15 +10,6 @@
     return NULL; \
   }
 
-#define SN_UINT32_ASSERT(name, val) \
-  uint32_t name; \
-  if (napi_get_value_uint32(env, val, &name) != napi_ok) { \
-    napi_throw_error(env, "EINVAL", "Expected unsigned number"); \
-    return NULL; \
-  }; \
-  printf("%u, %f", napi_get_value_uint32(env, val, &name), val); \
-
-
 #define SN_TYPE_ASSERT(name, var, type, message) \
   napi_valuetype name##_valuetype; \
   SN_STATUS_THROWS(napi_typeof(env, var, &name##_valuetype), ""); \
@@ -73,8 +64,20 @@
   SN_THROWS(name##_width == 0, "Unexpected TypedArray type") \
   size_t name##_size = name##_length * name##_width;
 
+#define SN_UINT32(name, val) \
+  int32_t name; \
+  if (napi_get_value_int32(env, val, &name) != napi_ok) { \
+    napi_throw_error(env, "EINVAL", "Expected number"); \
+    return NULL; \
+  }
+
 #define SN_ARGV_TYPEDARRAY(name, index, message) \
   napi_value name##_argv = argv[index]; \
   SN_TYPEDARRAY_ASSERT(name, name##_argv, message) \
   SN_TYPEDARRAY(name, name##_argv)
+
+#define SN_ARGV_UINT32(name, index, message) \
+  napi_value name##_argv = argv[index]; \
+  SN_TYPE_ASSERT(name, name##_argv, napi_number, message) \
+  SN_UINT32(name, name##_argv)
 
