@@ -193,11 +193,34 @@ napi_value sn_crypto_sign_seed_keypair(napi_env env, napi_callback_info info) {
   SN_THROWS(sk_size != crypto_sign_SECRETKEYBYTES, "secret key must be 64 bytes")
   SN_THROWS(seed_size != crypto_sign_SEEDBYTES, "seed must be 32 bytes")
 
-  int success = crypto_sign_seed_keypair(pk_data, sk_data, seed_data);
+  SN_RETURN(crypto_sign_seed_keypair(pk_data, sk_data, seed_data), "keypair generation failed")
+}
 
-  SN_THROWS(success != 0, "keypair generation failed")
+napi_value sn_crypto_sign(napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_sign)
 
-  return NULL;
+  SN_ARGV_TYPEDARRAY(signed_message, 0)
+  SN_ARGV_TYPEDARRAY(message, 1)
+  SN_ARGV_TYPEDARRAY(sk, 2)
+
+  SN_THROWS(signed_message_size != crypto_sign_BYTES + message_size, "signed message buffer must be 64 bytes longer than input")
+  SN_THROWS(sk_size != crypto_sign_SECRETKEYBYTES, "secret key must be 64 bytes")
+
+  SN_RETURN(crypto_sign(signed_message_data, NULL, message_data, message_size, sk_data), "signature failed")
+}
+
+napi_value sn_crypto_sign_open(napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_sign_open)
+
+  SN_ARGV_TYPEDARRAY(message, 0)
+  SN_ARGV_TYPEDARRAY(signed_message, 1)
+  SN_ARGV_TYPEDARRAY(pk, 2)
+
+  SN_THROWS(message_size != signed_message_size - crypto_sign_BYTES, "message buffer must be 64 bytes shorter than input")
+  SN_THROWS(signed_message_size < crypto_sign_BYTES, "signed message must be at least 64 bytes")
+  SN_THROWS(pk_size != crypto_sign_PUBLICKEYBYTES, "secret key must be 64 bytes")
+
+  SN_RETURN(crypto_sign_open(message_data, NULL, signed_message_data, signed_message_size, pk_data), "signature verification failed")
 }
 
 napi_value create_sodium_native(napi_env env) {
@@ -218,6 +241,8 @@ napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(sodium_unpad, sn_sodium_unpad)
   SN_EXPORT_FUNCTION(crypto_sign_keypair, sn_crypto_sign_keypair)
   SN_EXPORT_FUNCTION(crypto_sign_seed_keypair, sn_crypto_sign_seed_keypair)
+  SN_EXPORT_FUNCTION(crypto_sign, sn_crypto_sign)
+  SN_EXPORT_FUNCTION(crypto_sign_open, sn_crypto_sign_open)
 
   return exports;
 }
