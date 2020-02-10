@@ -36,8 +36,17 @@
   napi_value argv[n]; \
   size_t argc = n; \
   SN_STATUS_THROWS(napi_get_cb_info(env, info, &argc, argv, NULL, NULL), ""); \
-  if (argc < n) { \
-    napi_throw_type_error(env, NULL, #method_name " requires at least " #n " argument(s)"); \
+  if (argc != n) { \
+    napi_throw_type_error(env, NULL, #method_name " requires " #n " argument(s)"); \
+    return NULL; \
+  }
+
+#define SN_ARGV_OPTS(required, total, method_name) \
+  napi_value argv[total]; \
+  size_t argc = total; \
+  SN_STATUS_THROWS(napi_get_cb_info(env, info, &argc, argv, NULL, NULL), ""); \
+  if (argc < required) { \
+    napi_throw_type_error(env, NULL, #method_name " requires at least " #required " argument(s)"); \
     return NULL; \
   }
 
@@ -64,6 +73,14 @@
   SN_THROWS(name##_width == 0, "Unexpected TypedArray type") \
   size_t name##_size = name##_length * name##_width;
 
+#define SN_OPT_TYPEDARRAY(name, var) \
+  napi_typedarray_type name##_type; \
+  size_t name##_length; \
+  assert(napi_get_typedarray_info(env, (var), &name##_type, &name##_length, &name##_data, NULL, NULL) == napi_ok); \
+  uint8_t name##_width = typedarray_width(name##_type); \
+  SN_THROWS(name##_width == 0, "Unexpected TypedArray type") \
+  name##_size = name##_length * name##_width;
+
 #define SN_UINT32(name, val) \
   int32_t name; \
   if (napi_get_value_int32(env, val, &name) != napi_ok) { \
@@ -75,6 +92,11 @@
   napi_value name##_argv = argv[index]; \
   SN_TYPEDARRAY_ASSERT(name, name##_argv, #name " must be an instance of TypedArray") \
   SN_TYPEDARRAY(name, name##_argv)
+
+#define SN_OPT_ARGV_TYPEDARRAY(name, index) \
+  napi_value name##_argv = argv[index]; \
+  SN_TYPEDARRAY_ASSERT(name, name##_argv, #name " must be an instance of TypedArray") \
+  SN_OPT_TYPEDARRAY(name, name##_argv)
 
 #define SN_ARGV_UINT32(name, index) \
   napi_value name##_argv = argv[index]; \
