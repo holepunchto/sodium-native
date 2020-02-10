@@ -68,11 +68,7 @@ napi_value sn_sodium_memcmp(napi_env env, napi_callback_info info) {
 
   SN_THROWS(b1_size != b2_size, "buffers must be of same length")
 
-  int cmp = sodium_memcmp(b1_data, b2_data, b1_size);
-
-  napi_value result;
-  assert(napi_get_boolean(env, cmp == 0, &result) == napi_ok);
-  return result;
+  SN_RETURN_BOOLEAN(sodium_memcmp(b1_data, b2_data, b1_size))
 }
 
 napi_value sn_sodium_increment(napi_env env, napi_callback_info info) {
@@ -129,11 +125,7 @@ napi_value sn_sodium_is_zero(napi_env env, napi_callback_info info) {
   SN_ARGV_TYPEDARRAY(a, 0)
 
   sodium_is_zero(a_data, a_size);
-  int cmp = sodium_is_zero(a_data, a_size);
-
-  napi_value result;
-  assert(napi_get_boolean(env, cmp == 1, &result) == napi_ok);
-  return result;
+  SN_RETURN_BOOLEAN(sodium_is_zero(a_data, a_size))
 }
 
 napi_value sn_sodium_pad(napi_env env, napi_callback_info info) {
@@ -220,11 +212,7 @@ napi_value sn_crypto_sign_open(napi_env env, napi_callback_info info) {
   SN_THROWS(signed_message_size < crypto_sign_BYTES, "signed message must be at least 64 bytes")
   SN_THROWS(pk_size != crypto_sign_PUBLICKEYBYTES, "secret key must be 64 bytes")
 
-  int valid = crypto_sign_open(message_data, NULL, signed_message_data, signed_message_size, pk_data);
-
-  napi_value result;
-  assert(napi_get_boolean(env, valid == 0, &result) == napi_ok);
-  return result;
+  SN_RETURN_BOOLEAN(crypto_sign_open(message_data, NULL, signed_message_data, signed_message_size, pk_data))
 }
 
 napi_value sn_crypto_sign_detached(napi_env env, napi_callback_info info) {

@@ -85,3 +85,9 @@
   int success = call; \
   SN_THROWS(success != 0, " signature failed") \
   return NULL;
+
+#define SN_RETURN_BOOLEAN(call, message) \
+  int successs = call; \
+  napi_value result; \
+  SN_THROWS(napi_get_boolean(env, valid == 0, &result) == napi_ok, "result not boolean") \
+  return result; \
