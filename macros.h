@@ -93,6 +93,13 @@
     return NULL; \
   }
 
+#define SN_UINT64(name, val) \
+  int64_t name; \
+  if (napi_get_value_int64(env, val, &name) != napi_ok) { \
+    napi_throw_error(env, "EINVAL", "Expected number"); \
+    return NULL; \
+  }
+
 #define SN_ARGV_TYPEDARRAY(name, index) \
   napi_value name##_argv = argv[index]; \
   SN_TYPEDARRAY_ASSERT(name, name##_argv, #name " must be an instance of TypedArray") \
@@ -107,6 +114,12 @@
   napi_value name##_argv = argv[index]; \
   SN_TYPE_ASSERT(name, name##_argv, napi_number, #name " must be an instance of Number") \
   SN_UINT32(name, name##_argv)
+
+
+#define SN_ARGV_UINT64(name, index) \
+  napi_value name##_argv = argv[index]; \
+  SN_TYPE_ASSERT(name, name##_argv, napi_number, #name " must be an instance of Number") \
+  SN_UINT64(name, name##_argv)
 
 #define SN_RETURN(call, message) \
   int success = call; \
