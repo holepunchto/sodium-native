@@ -559,6 +559,32 @@ napi_value sn_crypto_auth_verify (napi_env env, napi_callback_info info) {
   SN_RETURN_BOOLEAN(crypto_auth_verify(tag_data, input_data, input_size, key_data))
 }
 
+napi_value sn_crypto_onetimeauth (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_onetimeauth)
+
+  SN_ARGV_TYPEDARRAY(output, 0)
+  SN_ARGV_TYPEDARRAY(input, 1)
+  SN_ARGV_TYPEDARRAY(key, 2)
+
+  SN_THROWS(output_size != crypto_onetimeauth_BYTES, "auth tag must be 16 bytes")
+  SN_THROWS(key_size != crypto_onetimeauth_KEYBYTES, "key must be 32 bytes")
+
+  SN_RETURN(crypto_onetimeauth(output_data, input_data, input_size, key_data), "failed to generate onetime authentication tag")
+}
+
+napi_value sn_crypto_onetimeauth_verify (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_onetimeauth_verify)
+
+  SN_ARGV_TYPEDARRAY(tag, 0)
+  SN_ARGV_TYPEDARRAY(input, 1)
+  SN_ARGV_TYPEDARRAY(key, 2)
+
+  SN_THROWS(tag_size != crypto_onetimeauth_BYTES, "auth tag must be 16 bytes")
+  SN_THROWS(key_size != crypto_onetimeauth_KEYBYTES, "key must be 32 bytes")
+
+  SN_RETURN_BOOLEAN(crypto_onetimeauth_verify(tag_data, input_data, input_size, key_data))
+}
+
 napi_value create_sodium_native(napi_env env) {
   napi_value exports;
   assert(napi_create_object(env, &exports) == napi_ok);
@@ -603,6 +629,8 @@ napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_stream_chacha20_xor, sn_crypto_stream_chacha20_xor)
   SN_EXPORT_FUNCTION(crypto_auth, sn_crypto_auth)
   SN_EXPORT_FUNCTION(crypto_auth_verify, sn_crypto_auth_verify)
+  SN_EXPORT_FUNCTION(crypto_onetimeauth, sn_crypto_onetimeauth)
+  SN_EXPORT_FUNCTION(crypto_onetimeauth_verify, sn_crypto_onetimeauth_verify)
 
   return exports;
 }
