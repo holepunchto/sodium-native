@@ -1060,6 +1060,34 @@ napi_value sn_crypto_shorthash (napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_shorthash(output_data, input_data, input_size, key_data), "could not compute hash")
 }
 
+napi_value sn_crypto_kdf_keygen (napi_env env, napi_callback_info info) {
+  SN_ARGV(1, crypto_kdf_keygen)
+
+  SN_ARGV_TYPEDARRAY(key, 0)
+
+  SN_THROWS(key_size != crypto_kdf_KEYBYTES, "output must be 32 bytes")
+
+  crypto_kdf_keygen(key_data);
+
+  return NULL;
+}
+
+napi_value sn_crypto_kdf_derive_from_key (napi_env env, napi_callback_info info) {
+  SN_ARGV(4, crypto_kdf_derive_from_key)
+
+  SN_ARGV_TYPEDARRAY(subkey, 0)
+  SN_ARGV_UINT64(subkey_id, 1)
+  SN_ARGV_TYPEDARRAY(ctx, 2)
+  SN_ARGV_TYPEDARRAY(key, 3)
+
+  SN_THROWS(subkey_size < crypto_kdf_BYTES_MIN, "subkey must at least 16 bytes")
+  SN_THROWS(subkey_size > crypto_kdf_BYTES_MAX, "subkey must at least 64 bytes")
+  SN_THROWS(ctx_size != crypto_kdf_CONTEXTBYTES, "context must be 8 bytes")
+  SN_THROWS(key_size != crypto_kdf_KEYBYTES, "output must be 32 bytes")
+
+  SN_RETURN(crypto_kdf_derive_from_key(subkey_data, subkey_size, subkey_id, ctx_data, key_data), "could not generate key")
+}
+
 napi_value create_sodium_native(napi_env env) {
   napi_value exports;
   assert(napi_create_object(env, &exports) == napi_ok);
@@ -1136,6 +1164,8 @@ napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_add, sn_crypto_core_ed25519_scalar_add)
   SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_sub, sn_crypto_core_ed25519_scalar_sub)
   SN_EXPORT_FUNCTION(crypto_shorthash, sn_crypto_shorthash)
+  SN_EXPORT_FUNCTION(crypto_kdf_keygen, sn_crypto_kdf_keygen)
+  SN_EXPORT_FUNCTION(crypto_kdf_derive_from_key, sn_crypto_kdf_derive_from_key)
 
   return exports;
 }
