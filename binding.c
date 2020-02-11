@@ -585,6 +585,29 @@ napi_value sn_crypto_onetimeauth_verify (napi_env env, napi_callback_info info) 
   SN_RETURN_BOOLEAN(crypto_onetimeauth_verify(tag_data, input_data, input_size, key_data))
 }
 
+napi_value sn_crypto_pwhash (napi_env env, napi_callback_info info) {
+  SN_ARGV(6, crypto_pwhash)
+
+  SN_ARGV_TYPEDARRAY(output, 0)
+  SN_ARGV_TYPEDARRAY(password, 1)
+  SN_ARGV_TYPEDARRAY(salt, 2)
+  SN_ARGV_UINT32(opslimit, 3)
+  SN_ARGV_UINT32(memlimit, 4)
+  SN_ARGV_UINT32(algorithm, 5)
+
+  SN_THROWS(output_size < crypto_pwhash_BYTES_MIN, "output must be at least 16 bytes")
+  SN_THROWS(output_size > crypto_pwhash_BYTES_MAX, "output must be smaller than 2^32 bytes")
+  SN_THROWS(salt_size != crypto_pwhash_SALTBYTES, "salt must be 16 bytes")
+  SN_THROWS(opslimit < 1, "opslimit must be greater than 0")
+  SN_THROWS(opslimit > 4294967295, "opslimit must be smaller than 4294967295")
+  SN_THROWS(memlimit < 8192, "memlimit must be greater than 8 kB")
+  SN_THROWS(memlimit > 4398046510080, "memlimit must be smaller than 4398 GB")
+  SN_THROWS(algorithm < 1, "algorithm must be either Argon2i 1.3 or Argon2id 1.3")
+  SN_THROWS(algorithm > 1, "algorithm must be either Argon2i 1.3 or Argon2id 1.3")
+
+  SN_RETURN(crypto_pwhash(output_data, output_size, password_data, password_size, salt_data, opslimit, memlimit, algorithm), "password hashing failed, check memory requirements.")
+}
+
 napi_value create_sodium_native(napi_env env) {
   napi_value exports;
   assert(napi_create_object(env, &exports) == napi_ok);
@@ -631,6 +654,7 @@ napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_auth_verify, sn_crypto_auth_verify)
   SN_EXPORT_FUNCTION(crypto_onetimeauth, sn_crypto_onetimeauth)
   SN_EXPORT_FUNCTION(crypto_onetimeauth_verify, sn_crypto_onetimeauth_verify)
+  SN_EXPORT_FUNCTION(crypto_pwhash, sn_crypto_pwhash)
 
   return exports;
 }
