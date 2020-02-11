@@ -720,6 +720,104 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_needs_rehash (napi_env env,
   SN_RETURN_BOOLEAN(crypto_pwhash_scryptsalsa208sha256_str_needs_rehash(hash_data, opslimit, memlimit))
 }
 
+napi_value sn_crypto_kx_keypair (napi_env env, napi_callback_info info) {
+  SN_ARGV(2, crypto_kx_keypair)
+
+  SN_ARGV_TYPEDARRAY(pk, 0)
+  SN_ARGV_TYPEDARRAY(sk, 1)
+
+  SN_THROWS(pk_size != crypto_kx_PUBLICKEYBYTES, "public key buffer must be 32 bytes")
+  SN_THROWS(sk_size != crypto_kx_SECRETKEYBYTES, "secret key buffer must be 32 bytes")
+
+  SN_RETURN(crypto_kx_keypair(pk_data, sk_data), "failed to generate keypair")
+}
+
+napi_value sn_crypto_kx_seed_keypair (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_kx_seed_keypair)
+
+  SN_ARGV_TYPEDARRAY(pk, 0)
+  SN_ARGV_TYPEDARRAY(sk, 1)
+  SN_ARGV_TYPEDARRAY(seed, 2)
+
+  SN_THROWS(pk_size != crypto_kx_PUBLICKEYBYTES, "public key buffer must be 32 bytes")
+  SN_THROWS(sk_size != crypto_kx_SECRETKEYBYTES, "secret key buffer must be 32 bytes")
+  SN_THROWS(seed_size != crypto_kx_SEEDBYTES, "seed must be 32 bytes")
+
+  SN_RETURN(crypto_kx_seed_keypair(pk_data, sk_data, seed_data), "failed to derive keypair from seed")
+}
+
+napi_value sn_crypto_kx_client_session_keys (napi_env env, napi_callback_info info) {
+  SN_ARGV(5, crypto_kx_client_session_keys)
+
+  SN_ARGV_CHECK_NULL(rx, 0)
+  SN_ARGV_CHECK_NULL(tx, 1)
+
+  SN_THROWS(rx_is_null && tx_is_null, "at least one session key must be specified")
+
+  SN_ARGV_TYPEDARRAY(client_pk, 2)
+  SN_ARGV_TYPEDARRAY(client_sk, 3)
+  SN_ARGV_TYPEDARRAY(server_pk, 4)
+
+  SN_THROWS(client_pk_size != crypto_kx_PUBLICKEYBYTES, "client public key must be 32 bytes")
+  SN_THROWS(client_sk_size != crypto_kx_SECRETKEYBYTES, "client secret key must be 32 bytes")
+  SN_THROWS(server_pk_size != crypto_kx_PUBLICKEYBYTES, "server public key must be 32 bytes")
+
+  if (rx_is_null) {
+    SN_ARGV_TYPEDARRAY(tx, 1)
+    SN_THROWS(tx_size != crypto_kx_SESSIONKEYBYTES, "trasnmitting key buffer must be 32 bytes")
+
+    SN_RETURN(crypto_kx_client_session_keys(NULL, tx_data, client_pk_data, client_sk_data, server_pk_data), "failed to derive session keys")
+  } else if (tx_is_null) {
+    SN_ARGV_TYPEDARRAY(rx, 0)
+    SN_THROWS(rx_size != crypto_kx_SESSIONKEYBYTES, "receiving key buffer must be 32 bytes")
+
+    SN_RETURN(crypto_kx_client_session_keys(rx_data, NULL, client_pk_data, client_sk_data, server_pk_data), "failed to derive session keys")
+  } else {
+    SN_ARGV_TYPEDARRAY(rx, 0)
+    SN_ARGV_TYPEDARRAY(tx, 1)
+    SN_THROWS(tx_size != crypto_kx_SESSIONKEYBYTES, "trasnmitting key buffer must be 32 bytes or null")
+    SN_THROWS(rx_size != crypto_kx_SESSIONKEYBYTES, "receiving key buffer must be 32 bytes or null")
+
+    SN_RETURN(crypto_kx_client_session_keys(rx_data, tx_data, client_pk_data, client_sk_data, server_pk_data), "failed to derive session keys")
+  }
+}
+
+napi_value sn_crypto_kx_server_session_keys (napi_env env, napi_callback_info info) {
+  SN_ARGV(5, crypto_kx_server_session_keys)
+
+  SN_ARGV_CHECK_NULL(rx, 0)
+  SN_ARGV_CHECK_NULL(tx, 1)
+
+  SN_THROWS(rx_is_null && tx_is_null, "at least one session key must be specified")
+
+  SN_ARGV_TYPEDARRAY(server_pk, 2)
+  SN_ARGV_TYPEDARRAY(server_sk, 3)
+  SN_ARGV_TYPEDARRAY(client_pk, 4)
+
+  SN_THROWS(server_pk_size != crypto_kx_PUBLICKEYBYTES, "server public key must be 32 bytes")
+  SN_THROWS(server_sk_size != crypto_kx_SECRETKEYBYTES, "server secret key must be 32 bytes")
+  SN_THROWS(client_pk_size != crypto_kx_PUBLICKEYBYTES, "client public key must be 32 bytes")
+
+  if (rx_is_null) {
+    SN_ARGV_TYPEDARRAY(tx, 1)
+    SN_THROWS(tx_size != crypto_kx_SESSIONKEYBYTES, "trasnmitting key buffer must be 32 bytes")
+
+    SN_RETURN(crypto_kx_server_session_keys(NULL, tx_data, server_pk_data, server_sk_data, client_pk_data), "failed to dervie session keys")
+  } else if (tx_is_null) {
+    SN_ARGV_TYPEDARRAY(rx, 0)
+    SN_THROWS(rx_size != crypto_kx_SESSIONKEYBYTES, "receiving key buffer must be 32 bytes")
+
+    SN_RETURN(crypto_kx_server_session_keys(rx_data, NULL, server_pk_data, server_sk_data, client_pk_data), "failed to dervie session keys")
+  } else {
+    SN_ARGV_TYPEDARRAY(rx, 0)
+    SN_ARGV_TYPEDARRAY(tx, 1)
+    SN_THROWS(tx_size != crypto_kx_SESSIONKEYBYTES, "trasnmitting key buffer must be 32 bytes or null")
+    SN_THROWS(rx_size != crypto_kx_SESSIONKEYBYTES, "receiving key buffer must be 32 bytes or null")
+
+    SN_RETURN(crypto_kx_server_session_keys(rx_data, tx_data, server_pk_data, server_sk_data, client_pk_data), "failed to dervie session keys")
+  }
+}
+
 napi_value create_sodium_native(napi_env env) {
   napi_value exports;
   assert(napi_create_object(env, &exports) == napi_ok);
@@ -774,6 +872,10 @@ napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_pwhash_scryptsalsa208sha256_str, sn_crypto_pwhash_scryptsalsa208sha256_str)
   SN_EXPORT_FUNCTION(crypto_pwhash_scryptsalsa208sha256_str_verify, sn_crypto_pwhash_scryptsalsa208sha256_str_verify)
   SN_EXPORT_FUNCTION(crypto_pwhash_scryptsalsa208sha256_str_needs_rehash, sn_crypto_pwhash_scryptsalsa208sha256_str_needs_rehash)
+  SN_EXPORT_FUNCTION(crypto_kx_keypair, sn_crypto_kx_keypair)
+  SN_EXPORT_FUNCTION(crypto_kx_seed_keypair, sn_crypto_kx_seed_keypair)
+  SN_EXPORT_FUNCTION(crypto_kx_client_session_keys, sn_crypto_kx_client_session_keys)
+  SN_EXPORT_FUNCTION(crypto_kx_server_session_keys, sn_crypto_kx_server_session_keys)
 
   return exports;
 }
