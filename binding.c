@@ -643,7 +643,7 @@ napi_value sn_crypto_pwhash_str_needs_rehash (napi_env env, napi_callback_info i
 
   SN_ARGV_TYPEDARRAY(hash, 0)
   SN_ARGV_UINT32(opslimit, 1)
-  SN_ARGV_UINT32(memlimit, 1)
+  SN_ARGV_UINT32(memlimit, 2)
 
   SN_THROWS(hash_size != crypto_pwhash_STRBYTES, "password hash must be 128 bytes")
   SN_THROWS(opslimit < crypto_pwhash_OPSLIMIT_MIN, "opslimit must be at least 1")
@@ -651,7 +651,73 @@ napi_value sn_crypto_pwhash_str_needs_rehash (napi_env env, napi_callback_info i
   SN_THROWS(memlimit < crypto_pwhash_MEMLIMIT_MIN, "memlimit must be at least 8 kB")
   SN_THROWS(memlimit > crypto_pwhash_MEMLIMIT_MAX, "memlimit must be at most 4398 GB")
 
-  SN_RETURN_BOOLEAN(crypto_pwhash_str_needs_rehash(str_data, opslimit, memlimit))
+  SN_RETURN_BOOLEAN(crypto_pwhash_str_needs_rehash(hash_data, opslimit, memlimit))
+}
+
+// CHECK: memlimit can be >32bit
+napi_value sn_crypto_pwhash_scryptsalsa208sha256 (napi_env env, napi_callback_info info) {
+  SN_ARGV(5, crypto_pwhash_scryptsalsa208sha256)
+
+  SN_ARGV_TYPEDARRAY(output, 0)
+  SN_ARGV_TYPEDARRAY(password, 1)
+  SN_ARGV_TYPEDARRAY(salt, 2)
+  SN_ARGV_UINT32(opslimit, 3)
+  SN_ARGV_UINT32(memlimit, 4)
+
+  SN_THROWS(output_size < crypto_pwhash_scryptsalsa208sha256_BYTES_MIN, "output must be at least 16 bytes")
+  SN_THROWS(output_size > crypto_pwhash_scryptsalsa208sha256_BYTES_MAX, "output must be at most than 137438953440 bytes")
+  SN_THROWS(salt_size != crypto_pwhash_scryptsalsa208sha256_SALTBYTES, "salt must be 32 bytes")
+  SN_THROWS(opslimit < crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN, "opslimit must be at least 32768")
+  SN_THROWS(opslimit > crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, "opslimit must be at most 4294967295")
+  SN_THROWS(memlimit < crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, "memlimit must be at least 16.7 MB")
+  SN_THROWS(memlimit > crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, "memlimit must be at most 68.7 GB")
+
+  SN_RETURN(crypto_pwhash_scryptsalsa208sha256(output_data, output_size, password_data, password_size, salt_data, opslimit, memlimit), "password hashing failed, check memory requirements.")
+}
+
+napi_value sn_crypto_pwhash_scryptsalsa208sha256_str (napi_env env, napi_callback_info info) {
+  SN_ARGV(4, crypto_pwhash_scryptsalsa208sha256_str)
+
+  SN_ARGV_TYPEDARRAY(output, 0)
+  SN_ARGV_TYPEDARRAY(pwd, 1)
+  SN_ARGV_UINT32(opslimit, 2)
+  SN_ARGV_UINT32(memlimit, 3)
+
+  SN_THROWS(output_size != crypto_pwhash_scryptsalsa208sha256_STRBYTES, "output must be 102 bytes")
+  SN_THROWS(opslimit < crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN, "opslimit must be at least 32768")
+  SN_THROWS(opslimit > crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, "opslimit must be at most 4294967295")
+  SN_THROWS(memlimit < crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, "memlimit must be at least 16.7 MB")
+  SN_THROWS(memlimit > crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, "memlimit must be at most 68.7 GB")
+
+  SN_RETURN(crypto_pwhash_scryptsalsa208sha256_str(output_data, pwd_data, pwd_size, opslimit, memlimit), "password hashing failed, check memory requirements.")
+}
+
+napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_verify (napi_env env, napi_callback_info info) {
+  SN_ARGV(2, crypto_pwhash_scryptsalsa208sha256_str_verify)
+
+  SN_ARGV_TYPEDARRAY(str, 0)
+  SN_ARGV_TYPEDARRAY(pwd, 1)
+
+  SN_THROWS(str_size != crypto_pwhash_scryptsalsa208sha256_STRBYTES, "password hash must be 102 bytes")
+
+  SN_RETURN_BOOLEAN(crypto_pwhash_scryptsalsa208sha256_str_verify(str_data, pwd_data, pwd_size))
+}
+
+// CHECK: returns 1, 0, -1
+napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_needs_rehash (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_pwhash_scryptsalsa208sha256_str_needs_rehash)
+
+  SN_ARGV_TYPEDARRAY(hash, 0)
+  SN_ARGV_UINT32(opslimit, 1)
+  SN_ARGV_UINT32(memlimit, 2)
+
+  SN_THROWS(hash_size != crypto_pwhash_scryptsalsa208sha256_STRBYTES, "password hash must be 102 bytes")
+  SN_THROWS(opslimit < crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN, "opslimit must be at least 32768")
+  SN_THROWS(opslimit > crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, "opslimit must be at most 4294967295")
+  SN_THROWS(memlimit < crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, "memlimit must be at least 16.7 MB")
+  SN_THROWS(memlimit > crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, "memlimit must be at most 68.7 GB")
+
+  SN_RETURN_BOOLEAN(crypto_pwhash_scryptsalsa208sha256_str_needs_rehash(hash_data, opslimit, memlimit))
 }
 
 napi_value create_sodium_native(napi_env env) {
@@ -704,6 +770,10 @@ napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_pwhash_str, sn_crypto_pwhash_str)
   SN_EXPORT_FUNCTION(crypto_pwhash_str_verify, sn_crypto_pwhash_str_verify)
   SN_EXPORT_FUNCTION(crypto_pwhash_str_needs_rehash, sn_crypto_pwhash_str_needs_rehash)
+  SN_EXPORT_FUNCTION(crypto_pwhash_scryptsalsa208sha256, sn_crypto_pwhash_scryptsalsa208sha256)
+  SN_EXPORT_FUNCTION(crypto_pwhash_scryptsalsa208sha256_str, sn_crypto_pwhash_scryptsalsa208sha256_str)
+  SN_EXPORT_FUNCTION(crypto_pwhash_scryptsalsa208sha256_str_verify, sn_crypto_pwhash_scryptsalsa208sha256_str_verify)
+  SN_EXPORT_FUNCTION(crypto_pwhash_scryptsalsa208sha256_str_needs_rehash, sn_crypto_pwhash_scryptsalsa208sha256_str_needs_rehash)
 
   return exports;
 }
