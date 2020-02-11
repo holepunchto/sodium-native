@@ -1047,6 +1047,19 @@ napi_value sn_crypto_core_ed25519_scalar_sub (napi_env env, napi_callback_info i
   return NULL;
 }
 
+napi_value sn_crypto_shorthash (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_shorthash)
+
+  SN_ARGV_TYPEDARRAY(output, 0)
+  SN_ARGV_TYPEDARRAY(input, 1)
+  SN_ARGV_TYPEDARRAY(key, 2)
+
+  SN_THROWS(output_size != crypto_shorthash_BYTES, "output must be 8 bytes")
+  SN_THROWS(key_size != crypto_shorthash_KEYBYTES, "key must be 16 bytes")
+
+  SN_RETURN(crypto_shorthash(output_data, input_data, input_size, key_data), "could not compute hash")
+}
+
 napi_value create_sodium_native(napi_env env) {
   napi_value exports;
   assert(napi_create_object(env, &exports) == napi_ok);
@@ -1122,6 +1135,7 @@ napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_complement, sn_crypto_core_ed25519_scalar_complement)
   SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_add, sn_crypto_core_ed25519_scalar_add)
   SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_sub, sn_crypto_core_ed25519_scalar_sub)
+  SN_EXPORT_FUNCTION(crypto_shorthash, sn_crypto_shorthash)
 
   return exports;
 }
