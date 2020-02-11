@@ -886,8 +886,8 @@ napi_value sn_crypto_core_ed25519_from_uniform (napi_env env, napi_callback_info
   SN_ARGV_TYPEDARRAY(p, 0)
   SN_ARGV_TYPEDARRAY(r, 1)
 
-  SN_THROWS(p_size != crypto_core_ed25519_BYTES, "point must be 32 bytes")
-  SN_THROWS(r_size != crypto_core_ed25519_BYTES, "point must be 32 bytes")
+  SN_THROWS(p_size != crypto_core_ed25519_BYTES, "p must be 32 bytes")
+  SN_THROWS(r_size != crypto_core_ed25519_BYTES, "r must be 32 bytes")
 
   SN_RETURN(crypto_core_ed25519_from_uniform(p_data, r_data), "could not generate curve point from input")
 }
@@ -916,6 +916,34 @@ napi_value sn_crypto_scalarmult_ed25519_noclamp (napi_env env, napi_callback_inf
   SN_THROWS(remote_pk_size != crypto_scalarmult_ed25519_BYTES, "public key buffer must be 32 bytes")
 
   SN_RETURN(crypto_scalarmult_ed25519_noclamp(secret_data, sk_data, remote_pk_data), "failed to derive shared secret")
+}
+
+napi_value sn_crypto_core_ed25519_add (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_core_ed25519_add)
+
+  SN_ARGV_TYPEDARRAY(r, 0)
+  SN_ARGV_TYPEDARRAY(p, 1)
+  SN_ARGV_TYPEDARRAY(q, 2)
+
+  SN_THROWS(r_size != crypto_core_ed25519_BYTES, "r must be 32 bytes")
+  SN_THROWS(p_size != crypto_core_ed25519_BYTES, "p must be 32 bytes")
+  SN_THROWS(q_size != crypto_core_ed25519_BYTES, "q must be 32 bytes")
+
+  SN_RETURN(crypto_core_ed25519_add(r_data, p_data, q_data), "could not add curve points")
+}
+
+napi_value sn_crypto_core_ed25519_sub (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_core_ed25519_sub)
+
+  SN_ARGV_TYPEDARRAY(r, 0)
+  SN_ARGV_TYPEDARRAY(p, 1)
+  SN_ARGV_TYPEDARRAY(q, 2)
+
+  SN_THROWS(r_size != crypto_core_ed25519_BYTES, "r must be 32 bytes")
+  SN_THROWS(p_size != crypto_core_ed25519_BYTES, "p must be 32 bytes")
+  SN_THROWS(q_size != crypto_core_ed25519_BYTES, "q must be 32 bytes")
+
+  SN_RETURN(crypto_core_ed25519_sub(r_data, p_data, q_data), "could not add curve points")
 }
 
 napi_value create_sodium_native(napi_env env) {
@@ -984,6 +1012,8 @@ napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_scalarmult_ed25519_noclamp, sn_crypto_scalarmult_ed25519_noclamp)
   SN_EXPORT_FUNCTION(crypto_core_ed25519_is_valid_point, sn_crypto_core_ed25519_is_valid_point)
   SN_EXPORT_FUNCTION(crypto_core_ed25519_from_uniform, sn_crypto_core_ed25519_from_uniform)
+  SN_EXPORT_FUNCTION(crypto_core_ed25519_add, sn_crypto_core_ed25519_add)
+  SN_EXPORT_FUNCTION(crypto_core_ed25519_sub, sn_crypto_core_ed25519_sub)
 
   return exports;
 }
