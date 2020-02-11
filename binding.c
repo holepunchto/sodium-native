@@ -844,6 +844,32 @@ napi_value sn_crypto_scalarmult (napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_scalarmult(secret_data, sk_data, remote_pk_data), "failed to derive shared secret")
 }
 
+napi_value sn_crypto_scalarmult_ed25519_base (napi_env env, napi_callback_info info) {
+  SN_ARGV(2, crypto_scalarmult_ed25519_base)
+
+  SN_ARGV_TYPEDARRAY(pk, 0)
+  SN_ARGV_TYPEDARRAY(sk, 1)
+
+  SN_THROWS(pk_size != crypto_scalarmult_ed25519_BYTES, "public key buffer must be 32 bytes")
+  SN_THROWS(sk_size != crypto_scalarmult_ed25519_SCALARBYTES, "secret key buffer must be 32 bytes")
+
+  SN_RETURN(crypto_scalarmult_ed25519_base(pk_data, sk_data), "failed to derive public key")
+}
+
+napi_value sn_crypto_scalarmult_ed25519 (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_scalarmult_ed25519)
+
+  SN_ARGV_TYPEDARRAY(secret, 0)
+  SN_ARGV_TYPEDARRAY(sk, 1)
+  SN_ARGV_TYPEDARRAY(remote_pk, 2)
+
+  SN_THROWS(secret_size != crypto_scalarmult_ed25519_BYTES, "shared secret buffer must be 32 bytes")
+  SN_THROWS(sk_size != crypto_scalarmult_ed25519_SCALARBYTES, "secret key buffer must be 32 bytes")
+  SN_THROWS(remote_pk_size != crypto_scalarmult_ed25519_BYTES, "public key buffer must be 32 bytes")
+
+  SN_RETURN(crypto_scalarmult_ed25519(secret_data, sk_data, remote_pk_data), "failed to derive shared secret")
+}
+
 napi_value create_sodium_native(napi_env env) {
   napi_value exports;
   assert(napi_create_object(env, &exports) == napi_ok);
@@ -904,6 +930,8 @@ napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_kx_server_session_keys, sn_crypto_kx_server_session_keys)
   SN_EXPORT_FUNCTION(crypto_scalarmult_base, sn_crypto_scalarmult_base)
   SN_EXPORT_FUNCTION(crypto_scalarmult, sn_crypto_scalarmult)
+  SN_EXPORT_FUNCTION(crypto_scalarmult_ed25519_base, sn_crypto_scalarmult_ed25519_base)
+  SN_EXPORT_FUNCTION(crypto_scalarmult_ed25519, sn_crypto_scalarmult_ed25519)
 
   return exports;
 }
