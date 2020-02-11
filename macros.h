@@ -118,3 +118,9 @@
   napi_value result; \
   SN_THROWS(napi_get_boolean(env, success == 0, &result) != napi_ok, "result not boolean") \
   return result; \
+
+#define SN_RETURN_BOOLEAN_FROM_1(call) \
+  int success = call; \
+  napi_value result; \
+  SN_THROWS(napi_get_boolean(env, success == 1, &result) != napi_ok, "result not boolean") \
+  return result; \
