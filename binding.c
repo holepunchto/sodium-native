@@ -892,6 +892,32 @@ napi_value sn_crypto_core_ed25519_from_uniform (napi_env env, napi_callback_info
   SN_RETURN(crypto_core_ed25519_from_uniform(p_data, r_data), "could not generate curve point from input")
 }
 
+napi_value sn_crypto_scalarmult_ed25519_base_noclamp (napi_env env, napi_callback_info info) {
+  SN_ARGV(2, crypto_scalarmult_ed25519_base_noclamp)
+
+  SN_ARGV_TYPEDARRAY(pk, 0)
+  SN_ARGV_TYPEDARRAY(sk, 1)
+
+  SN_THROWS(pk_size != crypto_scalarmult_ed25519_BYTES, "public key buffer must be 32 bytes")
+  SN_THROWS(sk_size != crypto_scalarmult_ed25519_SCALARBYTES, "secret key buffer must be 32 bytes")
+
+  SN_RETURN(crypto_scalarmult_ed25519_base_noclamp(pk_data, sk_data), "failed to derive public key")
+}
+
+napi_value sn_crypto_scalarmult_ed25519_noclamp (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_scalarmult_ed25519_noclamp)
+
+  SN_ARGV_TYPEDARRAY(secret, 0)
+  SN_ARGV_TYPEDARRAY(sk, 1)
+  SN_ARGV_TYPEDARRAY(remote_pk, 2)
+
+  SN_THROWS(secret_size != crypto_scalarmult_ed25519_BYTES, "shared secret buffer must be 32 bytes")
+  SN_THROWS(sk_size != crypto_scalarmult_ed25519_SCALARBYTES, "secret key buffer must be 32 bytes")
+  SN_THROWS(remote_pk_size != crypto_scalarmult_ed25519_BYTES, "public key buffer must be 32 bytes")
+
+  SN_RETURN(crypto_scalarmult_ed25519_noclamp(secret_data, sk_data, remote_pk_data), "failed to derive shared secret")
+}
+
 napi_value create_sodium_native(napi_env env) {
   napi_value exports;
   assert(napi_create_object(env, &exports) == napi_ok);
@@ -954,6 +980,8 @@ napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_scalarmult, sn_crypto_scalarmult)
   SN_EXPORT_FUNCTION(crypto_scalarmult_ed25519_base, sn_crypto_scalarmult_ed25519_base)
   SN_EXPORT_FUNCTION(crypto_scalarmult_ed25519, sn_crypto_scalarmult_ed25519)
+  SN_EXPORT_FUNCTION(crypto_scalarmult_ed25519_base_noclamp, sn_crypto_scalarmult_ed25519_base_noclamp)
+  SN_EXPORT_FUNCTION(crypto_scalarmult_ed25519_noclamp, sn_crypto_scalarmult_ed25519_noclamp)
   SN_EXPORT_FUNCTION(crypto_core_ed25519_is_valid_point, sn_crypto_core_ed25519_is_valid_point)
   SN_EXPORT_FUNCTION(crypto_core_ed25519_from_uniform, sn_crypto_core_ed25519_from_uniform)
 
