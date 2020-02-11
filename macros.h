@@ -64,6 +64,11 @@
     SN_STATUS_THROWS(napi_set_named_property(env, exports, #name, name##_num), "") \
   }
 
+#define SN_ARGV_CHECK_NULL(name, index) \
+  napi_valuetype name##_valuetype; \
+  SN_STATUS_THROWS(napi_typeof(env, argv[index], &name##_valuetype), "") \
+  bool name##_is_null = name##_valuetype == napi_null;
+
 #define SN_TYPEDARRAY(name, var) \
   napi_typedarray_type name##_type; \
   size_t name##_length; \
