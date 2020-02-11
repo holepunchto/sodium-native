@@ -490,6 +490,49 @@ napi_value sn_crypto_secretbox_open_detached(napi_env env, napi_callback_info in
   SN_RETURN_BOOLEAN(crypto_secretbox_open_detached(message_data, ciphertext_data, mac_data, ciphertext_size, nonce_data, key_data))
 }
 
+napi_value sn_crypto_stream(napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_stream)
+
+  SN_ARGV_TYPEDARRAY(ciphertext, 0)
+  SN_ARGV_TYPEDARRAY(nonce, 1)
+  SN_ARGV_TYPEDARRAY(key, 2)
+
+  SN_THROWS(nonce_size != crypto_stream_NONCEBYTES, "nonce must be 24 bytes")
+  SN_THROWS(key_size != crypto_stream_KEYBYTES, "key must be 32 bytes")
+
+  SN_RETURN(crypto_stream(ciphertext_data, ciphertext_size, nonce_data, key_data), "stream encryption failed")
+}
+
+napi_value sn_crypto_stream_xor(napi_env env, napi_callback_info info) {
+  SN_ARGV(4, crypto_stream_xor)
+
+  SN_ARGV_TYPEDARRAY(ciphertext, 0)
+  SN_ARGV_TYPEDARRAY(message, 1)
+  SN_ARGV_TYPEDARRAY(nonce, 2)
+  SN_ARGV_TYPEDARRAY(key, 3)
+
+  SN_THROWS(ciphertext_size != message_size, "message buffer must be equal in length to ciphertext")
+  SN_THROWS(nonce_size != crypto_stream_NONCEBYTES, "nonce must be 24 bytes")
+  SN_THROWS(key_size != crypto_stream_KEYBYTES, "key must be 32 bytes")
+
+  SN_RETURN(crypto_stream_xor(ciphertext_data, message_data, message_size, nonce_data, key_data), "stream encryption failed")
+}
+
+napi_value sn_crypto_stream_chacha20_xor (napi_env env, napi_callback_info info) {
+  SN_ARGV(4, crypto_stream_chacha20_xor)
+
+  SN_ARGV_TYPEDARRAY(ciphertext, 0)
+  SN_ARGV_TYPEDARRAY(message, 1)
+  SN_ARGV_TYPEDARRAY(nonce, 2)
+  SN_ARGV_TYPEDARRAY(key, 3)
+
+  SN_THROWS(ciphertext_size != message_size, "message buffer must be equal in length to ciphertext")
+  SN_THROWS(nonce_size != crypto_stream_NONCEBYTES, "nonce must be 24 bytes")
+  SN_THROWS(key_size != crypto_stream_KEYBYTES, "key must be 32 bytes")
+
+  SN_RETURN(crypto_stream_chacha20_xor(ciphertext_data, message_data, message_size, nonce_data, key_data), "stream encryption failed")
+}
+
 napi_value create_sodium_native(napi_env env) {
   napi_value exports;
   assert(napi_create_object(env, &exports) == napi_ok);
@@ -529,6 +572,9 @@ napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_secretbox_open_easy, sn_crypto_secretbox_open_easy)
   SN_EXPORT_FUNCTION(crypto_secretbox_detached, sn_crypto_secretbox_detached)
   SN_EXPORT_FUNCTION(crypto_secretbox_open_detached, sn_crypto_secretbox_open_detached)
+  SN_EXPORT_FUNCTION(crypto_stream, sn_crypto_stream)
+  SN_EXPORT_FUNCTION(crypto_stream_xor, sn_crypto_stream_xor)
+  SN_EXPORT_FUNCTION(crypto_stream_chacha20_xor, sn_crypto_stream_chacha20_xor)
 
   return exports;
 }
