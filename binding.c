@@ -946,6 +946,107 @@ napi_value sn_crypto_core_ed25519_sub (napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_core_ed25519_sub(r_data, p_data, q_data), "could not add curve points")
 }
 
+napi_value sn_crypto_core_ed25519_scalar_random (napi_env env, napi_callback_info info) {
+  SN_ARGV(1, crypto_core_ed25519_scalar_random)
+
+  SN_ARGV_TYPEDARRAY(r, 0)
+
+  SN_THROWS(r_size != crypto_core_ed25519_SCALARBYTES, "result buffer must be 32 bytes")
+
+  crypto_core_ed25519_scalar_random(r_data);
+
+  return NULL;
+}
+
+napi_value sn_crypto_core_ed25519_scalar_reduce (napi_env env, napi_callback_info info) {
+  SN_ARGV(2, crypto_core_ed25519_scalar_reduce)
+
+  SN_ARGV_TYPEDARRAY(r, 0)
+  SN_ARGV_TYPEDARRAY(s, 1)
+
+  SN_THROWS(r_size != crypto_core_ed25519_SCALARBYTES, "result buffer must be 32 bytes")
+  SN_THROWS(s_size != crypto_core_ed25519_NONREDUCEDSCALARBYTES, "scalar must be 32 bytes")
+
+  crypto_core_ed25519_scalar_reduce(r_data, s_data);
+
+  return NULL;
+}
+
+napi_value sn_crypto_core_ed25519_scalar_invert (napi_env env, napi_callback_info info) {
+  SN_ARGV(2, crypto_core_ed25519_scalar_invert)
+
+  SN_ARGV_TYPEDARRAY(recip, 0)
+  SN_ARGV_TYPEDARRAY(s, 1)
+
+  SN_THROWS(recip_size != crypto_core_ed25519_SCALARBYTES, "reciprocal buffer must be 32 bytes")
+  SN_THROWS(s_size != crypto_core_ed25519_SCALARBYTES, "scalar must be 32 bytes")
+
+  crypto_core_ed25519_scalar_invert(recip_data, s_data);
+
+  return NULL;
+}
+
+napi_value sn_crypto_core_ed25519_scalar_negate (napi_env env, napi_callback_info info) {
+  SN_ARGV(2, crypto_core_ed25519_scalar_negate)
+
+  SN_ARGV_TYPEDARRAY(neg, 0)
+  SN_ARGV_TYPEDARRAY(s, 1)
+
+  SN_THROWS(neg_size != crypto_core_ed25519_SCALARBYTES, "negative buffer must be 32 bytes")
+  SN_THROWS(s_size != crypto_core_ed25519_SCALARBYTES, "scalar must be 32 bytes")
+
+  crypto_core_ed25519_scalar_negate(neg_data, s_data);
+
+  return NULL;
+}
+
+napi_value sn_crypto_core_ed25519_scalar_complement (napi_env env, napi_callback_info info) {
+  SN_ARGV(2, crypto_core_ed25519_scalar_complement)
+
+  SN_ARGV_TYPEDARRAY(comp, 0)
+  SN_ARGV_TYPEDARRAY(s, 1)
+
+  SN_THROWS(comp_size != crypto_core_ed25519_SCALARBYTES, "complement buffer must be 32 bytes")
+  SN_THROWS(s_size != crypto_core_ed25519_SCALARBYTES, "scalar must be 32 bytes")
+
+  crypto_core_ed25519_scalar_complement(comp_data, s_data);
+
+  return NULL;
+}
+
+napi_value sn_crypto_core_ed25519_scalar_add (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_core_ed25519_scalar_add)
+
+  SN_ARGV_TYPEDARRAY(z, 0)
+  SN_ARGV_TYPEDARRAY(x, 1)
+  SN_ARGV_TYPEDARRAY(y, 2)
+
+  SN_THROWS(z_size != crypto_core_ed25519_SCALARBYTES, "result buffer must be 32 bytes")
+  SN_THROWS(x_size != crypto_core_ed25519_SCALARBYTES, "x must be 32 bytes")
+  SN_THROWS(y_size != crypto_core_ed25519_SCALARBYTES, "y must be 32 bytes")
+
+  crypto_core_ed25519_scalar_add(z_data, x_data, y_data);
+
+  return NULL;
+}
+
+
+napi_value sn_crypto_core_ed25519_scalar_sub (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_core_ed25519_scalar_sub)
+
+  SN_ARGV_TYPEDARRAY(z, 0)
+  SN_ARGV_TYPEDARRAY(x, 1)
+  SN_ARGV_TYPEDARRAY(y, 2)
+
+  SN_THROWS(z_size != crypto_core_ed25519_SCALARBYTES, "result buffer must be 32 bytes")
+  SN_THROWS(x_size != crypto_core_ed25519_SCALARBYTES, "x must be 32 bytes")
+  SN_THROWS(y_size != crypto_core_ed25519_SCALARBYTES, "y must be 32 bytes")
+
+  crypto_core_ed25519_scalar_sub(z_data, x_data, y_data);
+
+  return NULL;
+}
+
 napi_value create_sodium_native(napi_env env) {
   napi_value exports;
   assert(napi_create_object(env, &exports) == napi_ok);
@@ -1014,6 +1115,13 @@ napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_core_ed25519_from_uniform, sn_crypto_core_ed25519_from_uniform)
   SN_EXPORT_FUNCTION(crypto_core_ed25519_add, sn_crypto_core_ed25519_add)
   SN_EXPORT_FUNCTION(crypto_core_ed25519_sub, sn_crypto_core_ed25519_sub)
+  SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_random, sn_crypto_core_ed25519_scalar_random)
+  SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_reduce, sn_crypto_core_ed25519_scalar_reduce)
+  SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_invert, sn_crypto_core_ed25519_scalar_invert)
+  SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_negate, sn_crypto_core_ed25519_scalar_negate)
+  SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_complement, sn_crypto_core_ed25519_scalar_complement)
+  SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_add, sn_crypto_core_ed25519_scalar_add)
+  SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_sub, sn_crypto_core_ed25519_scalar_sub)
 
   return exports;
 }
