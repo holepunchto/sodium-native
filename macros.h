@@ -110,7 +110,7 @@
 
 #define SN_RETURN(call, message) \
   int success = call; \
-  SN_THROWS(success != 0, " signature failed") \
+  SN_THROWS(success != 0, message) \
   return NULL;
 
 #define SN_RETURN_BOOLEAN(call) \
