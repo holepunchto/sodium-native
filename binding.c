@@ -533,6 +533,32 @@ napi_value sn_crypto_stream_chacha20_xor (napi_env env, napi_callback_info info)
   SN_RETURN(crypto_stream_chacha20_xor(ciphertext_data, message_data, message_size, nonce_data, key_data), "stream encryption failed")
 }
 
+napi_value sn_crypto_auth (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_auth)
+
+  SN_ARGV_TYPEDARRAY(output, 0)
+  SN_ARGV_TYPEDARRAY(input, 1)
+  SN_ARGV_TYPEDARRAY(key, 2)
+
+  SN_THROWS(output_size != crypto_auth_BYTES, "auth tag must be 32 bytes")
+  SN_THROWS(key_size != crypto_auth_KEYBYTES, "key must be 32 bytes")
+
+  SN_RETURN(crypto_auth(output_data, input_data, input_size, key_data), "failed to generate authentication tag")
+}
+
+napi_value sn_crypto_auth_verify (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_auth_verify)
+
+  SN_ARGV_TYPEDARRAY(tag, 0)
+  SN_ARGV_TYPEDARRAY(input, 1)
+  SN_ARGV_TYPEDARRAY(key, 2)
+
+  SN_THROWS(tag_size != crypto_auth_BYTES, "auth tag must be 32 bytes")
+  SN_THROWS(key_size != crypto_auth_KEYBYTES, "key must be 32 bytes")
+
+  SN_RETURN_BOOLEAN(crypto_auth_verify(tag_data, input_data, input_size, key_data))
+}
+
 napi_value create_sodium_native(napi_env env) {
   napi_value exports;
   assert(napi_create_object(env, &exports) == napi_ok);
@@ -575,6 +601,8 @@ napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_stream, sn_crypto_stream)
   SN_EXPORT_FUNCTION(crypto_stream_xor, sn_crypto_stream_xor)
   SN_EXPORT_FUNCTION(crypto_stream_chacha20_xor, sn_crypto_stream_chacha20_xor)
+  SN_EXPORT_FUNCTION(crypto_auth, sn_crypto_auth)
+  SN_EXPORT_FUNCTION(crypto_auth_verify, sn_crypto_auth_verify)
 
   return exports;
 }
