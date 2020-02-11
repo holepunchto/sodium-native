@@ -870,6 +870,28 @@ napi_value sn_crypto_scalarmult_ed25519 (napi_env env, napi_callback_info info) 
   SN_RETURN(crypto_scalarmult_ed25519(secret_data, sk_data, remote_pk_data), "failed to derive shared secret")
 }
 
+napi_value sn_crypto_core_ed25519_is_valid_point (napi_env env, napi_callback_info info) {
+  SN_ARGV(1, crypto_core_ed25519_is_valid_point)
+
+  SN_ARGV_TYPEDARRAY(point, 0)
+
+  SN_THROWS(point_size != crypto_core_ed25519_BYTES, "point must be 32 bytes")
+
+  SN_RETURN_BOOLEAN_FROM_1 (crypto_core_ed25519_is_valid_point(point_data))
+}
+
+napi_value sn_crypto_core_ed25519_from_uniform (napi_env env, napi_callback_info info) {
+  SN_ARGV(2, crypto_core_ed25519_from_uniform)
+
+  SN_ARGV_TYPEDARRAY(p, 0)
+  SN_ARGV_TYPEDARRAY(r, 1)
+
+  SN_THROWS(p_size != crypto_core_ed25519_BYTES, "point must be 32 bytes")
+  SN_THROWS(r_size != crypto_core_ed25519_BYTES, "point must be 32 bytes")
+
+  SN_RETURN(crypto_core_ed25519_from_uniform(p_data, r_data), "could not generate curve point from input")
+}
+
 napi_value create_sodium_native(napi_env env) {
   napi_value exports;
   assert(napi_create_object(env, &exports) == napi_ok);
@@ -932,6 +954,8 @@ napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_scalarmult, sn_crypto_scalarmult)
   SN_EXPORT_FUNCTION(crypto_scalarmult_ed25519_base, sn_crypto_scalarmult_ed25519_base)
   SN_EXPORT_FUNCTION(crypto_scalarmult_ed25519, sn_crypto_scalarmult_ed25519)
+  SN_EXPORT_FUNCTION(crypto_core_ed25519_is_valid_point, sn_crypto_core_ed25519_is_valid_point)
+  SN_EXPORT_FUNCTION(crypto_core_ed25519_from_uniform, sn_crypto_core_ed25519_from_uniform)
 
   return exports;
 }
