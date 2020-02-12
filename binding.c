@@ -749,10 +749,10 @@ napi_value sn_crypto_kx_seed_keypair (napi_env env, napi_callback_info info) {
 napi_value sn_crypto_kx_client_session_keys (napi_env env, napi_callback_info info) {
   SN_ARGV(5, crypto_kx_client_session_keys)
 
-  SN_ARGV_CHECK_NULL(rx, 0)
-  SN_ARGV_CHECK_NULL(tx, 1)
+  SN_ARGV_OPTS_TYPEDARRAY(rx, 0)
+  SN_ARGV_OPTS_TYPEDARRAY(tx, 1)
 
-  SN_THROWS(rx_is_null && tx_is_null, "at least one session key must be specified")
+  SN_THROWS(rx_data == NULL && tx_data == NULL, "at least one session key must be specified")
 
   SN_ARGV_TYPEDARRAY(client_pk, 2)
   SN_ARGV_TYPEDARRAY(client_sk, 3)
@@ -762,33 +762,19 @@ napi_value sn_crypto_kx_client_session_keys (napi_env env, napi_callback_info in
   SN_THROWS(client_sk_size != crypto_kx_SECRETKEYBYTES, "client secret key must be 32 bytes")
   SN_THROWS(server_pk_size != crypto_kx_PUBLICKEYBYTES, "server public key must be 32 bytes")
 
-  if (rx_is_null) {
-    SN_ARGV_TYPEDARRAY(tx, 1)
-    SN_THROWS(tx_size != crypto_kx_SESSIONKEYBYTES, "trasnmitting key buffer must be 32 bytes")
+  SN_THROWS(tx_size != crypto_kx_SESSIONKEYBYTES && tx_data != NULL, "trasnmitting key buffer must be 32 bytes or null")
+  SN_THROWS(rx_size != crypto_kx_SESSIONKEYBYTES && tx_data != NULL, "receiving key buffer must be 32 bytes or null")
 
-    SN_RETURN(crypto_kx_client_session_keys(NULL, tx_data, client_pk_data, client_sk_data, server_pk_data), "failed to derive session keys")
-  } else if (tx_is_null) {
-    SN_ARGV_TYPEDARRAY(rx, 0)
-    SN_THROWS(rx_size != crypto_kx_SESSIONKEYBYTES, "receiving key buffer must be 32 bytes")
-
-    SN_RETURN(crypto_kx_client_session_keys(rx_data, NULL, client_pk_data, client_sk_data, server_pk_data), "failed to derive session keys")
-  } else {
-    SN_ARGV_TYPEDARRAY(rx, 0)
-    SN_ARGV_TYPEDARRAY(tx, 1)
-    SN_THROWS(tx_size != crypto_kx_SESSIONKEYBYTES, "trasnmitting key buffer must be 32 bytes or null")
-    SN_THROWS(rx_size != crypto_kx_SESSIONKEYBYTES, "receiving key buffer must be 32 bytes or null")
-
-    SN_RETURN(crypto_kx_client_session_keys(rx_data, tx_data, client_pk_data, client_sk_data, server_pk_data), "failed to derive session keys")
-  }
+  SN_RETURN(crypto_kx_client_session_keys(rx_data, tx_data, client_pk_data, client_sk_data, server_pk_data), "failed to derive session keys")
 }
 
 napi_value sn_crypto_kx_server_session_keys (napi_env env, napi_callback_info info) {
   SN_ARGV(5, crypto_kx_server_session_keys)
 
-  SN_ARGV_CHECK_NULL(rx, 0)
-  SN_ARGV_CHECK_NULL(tx, 1)
+  SN_ARGV_OPTS_TYPEDARRAY(rx, 0)
+  SN_ARGV_OPTS_TYPEDARRAY(tx, 1)
 
-  SN_THROWS(rx_is_null && tx_is_null, "at least one session key must be specified")
+  SN_THROWS(rx_data == NULL && tx_data == NULL, "at least one session key must be specified")
 
   SN_ARGV_TYPEDARRAY(server_pk, 2)
   SN_ARGV_TYPEDARRAY(server_sk, 3)
@@ -798,24 +784,10 @@ napi_value sn_crypto_kx_server_session_keys (napi_env env, napi_callback_info in
   SN_THROWS(server_sk_size != crypto_kx_SECRETKEYBYTES, "server secret key must be 32 bytes")
   SN_THROWS(client_pk_size != crypto_kx_PUBLICKEYBYTES, "client public key must be 32 bytes")
 
-  if (rx_is_null) {
-    SN_ARGV_TYPEDARRAY(tx, 1)
-    SN_THROWS(tx_size != crypto_kx_SESSIONKEYBYTES, "trasnmitting key buffer must be 32 bytes")
+  SN_THROWS(tx_size != crypto_kx_SESSIONKEYBYTES && tx_data != NULL, "trasnmitting key buffer must be 32 bytes or null")
+  SN_THROWS(rx_size != crypto_kx_SESSIONKEYBYTES && rx_data != NULL, "receiving key buffer must be 32 bytes or null")
 
-    SN_RETURN(crypto_kx_server_session_keys(NULL, tx_data, server_pk_data, server_sk_data, client_pk_data), "failed to dervie session keys")
-  } else if (tx_is_null) {
-    SN_ARGV_TYPEDARRAY(rx, 0)
-    SN_THROWS(rx_size != crypto_kx_SESSIONKEYBYTES, "receiving key buffer must be 32 bytes")
-
-    SN_RETURN(crypto_kx_server_session_keys(rx_data, NULL, server_pk_data, server_sk_data, client_pk_data), "failed to dervie session keys")
-  } else {
-    SN_ARGV_TYPEDARRAY(rx, 0)
-    SN_ARGV_TYPEDARRAY(tx, 1)
-    SN_THROWS(tx_size != crypto_kx_SESSIONKEYBYTES, "trasnmitting key buffer must be 32 bytes or null")
-    SN_THROWS(rx_size != crypto_kx_SESSIONKEYBYTES, "receiving key buffer must be 32 bytes or null")
-
-    SN_RETURN(crypto_kx_server_session_keys(rx_data, tx_data, server_pk_data, server_sk_data, client_pk_data), "failed to dervie session keys")
-  }
+  SN_RETURN(crypto_kx_server_session_keys(rx_data, tx_data, server_pk_data, server_sk_data, client_pk_data), "failed to dervie session keys")
 }
 
 napi_value sn_crypto_scalarmult_base (napi_env env, napi_callback_info info) {
@@ -1126,7 +1098,7 @@ napi_value sn_crypto_aead_xchacha20poly1305_ietf_encrypt (napi_env env, napi_cal
 
   SN_ARGV_TYPEDARRAY(ciphertext, 0)
   SN_ARGV_TYPEDARRAY(message, 1)
-  SN_ARGV_CHECK_NULL(ad, 2)
+  SN_ARGV_OPTS_TYPEDARRAY(ad, 2)
   SN_ARGV_CHECK_NULL(nSec, 3)
   SN_ARGV_TYPEDARRAY(npub, 4)
   SN_ARGV_TYPEDARRAY(key, 5)
@@ -1137,12 +1109,7 @@ napi_value sn_crypto_aead_xchacha20poly1305_ietf_encrypt (napi_env env, napi_cal
   SN_THROWS(npub_size != crypto_aead_xchacha20poly1305_ietf_NPUBBYTES, "npub key must 24 bytes")
   SN_THROWS(key_size != crypto_aead_xchacha20poly1305_ietf_KEYBYTES, "key must 32 bytes")
 
-  if (ad_is_null) {
-    SN_RETURN(crypto_aead_xchacha20poly1305_ietf_encrypt(ciphertext_data, NULL, message_data, message_size, NULL, 0, NULL, npub_data, key_data), "could not encrypt data")
-  } else {
-    SN_ARGV_TYPEDARRAY(ad, 2)
-    SN_RETURN(crypto_aead_xchacha20poly1305_ietf_encrypt(ciphertext_data, NULL, message_data, message_size, ad_data, ad_size, NULL, npub_data, key_data), "could not encrypt data")
-  }
+  SN_RETURN(crypto_aead_xchacha20poly1305_ietf_encrypt(ciphertext_data, NULL, message_data, message_size, ad_data, ad_size, NULL, npub_data, key_data), "could not encrypt data")
 }
 
 napi_value sn_crypto_aead_xchacha20poly1305_ietf_decrypt (napi_env env, napi_callback_info info) {
@@ -1151,7 +1118,7 @@ napi_value sn_crypto_aead_xchacha20poly1305_ietf_decrypt (napi_env env, napi_cal
   SN_ARGV_TYPEDARRAY(message, 0)
   SN_ARGV_CHECK_NULL(nSec, 1)
   SN_ARGV_TYPEDARRAY(ciphertext, 2)
-  SN_ARGV_CHECK_NULL(ad, 3)
+  SN_ARGV_OPTS_TYPEDARRAY(ad, 3)
   SN_ARGV_TYPEDARRAY(npub, 4)
   SN_ARGV_TYPEDARRAY(key, 5)
 
@@ -1161,12 +1128,7 @@ napi_value sn_crypto_aead_xchacha20poly1305_ietf_decrypt (napi_env env, napi_cal
   SN_THROWS(npub_size != crypto_aead_xchacha20poly1305_ietf_NPUBBYTES, "npub key must 24 bytes")
   SN_THROWS(key_size != crypto_aead_xchacha20poly1305_ietf_KEYBYTES, "key must 32 bytes")
 
-  if (ad_is_null) {
-    SN_RETURN(crypto_aead_xchacha20poly1305_ietf_decrypt(message_data, NULL, NULL, ciphertext_data, ciphertext_size, NULL, 0, npub_data, key_data), "could not verify data")
-  } else {
-    SN_ARGV_TYPEDARRAY(ad, 3)
-    SN_RETURN(crypto_aead_xchacha20poly1305_ietf_decrypt(message_data, NULL, NULL, ciphertext_data, ciphertext_size, ad_data, ad_size, npub_data, key_data), "could not verify data")
-  }
+  SN_RETURN(crypto_aead_xchacha20poly1305_ietf_decrypt(message_data, NULL, NULL, ciphertext_data, ciphertext_size, ad_data, ad_size, npub_data, key_data), "could not verify data")
 }
 
 napi_value sn_crypto_aead_xchacha20poly1305_ietf_encrypt_detached (napi_env env, napi_callback_info info) {
@@ -1175,7 +1137,7 @@ napi_value sn_crypto_aead_xchacha20poly1305_ietf_encrypt_detached (napi_env env,
   SN_ARGV_TYPEDARRAY(ciphertext, 0)
   SN_ARGV_TYPEDARRAY(mac, 1)
   SN_ARGV_TYPEDARRAY(message, 2)
-  SN_ARGV_CHECK_NULL(ad, 3)
+  SN_ARGV_OPTS_TYPEDARRAY(ad, 3)
   SN_ARGV_CHECK_NULL(nSec, 4)
   SN_ARGV_TYPEDARRAY(npub, 5)
   SN_ARGV_TYPEDARRAY(key, 6)
@@ -1187,12 +1149,7 @@ napi_value sn_crypto_aead_xchacha20poly1305_ietf_encrypt_detached (napi_env env,
   SN_THROWS(npub_size != crypto_aead_xchacha20poly1305_ietf_NPUBBYTES, "npub key must 24 bytes")
   SN_THROWS(key_size != crypto_aead_xchacha20poly1305_ietf_KEYBYTES, "key must 32 bytes")
 
-  if (ad_is_null) {
-    SN_RETURN(crypto_aead_xchacha20poly1305_ietf_encrypt_detached(ciphertext_data, mac_data, NULL, message_data, message_size, NULL, 0, NULL, npub_data, key_data), "could not encrypt data")
-  } else {
-    SN_ARGV_TYPEDARRAY(ad, 3)
-    SN_RETURN(crypto_aead_xchacha20poly1305_ietf_encrypt_detached(ciphertext_data, mac_data, NULL, message_data, message_size, ad_data, ad_size, NULL, npub_data, key_data), "could not encrypt data")
-  }
+  SN_RETURN(crypto_aead_xchacha20poly1305_ietf_encrypt_detached(ciphertext_data, mac_data, NULL, message_data, message_size, ad_data, ad_size, NULL, npub_data, key_data), "could not encrypt data")
 }
 
 napi_value sn_crypto_aead_xchacha20poly1305_ietf_decrypt_detached (napi_env env, napi_callback_info info) {
@@ -1202,7 +1159,7 @@ napi_value sn_crypto_aead_xchacha20poly1305_ietf_decrypt_detached (napi_env env,
   SN_ARGV_CHECK_NULL(nSec, 1)
   SN_ARGV_TYPEDARRAY(ciphertext, 2)
   SN_ARGV_TYPEDARRAY(mac, 3)
-  SN_ARGV_CHECK_NULL(ad, 4)
+  SN_ARGV_OPTS_TYPEDARRAY(ad, 4)
   SN_ARGV_TYPEDARRAY(npub, 5)
   SN_ARGV_TYPEDARRAY(key, 6)
 
@@ -1213,12 +1170,7 @@ napi_value sn_crypto_aead_xchacha20poly1305_ietf_decrypt_detached (napi_env env,
   SN_THROWS(npub_size != crypto_aead_xchacha20poly1305_ietf_NPUBBYTES, "npub key must 24 bytes")
   SN_THROWS(key_size != crypto_aead_xchacha20poly1305_ietf_KEYBYTES, "key must 32 bytes")
 
-  if (ad_is_null) {
-    SN_RETURN(crypto_aead_xchacha20poly1305_ietf_decrypt_detached(message_data, NULL, ciphertext_data, ciphertext_size, mac_data, NULL, 0, npub_data, key_data), "could not verify data")
-  } else {
-    SN_ARGV_TYPEDARRAY(ad, 4)
-    SN_RETURN(crypto_aead_xchacha20poly1305_ietf_decrypt_detached(message_data, NULL, ciphertext_data, ciphertext_size, mac_data, ad_data, ad_size, npub_data, key_data), "could not verify data")
-  }
+  SN_RETURN(crypto_aead_xchacha20poly1305_ietf_decrypt_detached(message_data, NULL, ciphertext_data, ciphertext_size, mac_data, ad_data, ad_size, npub_data, key_data), "could not verify data")
 }
 
 napi_value create_sodium_native(napi_env env) {
