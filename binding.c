@@ -297,6 +297,45 @@ napi_value sn_crypto_generichash(napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_generichash(output_data, output_size, input_data, input_size, key_data, key_size), "hash failed")
 }
 
+napi_value sn_crypto_generichash_init(napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_generichash_init)
+
+  SN_ARGV_BUFFER_CAST(crypto_generichash_state *, state, 0)
+  SN_ARGV_OPTS_TYPEDARRAY(key, 1)
+  SN_ARGV_UINT32(outlen, 2)
+
+  SN_THROWS(state_size != sizeof(crypto_generichash_state), "state must be 384 bytes")
+
+  if (key_data != NULL) {
+    SN_THROWS(key_size < crypto_generichash_KEYBYTES_MIN, "key must be at least 16 bytes")
+    SN_THROWS(key_size > crypto_generichash_KEYBYTES_MAX, "key must be at least 64 bytes")
+  }
+
+  SN_RETURN(crypto_generichash_init(state, key_data, key_size, outlen), "hash failed to initialise")
+}
+
+napi_value sn_crypto_generichash_update(napi_env env, napi_callback_info info) {
+  SN_ARGV(2, crypto_generichash_update)
+
+  SN_ARGV_BUFFER_CAST(crypto_generichash_state *, state, 0)
+  SN_ARGV_TYPEDARRAY(input, 1)
+
+  SN_THROWS(state_size != sizeof(crypto_generichash_state), "state must be 384 bytes")
+
+  SN_RETURN(crypto_generichash_update(state, input_data, input_size), "update failed")
+}
+
+napi_value sn_crypto_generichash_final(napi_env env, napi_callback_info info) {
+  SN_ARGV(2, crypto_generichash_final)
+
+  SN_ARGV_BUFFER_CAST(crypto_generichash_state *, state, 0)
+  SN_ARGV_TYPEDARRAY(output, 1)
+
+  SN_THROWS(state_size != sizeof(crypto_generichash_state), "state must be 384 bytes")
+
+  SN_RETURN(crypto_generichash_final(state, output_data, output_size), "digest failed")
+}
+
 napi_value sn_crypto_box_keypair(napi_env env, napi_callback_info info) {
   SN_ARGV(2, crypto_box_keypair)
 
@@ -1258,6 +1297,11 @@ napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_decrypt, sn_crypto_aead_xchacha20poly1305_ietf_decrypt)
   SN_EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_encrypt_detached, sn_crypto_aead_xchacha20poly1305_ietf_encrypt_detached)
   SN_EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_decrypt_detached, sn_crypto_aead_xchacha20poly1305_ietf_decrypt_detached)
+  SN_EXPORT_FUNCTION(crypto_generichash_init, sn_crypto_generichash_init)
+  SN_EXPORT_FUNCTION(crypto_generichash_update, sn_crypto_generichash_update)
+  SN_EXPORT_FUNCTION(crypto_generichash_final, sn_crypto_generichash_final)
+
+  SN_EXPORT_UINT32(crypto_generichash_STATEBYTES, sizeof(crypto_generichash_state))
 
   return exports;
 }
