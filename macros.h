@@ -10,6 +10,11 @@
     return NULL; \
   }
 
+#define SN_BUFFER_CAST(type, name, val) \
+  type name; \
+  size_t name##_size; \
+  SN_STATUS_THROWS(napi_get_buffer_info(env, val, (void **) &name, &name##_size), "")
+
 #define SN_TYPE_ASSERT(name, var, type, message) \
   napi_valuetype name##_valuetype; \
   SN_STATUS_THROWS(napi_typeof(env, var, &name##_valuetype), ""); \
@@ -74,7 +79,6 @@
   void* name##_data = NULL; \
   size_t name##_size = 0; \
   SN_STATUS_THROWS(napi_typeof(env, argv[index], &name##_valuetype), "") \
-  printf(name##_valuetype == napi_null ? "true" : "false"); \
   if (name##_valuetype != napi_null) { \
     napi_value name##_argv = argv[index]; \
     SN_TYPEDARRAY_ASSERT(name, name##_argv, #name " must be an instance of TypedArray") \
@@ -116,6 +120,10 @@
   napi_value name##_argv = argv[index]; \
   SN_TYPEDARRAY_ASSERT(name, name##_argv, #name " must be an instance of TypedArray") \
   SN_TYPEDARRAY(name, name##_argv)
+
+#define SN_ARGV_BUFFER_CAST(type, name, index) \
+  napi_value name##_argv = argv[index]; \
+  SN_BUFFER_CAST(type, name, name##_argv)
 
 #define SN_OPT_ARGV_TYPEDARRAY(name, index) \
   napi_value name##_argv = argv[index]; \
