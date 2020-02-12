@@ -297,6 +297,39 @@ napi_value sn_crypto_generichash(napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_generichash(output_data, output_size, input_data, input_size, key_data, key_size), "hash failed")
 }
 
+napi_value sn_crypto_generichash_batch(napi_env env, napi_callback_info info) {
+  SN_ARGV_OPTS(2, 3, crypto_generichash)
+
+  SN_ARGV_TYPEDARRAY(output, 0)
+
+  uint32_t batch_length;
+  napi_get_array_length(env, argv[1], &batch_length);
+
+  SN_THROWS(output_size < crypto_generichash_BYTES_MIN, "output buffer must be at least 16 bytes")
+  SN_THROWS(output_size > crypto_generichash_BYTES_MAX, "output buffer must be at least 64 bytes")
+
+  void *key_data = NULL;
+  size_t key_size = 0;
+
+  if (argc == 3) {
+    SN_OPT_ARGV_TYPEDARRAY(key, 2)
+    SN_THROWS(key_size < crypto_generichash_KEYBYTES_MIN, "key must be at least 16 bytes")
+    SN_THROWS(key_size > crypto_generichash_KEYBYTES_MAX, "key must be at least 64 bytes")
+  }
+
+  crypto_generichash_state state;
+  crypto_generichash_init(&state, key_data, key_size, output_size);
+  for (uint32_t i = 0; i < batch_length; i++) {
+    napi_value element;
+    napi_get_element(env, argv[1], i, &element);
+    SN_TYPEDARRAY_ASSERT(buf, element, "batch element should be passed as a TypedArray")
+    SN_TYPEDARRAY(buf, element)
+    crypto_generichash_update(&state, buf_data, buf_size);
+  }
+
+  SN_RETURN(crypto_generichash_final(&state, output_data, output_size), "batch failed")
+}
+
 napi_value sn_crypto_generichash_keygen(napi_env env, napi_callback_info info) {
   SN_ARGV(1, crypto_generichash_keygen)
 
@@ -1435,6 +1468,7 @@ napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_sign_verify_detached, sn_crypto_sign_verify_detached)
   SN_EXPORT_FUNCTION(crypto_sign_ed25519_sk_to_pk, sn_crypto_sign_ed25519_sk_to_pk)
   SN_EXPORT_FUNCTION(crypto_generichash, sn_crypto_generichash)
+  SN_EXPORT_FUNCTION(crypto_generichash_batch, sn_crypto_generichash_batch)
   SN_EXPORT_FUNCTION(crypto_box_keypair, sn_crypto_box_keypair)
   SN_EXPORT_FUNCTION(crypto_box_seed_keypair, sn_crypto_box_seed_keypair)
   SN_EXPORT_FUNCTION(crypto_box_easy, sn_crypto_box_easy)
