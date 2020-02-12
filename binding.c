@@ -1250,6 +1250,17 @@ napi_value sn_crypto_kdf_derive_from_key (napi_env env, napi_callback_info info)
   SN_RETURN(crypto_kdf_derive_from_key(subkey_data, subkey_size, subkey_id, ctx_data, key_data), "could not generate key")
 }
 
+napi_value sn_crypto_hash (napi_env env, napi_callback_info info) {
+  SN_ARGV(2, crypto_hash_sha256)
+
+  SN_ARGV_TYPEDARRAY(output, 0)
+  SN_ARGV_TYPEDARRAY(input, 1)
+
+  SN_THROWS(output_size != crypto_hash_BYTES, "output must 64 bytes")
+
+  SN_RETURN(crypto_hash(output_data, input_data, input_size), "could not compute hash")
+}
+
 napi_value sn_crypto_hash_sha256 (napi_env env, napi_callback_info info) {
   SN_ARGV(2, crypto_hash_sha256)
 
@@ -1997,18 +2008,6 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_verify_async (napi_env env,
   return NULL;
 }
 
-
-// napi_value sn_crypto_pwhash_str_verify (napi_env env, napi_callback_info info) {
-//   SN_ARGV(2, crypto_pwhash_str_verify)
-
-//   SN_ARGV_TYPEDARRAY(str, 0)
-//   SN_ARGV_TYPEDARRAY(pwd, 1)
-
-//   SN_THROWS(str_size != crypto_pwhash_STRBYTES, "password hash must be 128 bytes")
-
-//   SN_RETURN_BOOLEAN(crypto_pwhash_str_verify(str_data, pwd_data, pwd_size))
-// }
-
 napi_value create_sodium_native(napi_env env) {
   SN_THROWS(sodium_init() == -1, "sodium_init() failed")
 
@@ -2105,6 +2104,7 @@ napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_shorthash, sn_crypto_shorthash)
   SN_EXPORT_FUNCTION(crypto_kdf_keygen, sn_crypto_kdf_keygen)
   SN_EXPORT_FUNCTION(crypto_kdf_derive_from_key, sn_crypto_kdf_derive_from_key)
+  SN_EXPORT_FUNCTION(crypto_hash, sn_crypto_hash)
   SN_EXPORT_FUNCTION(crypto_hash_sha256, sn_crypto_hash_sha256)
   SN_EXPORT_FUNCTION(crypto_hash_sha256_init, sn_crypto_hash_sha256_init)
   SN_EXPORT_FUNCTION(crypto_hash_sha256_update, sn_crypto_hash_sha256_update)
