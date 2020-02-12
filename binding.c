@@ -323,6 +323,30 @@ napi_value sn_crypto_sign_ed25519_sk_to_pk(napi_env env, napi_callback_info info
   SN_RETURN(crypto_sign_ed25519_sk_to_pk(pk_data, sk_data), "public key generation failed")
 }
 
+napi_value sn_crypto_sign_ed25519_pk_to_curve25519(napi_env env, napi_callback_info info) {
+  SN_ARGV(2, crypto_sign_ed25519_sk_to_pk)
+
+  SN_ARGV_TYPEDARRAY(curve_pk, 0)
+  SN_ARGV_TYPEDARRAY(ed_pk, 1)
+
+  SN_THROWS(curve_pk_size != crypto_box_PUBLICKEYBYTES, "curve25519 public key buffer must be 32 bytes")
+  SN_THROWS(ed_pk_size != crypto_sign_PUBLICKEYBYTES, "ed25519 public key must be 32 bytes")
+
+  SN_RETURN(crypto_sign_ed25519_pk_to_curve25519(curve_pk_data, ed_pk_data), "public key conversion failed")
+}
+
+napi_value sn_crypto_sign_ed25519_sk_to_curve25519(napi_env env, napi_callback_info info) {
+  SN_ARGV(2, crypto_sign_ed25519_sk_to_pk)
+
+  SN_ARGV_TYPEDARRAY(curve_sk, 0)
+  SN_ARGV_TYPEDARRAY(ed_sk, 1)
+
+  SN_THROWS(curve_sk_size != crypto_box_SECRETKEYBYTES, "curve25519 secret key buffer must be 32 bytes")
+  SN_THROWS(ed_sk_size != crypto_sign_SECRETKEYBYTES, "ed25519 secret key must be 64 bytes")
+
+  SN_RETURN(crypto_sign_ed25519_sk_to_curve25519(curve_sk_data, ed_sk_data), "secret key conversion failed")
+}
+
 napi_value sn_crypto_generichash(napi_env env, napi_callback_info info) {
   SN_ARGV_OPTS(2, 3, crypto_generichash)
 
@@ -2017,6 +2041,8 @@ napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_sign_detached, sn_crypto_sign_detached)
   SN_EXPORT_FUNCTION(crypto_sign_verify_detached, sn_crypto_sign_verify_detached)
   SN_EXPORT_FUNCTION(crypto_sign_ed25519_sk_to_pk, sn_crypto_sign_ed25519_sk_to_pk)
+  SN_EXPORT_FUNCTION(crypto_sign_ed25519_pk_to_curve25519, sn_crypto_sign_ed25519_pk_to_curve25519)
+  SN_EXPORT_FUNCTION(crypto_sign_ed25519_sk_to_curve25519, sn_crypto_sign_ed25519_sk_to_curve25519)
   SN_EXPORT_FUNCTION(crypto_generichash, sn_crypto_generichash)
   SN_EXPORT_FUNCTION(crypto_generichash_batch, sn_crypto_generichash_batch)
   SN_EXPORT_FUNCTION(crypto_box_keypair, sn_crypto_box_keypair)
