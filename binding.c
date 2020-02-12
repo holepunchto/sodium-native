@@ -1157,6 +1157,39 @@ napi_value sn_crypto_hash_sha256 (napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_hash_sha256(output_data, input_data, input_size), "could not compute hash")
 }
 
+napi_value sn_crypto_hash_sha256_init (napi_env env, napi_callback_info info) {
+  SN_ARGV(1, crypto_hash_sha256_init)
+
+  SN_ARGV_BUFFER_CAST(crypto_hash_sha256_state *, state, 0)
+
+  SN_THROWS(state_size != sizeof(crypto_hash_sha256_state), "state must be 64 bytes")
+
+  SN_RETURN(crypto_hash_sha256_init(state), "failed to initialise sha256")
+}
+
+napi_value sn_crypto_hash_sha256_update(napi_env env, napi_callback_info info) {
+  SN_ARGV(2, crypto_hash_sha256_update)
+
+  SN_ARGV_BUFFER_CAST(crypto_hash_sha256_state *, state, 0)
+  SN_ARGV_TYPEDARRAY(input, 1)
+
+  SN_THROWS(state_size != sizeof(crypto_hash_sha256_state), "state must be 64 bytes")
+
+  SN_RETURN(crypto_hash_sha256_update(state, input_data, input_size), "update failed")
+}
+
+napi_value sn_crypto_hash_sha256_final(napi_env env, napi_callback_info info) {
+  SN_ARGV(2, crypto_hash_sha256_final)
+
+  SN_ARGV_BUFFER_CAST(crypto_hash_sha256_state *, state, 0)
+  SN_ARGV_TYPEDARRAY(output, 1)
+
+  SN_THROWS(state_size != sizeof(crypto_hash_sha256_state), "state must be 64 bytes")
+  SN_THROWS(output_size != crypto_hash_sha256_BYTES, "state must be 32 bytes")
+
+  SN_RETURN(crypto_hash_sha256_final(state, output_data), "failed to finalise")
+}
+
 napi_value sn_crypto_hash_sha512 (napi_env env, napi_callback_info info) {
   SN_ARGV(2, crypto_hash_sha512)
 
@@ -1166,6 +1199,39 @@ napi_value sn_crypto_hash_sha512 (napi_env env, napi_callback_info info) {
   SN_THROWS(output_size != crypto_hash_sha512_BYTES, "output must 64 bytes")
 
   SN_RETURN(crypto_hash_sha512(output_data, input_data, input_size), "could not compute hash")
+}
+
+napi_value sn_crypto_hash_sha512_init (napi_env env, napi_callback_info info) {
+  SN_ARGV(1, crypto_hash_sha512_init)
+
+  SN_ARGV_BUFFER_CAST(crypto_hash_sha512_state *, state, 0)
+
+  SN_THROWS(state_size != sizeof(crypto_hash_sha512_state), "state must be 128 bytes")
+
+  SN_RETURN(crypto_hash_sha512_init(state), "failed to initialise sha512")
+}
+
+napi_value sn_crypto_hash_sha512_update(napi_env env, napi_callback_info info) {
+  SN_ARGV(2, crypto_hash_sha512_update)
+
+  SN_ARGV_BUFFER_CAST(crypto_hash_sha512_state *, state, 0)
+  SN_ARGV_TYPEDARRAY(input, 1)
+
+  SN_THROWS(state_size != sizeof(crypto_hash_sha512_state), "state must be 128 bytes")
+
+  SN_RETURN(crypto_hash_sha512_update(state, input_data, input_size), "update failed")
+}
+
+napi_value sn_crypto_hash_sha512_final(napi_env env, napi_callback_info info) {
+  SN_ARGV(2, crypto_hash_sha512_final)
+
+  SN_ARGV_BUFFER_CAST(crypto_hash_sha512_state *, state, 0)
+  SN_ARGV_TYPEDARRAY(output, 1)
+
+  SN_THROWS(state_size != sizeof(crypto_hash_sha512_state), "state must be 128 bytes")
+  SN_THROWS(output_size != crypto_hash_sha512_BYTES, "state must be 64 bytes")
+
+  SN_RETURN(crypto_hash_sha512_final(state, output_data), "failed to finalise hash")
 }
 
 napi_value sn_crypto_aead_xchacha20poly1305_ietf_keygen (napi_env env, napi_callback_info info) {
@@ -1341,7 +1407,13 @@ napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_kdf_keygen, sn_crypto_kdf_keygen)
   SN_EXPORT_FUNCTION(crypto_kdf_derive_from_key, sn_crypto_kdf_derive_from_key)
   SN_EXPORT_FUNCTION(crypto_hash_sha256, sn_crypto_hash_sha256)
+  SN_EXPORT_FUNCTION(crypto_hash_sha256_init, sn_crypto_hash_sha256_init)
+  SN_EXPORT_FUNCTION(crypto_hash_sha256_update, sn_crypto_hash_sha256_update)
+  SN_EXPORT_FUNCTION(crypto_hash_sha256_final, sn_crypto_hash_sha256_final)
   SN_EXPORT_FUNCTION(crypto_hash_sha512, sn_crypto_hash_sha512)
+  SN_EXPORT_FUNCTION(crypto_hash_sha512_init, sn_crypto_hash_sha512_init)
+  SN_EXPORT_FUNCTION(crypto_hash_sha512_update, sn_crypto_hash_sha512_update)
+  SN_EXPORT_FUNCTION(crypto_hash_sha512_final, sn_crypto_hash_sha512_final)
   SN_EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_keygen, sn_crypto_aead_xchacha20poly1305_ietf_keygen)
   SN_EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_encrypt, sn_crypto_aead_xchacha20poly1305_ietf_encrypt)
   SN_EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_decrypt, sn_crypto_aead_xchacha20poly1305_ietf_decrypt)
