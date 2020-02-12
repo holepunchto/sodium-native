@@ -1325,6 +1325,89 @@ napi_value sn_crypto_aead_xchacha20poly1305_ietf_decrypt_detached (napi_env env,
   SN_RETURN(crypto_aead_xchacha20poly1305_ietf_decrypt_detached(message_data, NULL, ciphertext_data, ciphertext_size, mac_data, ad_data, ad_size, npub_data, key_data), "could not verify data")
 }
 
+napi_value sn_crypto_secretstream_xchacha20poly1305_keygen (napi_env env, napi_callback_info info) {
+  SN_ARGV(1, crypto_secretstream_xchacha20poly1305_keygen)
+
+  SN_ARGV_TYPEDARRAY(key, 0)
+ 
+  SN_THROWS(key_size != crypto_secretstream_xchacha20poly1305_KEYBYTES, "key must 32 bytes")
+
+  crypto_secretstream_xchacha20poly1305_keygen(key_data);
+
+  return NULL;
+}
+
+napi_value sn_crypto_secretstream_xchacha20poly1305_init_push (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_secretstream_xchacha20poly1305_init_push)
+
+  SN_ARGV_BUFFER_CAST(crypto_secretstream_xchacha20poly1305_state *, state, 0)
+  SN_ARGV_TYPEDARRAY(header, 1)
+  SN_ARGV_TYPEDARRAY(key, 2)
+
+  SN_THROWS(state_size != sizeof(crypto_secretstream_xchacha20poly1305_state), "state must be 52")
+  SN_THROWS(header_size != crypto_secretstream_xchacha20poly1305_HEADERBYTES, "key must 24 bytes")
+  SN_THROWS(key_size != crypto_secretstream_xchacha20poly1305_KEYBYTES, "key must 32 bytes")
+
+  SN_RETURN(crypto_secretstream_xchacha20poly1305_init_push(state, header_data, key_data), "initial push failed")
+}
+
+napi_value sn_crypto_secretstream_xchacha20poly1305_push (napi_env env, napi_callback_info info) {
+  SN_ARGV(5, crypto_secretstream_xchacha20poly1305_push)
+
+  SN_ARGV_BUFFER_CAST(crypto_secretstream_xchacha20poly1305_state *, state, 0)
+  SN_ARGV_TYPEDARRAY(ciphertext, 1)
+  SN_ARGV_TYPEDARRAY(message, 2)
+  SN_ARGV_OPTS_TYPEDARRAY(ad, 3)
+  SN_ARGV_UINT8(tag, 4)
+
+  SN_THROWS(state_size != sizeof(crypto_secretstream_xchacha20poly1305_state), "state must be 52")
+  SN_THROWS(message_size > crypto_secretstream_xchacha20poly1305_MESSAGEBYTES_MAX, "message must be less than 256GB")
+  SN_THROWS(ciphertext_size != message_size + crypto_secretstream_xchacha20poly1305_ABYTES, "key must 24 bytes")
+
+  SN_RETURN(crypto_secretstream_xchacha20poly1305_push(state, ciphertext_data, NULL, message_data, message_size, ad_data, ad_size, tag), "push failed")
+}
+
+napi_value sn_crypto_secretstream_xchacha20poly1305_init_pull (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_secretstream_xchacha20poly1305_init_pull)
+
+  SN_ARGV_BUFFER_CAST(crypto_secretstream_xchacha20poly1305_state *, state, 0)
+  SN_ARGV_TYPEDARRAY(header, 1)
+  SN_ARGV_TYPEDARRAY(key, 2)
+
+  SN_THROWS(state_size != sizeof(crypto_secretstream_xchacha20poly1305_state), "state must be 52")
+  SN_THROWS(header_size != crypto_secretstream_xchacha20poly1305_HEADERBYTES, "key must 24 bytes")
+  SN_THROWS(key_size != crypto_secretstream_xchacha20poly1305_KEYBYTES, "key must 32 bytes")
+
+  SN_RETURN(crypto_secretstream_xchacha20poly1305_init_pull(state, header_data, key_data), "initial pull failed")
+}
+
+napi_value sn_crypto_secretstream_xchacha20poly1305_pull (napi_env env, napi_callback_info info) {
+  SN_ARGV(4, crypto_secretstream_xchacha20poly1305_pull)
+
+  SN_ARGV_BUFFER_CAST(crypto_secretstream_xchacha20poly1305_state *, state, 0)
+  SN_ARGV_TYPEDARRAY(message, 1)
+  SN_ARGV_TYPEDARRAY(ciphertext, 2)
+  SN_ARGV_OPTS_TYPEDARRAY(ad, 3)
+
+  SN_THROWS(state_size != sizeof(crypto_secretstream_xchacha20poly1305_state), "state must be 52 bytes")
+  SN_THROWS(message_size != ciphertext_size - crypto_secretstream_xchacha20poly1305_ABYTES, "message must be less than 17 bytes")
+  SN_THROWS(ciphertext_size != message_size + crypto_secretstream_xchacha20poly1305_ABYTES, "key must 24 bytes")
+
+  SN_RETURN(crypto_secretstream_xchacha20poly1305_pull(state, message_data, NULL, NULL, ciphertext_data, ciphertext_size, ad_data, ad_size), "pull failed")
+}
+
+napi_value sn_crypto_secretstream_xchacha20poly1305_rekey (napi_env env, napi_callback_info info) {
+  SN_ARGV(1, crypto_secretstream_xchacha20poly1305_rekey)
+
+  SN_ARGV_BUFFER_CAST(crypto_secretstream_xchacha20poly1305_state *, state, 0)
+
+  SN_THROWS(state_size != sizeof(crypto_secretstream_xchacha20poly1305_state), "state must be 52 bytes")
+
+  crypto_secretstream_xchacha20poly1305_rekey(state);
+
+  return NULL;
+}
+
 napi_value create_sodium_native(napi_env env) {
   napi_value exports;
   assert(napi_create_object(env, &exports) == napi_ok);
@@ -1423,11 +1506,18 @@ napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_generichash_init, sn_crypto_generichash_init)
   SN_EXPORT_FUNCTION(crypto_generichash_update, sn_crypto_generichash_update)
   SN_EXPORT_FUNCTION(crypto_generichash_final, sn_crypto_generichash_final)
+  SN_EXPORT_FUNCTION(crypto_secretstream_xchacha20poly1305_keygen, sn_crypto_secretstream_xchacha20poly1305_keygen)
+  SN_EXPORT_FUNCTION(crypto_secretstream_xchacha20poly1305_init_push, sn_crypto_secretstream_xchacha20poly1305_init_push)
+  SN_EXPORT_FUNCTION(crypto_secretstream_xchacha20poly1305_init_pull, sn_crypto_secretstream_xchacha20poly1305_init_pull)
+  SN_EXPORT_FUNCTION(crypto_secretstream_xchacha20poly1305_push, sn_crypto_secretstream_xchacha20poly1305_push)
+  SN_EXPORT_FUNCTION(crypto_secretstream_xchacha20poly1305_pull, sn_crypto_secretstream_xchacha20poly1305_pull)
+  SN_EXPORT_FUNCTION(crypto_secretstream_xchacha20poly1305_rekey, sn_crypto_secretstream_xchacha20poly1305_rekey)
 
   SN_EXPORT_UINT32(crypto_generichash_STATEBYTES, sizeof(crypto_generichash_state))
   SN_EXPORT_UINT32(crypto_onetimeauth_STATEBYTES, sizeof(crypto_onetimeauth_state))
   SN_EXPORT_UINT32(crypto_hash_sha256_STATEBYTES, sizeof(crypto_hash_sha256_state))
   SN_EXPORT_UINT32(crypto_hash_sha512_STATEBYTES, sizeof(crypto_hash_sha512_state))
+  SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_STATEBYTES, sizeof(crypto_secretstream_xchacha20poly1305_state))
 
   return exports;
 }
