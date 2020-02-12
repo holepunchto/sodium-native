@@ -22,6 +22,7 @@ uint8_t typedarray_width(napi_typedarray_type type) {
 
 napi_value sn_sodium_memzero (napi_env env, napi_callback_info info) {
   SN_ARGV(1, sodium_memzero)
+
   SN_ARGV_TYPEDARRAY(buf, 0)
 
   sodium_memzero(buf_data, buf_size);
@@ -31,6 +32,7 @@ napi_value sn_sodium_memzero (napi_env env, napi_callback_info info) {
 
 napi_value sn_sodium_mlock (napi_env env, napi_callback_info info) {
   SN_ARGV(1, sodium_mlock)
+
   SN_ARGV_TYPEDARRAY(buf, 0)
 
   SN_RETURN(sodium_mlock(buf_data, buf_size), "memory lock failed")
