@@ -40,9 +40,55 @@ napi_value sn_sodium_mlock (napi_env env, napi_callback_info info) {
 
 napi_value sn_sodium_munlock (napi_env env, napi_callback_info info) {
   SN_ARGV(1, sodium_munlock)
+
   SN_ARGV_TYPEDARRAY(buf, 0)
 
   SN_RETURN(sodium_munlock(buf_data, buf_size), "memory unlock failed")
+}
+
+napi_value sn_sodium_malloc (napi_env env, napi_callback_info info) {
+  SN_ARGV(1, sodium_malloc);
+
+  SN_ARGV_UINT32(size, 0)
+
+  void* ptr = sodium_malloc(size);
+
+  napi_value buf;
+  napi_value key;
+  napi_value value;
+
+  SN_STATUS_THROWS(napi_create_external_buffer(env, size, ptr, NULL, NULL, &buf), "failed to create a n-api buffer")
+  SN_STATUS_THROWS(napi_create_string_utf8(env, "secure", 6, &key), "failed to create string")
+  SN_STATUS_THROWS(napi_get_boolean(env, true, &value), "failed to create boolean")
+  SN_STATUS_THROWS(napi_set_property(env, buf, key, value), "failed to set property")
+
+  return buf;
+}
+
+napi_value sn_sodium_mprotect_noaccess (napi_env env, napi_callback_info info) {
+  SN_ARGV(1, sodium_mprotect_noaccess);
+
+  SN_ARGV_TYPEDARRAY(buf, 0)
+
+  SN_RETURN(sodium_mprotect_noaccess(buf_data), "failed to lock buffer")
+}
+
+
+napi_value sn_sodium_mprotect_readonly (napi_env env, napi_callback_info info) {
+  SN_ARGV(1, sodium_readonly);
+
+  SN_ARGV_TYPEDARRAY(buf, 0)
+
+  SN_RETURN(sodium_mprotect_readonly(buf_data), "failed to unlock buffer")
+}
+
+
+napi_value sn_sodium_mprotect_readwrite (napi_env env, napi_callback_info info) {
+  SN_ARGV(1, sodium_readwrite);
+
+  SN_ARGV_TYPEDARRAY(buf, 0)
+
+  SN_RETURN(sodium_mprotect_readwrite(buf_data), "failed to unlock buffer")
 }
 
 napi_value sn_randombytes_random (napi_env env, napi_callback_info info) {
@@ -1444,12 +1490,18 @@ napi_value sn_crypto_secretstream_xchacha20poly1305_rekey (napi_env env, napi_ca
 }
 
 napi_value create_sodium_native(napi_env env) {
+  SN_THROWS(sodium_init() == -1, "sodium_init() failed")
+
   napi_value exports;
   assert(napi_create_object(env, &exports) == napi_ok);
 
   SN_EXPORT_FUNCTION(sodium_memzero, sn_sodium_memzero)
   SN_EXPORT_FUNCTION(sodium_mlock, sn_sodium_mlock)
   SN_EXPORT_FUNCTION(sodium_munlock, sn_sodium_munlock)
+  SN_EXPORT_FUNCTION(sodium_malloc, sn_sodium_malloc)
+  SN_EXPORT_FUNCTION(sodium_mprotect_noaccess, sn_sodium_mprotect_noaccess)
+  SN_EXPORT_FUNCTION(sodium_mprotect_readonly, sn_sodium_mprotect_readonly)
+  SN_EXPORT_FUNCTION(sodium_mprotect_readwrite, sn_sodium_mprotect_readwrite)
   SN_EXPORT_FUNCTION(randombytes_buf, sn_randombytes_buf)
   SN_EXPORT_FUNCTION(randombytes_buf_deterministic, sn_randombytes_buf_deterministic)
   SN_EXPORT_FUNCTION(randombytes_uniform, sn_randombytes_uniform)
