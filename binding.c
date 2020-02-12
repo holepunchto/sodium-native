@@ -297,6 +297,18 @@ napi_value sn_crypto_generichash(napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_generichash(output_data, output_size, input_data, input_size, key_data, key_size), "hash failed")
 }
 
+napi_value sn_crypto_generichash_keygen(napi_env env, napi_callback_info info) {
+  SN_ARGV(1, crypto_generichash_keygen)
+
+  SN_ARGV_TYPEDARRAY(key, 0)
+
+  SN_THROWS(key_size != crypto_generichash_KEYBYTES, "key must be 32 bytes")
+
+  crypto_generichash_keygen(key_data);
+
+  return NULL;
+}
+
 napi_value sn_crypto_generichash_init(napi_env env, napi_callback_info info) {
   SN_ARGV(3, crypto_generichash_init)
 
@@ -1297,6 +1309,7 @@ napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_decrypt, sn_crypto_aead_xchacha20poly1305_ietf_decrypt)
   SN_EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_encrypt_detached, sn_crypto_aead_xchacha20poly1305_ietf_encrypt_detached)
   SN_EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_decrypt_detached, sn_crypto_aead_xchacha20poly1305_ietf_decrypt_detached)
+  SN_EXPORT_FUNCTION(crypto_generichash_keygen, sn_crypto_generichash_keygen)
   SN_EXPORT_FUNCTION(crypto_generichash_init, sn_crypto_generichash_init)
   SN_EXPORT_FUNCTION(crypto_generichash_update, sn_crypto_generichash_update)
   SN_EXPORT_FUNCTION(crypto_generichash_final, sn_crypto_generichash_final)
