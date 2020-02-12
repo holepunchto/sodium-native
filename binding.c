@@ -623,6 +623,41 @@ napi_value sn_crypto_onetimeauth (napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_onetimeauth(output_data, input_data, input_size, key_data), "failed to generate onetime authentication tag")
 }
 
+napi_value sn_crypto_onetimeauth_init (napi_env env, napi_callback_info info) {
+  SN_ARGV(2, crypto_onetimeauth_init)
+
+  SN_ARGV_BUFFER_CAST(crypto_onetimeauth_state *, state, 0)
+  SN_ARGV_TYPEDARRAY(key, 1)
+
+  SN_THROWS(state_size != sizeof(crypto_onetimeauth_state), "state must be 256 bytes")
+  SN_THROWS(key_size != crypto_onetimeauth_KEYBYTES, "key must be 32 bytes")
+
+  SN_RETURN(crypto_onetimeauth_init(state, key_data), "failed to initialise onetime authentication")
+}
+
+napi_value sn_crypto_onetimeauth_update(napi_env env, napi_callback_info info) {
+  SN_ARGV(2, crypto_onetimeauth_update)
+
+  SN_ARGV_BUFFER_CAST(crypto_onetimeauth_state *, state, 0)
+  SN_ARGV_TYPEDARRAY(input, 1)
+
+  SN_THROWS(state_size != sizeof(crypto_onetimeauth_state), "state must be 256 bytes")
+
+  SN_RETURN(crypto_onetimeauth_update(state, input_data, input_size), "update failed")
+}
+
+napi_value sn_crypto_onetimeauth_final(napi_env env, napi_callback_info info) {
+  SN_ARGV(2, crypto_onetimeauth_final)
+
+  SN_ARGV_BUFFER_CAST(crypto_onetimeauth_state *, state, 0)
+  SN_ARGV_TYPEDARRAY(output, 1)
+
+  SN_THROWS(state_size != sizeof(crypto_onetimeauth_state), "state must be 256 bytes")
+  SN_THROWS(output_size != crypto_onetimeauth_BYTES, "output must be 16 bytes")
+
+  SN_RETURN(crypto_onetimeauth_final(state, output_data), "failed to generate authentication tag")
+}
+
 napi_value sn_crypto_onetimeauth_verify (napi_env env, napi_callback_info info) {
   SN_ARGV(3, crypto_onetimeauth_verify)
 
@@ -1270,6 +1305,9 @@ napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_auth_verify, sn_crypto_auth_verify)
   SN_EXPORT_FUNCTION(crypto_onetimeauth, sn_crypto_onetimeauth)
   SN_EXPORT_FUNCTION(crypto_onetimeauth_verify, sn_crypto_onetimeauth_verify)
+  SN_EXPORT_FUNCTION(crypto_onetimeauth_init, sn_crypto_onetimeauth_init)
+  SN_EXPORT_FUNCTION(crypto_onetimeauth_update, sn_crypto_onetimeauth_update)
+  SN_EXPORT_FUNCTION(crypto_onetimeauth_final, sn_crypto_onetimeauth_final)
   SN_EXPORT_FUNCTION(crypto_pwhash, sn_crypto_pwhash)
   SN_EXPORT_FUNCTION(crypto_pwhash_str, sn_crypto_pwhash_str)
   SN_EXPORT_FUNCTION(crypto_pwhash_str_verify, sn_crypto_pwhash_str_verify)
@@ -1315,6 +1353,9 @@ napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_generichash_final, sn_crypto_generichash_final)
 
   SN_EXPORT_UINT32(crypto_generichash_STATEBYTES, sizeof(crypto_generichash_state))
+  SN_EXPORT_UINT32(crypto_onetimeauth_STATEBYTES, sizeof(crypto_onetimeauth_state))
+  SN_EXPORT_UINT32(crypto_hash_sha256_STATEBYTES, sizeof(crypto_hash_sha256_state))
+  SN_EXPORT_UINT32(crypto_hash_sha512_STATEBYTES, sizeof(crypto_hash_sha512_state))
 
   return exports;
 }
