@@ -123,6 +123,15 @@
   SN_THROWS(name##_width == 0, "Unexpected TypedArray type") \
   name##_size = name##_length * name##_width;
 
+#define SN_UINT8(name, val) \
+  int32_t name##_int32; \
+  if (napi_get_value_int32(env, val, &name##_int32) != napi_ok) { \
+    napi_throw_error(env, "EINVAL", "Expected number"); \
+    return NULL; \
+  } \
+  SN_THROWS(name##_int32 > 255, "expect uint8") \
+  unsigned char name = 0xff & name##_int32;
+
 #define SN_UINT32(name, val) \
   int32_t name; \
   if (napi_get_value_int32(env, val, &name) != napi_ok) { \
