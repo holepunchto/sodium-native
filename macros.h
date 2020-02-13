@@ -69,6 +69,13 @@
     SN_STATUS_THROWS(napi_set_named_property(env, exports, #name, name##_num), "") \
   }
 
+#define SN_EXPORT_STRING(name, string) \
+  { \
+    napi_value name##_string; \
+    SN_STATUS_THROWS(napi_create_string_utf8(env, string, NAPI_AUTO_LENGTH, &name##_string), "") \
+    SN_STATUS_THROWS(napi_set_named_property(env, exports, #name, name##_string), "") \
+  }
+
 #define SN_ARGV_CHECK_NULL(name, index) \
   napi_valuetype name##_valuetype; \
   SN_STATUS_THROWS(napi_typeof(env, argv[index], &name##_valuetype), "") \
@@ -130,11 +137,15 @@
   SN_TYPEDARRAY_ASSERT(name, name##_argv, #name " must be an instance of TypedArray") \
   SN_OPT_TYPEDARRAY(name, name##_argv)
 
+#define SN_ARGV_UINT8(name, index) \
+  napi_value name##_argv = argv[index]; \
+  SN_TYPE_ASSERT(name, name##_argv, napi_number, #name " must be an instance of Number") \
+  SN_UINT8(name, name##_argv)
+
 #define SN_ARGV_UINT32(name, index) \
   napi_value name##_argv = argv[index]; \
   SN_TYPE_ASSERT(name, name##_argv, napi_number, #name " must be an instance of Number") \
   SN_UINT32(name, name##_argv)
-
 
 #define SN_ARGV_UINT64(name, index) \
   napi_value name##_argv = argv[index]; \
