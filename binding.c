@@ -782,9 +782,9 @@ napi_value sn_crypto_pwhash (napi_env env, napi_callback_info info) {
   SN_ARGV_TYPEDARRAY(output, 0)
   SN_ARGV_TYPEDARRAY(password, 1)
   SN_ARGV_TYPEDARRAY(salt, 2)
-  SN_ARGV_UINT32(opslimit, 3)
-  SN_ARGV_UINT32(memlimit, 4)
-  SN_ARGV_UINT32(algorithm, 5)
+  SN_ARGV_UINT64(opslimit, 3)
+  SN_ARGV_UINT64(memlimit, 4)
+  SN_ARGV_UINT8(algorithm, 5)
 
   SN_THROWS(output_size < crypto_pwhash_BYTES_MIN, "output must be at least 16 bytes")
   SN_THROWS(output_size > crypto_pwhash_BYTES_MAX, "output must be smaller than 2^32 bytes")
@@ -792,7 +792,7 @@ napi_value sn_crypto_pwhash (napi_env env, napi_callback_info info) {
   SN_THROWS(opslimit < crypto_pwhash_OPSLIMIT_MIN, "opslimit must be at least 1")
   SN_THROWS(opslimit > crypto_pwhash_OPSLIMIT_MAX, "opslimit must be at most 4294967295")
   SN_THROWS(memlimit < crypto_pwhash_MEMLIMIT_MIN, "memlimit must be at least 8 kB")
-  SN_THROWS(memlimit > crypto_pwhash_MEMLIMIT_MAX, "memlimit must be at most 4398 GB")
+  SN_THROWS(memlimit > (int64_t) crypto_pwhash_MEMLIMIT_MAX, "memlimit must be at most 4398 GB")
   SN_THROWS(algorithm < 1, "algorithm must be either Argon2i 1.3 or Argon2id 1.3")
   SN_THROWS(algorithm > 2, "algorithm must be either Argon2i 1.3 or Argon2id 1.3")
 
@@ -804,14 +804,14 @@ napi_value sn_crypto_pwhash_str (napi_env env, napi_callback_info info) {
 
   SN_ARGV_TYPEDARRAY(output, 0)
   SN_ARGV_TYPEDARRAY(pwd, 1)
-  SN_ARGV_UINT32(opslimit, 2)
-  SN_ARGV_UINT32(memlimit, 3)
+  SN_ARGV_UINT64(opslimit, 2)
+  SN_ARGV_UINT64(memlimit, 3)
 
   SN_THROWS(output_size != crypto_pwhash_STRBYTES, "output must be 128 bytes")
   SN_THROWS(opslimit < crypto_pwhash_OPSLIMIT_MIN, "opslimit must be at least 1")
   SN_THROWS(opslimit > crypto_pwhash_OPSLIMIT_MAX, "opslimit must be at most 4294967295")
   SN_THROWS(memlimit < crypto_pwhash_MEMLIMIT_MIN, "memlimit must be at least 8 kB")
-  SN_THROWS(memlimit > crypto_pwhash_MEMLIMIT_MAX, "memlimit must be at most 4398 GB")
+  SN_THROWS(memlimit > (int64_t) crypto_pwhash_MEMLIMIT_MAX, "memlimit must be at most 4398 GB")
 
   SN_RETURN(crypto_pwhash_str(output_data, pwd_data, pwd_size, opslimit, memlimit), "password hashing failed, check memory requirements.")
 }
@@ -832,14 +832,14 @@ napi_value sn_crypto_pwhash_str_needs_rehash (napi_env env, napi_callback_info i
   SN_ARGV(3, crypto_pwhash_str_needs_rehash)
 
   SN_ARGV_TYPEDARRAY(hash, 0)
-  SN_ARGV_UINT32(opslimit, 1)
-  SN_ARGV_UINT32(memlimit, 2)
+  SN_ARGV_UINT64(opslimit, 1)
+  SN_ARGV_UINT64(memlimit, 2)
 
   SN_THROWS(hash_size != crypto_pwhash_STRBYTES, "password hash must be 128 bytes")
   SN_THROWS(opslimit < crypto_pwhash_OPSLIMIT_MIN, "opslimit must be at least 1")
   SN_THROWS(opslimit > crypto_pwhash_OPSLIMIT_MAX, "opslimit must be at most 4294967295")
   SN_THROWS(memlimit < crypto_pwhash_MEMLIMIT_MIN, "memlimit must be at least 8 kB")
-  SN_THROWS(memlimit > crypto_pwhash_MEMLIMIT_MAX, "memlimit must be at most 4398 GB")
+  SN_THROWS(memlimit > (int64_t) crypto_pwhash_MEMLIMIT_MAX, "memlimit must be at most 4398 GB")
 
   SN_RETURN_BOOLEAN(crypto_pwhash_str_needs_rehash(hash_data, opslimit, memlimit))
 }
@@ -851,8 +851,8 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256 (napi_env env, napi_callback_in
   SN_ARGV_TYPEDARRAY(output, 0)
   SN_ARGV_TYPEDARRAY(password, 1)
   SN_ARGV_TYPEDARRAY(salt, 2)
-  SN_ARGV_UINT32(opslimit, 3)
-  SN_ARGV_UINT32(memlimit, 4)
+  SN_ARGV_UINT64(opslimit, 3)
+  SN_ARGV_UINT64(memlimit, 4)
 
   SN_THROWS(output_size < crypto_pwhash_scryptsalsa208sha256_BYTES_MIN, "output must be at least 16 bytes")
   SN_THROWS(output_size > crypto_pwhash_scryptsalsa208sha256_BYTES_MAX, "output must be at most than 137438953440 bytes")
@@ -860,7 +860,7 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256 (napi_env env, napi_callback_in
   SN_THROWS(opslimit < crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN, "opslimit must be at least 32768")
   SN_THROWS(opslimit > crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, "opslimit must be at most 4294967295")
   SN_THROWS(memlimit < crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, "memlimit must be at least 16.7 MB")
-  SN_THROWS(memlimit > crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, "memlimit must be at most 68.7 GB")
+  SN_THROWS(memlimit > (int64_t) crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, "memlimit must be at most 68.7 GB")
 
   SN_RETURN(crypto_pwhash_scryptsalsa208sha256(output_data, output_size, password_data, password_size, salt_data, opslimit, memlimit), "password hashing failed, check memory requirements.")
 }
@@ -870,14 +870,14 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_str (napi_env env, napi_callbac
 
   SN_ARGV_TYPEDARRAY(output, 0)
   SN_ARGV_TYPEDARRAY(pwd, 1)
-  SN_ARGV_UINT32(opslimit, 2)
-  SN_ARGV_UINT32(memlimit, 3)
+  SN_ARGV_UINT64(opslimit, 2)
+  SN_ARGV_UINT64(memlimit, 3)
 
   SN_THROWS(output_size != crypto_pwhash_scryptsalsa208sha256_STRBYTES, "output must be 102 bytes")
   SN_THROWS(opslimit < crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN, "opslimit must be at least 32768")
   SN_THROWS(opslimit > crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, "opslimit must be at most 4294967295")
   SN_THROWS(memlimit < crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, "memlimit must be at least 16.7 MB")
-  SN_THROWS(memlimit > crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, "memlimit must be at most 68.7 GB")
+  SN_THROWS(memlimit > (int64_t) crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, "memlimit must be at most 68.7 GB")
 
   SN_RETURN(crypto_pwhash_scryptsalsa208sha256_str(output_data, pwd_data, pwd_size, opslimit, memlimit), "password hashing failed, check memory requirements.")
 }
@@ -898,14 +898,14 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_needs_rehash (napi_env env,
   SN_ARGV(3, crypto_pwhash_scryptsalsa208sha256_str_needs_rehash)
 
   SN_ARGV_TYPEDARRAY(hash, 0)
-  SN_ARGV_UINT32(opslimit, 1)
-  SN_ARGV_UINT32(memlimit, 2)
+  SN_ARGV_UINT64(opslimit, 1)
+  SN_ARGV_UINT64(memlimit, 2)
 
   SN_THROWS(hash_size != crypto_pwhash_scryptsalsa208sha256_STRBYTES, "password hash must be 102 bytes")
   SN_THROWS(opslimit < crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN, "opslimit must be at least 32768")
   SN_THROWS(opslimit > crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, "opslimit must be at most 4294967295")
   SN_THROWS(memlimit < crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, "memlimit must be at least 16.7 MB")
-  SN_THROWS(memlimit > crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, "memlimit must be at most 68.7 GB")
+  SN_THROWS(memlimit > (int64_t) crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, "memlimit must be at most 68.7 GB")
 
   SN_RETURN_BOOLEAN(crypto_pwhash_scryptsalsa208sha256_str_needs_rehash(hash_data, opslimit, memlimit))
 }
@@ -1243,7 +1243,7 @@ napi_value sn_crypto_kdf_derive_from_key (napi_env env, napi_callback_info info)
   SN_ARGV_TYPEDARRAY(key, 3)
 
   SN_THROWS(subkey_size < crypto_kdf_BYTES_MIN, "subkey must at least 16 bytes")
-  SN_THROWS(subkey_size > crypto_kdf_BYTES_MAX, "subkey must at least 64 bytes")
+  SN_THROWS(subkey_size > crypto_kdf_BYTES_MAX, "subkey must at most 64 bytes")
   SN_THROWS(ctx_size != crypto_kdf_CONTEXTBYTES, "context must be 8 bytes")
   SN_THROWS(key_size != crypto_kdf_KEYBYTES, "output must be 32 bytes")
 
@@ -1577,9 +1577,9 @@ napi_value sn_crypto_pwhash_async (napi_env env, napi_callback_info info) {
   SN_ARGV_BUFFER_CAST(unsigned char *, output, 0)
   SN_ARGV_BUFFER_CAST(char *, pwd, 1)
   SN_ARGV_BUFFER_CAST(unsigned char *, salt, 2)
-  SN_ARGV_UINT32(opslimit, 3)
-  SN_ARGV_UINT32(memlimit, 4)
-  SN_ARGV_UINT32(algorithm, 5)
+  SN_ARGV_UINT64(opslimit, 3)
+  SN_ARGV_UINT64(memlimit, 4)
+  SN_ARGV_UINT8(algorithm, 5)
   napi_value cb = argv[6];
 
   SN_THROWS(output_size < crypto_pwhash_BYTES_MIN, "output must be at least 16 bytes")
@@ -1588,7 +1588,7 @@ napi_value sn_crypto_pwhash_async (napi_env env, napi_callback_info info) {
   SN_THROWS(opslimit < crypto_pwhash_OPSLIMIT_MIN, "opslimit must be at least 1")
   SN_THROWS(opslimit > crypto_pwhash_OPSLIMIT_MAX, "opslimit must be at most 4294967295")
   SN_THROWS(memlimit < crypto_pwhash_MEMLIMIT_MIN, "memlimit must be at least 8 kB")
-  SN_THROWS(memlimit > crypto_pwhash_MEMLIMIT_MAX, "memlimit must be at most 4398 GB")
+  SN_THROWS(memlimit > (int64_t) crypto_pwhash_MEMLIMIT_MAX, "memlimit must be at most 4398 GB")
   SN_THROWS(algorithm < 1, "algorithm must be either Argon2i 1.3 or Argon2id 1.3")
   SN_THROWS(algorithm > 2, "algorithm must be either Argon2i 1.3 or Argon2id 1.3")
 
@@ -1665,15 +1665,15 @@ napi_value sn_crypto_pwhash_str_async (napi_env env, napi_callback_info info) {
 
   SN_ARGV_BUFFER_CAST(char *, output, 0)
   SN_ARGV_BUFFER_CAST(char *, pwd, 1)
-  SN_ARGV_UINT32(opslimit, 2)
-  SN_ARGV_UINT32(memlimit, 3)
+  SN_ARGV_UINT64(opslimit, 2)
+  SN_ARGV_UINT64(memlimit, 3)
   napi_value cb = argv[4];
 
   SN_THROWS(output_size != crypto_pwhash_STRBYTES, "output must be 128 bytes")
   SN_THROWS(opslimit < crypto_pwhash_OPSLIMIT_MIN, "opslimit must be at least 1")
   SN_THROWS(opslimit > crypto_pwhash_OPSLIMIT_MAX, "opslimit must be at most 4294967295")
   SN_THROWS(memlimit < crypto_pwhash_MEMLIMIT_MIN, "memlimit must be at least 8 kB")
-  SN_THROWS(memlimit > crypto_pwhash_MEMLIMIT_MAX, "memlimit must be at most 4398 GB")
+  SN_THROWS(memlimit > (int64_t) crypto_pwhash_MEMLIMIT_MAX, "memlimit must be at most 4398 GB")
 
   async_pwhash_str_request * req = (async_pwhash_str_request *) malloc(sizeof(async_pwhash_str_request));
   req->output_data = output;
@@ -1820,8 +1820,8 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_async (napi_env env, napi_callb
   SN_ARGV_BUFFER_CAST(unsigned char *, output, 0)
   SN_ARGV_BUFFER_CAST(char *, pwd, 1)
   SN_ARGV_BUFFER_CAST(unsigned char *, salt, 2)
-  SN_ARGV_UINT32(opslimit, 3)
-  SN_ARGV_UINT32(memlimit, 4)
+  SN_ARGV_UINT64(opslimit, 3)
+  SN_ARGV_UINT64(memlimit, 4)
   napi_value cb = argv[5];
 
   SN_THROWS(output_size < crypto_pwhash_scryptsalsa208sha256_BYTES_MIN, "output must be at least 16 bytes")
@@ -1830,7 +1830,7 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_async (napi_env env, napi_callb
   SN_THROWS(opslimit < crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN, "opslimit must be at least 32768")
   SN_THROWS(opslimit > crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, "opslimit must be at most 4294967295")
   SN_THROWS(memlimit < crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, "memlimit must be at least 16.7 MB")
-  SN_THROWS(memlimit > crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, "memlimit must be at most 68.7 GB")
+  SN_THROWS(memlimit > (int64_t) crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, "memlimit must be at most 68.7 GB")
 
   async_pwhash_scryptsalsa208sha256_request * req = (async_pwhash_scryptsalsa208sha256_request *) malloc(sizeof(async_pwhash_scryptsalsa208sha256_request));
   req->output_data = output;
@@ -1904,15 +1904,15 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_async (napi_env env, napi_c
 
   SN_ARGV_BUFFER_CAST(char *, output, 0)
   SN_ARGV_BUFFER_CAST(char *, pwd, 1)
-  SN_ARGV_UINT32(opslimit, 2)
-  SN_ARGV_UINT32(memlimit, 3)
+  SN_ARGV_UINT64(opslimit, 2)
+  SN_ARGV_UINT64(memlimit, 3)
   napi_value cb = argv[4];
 
   SN_THROWS(output_size != crypto_pwhash_scryptsalsa208sha256_STRBYTES, "output must be 102 bytes")
   SN_THROWS(opslimit < crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN, "opslimit must be at least 32768")
   SN_THROWS(opslimit > crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, "opslimit must be at most 4294967295")
   SN_THROWS(memlimit < crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, "memlimit must be at least 16.7 MB")
-  SN_THROWS(memlimit > crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, "memlimit must be at most 68.7 GB")
+  SN_THROWS(memlimit > (int64_t) crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, "memlimit must be at most 68.7 GB")
 
   async_pwhash_scryptsalsa208sha256_str_request * req = (async_pwhash_scryptsalsa208sha256_str_request *) malloc(sizeof(async_pwhash_scryptsalsa208sha256_str_request));
   req->output_data = output;
