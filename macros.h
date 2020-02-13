@@ -107,6 +107,14 @@
   SN_THROWS(name##_width == 0, "Unexpected TypedArray type") \
   size_t name##_size = name##_length * name##_width;
 
+#define SN_TYPEDARRAY_PTR(name, var) \
+  napi_typedarray_type name##_type; \
+  size_t name##_length; \
+  void * name##_data; \
+  assert(napi_get_typedarray_info(env, (var), &name##_type, &name##_length, &name##_data, NULL, NULL) == napi_ok); \
+  uint8_t name##_width = typedarray_width(name##_type); \
+  SN_THROWS(name##_width == 0, "Unexpected TypedArray type") \
+
 #define SN_OPT_TYPEDARRAY(name, var) \
   napi_typedarray_type name##_type; \
   size_t name##_length; \
@@ -133,6 +141,11 @@
   napi_value name##_argv = argv[index]; \
   SN_TYPEDARRAY_ASSERT(name, name##_argv, #name " must be an instance of TypedArray") \
   SN_TYPEDARRAY(name, name##_argv)
+
+#define SN_ARGV_TYPEDARRAY_PTR(name, index) \
+  napi_value name##_argv = argv[index]; \
+  SN_TYPEDARRAY_ASSERT(name, name##_argv, #name " must be an instance of TypedArray") \
+  SN_TYPEDARRAY_PTR(name, name##_argv)
 
 #define SN_ARGV_BUFFER_CAST(type, name, index) \
   napi_value name##_argv = argv[index]; \

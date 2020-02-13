@@ -68,7 +68,7 @@ napi_value sn_sodium_malloc (napi_env env, napi_callback_info info) {
 napi_value sn_sodium_mprotect_noaccess (napi_env env, napi_callback_info info) {
   SN_ARGV(1, sodium_mprotect_noaccess);
 
-  SN_ARGV_TYPEDARRAY(buf, 0)
+  SN_ARGV_TYPEDARRAY_PTR(buf, 0)
 
   SN_RETURN(sodium_mprotect_noaccess(buf_data), "failed to lock buffer")
 }
@@ -77,7 +77,7 @@ napi_value sn_sodium_mprotect_noaccess (napi_env env, napi_callback_info info) {
 napi_value sn_sodium_mprotect_readonly (napi_env env, napi_callback_info info) {
   SN_ARGV(1, sodium_readonly);
 
-  SN_ARGV_TYPEDARRAY(buf, 0)
+  SN_ARGV_TYPEDARRAY_PTR(buf, 0)
 
   SN_RETURN(sodium_mprotect_readonly(buf_data), "failed to unlock buffer")
 }
@@ -86,7 +86,7 @@ napi_value sn_sodium_mprotect_readonly (napi_env env, napi_callback_info info) {
 napi_value sn_sodium_mprotect_readwrite (napi_env env, napi_callback_info info) {
   SN_ARGV(1, sodium_readwrite);
 
-  SN_ARGV_TYPEDARRAY(buf, 0)
+  SN_ARGV_TYPEDARRAY_PTR(buf, 0)
 
   SN_RETURN(sodium_mprotect_readwrite(buf_data), "failed to unlock buffer")
 }
