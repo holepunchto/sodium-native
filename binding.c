@@ -1473,7 +1473,7 @@ napi_value sn_crypto_secretstream_xchacha20poly1305_push (napi_env env, napi_cal
   SN_ARGV_TYPEDARRAY(ciphertext, 1)
   SN_ARGV_TYPEDARRAY(message, 2)
   SN_ARGV_OPTS_TYPEDARRAY(ad, 3)
-  SN_ARGV_UINT8(tag, 4)
+  SN_ARGV_UINT32(tag, 4)
 
   SN_THROWS(state_size != sizeof(crypto_secretstream_xchacha20poly1305_state), "state must be 52")
   SN_THROWS(message_size > crypto_secretstream_xchacha20poly1305_MESSAGEBYTES_MAX, "message must be less than 256GB")
