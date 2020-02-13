@@ -4,6 +4,12 @@
     return NULL; \
   }
 
+#define SN_STATUS_THROWS_VOID(call, message) \
+  if ((call) != napi_ok) { \
+    napi_throw_error(env, NULL, message); \
+    return; \
+  }
+
 #define SN_THROWS(condition, message) \
   if ((condition)) { \
     napi_throw_error(env, NULL, message); \
