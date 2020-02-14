@@ -361,7 +361,8 @@ napi_value sn_crypto_generichash(napi_env env, napi_callback_info info) {
   if (argc == 3) {
     SN_OPT_ARGV_TYPEDARRAY(key, 2)
     SN_THROWS(key_size < crypto_generichash_KEYBYTES_MIN, "key")
-    SN_ASSERT_MIN_LENGTH(key_size, crypto_generichash_KEYBYTES_MAX, "key")
+    SN_ASSERT_MIN_LENGTH(key_size, crypto_generichash_KEYBYTES_MIN, "key")
+    SN_ASSERT_MAX_LENGTH(key_size, crypto_generichash_KEYBYTES_MAX, "key")
   }
 
   SN_RETURN(crypto_generichash(out_data, out_size, in_data, in_size, key_data, key_size), "hash failed")
