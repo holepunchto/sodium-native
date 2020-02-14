@@ -194,7 +194,6 @@ napi_value sn_sodium_is_zero(napi_env env, napi_callback_info info) {
 
   SN_ARGV_TYPEDARRAY(a, 0)
 
-  sodium_is_zero(a_data, a_size);
   SN_RETURN_BOOLEAN(sodium_is_zero(a_data, a_size))
 }
 
