@@ -205,8 +205,8 @@ napi_value sn_sodium_pad(napi_env env, napi_callback_info info) {
   SN_ARGV_UINT32(unpadded_buflen, 1)
   SN_ARGV_UINT32(blocksize, 2)
 
-  SN_THROWS(unpadded_buflen > (int) buf_size, "unpadded length cannot exceed buffer length")
-  SN_THROWS(blocksize > (int) buf_size, "block size cannot exceed buffer length")
+  SN_THROWS(unpadded_buflen > buf_size, "unpadded length cannot exceed buffer length")
+  SN_THROWS(blocksize > buf_size, "block size cannot exceed buffer length")
 
   napi_value result;
   size_t padded_buflen;
@@ -222,8 +222,8 @@ napi_value sn_sodium_unpad(napi_env env, napi_callback_info info) {
   SN_ARGV_UINT32(padded_buflen, 1)
   SN_ARGV_UINT32(blocksize, 2)
 
-  SN_THROWS(padded_buflen > (int) buf_size, "unpadded length cannot exceed buffer length")
-  SN_THROWS(blocksize > (int) buf_size, "block size cannot exceed buffer length")
+  SN_THROWS(padded_buflen > buf_size, "unpadded length cannot exceed buffer length")
+  SN_THROWS(blocksize > buf_size, "block size cannot exceed buffer length")
 
   napi_value result;
   size_t unpadded_buflen;
@@ -2134,6 +2134,7 @@ napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_UINT32(crypto_hash_sha256_STATEBYTES, sizeof(crypto_hash_sha256_state))
   SN_EXPORT_UINT32(crypto_hash_sha512_STATEBYTES, sizeof(crypto_hash_sha512_state))
   SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_STATEBYTES, sizeof(crypto_secretstream_xchacha20poly1305_state))
+
   SN_EXPORT_UINT32(crypto_sign_SEEDBYTES, crypto_sign_SEEDBYTES)
   SN_EXPORT_UINT32(crypto_sign_PUBLICKEYBYTES, crypto_sign_PUBLICKEYBYTES)
   SN_EXPORT_UINT32(crypto_sign_SECRETKEYBYTES, crypto_sign_SECRETKEYBYTES)
