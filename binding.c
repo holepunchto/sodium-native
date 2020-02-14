@@ -123,7 +123,7 @@ napi_value sn_randombytes_buf_deterministic (napi_env env, napi_callback_info in
   SN_ARGV_TYPEDARRAY(buf, 0)
   SN_ARGV_TYPEDARRAY(seed, 1)
   
-  SN_THROWS(seed_size != randombytes_SEEDBYTES, "seed must be 32 bytes")
+  SN_ASSERT_LENGTH(seed_size, randombytes_SEEDBYTES, "seed")
 
   randombytes_buf_deterministic(buf_data, buf_size, seed_data);
 
@@ -237,8 +237,8 @@ napi_value sn_crypto_sign_keypair(napi_env env, napi_callback_info info) {
   SN_ARGV_TYPEDARRAY(pk, 0)
   SN_ARGV_TYPEDARRAY(sk, 1)
 
-  SN_THROWS(pk_size != crypto_sign_PUBLICKEYBYTES, "public key must be 32 bytes")
-  SN_THROWS(sk_size != crypto_sign_SECRETKEYBYTES, "secret key must be 64 bytes")
+  SN_ASSERT_LENGTH(pk_size, crypto_sign_PUBLICKEYBYTES, "pk")
+  SN_ASSERT_LENGTH(sk_size, crypto_sign_SECRETKEYBYTES, "sk")
 
   SN_RETURN(crypto_sign_keypair(pk_data, sk_data), "keypair generation failed")
 }
@@ -250,9 +250,9 @@ napi_value sn_crypto_sign_seed_keypair(napi_env env, napi_callback_info info) {
   SN_ARGV_TYPEDARRAY(sk, 1)
   SN_ARGV_TYPEDARRAY(seed, 2)
 
-  SN_THROWS(pk_size != crypto_sign_PUBLICKEYBYTES, "public key must be 32 bytes")
-  SN_THROWS(sk_size != crypto_sign_SECRETKEYBYTES, "secret key must be 64 bytes")
-  SN_THROWS(seed_size != crypto_sign_SEEDBYTES, "seed must be 32 bytes")
+  SN_ASSERT_LENGTH(pk_size, crypto_sign_PUBLICKEYBYTES, "pk")
+  SN_ASSERT_LENGTH(sk_size, crypto_sign_SECRETKEYBYTES, "sk")
+  SN_ASSERT_LENGTH(seed_size, crypto_sign_SEEDBYTES, "seed")
 
   SN_RETURN(crypto_sign_seed_keypair(pk_data, sk_data, seed_data), "keypair generation failed")
 }
@@ -260,54 +260,54 @@ napi_value sn_crypto_sign_seed_keypair(napi_env env, napi_callback_info info) {
 napi_value sn_crypto_sign(napi_env env, napi_callback_info info) {
   SN_ARGV(3, crypto_sign)
 
-  SN_ARGV_TYPEDARRAY(signed_message, 0)
-  SN_ARGV_TYPEDARRAY(message, 1)
+  SN_ARGV_TYPEDARRAY(sm, 0)
+  SN_ARGV_TYPEDARRAY(m, 1)
   SN_ARGV_TYPEDARRAY(sk, 2)
 
-  SN_THROWS(signed_message_size != crypto_sign_BYTES + message_size, "signed message buffer must be 64 bytes longer than input")
-  SN_THROWS(sk_size != crypto_sign_SECRETKEYBYTES, "secret key must be 64 bytes")
+  SN_THROWS(sm_size != crypto_sign_BYTES + m_size, "sm must be 'm.byteLength + crypto_sign_BYTES' bytes")
+  SN_ASSERT_LENGTH(sk_size, crypto_sign_SECRETKEYBYTES, "sk")
 
-  SN_RETURN(crypto_sign(signed_message_data, NULL, message_data, message_size, sk_data), "signature failed")
+  SN_RETURN(crypto_sign(sm_data, NULL, m_data, m_size, sk_data), "signature failed")
 }
 
 napi_value sn_crypto_sign_open(napi_env env, napi_callback_info info) {
   SN_ARGV(3, crypto_sign_open)
 
-  SN_ARGV_TYPEDARRAY(message, 0)
-  SN_ARGV_TYPEDARRAY(signed_message, 1)
+  SN_ARGV_TYPEDARRAY(m, 0)
+  SN_ARGV_TYPEDARRAY(sm, 1)
   SN_ARGV_TYPEDARRAY(pk, 2)
 
-  SN_THROWS(message_size != signed_message_size - crypto_sign_BYTES, "message buffer must be 64 bytes shorter than input")
-  SN_THROWS(signed_message_size < crypto_sign_BYTES, "signed message must be at least 64 bytes")
-  SN_THROWS(pk_size != crypto_sign_PUBLICKEYBYTES, "secret key must be 64 bytes")
+  SN_THROWS(m_size != sm_size - crypto_sign_BYTES, "m must be 'sm.byteLength - crypto_sign_BYTES' bytes")
+  SN_ASSERT_MIN_LENGTH(sm_size, crypto_sign_BYTES, "sm")
+  SN_ASSERT_LENGTH(pk_size, crypto_sign_PUBLICKEYBYTES, "pk")
 
-  SN_RETURN_BOOLEAN(crypto_sign_open(message_data, NULL, signed_message_data, signed_message_size, pk_data))
+  SN_RETURN_BOOLEAN(crypto_sign_open(m_data, NULL, sm_data, sm_size, pk_data))
 }
 
 napi_value sn_crypto_sign_detached(napi_env env, napi_callback_info info) {
   SN_ARGV(3, crypto_sign_detached)
 
-  SN_ARGV_TYPEDARRAY(signature, 0)
-  SN_ARGV_TYPEDARRAY(message, 1)
+  SN_ARGV_TYPEDARRAY(sig, 0)
+  SN_ARGV_TYPEDARRAY(m, 1)
   SN_ARGV_TYPEDARRAY(sk, 2)
 
-  SN_THROWS(signature_size != crypto_sign_BYTES, "signed message buffer must be 64 bytes")
-  SN_THROWS(sk_size != crypto_sign_SECRETKEYBYTES, "secret key must be 64 bytes")
+  SN_ASSERT_LENGTH(sig_size, crypto_sign_BYTES, "sm")
+  SN_ASSERT_LENGTH(sk_size, crypto_sign_SECRETKEYBYTES, "sk")
 
-  SN_RETURN(crypto_sign_detached(signature_data, NULL, message_data, message_size, sk_data), "signature failed")
+  SN_RETURN(crypto_sign_detached(sig_data, NULL, m_data, m_size, sk_data), "signature failed")
 }
 
 napi_value sn_crypto_sign_verify_detached(napi_env env, napi_callback_info info) {
   SN_ARGV(3, crypto_sign_verify_detached)
 
-  SN_ARGV_TYPEDARRAY(signature, 0)
-  SN_ARGV_TYPEDARRAY(message, 1)
+  SN_ARGV_TYPEDARRAY(sig, 0)
+  SN_ARGV_TYPEDARRAY(m, 1)
   SN_ARGV_TYPEDARRAY(pk, 2)
 
-  SN_THROWS(signature_size != crypto_sign_BYTES, "signed message must be at least 64 bytes")
-  SN_THROWS(pk_size != crypto_sign_PUBLICKEYBYTES, "secret key must be 64 bytes")
+  SN_ASSERT_MIN_LENGTH(sig_size, crypto_sign_BYTES, "m")
+  SN_ASSERT_LENGTH(pk_size, crypto_sign_PUBLICKEYBYTES, "pk")
 
-  SN_RETURN_BOOLEAN(crypto_sign_verify_detached(signature_data, message_data, message_size, pk_data))
+  SN_RETURN_BOOLEAN(crypto_sign_verify_detached(sig_data, m_data, m_size, pk_data))
 }
 
 napi_value sn_crypto_sign_ed25519_sk_to_pk(napi_env env, napi_callback_info info) {
@@ -316,8 +316,8 @@ napi_value sn_crypto_sign_ed25519_sk_to_pk(napi_env env, napi_callback_info info
   SN_ARGV_TYPEDARRAY(pk, 0)
   SN_ARGV_TYPEDARRAY(sk, 1)
 
-  SN_THROWS(pk_size != crypto_sign_PUBLICKEYBYTES, "public key buffer must be 32 bytes")
-  SN_THROWS(sk_size != crypto_sign_SECRETKEYBYTES, "secret key must be 64 bytes")
+  SN_ASSERT_LENGTH(pk_size, crypto_sign_PUBLICKEYBYTES, "pk")
+  SN_ASSERT_LENGTH(sk_size, crypto_sign_SECRETKEYBYTES, "sk")
 
   SN_RETURN(crypto_sign_ed25519_sk_to_pk(pk_data, sk_data), "public key generation failed")
 }
@@ -325,70 +325,70 @@ napi_value sn_crypto_sign_ed25519_sk_to_pk(napi_env env, napi_callback_info info
 napi_value sn_crypto_sign_ed25519_pk_to_curve25519(napi_env env, napi_callback_info info) {
   SN_ARGV(2, crypto_sign_ed25519_sk_to_pk)
 
-  SN_ARGV_TYPEDARRAY(curve_pk, 0)
-  SN_ARGV_TYPEDARRAY(ed_pk, 1)
+  SN_ARGV_TYPEDARRAY(x25519_pk, 0)
+  SN_ARGV_TYPEDARRAY(ed25519_pk, 1)
 
-  SN_THROWS(curve_pk_size != crypto_box_PUBLICKEYBYTES, "curve25519 public key buffer must be 32 bytes")
-  SN_THROWS(ed_pk_size != crypto_sign_PUBLICKEYBYTES, "ed25519 public key must be 32 bytes")
+  SN_ASSERT_LENGTH(x25519_pk_size, crypto_box_PUBLICKEYBYTES, "x25519_pk")
+  SN_ASSERT_LENGTH(ed25519_pk_size, crypto_sign_PUBLICKEYBYTES, "ed25519_pk")
 
-  SN_RETURN(crypto_sign_ed25519_pk_to_curve25519(curve_pk_data, ed_pk_data), "public key conversion failed")
+  SN_RETURN(crypto_sign_ed25519_pk_to_curve25519(x25519_pk_data, ed25519_pk_data), "public key conversion failed")
 }
 
 napi_value sn_crypto_sign_ed25519_sk_to_curve25519(napi_env env, napi_callback_info info) {
   SN_ARGV(2, crypto_sign_ed25519_sk_to_pk)
 
-  SN_ARGV_TYPEDARRAY(curve_sk, 0)
-  SN_ARGV_TYPEDARRAY(ed_sk, 1)
+  SN_ARGV_TYPEDARRAY(x25519_sk, 0)
+  SN_ARGV_TYPEDARRAY(ed25519_sk, 1)
 
-  SN_THROWS(curve_sk_size != crypto_box_SECRETKEYBYTES, "curve25519 secret key buffer must be 32 bytes")
-  SN_THROWS(ed_sk_size != crypto_sign_SECRETKEYBYTES, "ed25519 secret key must be 64 bytes")
+  SN_ASSERT_LENGTH(x25519_sk_size, crypto_box_SECRETKEYBYTES, "x25519_sk")
+  SN_THROWS(ed25519_sk_size != crypto_sign_SECRETKEYBYTES && ed25519_sk_size != crypto_box_SECRETKEYBYTES, "ed25519_sk should either be 'crypto_sign_SECRETKEYBYTES' bytes of 'crypto_sign_SECRETKEYBYTES - crypto_sign_PUBLICKEYBYTES' bytes")
 
-  SN_RETURN(crypto_sign_ed25519_sk_to_curve25519(curve_sk_data, ed_sk_data), "secret key conversion failed")
+  SN_RETURN(crypto_sign_ed25519_sk_to_curve25519(x25519_sk_data, ed25519_sk_data), "secret key conversion failed")
 }
 
 napi_value sn_crypto_generichash(napi_env env, napi_callback_info info) {
   SN_ARGV_OPTS(2, 3, crypto_generichash)
 
-  SN_ARGV_TYPEDARRAY(output, 0)
-  SN_ARGV_TYPEDARRAY(input, 1)
+  SN_ARGV_TYPEDARRAY(out, 0)
+  SN_ARGV_TYPEDARRAY(in, 1)
 
-  SN_THROWS(output_size < crypto_generichash_BYTES_MIN, "output buffer must be at least 16 bytes")
-  SN_THROWS(output_size > crypto_generichash_BYTES_MAX, "output buffer must be at least 64 bytes")
+  SN_ASSERT_MIN_LENGTH(out_size, crypto_generichash_BYTES_MIN, "out")
+  SN_ASSERT_MAX_LENGTH(out_size, crypto_generichash_BYTES_MAX, "out")
 
   void *key_data = NULL;
   size_t key_size = 0;
 
   if (argc == 3) {
     SN_OPT_ARGV_TYPEDARRAY(key, 2)
-    SN_THROWS(key_size < crypto_generichash_KEYBYTES_MIN, "key must be at least 16 bytes")
-    SN_THROWS(key_size > crypto_generichash_KEYBYTES_MAX, "key must be at least 64 bytes")
+    SN_THROWS(key_size < crypto_generichash_KEYBYTES_MIN, "key")
+    SN_ASSERT_MIN_LENGTH(key_size, crypto_generichash_KEYBYTES_MAX, "key")
   }
 
-  SN_RETURN(crypto_generichash(output_data, output_size, input_data, input_size, key_data, key_size), "hash failed")
+  SN_RETURN(crypto_generichash(out_data, out_size, in_data, in_size, key_data, key_size), "hash failed")
 }
 
 napi_value sn_crypto_generichash_batch(napi_env env, napi_callback_info info) {
   SN_ARGV_OPTS(2, 3, crypto_generichash)
 
-  SN_ARGV_TYPEDARRAY(output, 0)
+  SN_ARGV_TYPEDARRAY(out, 0)
 
   uint32_t batch_length;
   napi_get_array_length(env, argv[1], &batch_length);
 
-  SN_THROWS(output_size < crypto_generichash_BYTES_MIN, "output buffer must be at least 16 bytes")
-  SN_THROWS(output_size > crypto_generichash_BYTES_MAX, "output buffer must be at least 64 bytes")
+  SN_ASSERT_MIN_LENGTH(out_size, crypto_generichash_BYTES_MIN, "out")
+  SN_ASSERT_MAX_LENGTH(out_size, crypto_generichash_BYTES_MAX, "out")
 
   void *key_data = NULL;
   size_t key_size = 0;
 
   if (argc == 3) {
     SN_OPT_ARGV_TYPEDARRAY(key, 2)
-    SN_THROWS(key_size < crypto_generichash_KEYBYTES_MIN, "key must be at least 16 bytes")
-    SN_THROWS(key_size > crypto_generichash_KEYBYTES_MAX, "key must be at least 64 bytes")
+    SN_ASSERT_MIN_LENGTH(key_size, crypto_generichash_KEYBYTES_MIN, "key")
+    SN_ASSERT_MAX_LENGTH(key_size, crypto_generichash_KEYBYTES_MAX, "key")
   }
 
   crypto_generichash_state state;
-  crypto_generichash_init(&state, key_data, key_size, output_size);
+  crypto_generichash_init(&state, key_data, key_size, out_size);
   for (uint32_t i = 0; i < batch_length; i++) {
     napi_value element;
     napi_get_element(env, argv[1], i, &element);
@@ -397,7 +397,7 @@ napi_value sn_crypto_generichash_batch(napi_env env, napi_callback_info info) {
     crypto_generichash_update(&state, buf_data, buf_size);
   }
 
-  SN_RETURN(crypto_generichash_final(&state, output_data, output_size), "batch failed")
+  SN_RETURN(crypto_generichash_final(&state, out_data, out_size), "batch failed")
 }
 
 napi_value sn_crypto_generichash_keygen(napi_env env, napi_callback_info info) {
@@ -405,7 +405,7 @@ napi_value sn_crypto_generichash_keygen(napi_env env, napi_callback_info info) {
 
   SN_ARGV_TYPEDARRAY(key, 0)
 
-  SN_THROWS(key_size != crypto_generichash_KEYBYTES, "key must be 32 bytes")
+  SN_ASSERT_LENGTH(key_size, crypto_generichash_KEYBYTES, "key")
 
   crypto_generichash_keygen(key_data);
 
@@ -419,11 +419,11 @@ napi_value sn_crypto_generichash_init(napi_env env, napi_callback_info info) {
   SN_ARGV_OPTS_TYPEDARRAY(key, 1)
   SN_ARGV_UINT32(outlen, 2)
 
-  SN_THROWS(state_size != sizeof(crypto_generichash_state), "state must be 384 bytes")
+  SN_THROWS(state_size != sizeof(crypto_generichash_state), "state must be 'crypto_generichash_STATEBYTES' bytes")
 
   if (key_data != NULL) {
-    SN_THROWS(key_size < crypto_generichash_KEYBYTES_MIN, "key must be at least 16 bytes")
-    SN_THROWS(key_size > crypto_generichash_KEYBYTES_MAX, "key must be at least 64 bytes")
+    SN_ASSERT_MIN_LENGTH(key_size, crypto_generichash_KEYBYTES_MIN, "key")
+    SN_ASSERT_MAX_LENGTH(key_size, crypto_generichash_KEYBYTES_MAX, "key")
   }
 
   SN_RETURN(crypto_generichash_init(state, key_data, key_size, outlen), "hash failed to initialise")
@@ -433,22 +433,22 @@ napi_value sn_crypto_generichash_update(napi_env env, napi_callback_info info) {
   SN_ARGV(2, crypto_generichash_update)
 
   SN_ARGV_BUFFER_CAST(crypto_generichash_state *, state, 0)
-  SN_ARGV_TYPEDARRAY(input, 1)
+  SN_ARGV_TYPEDARRAY(in, 1)
 
-  SN_THROWS(state_size != sizeof(crypto_generichash_state), "state must be 384 bytes")
+  SN_THROWS(state_size != sizeof(crypto_generichash_state), "state must be 'crypto_generichash_STATEBYTES' bytes")
 
-  SN_RETURN(crypto_generichash_update(state, input_data, input_size), "update failed")
+  SN_RETURN(crypto_generichash_update(state, in_data, in_size), "update failed")
 }
 
 napi_value sn_crypto_generichash_final(napi_env env, napi_callback_info info) {
   SN_ARGV(2, crypto_generichash_final)
 
   SN_ARGV_BUFFER_CAST(crypto_generichash_state *, state, 0)
-  SN_ARGV_TYPEDARRAY(output, 1)
+  SN_ARGV_TYPEDARRAY(out, 1)
 
-  SN_THROWS(state_size != sizeof(crypto_generichash_state), "state must be 384 bytes")
+  SN_THROWS(state_size != sizeof(crypto_generichash_state), "state must be 'crypto_generichash_STATEBYTES' bytes")
 
-  SN_RETURN(crypto_generichash_final(state, output_data, output_size), "digest failed")
+  SN_RETURN(crypto_generichash_final(state, out_data, out_size), "digest failed")
 }
 
 napi_value sn_crypto_box_keypair(napi_env env, napi_callback_info info) {
@@ -457,8 +457,8 @@ napi_value sn_crypto_box_keypair(napi_env env, napi_callback_info info) {
   SN_ARGV_TYPEDARRAY(pk, 0)
   SN_ARGV_TYPEDARRAY(sk, 1)
 
-  SN_THROWS(pk_size != crypto_box_PUBLICKEYBYTES, "public key must be 32 bytes")
-  SN_THROWS(sk_size != crypto_box_SECRETKEYBYTES, "secret key must be 32 bytes")
+  SN_ASSERT_LENGTH(pk_size, crypto_box_PUBLICKEYBYTES, "pk")
+  SN_ASSERT_LENGTH(sk_size, crypto_box_SECRETKEYBYTES, "sk")
 
   SN_RETURN(crypto_box_keypair(pk_data, sk_data), "keypair generation failed")
 }
@@ -470,9 +470,9 @@ napi_value sn_crypto_box_seed_keypair(napi_env env, napi_callback_info info) {
   SN_ARGV_TYPEDARRAY(sk, 1)
   SN_ARGV_TYPEDARRAY(seed, 2)
 
-  SN_THROWS(pk_size != crypto_box_PUBLICKEYBYTES, "public key must be 32 bytes")
-  SN_THROWS(sk_size != crypto_box_SECRETKEYBYTES, "secret key must be 32 bytes")
-  SN_THROWS(seed_size != crypto_box_SEEDBYTES, "seed must be 32 bytes")
+  SN_ASSERT_LENGTH(pk_size, crypto_box_PUBLICKEYBYTES, "pk")
+  SN_ASSERT_LENGTH(sk_size, crypto_box_SECRETKEYBYTES, "sk")
+  SN_ASSERT_LENGTH(seed_size, crypto_box_SEEDBYTES, "seed")
 
   SN_RETURN(crypto_box_seed_keypair(pk_data, sk_data, seed_data), "keypair generation failed")
 }
@@ -480,433 +480,433 @@ napi_value sn_crypto_box_seed_keypair(napi_env env, napi_callback_info info) {
 napi_value sn_crypto_box_easy(napi_env env, napi_callback_info info) {
   SN_ARGV(5, crypto_box_easy)
 
-  SN_ARGV_TYPEDARRAY(ciphertext, 0)
-  SN_ARGV_TYPEDARRAY(message, 1)
-  SN_ARGV_TYPEDARRAY(nonce, 2)
+  SN_ARGV_TYPEDARRAY(c, 0)
+  SN_ARGV_TYPEDARRAY(m, 1)
+  SN_ARGV_TYPEDARRAY(n, 2)
   SN_ARGV_TYPEDARRAY(pk, 3)
   SN_ARGV_TYPEDARRAY(sk, 4)
 
-  SN_THROWS(ciphertext_size != message_size + crypto_box_MACBYTES, "ciphertext buffer must be 16 bytes longer than input")
-  SN_THROWS(nonce_size != crypto_box_NONCEBYTES, "nonce must be 24 bytes")
-  SN_THROWS(sk_size != crypto_box_SECRETKEYBYTES, "secret key must be 32 bytes")
-  SN_THROWS(pk_size != crypto_box_PUBLICKEYBYTES, "public key must be 32 bytes")
+  SN_THROWS(c_size != m_size + crypto_box_MACBYTES, "c must be 'm.byteLength + crypto_box_MACBYTES' bytes")
+  SN_ASSERT_LENGTH(n_size, crypto_box_NONCEBYTES, "n")
+  SN_ASSERT_LENGTH(sk_size, crypto_box_SECRETKEYBYTES, "sk")
+  SN_ASSERT_LENGTH(pk_size, crypto_box_PUBLICKEYBYTES, "pk")
 
-  SN_RETURN(crypto_box_easy(ciphertext_data, message_data, message_size, nonce_data, pk_data, sk_data), "crypto box failed")
+  SN_RETURN(crypto_box_easy(c_data, m_data, m_size, n_data, pk_data, sk_data), "crypto box failed")
 }
 
 napi_value sn_crypto_box_open_easy(napi_env env, napi_callback_info info) {
   SN_ARGV(5, crypto_box_open_easy)
 
-  SN_ARGV_TYPEDARRAY(message, 0)
-  SN_ARGV_TYPEDARRAY(ciphertext, 1)
-  SN_ARGV_TYPEDARRAY(nonce, 2)
+  SN_ARGV_TYPEDARRAY(m, 0)
+  SN_ARGV_TYPEDARRAY(c, 1)
+  SN_ARGV_TYPEDARRAY(n, 2)
   SN_ARGV_TYPEDARRAY(pk, 3)
   SN_ARGV_TYPEDARRAY(sk, 4)
 
-  SN_THROWS(message_size != ciphertext_size - crypto_box_MACBYTES, "message buffer must be 16 bytes shorter than input")
-  SN_THROWS(ciphertext_size < crypto_box_MACBYTES, "ciphertext must be at least 16 bytes")
-  SN_THROWS(nonce_size != crypto_box_NONCEBYTES, "nonce must be 24 bytes")
-  SN_THROWS(sk_size != crypto_box_SECRETKEYBYTES, "secret key must be 32 bytes")
-  SN_THROWS(pk_size != crypto_box_PUBLICKEYBYTES, "public key must be 32 bytes")
+  SN_THROWS(m_size != c_size - crypto_box_MACBYTES, "m must be 'c.byteLength - crypto_box_MACBYTES' bytes")
+  SN_ASSERT_MIN_LENGTH(c_size, crypto_box_MACBYTES, "c")
+  SN_ASSERT_LENGTH(n_size, crypto_box_NONCEBYTES, "n")
+  SN_ASSERT_LENGTH(sk_size, crypto_box_SECRETKEYBYTES, "sk")
+  SN_ASSERT_LENGTH(pk_size, crypto_box_PUBLICKEYBYTES, "pk")
 
-  SN_RETURN_BOOLEAN(crypto_box_open_easy(message_data, ciphertext_data, ciphertext_size, nonce_data, pk_data, sk_data))
+  SN_RETURN_BOOLEAN(crypto_box_open_easy(m_data, c_data, c_size, n_data, pk_data, sk_data))
 }
 
 napi_value sn_crypto_box_detached(napi_env env, napi_callback_info info) {
   SN_ARGV(6, crypto_box_detached)
 
-  SN_ARGV_TYPEDARRAY(ciphertext, 0)
+  SN_ARGV_TYPEDARRAY(c, 0)
   SN_ARGV_TYPEDARRAY(mac, 1)
-  SN_ARGV_TYPEDARRAY(message, 2)
-  SN_ARGV_TYPEDARRAY(nonce, 3)
+  SN_ARGV_TYPEDARRAY(m, 2)
+  SN_ARGV_TYPEDARRAY(n, 3)
   SN_ARGV_TYPEDARRAY(pk, 4)
   SN_ARGV_TYPEDARRAY(sk, 5)
 
-  SN_THROWS(ciphertext_size != message_size, "ciphertext buffer must be equal in length to message")
-  SN_THROWS(mac_size != crypto_box_MACBYTES, "mac must be 16 bytes")
-  SN_THROWS(nonce_size != crypto_box_NONCEBYTES, "nonce must be 24 bytes")
-  SN_THROWS(sk_size != crypto_box_SECRETKEYBYTES, "secret key must be 32 bytes")
-  SN_THROWS(pk_size != crypto_box_PUBLICKEYBYTES, "public key must be 32 bytes")
+  SN_THROWS(c_size != m_size, "c must be 'm.byteLength' bytes")
+  SN_ASSERT_LENGTH(mac_size, crypto_box_MACBYTES, "mac")
+  SN_ASSERT_LENGTH(n_size, crypto_box_NONCEBYTES, "n")
+  SN_ASSERT_LENGTH(sk_size, crypto_box_SECRETKEYBYTES, "sk")
+  SN_ASSERT_LENGTH(pk_size, crypto_box_PUBLICKEYBYTES, "pk")
 
-  SN_RETURN(crypto_box_detached(ciphertext_data, mac_data, message_data, message_size, nonce_data, pk_data, sk_data), "signature failed")
+  SN_RETURN(crypto_box_detached(c_data, mac_data, m_data, m_size, n_data, pk_data, sk_data), "signature failed")
 }
 
 napi_value sn_crypto_box_open_detached(napi_env env, napi_callback_info info) {
   SN_ARGV(6, crypto_box_open_detached)
 
-  SN_ARGV_TYPEDARRAY(message, 0)
-  SN_ARGV_TYPEDARRAY(ciphertext, 1)
+  SN_ARGV_TYPEDARRAY(m, 0)
+  SN_ARGV_TYPEDARRAY(c, 1)
   SN_ARGV_TYPEDARRAY(mac, 2)
-  SN_ARGV_TYPEDARRAY(nonce, 3)
+  SN_ARGV_TYPEDARRAY(n, 3)
   SN_ARGV_TYPEDARRAY(pk, 4)
   SN_ARGV_TYPEDARRAY(sk, 5)
 
-  SN_THROWS(message_size != ciphertext_size, "message buffer must be equal in length to ciphertext")
-  SN_THROWS(mac_size != crypto_box_MACBYTES, "mac must be 16 bytes")
-  SN_THROWS(nonce_size != crypto_box_NONCEBYTES, "nonce must be 24 bytes")
-  SN_THROWS(sk_size != crypto_box_SECRETKEYBYTES, "secret key must be 32 bytes")
-  SN_THROWS(pk_size != crypto_box_PUBLICKEYBYTES, "public key must be 32 bytes")
+  SN_THROWS(m_size != c_size, "m must be 'c.byteLength' bytes")
+  SN_ASSERT_LENGTH(mac_size, crypto_box_MACBYTES, "mac")
+  SN_ASSERT_LENGTH(n_size, crypto_box_NONCEBYTES, "n")
+  SN_ASSERT_LENGTH(sk_size, crypto_box_SECRETKEYBYTES, "sk")
+  SN_ASSERT_LENGTH(pk_size, crypto_box_PUBLICKEYBYTES, "pk")
 
-  SN_RETURN_BOOLEAN(crypto_box_open_detached(message_data, ciphertext_data, mac_data, ciphertext_size, nonce_data, pk_data, sk_data))
+  SN_RETURN_BOOLEAN(crypto_box_open_detached(m_data, c_data, mac_data, c_size, n_data, pk_data, sk_data))
 }
 
 napi_value sn_crypto_box_seal(napi_env env, napi_callback_info info) {
   SN_ARGV(3, crypto_box_seal)
 
-  SN_ARGV_TYPEDARRAY(ciphertext, 0)
-  SN_ARGV_TYPEDARRAY(message, 1)
+  SN_ARGV_TYPEDARRAY(c, 0)
+  SN_ARGV_TYPEDARRAY(m, 1)
   SN_ARGV_TYPEDARRAY(pk, 2)
 
-  SN_THROWS(ciphertext_size != message_size + crypto_box_SEALBYTES, "ciphertext buffer must be 48 bytes longer than input")
-  SN_THROWS(pk_size != crypto_box_PUBLICKEYBYTES, "public key must be 32 bytes")
+  SN_THROWS(c_size != m_size + crypto_box_SEALBYTES, "c must be 'm.byteLength + crypto_box_SEALBYTES' bytes")
+  SN_ASSERT_LENGTH(pk_size, crypto_box_PUBLICKEYBYTES, "pk")
 
-  SN_RETURN(crypto_box_seal(ciphertext_data, message_data, message_size, pk_data), "failed to create seal")
+  SN_RETURN(crypto_box_seal(c_data, m_data, m_size, pk_data), "failed to create seal")
 }
 
 napi_value sn_crypto_box_seal_open(napi_env env, napi_callback_info info) {
   SN_ARGV(4, crypto_box_seal_open)
 
-  SN_ARGV_TYPEDARRAY(message, 0)
-  SN_ARGV_TYPEDARRAY(ciphertext, 1)
+  SN_ARGV_TYPEDARRAY(m, 0)
+  SN_ARGV_TYPEDARRAY(c, 1)
   SN_ARGV_TYPEDARRAY(pk, 2)
   SN_ARGV_TYPEDARRAY(sk, 3)
 
-  SN_THROWS(message_size != ciphertext_size - crypto_box_SEALBYTES, "message buffer must be 48 bytes shorter than input")
-  SN_THROWS(ciphertext_size < crypto_box_SEALBYTES, "ciphertext must be at least 48 bytes")
-  SN_THROWS(sk_size != crypto_box_SECRETKEYBYTES, "secret key must be 32 bytes")
-  SN_THROWS(pk_size != crypto_box_PUBLICKEYBYTES, "public key must be 32 bytes")
+  SN_THROWS(m_size != c_size - crypto_box_SEALBYTES, "m must be 'c.byteLength - crypto_box_SEALBYTES' bytes")
+  SN_ASSERT_MIN_LENGTH(c_size, crypto_box_SEALBYTES, "c")
+  SN_ASSERT_LENGTH(sk_size, crypto_box_SECRETKEYBYTES, "sk")
+  SN_ASSERT_LENGTH(pk_size, crypto_box_PUBLICKEYBYTES, "pk")
 
-  SN_RETURN_BOOLEAN(crypto_box_seal_open(message_data, ciphertext_data, ciphertext_size, pk_data, sk_data))
+  SN_RETURN_BOOLEAN(crypto_box_seal_open(m_data, c_data, c_size, pk_data, sk_data))
 }
 
 napi_value sn_crypto_secretbox_easy(napi_env env, napi_callback_info info) {
   SN_ARGV(4, crypto_secretbox_easy)
 
-  SN_ARGV_TYPEDARRAY(ciphertext, 0)
-  SN_ARGV_TYPEDARRAY(message, 1)
-  SN_ARGV_TYPEDARRAY(nonce, 2)
-  SN_ARGV_TYPEDARRAY(key, 3)
+  SN_ARGV_TYPEDARRAY(c, 0)
+  SN_ARGV_TYPEDARRAY(m, 1)
+  SN_ARGV_TYPEDARRAY(n, 2)
+  SN_ARGV_TYPEDARRAY(k, 3)
 
-  SN_THROWS(ciphertext_size != message_size + crypto_secretbox_MACBYTES, "ciphertext buffer must be 16 bytes longer than input")
-  SN_THROWS(nonce_size != crypto_secretbox_NONCEBYTES, "nonce must be 24 bytes")
-  SN_THROWS(key_size != crypto_secretbox_KEYBYTES, "key must be 32 bytes")
+  SN_THROWS(c_size != m_size + crypto_secretbox_MACBYTES, "c must be 'm.byteLength + crypto_secretbox_MACBYTES' bytes")
+  SN_ASSERT_LENGTH(n_size, crypto_secretbox_NONCEBYTES, "n")
+  SN_ASSERT_LENGTH(k_size, crypto_secretbox_KEYBYTES, "k")
 
-  SN_RETURN(crypto_secretbox_easy(ciphertext_data, message_data, message_size, nonce_data, key_data), "crypto secretbox failed")
+  SN_RETURN(crypto_secretbox_easy(c_data, m_data, m_size, n_data, k_data), "crypto secretbox failed")
 }
 
 napi_value sn_crypto_secretbox_open_easy(napi_env env, napi_callback_info info) {
   SN_ARGV(4, crypto_secretbox_open_easy)
 
-  SN_ARGV_TYPEDARRAY(message, 0)
-  SN_ARGV_TYPEDARRAY(ciphertext, 1)
-  SN_ARGV_TYPEDARRAY(nonce, 2)
-  SN_ARGV_TYPEDARRAY(key, 3)
+  SN_ARGV_TYPEDARRAY(m, 0)
+  SN_ARGV_TYPEDARRAY(c, 1)
+  SN_ARGV_TYPEDARRAY(n, 2)
+  SN_ARGV_TYPEDARRAY(k, 3)
 
-  SN_THROWS(message_size != ciphertext_size - crypto_secretbox_MACBYTES, "message buffer must be 16 bytes shorter than input")
-  SN_THROWS(ciphertext_size < crypto_secretbox_MACBYTES, "ciphertext must be at least 16 bytes")
-  SN_THROWS(nonce_size != crypto_secretbox_NONCEBYTES, "nonce must be 24 bytes")
-  SN_THROWS(key_size != crypto_secretbox_KEYBYTES, "key must be 32 bytes")
+  SN_THROWS(m_size != c_size - crypto_secretbox_MACBYTES, "m must be 'c - crypto_secretbox_MACBYTES' bytes")
+  SN_ASSERT_MIN_LENGTH(c_size, crypto_secretbox_MACBYTES, "c")
+  SN_ASSERT_LENGTH(n_size, crypto_secretbox_NONCEBYTES, "n")
+  SN_ASSERT_LENGTH(k_size, crypto_secretbox_KEYBYTES, "k")
 
-  SN_RETURN_BOOLEAN(crypto_secretbox_open_easy(message_data, ciphertext_data, ciphertext_size, nonce_data, key_data))
+  SN_RETURN_BOOLEAN(crypto_secretbox_open_easy(m_data, c_data, c_size, n_data, k_data))
 }
 
 napi_value sn_crypto_secretbox_detached(napi_env env, napi_callback_info info) {
   SN_ARGV(5, crypto_secretbox_detached)
 
-  SN_ARGV_TYPEDARRAY(ciphertext, 0)
+  SN_ARGV_TYPEDARRAY(c, 0)
   SN_ARGV_TYPEDARRAY(mac, 1)
-  SN_ARGV_TYPEDARRAY(message, 2)
-  SN_ARGV_TYPEDARRAY(nonce, 3)
-  SN_ARGV_TYPEDARRAY(key, 4)
+  SN_ARGV_TYPEDARRAY(m, 2)
+  SN_ARGV_TYPEDARRAY(n, 3)
+  SN_ARGV_TYPEDARRAY(k, 4)
 
-  SN_THROWS(ciphertext_size != message_size, "ciphertext buffer must be equal in length to message")
-  SN_THROWS(mac_size != crypto_secretbox_MACBYTES, "mac must be 16 bytes")
-  SN_THROWS(nonce_size != crypto_secretbox_NONCEBYTES, "nonce must be 24 bytes")
-  SN_THROWS(key_size != crypto_secretbox_KEYBYTES, "key must be 32 bytes")
+  SN_THROWS(c_size != m_size, "c must 'm.byteLength' bytes")
+  SN_ASSERT_LENGTH(mac_size, crypto_secretbox_MACBYTES, "mac")
+  SN_ASSERT_LENGTH(n_size, crypto_secretbox_NONCEBYTES, "n")
+  SN_ASSERT_LENGTH(k_size, crypto_secretbox_KEYBYTES, "k")
 
-  SN_RETURN(crypto_secretbox_detached(ciphertext_data, mac_data, message_data, message_size, nonce_data, key_data), "failed to open box")
+  SN_RETURN(crypto_secretbox_detached(c_data, mac_data, m_data, m_size, n_data, k_data), "failed to open box")
 }
 
 napi_value sn_crypto_secretbox_open_detached(napi_env env, napi_callback_info info) {
   SN_ARGV(5, crypto_secretbox_open_detached)
 
-  SN_ARGV_TYPEDARRAY(message, 0)
-  SN_ARGV_TYPEDARRAY(ciphertext, 1)
+  SN_ARGV_TYPEDARRAY(m, 0)
+  SN_ARGV_TYPEDARRAY(c, 1)
   SN_ARGV_TYPEDARRAY(mac, 2)
-  SN_ARGV_TYPEDARRAY(nonce, 3)
-  SN_ARGV_TYPEDARRAY(key, 4)
+  SN_ARGV_TYPEDARRAY(n, 3)
+  SN_ARGV_TYPEDARRAY(k, 4)
 
-  SN_THROWS(message_size != ciphertext_size, "message buffer must be equal in length to ciphertext")
-  SN_THROWS(mac_size != crypto_secretbox_MACBYTES, "mac must be 16 bytes")
-  SN_THROWS(nonce_size != crypto_secretbox_NONCEBYTES, "nonce must be 24 bytes")
-  SN_THROWS(key_size != crypto_secretbox_KEYBYTES, "key must be 32 bytes")
+  SN_THROWS(m_size != c_size, "m must be 'c.byteLength' bytes")
+  SN_ASSERT_LENGTH(mac_size, crypto_secretbox_MACBYTES, "mac")
+  SN_ASSERT_LENGTH(n_size, crypto_secretbox_NONCEBYTES, "n")
+  SN_ASSERT_LENGTH(k_size, crypto_secretbox_KEYBYTES, "k")
 
-  SN_RETURN_BOOLEAN(crypto_secretbox_open_detached(message_data, ciphertext_data, mac_data, ciphertext_size, nonce_data, key_data))
+  SN_RETURN_BOOLEAN(crypto_secretbox_open_detached(m_data, c_data, mac_data, c_size, n_data, k_data))
 }
 
 napi_value sn_crypto_stream(napi_env env, napi_callback_info info) {
   SN_ARGV(3, crypto_stream)
 
-  SN_ARGV_TYPEDARRAY(ciphertext, 0)
-  SN_ARGV_TYPEDARRAY(nonce, 1)
-  SN_ARGV_TYPEDARRAY(key, 2)
+  SN_ARGV_TYPEDARRAY(c, 0)
+  SN_ARGV_TYPEDARRAY(n, 1)
+  SN_ARGV_TYPEDARRAY(k, 2)
 
-  SN_THROWS(nonce_size != crypto_stream_NONCEBYTES, "nonce must be 24 bytes")
-  SN_THROWS(key_size != crypto_stream_KEYBYTES, "key must be 32 bytes")
+  SN_ASSERT_LENGTH(n_size, crypto_stream_NONCEBYTES, "n")
+  SN_ASSERT_LENGTH(k_size, crypto_stream_KEYBYTES, "k")
 
-  SN_RETURN(crypto_stream(ciphertext_data, ciphertext_size, nonce_data, key_data), "stream encryption failed")
+  SN_RETURN(crypto_stream(c_data, c_size, n_data, k_data), "stream encryption failed")
 }
 
 napi_value sn_crypto_stream_xor(napi_env env, napi_callback_info info) {
   SN_ARGV(4, crypto_stream_xor)
 
-  SN_ARGV_TYPEDARRAY(ciphertext, 0)
-  SN_ARGV_TYPEDARRAY(message, 1)
-  SN_ARGV_TYPEDARRAY(nonce, 2)
-  SN_ARGV_TYPEDARRAY(key, 3)
+  SN_ARGV_TYPEDARRAY(c, 0)
+  SN_ARGV_TYPEDARRAY(m, 1)
+  SN_ARGV_TYPEDARRAY(n, 2)
+  SN_ARGV_TYPEDARRAY(k, 3)
 
-  SN_THROWS(ciphertext_size != message_size, "message buffer must be equal in length to ciphertext")
-  SN_THROWS(nonce_size != crypto_stream_NONCEBYTES, "nonce must be 24 bytes")
-  SN_THROWS(key_size != crypto_stream_KEYBYTES, "key must be 32 bytes")
+  SN_THROWS(c_size != m_size, "m must be 'c.byteLength' bytes")
+  SN_ASSERT_LENGTH(n_size, crypto_stream_NONCEBYTES, "n")
+  SN_ASSERT_LENGTH(k_size, crypto_stream_KEYBYTES, "k")
 
-  SN_RETURN(crypto_stream_xor(ciphertext_data, message_data, message_size, nonce_data, key_data), "stream encryption failed")
+  SN_RETURN(crypto_stream_xor(c_data, m_data, m_size, n_data, k_data), "stream encryption failed")
 }
 
 napi_value sn_crypto_stream_chacha20_xor (napi_env env, napi_callback_info info) {
   SN_ARGV(4, crypto_stream_chacha20_xor)
 
-  SN_ARGV_TYPEDARRAY(ciphertext, 0)
-  SN_ARGV_TYPEDARRAY(message, 1)
-  SN_ARGV_TYPEDARRAY(nonce, 2)
-  SN_ARGV_TYPEDARRAY(key, 3)
+  SN_ARGV_TYPEDARRAY(c, 0)
+  SN_ARGV_TYPEDARRAY(m, 1)
+  SN_ARGV_TYPEDARRAY(n, 2)
+  SN_ARGV_TYPEDARRAY(k, 3)
 
-  SN_THROWS(ciphertext_size != message_size, "message buffer must be equal in length to ciphertext")
-  SN_THROWS(nonce_size != crypto_stream_NONCEBYTES, "nonce must be 24 bytes")
-  SN_THROWS(key_size != crypto_stream_KEYBYTES, "key must be 32 bytes")
+  SN_THROWS(c_size != m_size, "m must be 'c.byteLength' bytes")
+  SN_ASSERT_LENGTH(n_size, crypto_stream_NONCEBYTES, "n")
+  SN_ASSERT_LENGTH(k_size, crypto_stream_KEYBYTES, "k")
 
-  SN_RETURN(crypto_stream_chacha20_xor(ciphertext_data, message_data, message_size, nonce_data, key_data), "stream encryption failed")
+  SN_RETURN(crypto_stream_chacha20_xor(c_data, m_data, m_size, n_data, k_data), "stream encryption failed")
 }
 
 napi_value sn_crypto_auth (napi_env env, napi_callback_info info) {
   SN_ARGV(3, crypto_auth)
 
-  SN_ARGV_TYPEDARRAY(output, 0)
-  SN_ARGV_TYPEDARRAY(input, 1)
-  SN_ARGV_TYPEDARRAY(key, 2)
+  SN_ARGV_TYPEDARRAY(out, 0)
+  SN_ARGV_TYPEDARRAY(in, 1)
+  SN_ARGV_TYPEDARRAY(k, 2)
 
-  SN_THROWS(output_size != crypto_auth_BYTES, "auth tag must be 32 bytes")
-  SN_THROWS(key_size != crypto_auth_KEYBYTES, "key must be 32 bytes")
+  SN_ASSERT_LENGTH(out_size, crypto_auth_BYTES, "out")
+  SN_ASSERT_LENGTH(k_size, crypto_auth_KEYBYTES, "k")
 
-  SN_RETURN(crypto_auth(output_data, input_data, input_size, key_data), "failed to generate authentication tag")
+  SN_RETURN(crypto_auth(out_data, in_data, in_size, k_data), "failed to generate authentication tag")
 }
 
 napi_value sn_crypto_auth_verify (napi_env env, napi_callback_info info) {
   SN_ARGV(3, crypto_auth_verify)
 
-  SN_ARGV_TYPEDARRAY(tag, 0)
-  SN_ARGV_TYPEDARRAY(input, 1)
-  SN_ARGV_TYPEDARRAY(key, 2)
+  SN_ARGV_TYPEDARRAY(h, 0)
+  SN_ARGV_TYPEDARRAY(in, 1)
+  SN_ARGV_TYPEDARRAY(k, 2)
 
-  SN_THROWS(tag_size != crypto_auth_BYTES, "auth tag must be 32 bytes")
-  SN_THROWS(key_size != crypto_auth_KEYBYTES, "key must be 32 bytes")
+  SN_ASSERT_LENGTH(h_size, crypto_auth_BYTES, "h")
+  SN_ASSERT_LENGTH(k_size, crypto_auth_KEYBYTES, "k")
 
-  SN_RETURN_BOOLEAN(crypto_auth_verify(tag_data, input_data, input_size, key_data))
+  SN_RETURN_BOOLEAN(crypto_auth_verify(h_data, in_data, in_size, k_data))
 }
 
 napi_value sn_crypto_onetimeauth (napi_env env, napi_callback_info info) {
   SN_ARGV(3, crypto_onetimeauth)
 
-  SN_ARGV_TYPEDARRAY(output, 0)
-  SN_ARGV_TYPEDARRAY(input, 1)
-  SN_ARGV_TYPEDARRAY(key, 2)
+  SN_ARGV_TYPEDARRAY(out, 0)
+  SN_ARGV_TYPEDARRAY(in, 1)
+  SN_ARGV_TYPEDARRAY(k, 2)
 
-  SN_THROWS(output_size != crypto_onetimeauth_BYTES, "auth tag must be 16 bytes")
-  SN_THROWS(key_size != crypto_onetimeauth_KEYBYTES, "key must be 32 bytes")
+  SN_ASSERT_LENGTH(out_size, crypto_onetimeauth_BYTES, "out")
+  SN_ASSERT_LENGTH(k_size, crypto_onetimeauth_KEYBYTES, "k")
 
-  SN_RETURN(crypto_onetimeauth(output_data, input_data, input_size, key_data), "failed to generate onetime authentication tag")
+  SN_RETURN(crypto_onetimeauth(out_data, in_data, in_size, k_data), "failed to generate onetime authentication tag")
 }
 
 napi_value sn_crypto_onetimeauth_init (napi_env env, napi_callback_info info) {
   SN_ARGV(2, crypto_onetimeauth_init)
 
   SN_ARGV_BUFFER_CAST(crypto_onetimeauth_state *, state, 0)
-  SN_ARGV_TYPEDARRAY(key, 1)
+  SN_ARGV_TYPEDARRAY(k, 1)
 
-  SN_THROWS(state_size != sizeof(crypto_onetimeauth_state), "state must be 256 bytes")
-  SN_THROWS(key_size != crypto_onetimeauth_KEYBYTES, "key must be 32 bytes")
+  SN_THROWS(state_size != sizeof(crypto_onetimeauth_state), "state must be 'crypto_onetimeauth_STATEBYTES' bytes")
+  SN_ASSERT_LENGTH(k_size, crypto_onetimeauth_KEYBYTES, "k")
 
-  SN_RETURN(crypto_onetimeauth_init(state, key_data), "failed to initialise onetime authentication")
+  SN_RETURN(crypto_onetimeauth_init(state, k_data), "failed to initialise onetime authentication")
 }
 
 napi_value sn_crypto_onetimeauth_update(napi_env env, napi_callback_info info) {
   SN_ARGV(2, crypto_onetimeauth_update)
 
   SN_ARGV_BUFFER_CAST(crypto_onetimeauth_state *, state, 0)
-  SN_ARGV_TYPEDARRAY(input, 1)
+  SN_ARGV_TYPEDARRAY(in, 1)
 
-  SN_THROWS(state_size != sizeof(crypto_onetimeauth_state), "state must be 256 bytes")
+  SN_THROWS(state_size != sizeof(crypto_onetimeauth_state), "state must be 'crypto_onetimeauth_STATEBYTES' bytes")
 
-  SN_RETURN(crypto_onetimeauth_update(state, input_data, input_size), "update failed")
+  SN_RETURN(crypto_onetimeauth_update(state, in_data, in_size), "update failed")
 }
 
 napi_value sn_crypto_onetimeauth_final(napi_env env, napi_callback_info info) {
   SN_ARGV(2, crypto_onetimeauth_final)
 
   SN_ARGV_BUFFER_CAST(crypto_onetimeauth_state *, state, 0)
-  SN_ARGV_TYPEDARRAY(output, 1)
+  SN_ARGV_TYPEDARRAY(out, 1)
 
-  SN_THROWS(state_size != sizeof(crypto_onetimeauth_state), "state must be 256 bytes")
-  SN_THROWS(output_size != crypto_onetimeauth_BYTES, "output must be 16 bytes")
+  SN_THROWS(state_size != sizeof(crypto_onetimeauth_state), "state must be 'crypto_onetimeauth_STATEBYTES' bytes")
+  SN_ASSERT_LENGTH(out_size, crypto_onetimeauth_BYTES, "out")
 
-  SN_RETURN(crypto_onetimeauth_final(state, output_data), "failed to generate authentication tag")
+  SN_RETURN(crypto_onetimeauth_final(state, out_data), "failed to generate authentication tag")
 }
 
 napi_value sn_crypto_onetimeauth_verify (napi_env env, napi_callback_info info) {
   SN_ARGV(3, crypto_onetimeauth_verify)
 
-  SN_ARGV_TYPEDARRAY(tag, 0)
-  SN_ARGV_TYPEDARRAY(input, 1)
-  SN_ARGV_TYPEDARRAY(key, 2)
+  SN_ARGV_TYPEDARRAY(h, 0)
+  SN_ARGV_TYPEDARRAY(in, 1)
+  SN_ARGV_TYPEDARRAY(k, 2)
 
-  SN_THROWS(tag_size != crypto_onetimeauth_BYTES, "auth tag must be 16 bytes")
-  SN_THROWS(key_size != crypto_onetimeauth_KEYBYTES, "key must be 32 bytes")
+  SN_ASSERT_LENGTH(h_size, crypto_onetimeauth_BYTES, "h")
+  SN_ASSERT_LENGTH(k_size, crypto_onetimeauth_KEYBYTES, "k")
 
-  SN_RETURN_BOOLEAN(crypto_onetimeauth_verify(tag_data, input_data, input_size, key_data))
+  SN_RETURN_BOOLEAN(crypto_onetimeauth_verify(h_data, in_data, in_size, k_data))
 }
 
 // CHECK: memlimit can be >32bit
 napi_value sn_crypto_pwhash (napi_env env, napi_callback_info info) {
   SN_ARGV(6, crypto_pwhash)
 
-  SN_ARGV_TYPEDARRAY(output, 0)
-  SN_ARGV_TYPEDARRAY(password, 1)
+  SN_ARGV_TYPEDARRAY(out, 0)
+  SN_ARGV_TYPEDARRAY(passwd, 1)
   SN_ARGV_TYPEDARRAY(salt, 2)
   SN_ARGV_UINT64(opslimit, 3)
   SN_ARGV_UINT64(memlimit, 4)
-  SN_ARGV_UINT8(algorithm, 5)
+  SN_ARGV_UINT8(alg, 5)
 
-  SN_THROWS(output_size < crypto_pwhash_BYTES_MIN, "output must be at least 16 bytes")
-  SN_THROWS(output_size > crypto_pwhash_BYTES_MAX, "output must be smaller than 2^32 bytes")
-  SN_THROWS(salt_size != crypto_pwhash_SALTBYTES, "salt must be 16 bytes")
-  SN_THROWS(opslimit < crypto_pwhash_OPSLIMIT_MIN, "opslimit must be at least 1")
-  SN_THROWS(opslimit > crypto_pwhash_OPSLIMIT_MAX, "opslimit must be at most 4294967295")
-  SN_THROWS(memlimit < crypto_pwhash_MEMLIMIT_MIN, "memlimit must be at least 8 kB")
-  SN_THROWS(memlimit > (int64_t) crypto_pwhash_MEMLIMIT_MAX, "memlimit must be at most 4398 GB")
-  SN_THROWS(algorithm < 1, "algorithm must be either Argon2i 1.3 or Argon2id 1.3")
-  SN_THROWS(algorithm > 2, "algorithm must be either Argon2i 1.3 or Argon2id 1.3")
+  SN_ASSERT_MIN_LENGTH(out_size, crypto_pwhash_BYTES_MIN, "out")
+  SN_ASSERT_MAX_LENGTH(out_size, crypto_pwhash_BYTES_MAX, "out")
+  SN_ASSERT_LENGTH(salt_size, crypto_pwhash_SALTBYTES, "salt")
+  SN_ASSERT_MIN_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MIN, "opslimit")
+  SN_ASSERT_MAX_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MAX, "opslimit")
+  SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_MEMLIMIT_MIN, "memlimit")
+  SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_MEMLIMIT_MAX, "memlimit")
+  SN_THROWS(alg < 1, "alg must be either Argon2i 1.3 or Argon2id 1.3")
+  SN_THROWS(alg > 2, "algorithm must be either Argon2i 1.3 or Argon2id 1.3")
 
-  SN_RETURN(crypto_pwhash(output_data, output_size, password_data, password_size, salt_data, opslimit, memlimit, algorithm), "password hashing failed, check memory requirements.")
+  SN_RETURN(crypto_pwhash(out_data, out_size, passwd_data, passwd_size, salt_data, opslimit, memlimit, alg), "password hashing failed, check memory requirements.")
 }
 
 napi_value sn_crypto_pwhash_str (napi_env env, napi_callback_info info) {
   SN_ARGV(4, crypto_pwhash_str)
 
-  SN_ARGV_TYPEDARRAY(output, 0)
-  SN_ARGV_TYPEDARRAY(pwd, 1)
+  SN_ARGV_TYPEDARRAY(out, 0)
+  SN_ARGV_TYPEDARRAY(passwd, 1)
   SN_ARGV_UINT64(opslimit, 2)
   SN_ARGV_UINT64(memlimit, 3)
 
-  SN_THROWS(output_size != crypto_pwhash_STRBYTES, "output must be 128 bytes")
-  SN_THROWS(opslimit < crypto_pwhash_OPSLIMIT_MIN, "opslimit must be at least 1")
-  SN_THROWS(opslimit > crypto_pwhash_OPSLIMIT_MAX, "opslimit must be at most 4294967295")
-  SN_THROWS(memlimit < crypto_pwhash_MEMLIMIT_MIN, "memlimit must be at least 8 kB")
-  SN_THROWS(memlimit > (int64_t) crypto_pwhash_MEMLIMIT_MAX, "memlimit must be at most 4398 GB")
+  SN_ASSERT_LENGTH(out_size, crypto_pwhash_STRBYTES, "out")
+  SN_ASSERT_MIN_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MIN, "opslimit")
+  SN_ASSERT_MAX_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MAX, "opslimit")
+  SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_MEMLIMIT_MIN, "memlimit")
+  SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_MEMLIMIT_MAX, "memlimit")
 
-  SN_RETURN(crypto_pwhash_str(output_data, pwd_data, pwd_size, opslimit, memlimit), "password hashing failed, check memory requirements.")
+  SN_RETURN(crypto_pwhash_str(out_data, passwd_data, passwd_size, opslimit, memlimit), "password hashing failed, check memory requirements.")
 }
 
 napi_value sn_crypto_pwhash_str_verify (napi_env env, napi_callback_info info) {
   SN_ARGV(2, crypto_pwhash_str_verify)
 
   SN_ARGV_TYPEDARRAY(str, 0)
-  SN_ARGV_TYPEDARRAY(pwd, 1)
+  SN_ARGV_TYPEDARRAY(passwd, 1)
 
-  SN_THROWS(str_size != crypto_pwhash_STRBYTES, "password hash must be 128 bytes")
+  SN_ASSERT_LENGTH(str_size, crypto_pwhash_STRBYTES, "str")
 
-  SN_RETURN_BOOLEAN(crypto_pwhash_str_verify(str_data, pwd_data, pwd_size))
+  SN_RETURN_BOOLEAN(crypto_pwhash_str_verify(str_data, passwd_data, passwd_size))
 }
 
 // CHECK: returns 1, 0, -1
 napi_value sn_crypto_pwhash_str_needs_rehash (napi_env env, napi_callback_info info) {
   SN_ARGV(3, crypto_pwhash_str_needs_rehash)
 
-  SN_ARGV_TYPEDARRAY(hash, 0)
+  SN_ARGV_TYPEDARRAY(str, 0)
   SN_ARGV_UINT64(opslimit, 1)
   SN_ARGV_UINT64(memlimit, 2)
 
-  SN_THROWS(hash_size != crypto_pwhash_STRBYTES, "password hash must be 128 bytes")
-  SN_THROWS(opslimit < crypto_pwhash_OPSLIMIT_MIN, "opslimit must be at least 1")
-  SN_THROWS(opslimit > crypto_pwhash_OPSLIMIT_MAX, "opslimit must be at most 4294967295")
-  SN_THROWS(memlimit < crypto_pwhash_MEMLIMIT_MIN, "memlimit must be at least 8 kB")
-  SN_THROWS(memlimit > (int64_t) crypto_pwhash_MEMLIMIT_MAX, "memlimit must be at most 4398 GB")
+  SN_ASSERT_LENGTH(str_size, crypto_pwhash_STRBYTES, "str")
+  SN_ASSERT_MIN_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MIN, "opslimit")
+  SN_ASSERT_MAX_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MAX, "opslimit")
+  SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_MEMLIMIT_MIN, "memlimit")
+  SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_MEMLIMIT_MAX, "memlimit")
 
-  SN_RETURN_BOOLEAN(crypto_pwhash_str_needs_rehash(hash_data, opslimit, memlimit))
+  SN_RETURN_BOOLEAN(crypto_pwhash_str_needs_rehash(str_data, opslimit, memlimit))
 }
 
 // CHECK: memlimit can be >32bit
 napi_value sn_crypto_pwhash_scryptsalsa208sha256 (napi_env env, napi_callback_info info) {
   SN_ARGV(5, crypto_pwhash_scryptsalsa208sha256)
 
-  SN_ARGV_TYPEDARRAY(output, 0)
-  SN_ARGV_TYPEDARRAY(password, 1)
+  SN_ARGV_TYPEDARRAY(out, 0)
+  SN_ARGV_TYPEDARRAY(passwd, 1)
   SN_ARGV_TYPEDARRAY(salt, 2)
   SN_ARGV_UINT64(opslimit, 3)
   SN_ARGV_UINT64(memlimit, 4)
 
-  SN_THROWS(output_size < crypto_pwhash_scryptsalsa208sha256_BYTES_MIN, "output must be at least 16 bytes")
-  SN_THROWS(output_size > crypto_pwhash_scryptsalsa208sha256_BYTES_MAX, "output must be at most than 137438953440 bytes")
-  SN_THROWS(salt_size != crypto_pwhash_scryptsalsa208sha256_SALTBYTES, "salt must be 32 bytes")
-  SN_THROWS(opslimit < crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN, "opslimit must be at least 32768")
-  SN_THROWS(opslimit > crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, "opslimit must be at most 4294967295")
-  SN_THROWS(memlimit < crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, "memlimit must be at least 16.7 MB")
-  SN_THROWS(memlimit > (int64_t) crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, "memlimit must be at most 68.7 GB")
+  SN_ASSERT_MIN_LENGTH(out_size, crypto_pwhash_scryptsalsa208sha256_BYTES_MIN, "out")
+  SN_ASSERT_MAX_LENGTH(out_size, crypto_pwhash_scryptsalsa208sha256_BYTES_MAX, "out")
+  SN_ASSERT_LENGTH(salt_size, crypto_pwhash_scryptsalsa208sha256_SALTBYTES, "salt")
+  SN_ASSERT_MIN_LENGTH(opslimit, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN, "opslimit")
+  SN_ASSERT_MAX_LENGTH(opslimit, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, "opslimit")
+  SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, "memlimit")
+  SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, "memlimit")
 
-  SN_RETURN(crypto_pwhash_scryptsalsa208sha256(output_data, output_size, password_data, password_size, salt_data, opslimit, memlimit), "password hashing failed, check memory requirements.")
+  SN_RETURN(crypto_pwhash_scryptsalsa208sha256(out_data, out_size, passwd_data, passwd_size, salt_data, opslimit, memlimit), "password hashing failed, check memory requirements.")
 }
 
 napi_value sn_crypto_pwhash_scryptsalsa208sha256_str (napi_env env, napi_callback_info info) {
   SN_ARGV(4, crypto_pwhash_scryptsalsa208sha256_str)
 
-  SN_ARGV_TYPEDARRAY(output, 0)
-  SN_ARGV_TYPEDARRAY(pwd, 1)
+  SN_ARGV_TYPEDARRAY(out, 0)
+  SN_ARGV_TYPEDARRAY(passwd, 1)
   SN_ARGV_UINT64(opslimit, 2)
   SN_ARGV_UINT64(memlimit, 3)
 
-  SN_THROWS(output_size != crypto_pwhash_scryptsalsa208sha256_STRBYTES, "output must be 102 bytes")
-  SN_THROWS(opslimit < crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN, "opslimit must be at least 32768")
-  SN_THROWS(opslimit > crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, "opslimit must be at most 4294967295")
-  SN_THROWS(memlimit < crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, "memlimit must be at least 16.7 MB")
-  SN_THROWS(memlimit > (int64_t) crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, "memlimit must be at most 68.7 GB")
+  SN_ASSERT_LENGTH(out_size, crypto_pwhash_scryptsalsa208sha256_STRBYTES, "out")
+  SN_ASSERT_MIN_LENGTH(opslimit, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN, "opslimit")
+  SN_ASSERT_MAX_LENGTH(opslimit, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, "opslimit")
+  SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, "memlimit")
+  SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, "memlimit")
 
-  SN_RETURN(crypto_pwhash_scryptsalsa208sha256_str(output_data, pwd_data, pwd_size, opslimit, memlimit), "password hashing failed, check memory requirements.")
+  SN_RETURN(crypto_pwhash_scryptsalsa208sha256_str(out_data, passwd_data, passwd_size, opslimit, memlimit), "password hashing failed, check memory requirements.")
 }
 
 napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_verify (napi_env env, napi_callback_info info) {
   SN_ARGV(2, crypto_pwhash_scryptsalsa208sha256_str_verify)
 
   SN_ARGV_TYPEDARRAY(str, 0)
-  SN_ARGV_TYPEDARRAY(pwd, 1)
+  SN_ARGV_TYPEDARRAY(passwd, 1)
 
-  SN_THROWS(str_size != crypto_pwhash_scryptsalsa208sha256_STRBYTES, "password hash must be 102 bytes")
+  SN_ASSERT_LENGTH(str_size, crypto_pwhash_scryptsalsa208sha256_STRBYTES, "str")
 
-  SN_RETURN_BOOLEAN(crypto_pwhash_scryptsalsa208sha256_str_verify(str_data, pwd_data, pwd_size))
+  SN_RETURN_BOOLEAN(crypto_pwhash_scryptsalsa208sha256_str_verify(str_data, passwd_data, passwd_size))
 }
 
 // CHECK: returns 1, 0, -1
 napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_needs_rehash (napi_env env, napi_callback_info info) {
   SN_ARGV(3, crypto_pwhash_scryptsalsa208sha256_str_needs_rehash)
 
-  SN_ARGV_TYPEDARRAY(hash, 0)
+  SN_ARGV_TYPEDARRAY(str, 0)
   SN_ARGV_UINT64(opslimit, 1)
   SN_ARGV_UINT64(memlimit, 2)
 
-  SN_THROWS(hash_size != crypto_pwhash_scryptsalsa208sha256_STRBYTES, "password hash must be 102 bytes")
-  SN_THROWS(opslimit < crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN, "opslimit must be at least 32768")
-  SN_THROWS(opslimit > crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, "opslimit must be at most 4294967295")
-  SN_THROWS(memlimit < crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, "memlimit must be at least 16.7 MB")
-  SN_THROWS(memlimit > (int64_t) crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, "memlimit must be at most 68.7 GB")
+  SN_ASSERT_LENGTH(str_size, crypto_pwhash_STRBYTES, "str")
+  SN_ASSERT_MIN_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MIN, "opslimit")
+  SN_ASSERT_MAX_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MAX, "opslimit")
+  SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_MEMLIMIT_MIN, "memlimit")
+  SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_MEMLIMIT_MAX, "memlimit")
 
-  SN_RETURN_BOOLEAN(crypto_pwhash_scryptsalsa208sha256_str_needs_rehash(hash_data, opslimit, memlimit))
+  SN_RETURN_BOOLEAN(crypto_pwhash_scryptsalsa208sha256_str_needs_rehash(str_data, opslimit, memlimit))
 }
 
 napi_value sn_crypto_kx_keypair (napi_env env, napi_callback_info info) {
@@ -915,8 +915,8 @@ napi_value sn_crypto_kx_keypair (napi_env env, napi_callback_info info) {
   SN_ARGV_TYPEDARRAY(pk, 0)
   SN_ARGV_TYPEDARRAY(sk, 1)
 
-  SN_THROWS(pk_size != crypto_kx_PUBLICKEYBYTES, "public key buffer must be 32 bytes")
-  SN_THROWS(sk_size != crypto_kx_SECRETKEYBYTES, "secret key buffer must be 32 bytes")
+  SN_ASSERT_LENGTH(pk_size, crypto_kx_PUBLICKEYBYTES, "pk")
+  SN_ASSERT_LENGTH(sk_size, crypto_kx_SECRETKEYBYTES, "sk")
 
   SN_RETURN(crypto_kx_keypair(pk_data, sk_data), "failed to generate keypair")
 }
@@ -928,9 +928,9 @@ napi_value sn_crypto_kx_seed_keypair (napi_env env, napi_callback_info info) {
   SN_ARGV_TYPEDARRAY(sk, 1)
   SN_ARGV_TYPEDARRAY(seed, 2)
 
-  SN_THROWS(pk_size != crypto_kx_PUBLICKEYBYTES, "public key buffer must be 32 bytes")
-  SN_THROWS(sk_size != crypto_kx_SECRETKEYBYTES, "secret key buffer must be 32 bytes")
-  SN_THROWS(seed_size != crypto_kx_SEEDBYTES, "seed must be 32 bytes")
+  SN_ASSERT_LENGTH(pk_size, crypto_kx_PUBLICKEYBYTES, "pk")
+  SN_ASSERT_LENGTH(sk_size, crypto_kx_SECRETKEYBYTES, "sk")
+  SN_ASSERT_LENGTH(seed_size, crypto_kx_SEEDBYTES, "seed")
 
   SN_RETURN(crypto_kx_seed_keypair(pk_data, sk_data, seed_data), "failed to derive keypair from seed")
 }
@@ -947,12 +947,12 @@ napi_value sn_crypto_kx_client_session_keys (napi_env env, napi_callback_info in
   SN_ARGV_TYPEDARRAY(client_sk, 3)
   SN_ARGV_TYPEDARRAY(server_pk, 4)
 
-  SN_THROWS(client_pk_size != crypto_kx_PUBLICKEYBYTES, "client public key must be 32 bytes")
-  SN_THROWS(client_sk_size != crypto_kx_SECRETKEYBYTES, "client secret key must be 32 bytes")
-  SN_THROWS(server_pk_size != crypto_kx_PUBLICKEYBYTES, "server public key must be 32 bytes")
+  SN_ASSERT_LENGTH(client_pk_size, crypto_kx_PUBLICKEYBYTES, "client_pk")
+  SN_ASSERT_LENGTH(client_sk_size, crypto_kx_SECRETKEYBYTES, "client_sk")
+  SN_ASSERT_LENGTH(server_pk_size, crypto_kx_PUBLICKEYBYTES, "server_pk")
 
   SN_THROWS(tx_size != crypto_kx_SESSIONKEYBYTES && tx_data != NULL, "trasnmitting key buffer must be 32 bytes or null")
-  SN_THROWS(rx_size != crypto_kx_SESSIONKEYBYTES && tx_data != NULL, "receiving key buffer must be 32 bytes or null")
+  SN_THROWS(rx_size != crypto_kx_SESSIONKEYBYTES && rx_data != NULL, "receiving key buffer must be 32 bytes or null")
 
   SN_RETURN(crypto_kx_client_session_keys(rx_data, tx_data, client_pk_data, client_sk_data, server_pk_data), "failed to derive session keys")
 }
@@ -969,9 +969,9 @@ napi_value sn_crypto_kx_server_session_keys (napi_env env, napi_callback_info in
   SN_ARGV_TYPEDARRAY(server_sk, 3)
   SN_ARGV_TYPEDARRAY(client_pk, 4)
 
-  SN_THROWS(server_pk_size != crypto_kx_PUBLICKEYBYTES, "server public key must be 32 bytes")
-  SN_THROWS(server_sk_size != crypto_kx_SECRETKEYBYTES, "server secret key must be 32 bytes")
-  SN_THROWS(client_pk_size != crypto_kx_PUBLICKEYBYTES, "client public key must be 32 bytes")
+  SN_ASSERT_LENGTH(server_pk_size, crypto_kx_PUBLICKEYBYTES, "servet_pk")
+  SN_ASSERT_LENGTH(server_sk_size, crypto_kx_SECRETKEYBYTES, "servet_sk")
+  SN_ASSERT_LENGTH(client_pk_size, crypto_kx_PUBLICKEYBYTES, "client_pk")
 
   SN_THROWS(tx_size != crypto_kx_SESSIONKEYBYTES && tx_data != NULL, "trasnmitting key buffer must be 32 bytes or null")
   SN_THROWS(rx_size != crypto_kx_SESSIONKEYBYTES && rx_data != NULL, "receiving key buffer must be 32 bytes or null")
@@ -982,63 +982,63 @@ napi_value sn_crypto_kx_server_session_keys (napi_env env, napi_callback_info in
 napi_value sn_crypto_scalarmult_base (napi_env env, napi_callback_info info) {
   SN_ARGV(2, crypto_scalarmult_base)
 
-  SN_ARGV_TYPEDARRAY(pk, 0)
-  SN_ARGV_TYPEDARRAY(sk, 1)
+  SN_ARGV_TYPEDARRAY(q, 0)
+  SN_ARGV_TYPEDARRAY(n, 1)
 
-  SN_THROWS(pk_size != crypto_scalarmult_BYTES, "public key buffer must be 32 bytes")
-  SN_THROWS(sk_size != crypto_scalarmult_SCALARBYTES, "secret key buffer must be 32 bytes")
+  SN_ASSERT_LENGTH(q_size, crypto_scalarmult_BYTES, "q")
+  SN_ASSERT_LENGTH(n_size, crypto_scalarmult_SCALARBYTES, "n")
 
-  SN_RETURN(crypto_scalarmult_base(pk_data, sk_data), "failed to derive public key")
+  SN_RETURN(crypto_scalarmult_base(q_data, n_data), "failed to derive public key")
 }
 
 napi_value sn_crypto_scalarmult (napi_env env, napi_callback_info info) {
   SN_ARGV(3, crypto_scalarmult)
 
-  SN_ARGV_TYPEDARRAY(secret, 0)
-  SN_ARGV_TYPEDARRAY(sk, 1)
-  SN_ARGV_TYPEDARRAY(remote_pk, 2)
+  SN_ARGV_TYPEDARRAY(q, 0)
+  SN_ARGV_TYPEDARRAY(n, 1)
+  SN_ARGV_TYPEDARRAY(p, 2)
 
-  SN_THROWS(secret_size != crypto_scalarmult_BYTES, "shared secret buffer must be 32 bytes")
-  SN_THROWS(sk_size != crypto_scalarmult_SCALARBYTES, "secret key buffer must be 32 bytes")
-  SN_THROWS(remote_pk_size != crypto_scalarmult_BYTES, "public key buffer must be 32 bytes")
+  SN_ASSERT_LENGTH(q_size, crypto_scalarmult_BYTES, "q")
+  SN_ASSERT_LENGTH(n_size, crypto_scalarmult_SCALARBYTES, "n")
+  SN_ASSERT_LENGTH(p_size, crypto_scalarmult_BYTES, "p")
 
-  SN_RETURN(crypto_scalarmult(secret_data, sk_data, remote_pk_data), "failed to derive shared secret")
+  SN_RETURN(crypto_scalarmult(q_data, n_data, p_data), "failed to derive shared secret")
 }
 
 napi_value sn_crypto_scalarmult_ed25519_base (napi_env env, napi_callback_info info) {
   SN_ARGV(2, crypto_scalarmult_ed25519_base)
 
-  SN_ARGV_TYPEDARRAY(pk, 0)
-  SN_ARGV_TYPEDARRAY(sk, 1)
+  SN_ARGV_TYPEDARRAY(q, 0)
+  SN_ARGV_TYPEDARRAY(n, 1)
 
-  SN_THROWS(pk_size != crypto_scalarmult_ed25519_BYTES, "public key buffer must be 32 bytes")
-  SN_THROWS(sk_size != crypto_scalarmult_ed25519_SCALARBYTES, "secret key buffer must be 32 bytes")
+  SN_ASSERT_LENGTH(q_size, crypto_scalarmult_ed25519_BYTES, "q")
+  SN_ASSERT_LENGTH(n_size, crypto_scalarmult_ed25519_SCALARBYTES, "n")
 
-  SN_RETURN(crypto_scalarmult_ed25519_base(pk_data, sk_data), "failed to derive public key")
+  SN_RETURN(crypto_scalarmult_ed25519_base(q_data, n_data), "failed to derive public key")
 }
 
 napi_value sn_crypto_scalarmult_ed25519 (napi_env env, napi_callback_info info) {
   SN_ARGV(3, crypto_scalarmult_ed25519)
 
-  SN_ARGV_TYPEDARRAY(secret, 0)
-  SN_ARGV_TYPEDARRAY(sk, 1)
-  SN_ARGV_TYPEDARRAY(remote_pk, 2)
+  SN_ARGV_TYPEDARRAY(q, 0)
+  SN_ARGV_TYPEDARRAY(n, 1)
+  SN_ARGV_TYPEDARRAY(p, 2)
 
-  SN_THROWS(secret_size != crypto_scalarmult_ed25519_BYTES, "shared secret buffer must be 32 bytes")
-  SN_THROWS(sk_size != crypto_scalarmult_ed25519_SCALARBYTES, "secret key buffer must be 32 bytes")
-  SN_THROWS(remote_pk_size != crypto_scalarmult_ed25519_BYTES, "public key buffer must be 32 bytes")
+  SN_ASSERT_LENGTH(q_size, crypto_scalarmult_ed25519_BYTES, "q")
+  SN_ASSERT_LENGTH(n_size, crypto_scalarmult_ed25519_SCALARBYTES, "n")
+  SN_ASSERT_LENGTH(p_size, crypto_scalarmult_ed25519_BYTES, "p")
 
-  SN_RETURN(crypto_scalarmult_ed25519(secret_data, sk_data, remote_pk_data), "failed to derive shared secret")
+  SN_RETURN(crypto_scalarmult_ed25519(q_data, n_data, p_data), "failed to derive shared secret")
 }
 
 napi_value sn_crypto_core_ed25519_is_valid_point (napi_env env, napi_callback_info info) {
   SN_ARGV(1, crypto_core_ed25519_is_valid_point)
 
-  SN_ARGV_TYPEDARRAY(point, 0)
+  SN_ARGV_TYPEDARRAY(p, 0)
 
-  SN_THROWS(point_size != crypto_core_ed25519_BYTES, "point must be 32 bytes")
+  SN_ASSERT_LENGTH(p_size, crypto_core_ed25519_BYTES, "p")
 
-  SN_RETURN_BOOLEAN_FROM_1 (crypto_core_ed25519_is_valid_point(point_data))
+  SN_RETURN_BOOLEAN_FROM_1(crypto_core_ed25519_is_valid_point(p_data))
 }
 
 napi_value sn_crypto_core_ed25519_from_uniform (napi_env env, napi_callback_info info) {
@@ -1047,8 +1047,8 @@ napi_value sn_crypto_core_ed25519_from_uniform (napi_env env, napi_callback_info
   SN_ARGV_TYPEDARRAY(p, 0)
   SN_ARGV_TYPEDARRAY(r, 1)
 
-  SN_THROWS(p_size != crypto_core_ed25519_BYTES, "p must be 32 bytes")
-  SN_THROWS(r_size != crypto_core_ed25519_BYTES, "r must be 32 bytes")
+  SN_ASSERT_LENGTH(p_size, crypto_core_ed25519_BYTES, "p")
+  SN_ASSERT_LENGTH(r_size, crypto_core_ed25519_BYTES, "r")
 
   SN_RETURN(crypto_core_ed25519_from_uniform(p_data, r_data), "could not generate curve point from input")
 }
@@ -1056,27 +1056,27 @@ napi_value sn_crypto_core_ed25519_from_uniform (napi_env env, napi_callback_info
 napi_value sn_crypto_scalarmult_ed25519_base_noclamp (napi_env env, napi_callback_info info) {
   SN_ARGV(2, crypto_scalarmult_ed25519_base_noclamp)
 
-  SN_ARGV_TYPEDARRAY(pk, 0)
-  SN_ARGV_TYPEDARRAY(sk, 1)
+  SN_ARGV_TYPEDARRAY(q, 0)
+  SN_ARGV_TYPEDARRAY(n, 1)
 
-  SN_THROWS(pk_size != crypto_scalarmult_ed25519_BYTES, "public key buffer must be 32 bytes")
-  SN_THROWS(sk_size != crypto_scalarmult_ed25519_SCALARBYTES, "secret key buffer must be 32 bytes")
+  SN_ASSERT_LENGTH(q_size, crypto_scalarmult_ed25519_BYTES, "q")
+  SN_ASSERT_LENGTH(n_size, crypto_scalarmult_ed25519_SCALARBYTES, "n")
 
-  SN_RETURN(crypto_scalarmult_ed25519_base_noclamp(pk_data, sk_data), "failed to derive public key")
+  SN_RETURN(crypto_scalarmult_ed25519_base_noclamp(q_data, n_data), "failed to derive public key")
 }
 
 napi_value sn_crypto_scalarmult_ed25519_noclamp (napi_env env, napi_callback_info info) {
   SN_ARGV(3, crypto_scalarmult_ed25519_noclamp)
 
-  SN_ARGV_TYPEDARRAY(secret, 0)
-  SN_ARGV_TYPEDARRAY(sk, 1)
-  SN_ARGV_TYPEDARRAY(remote_pk, 2)
+  SN_ARGV_TYPEDARRAY(q, 0)
+  SN_ARGV_TYPEDARRAY(n, 1)
+  SN_ARGV_TYPEDARRAY(p, 2)
 
-  SN_THROWS(secret_size != crypto_scalarmult_ed25519_BYTES, "shared secret buffer must be 32 bytes")
-  SN_THROWS(sk_size != crypto_scalarmult_ed25519_SCALARBYTES, "secret key buffer must be 32 bytes")
-  SN_THROWS(remote_pk_size != crypto_scalarmult_ed25519_BYTES, "public key buffer must be 32 bytes")
+  SN_ASSERT_LENGTH(q_size, crypto_scalarmult_ed25519_BYTES, "q")
+  SN_ASSERT_LENGTH(n_size, crypto_scalarmult_ed25519_SCALARBYTES, "n")
+  SN_ASSERT_LENGTH(p_size, crypto_scalarmult_ed25519_BYTES, "p")
 
-  SN_RETURN(crypto_scalarmult_ed25519_noclamp(secret_data, sk_data, remote_pk_data), "failed to derive shared secret")
+  SN_RETURN(crypto_scalarmult_ed25519_noclamp(q_data, n_data, p_data), "failed to derive shared secret")
 }
 
 napi_value sn_crypto_core_ed25519_add (napi_env env, napi_callback_info info) {
@@ -1086,9 +1086,9 @@ napi_value sn_crypto_core_ed25519_add (napi_env env, napi_callback_info info) {
   SN_ARGV_TYPEDARRAY(p, 1)
   SN_ARGV_TYPEDARRAY(q, 2)
 
-  SN_THROWS(r_size != crypto_core_ed25519_BYTES, "r must be 32 bytes")
-  SN_THROWS(p_size != crypto_core_ed25519_BYTES, "p must be 32 bytes")
-  SN_THROWS(q_size != crypto_core_ed25519_BYTES, "q must be 32 bytes")
+  SN_ASSERT_LENGTH(r_size, crypto_core_ed25519_BYTES, "r")
+  SN_ASSERT_LENGTH(p_size, crypto_core_ed25519_BYTES, "p")
+  SN_ASSERT_LENGTH(q_size, crypto_core_ed25519_BYTES, "q")
 
   SN_RETURN(crypto_core_ed25519_add(r_data, p_data, q_data), "could not add curve points")
 }
@@ -1100,9 +1100,9 @@ napi_value sn_crypto_core_ed25519_sub (napi_env env, napi_callback_info info) {
   SN_ARGV_TYPEDARRAY(p, 1)
   SN_ARGV_TYPEDARRAY(q, 2)
 
-  SN_THROWS(r_size != crypto_core_ed25519_BYTES, "r must be 32 bytes")
-  SN_THROWS(p_size != crypto_core_ed25519_BYTES, "p must be 32 bytes")
-  SN_THROWS(q_size != crypto_core_ed25519_BYTES, "q must be 32 bytes")
+  SN_ASSERT_LENGTH(r_size, crypto_core_ed25519_BYTES, "r")
+  SN_ASSERT_LENGTH(p_size, crypto_core_ed25519_BYTES, "p")
+  SN_ASSERT_LENGTH(q_size, crypto_core_ed25519_BYTES, "q")
 
   SN_RETURN(crypto_core_ed25519_sub(r_data, p_data, q_data), "could not add curve points")
 }
@@ -1112,7 +1112,7 @@ napi_value sn_crypto_core_ed25519_scalar_random (napi_env env, napi_callback_inf
 
   SN_ARGV_TYPEDARRAY(r, 0)
 
-  SN_THROWS(r_size != crypto_core_ed25519_SCALARBYTES, "result buffer must be 32 bytes")
+  SN_ASSERT_LENGTH(r_size, crypto_core_ed25519_SCALARBYTES, "r")
 
   crypto_core_ed25519_scalar_random(r_data);
 
@@ -1125,8 +1125,8 @@ napi_value sn_crypto_core_ed25519_scalar_reduce (napi_env env, napi_callback_inf
   SN_ARGV_TYPEDARRAY(r, 0)
   SN_ARGV_TYPEDARRAY(s, 1)
 
-  SN_THROWS(r_size != crypto_core_ed25519_SCALARBYTES, "result buffer must be 32 bytes")
-  SN_THROWS(s_size != crypto_core_ed25519_NONREDUCEDSCALARBYTES, "scalar must be 32 bytes")
+  SN_ASSERT_LENGTH(r_size, crypto_core_ed25519_SCALARBYTES, "r")
+  SN_ASSERT_LENGTH(s_size, crypto_core_ed25519_NONREDUCEDSCALARBYTES, "s")
 
   crypto_core_ed25519_scalar_reduce(r_data, s_data);
 
@@ -1139,8 +1139,8 @@ napi_value sn_crypto_core_ed25519_scalar_invert (napi_env env, napi_callback_inf
   SN_ARGV_TYPEDARRAY(recip, 0)
   SN_ARGV_TYPEDARRAY(s, 1)
 
-  SN_THROWS(recip_size != crypto_core_ed25519_SCALARBYTES, "reciprocal buffer must be 32 bytes")
-  SN_THROWS(s_size != crypto_core_ed25519_SCALARBYTES, "scalar must be 32 bytes")
+  SN_ASSERT_LENGTH(recip_size, crypto_core_ed25519_SCALARBYTES, "recip")
+  SN_ASSERT_LENGTH(s_size, crypto_core_ed25519_SCALARBYTES, "s")
 
   crypto_core_ed25519_scalar_invert(recip_data, s_data);
 
@@ -1153,8 +1153,8 @@ napi_value sn_crypto_core_ed25519_scalar_negate (napi_env env, napi_callback_inf
   SN_ARGV_TYPEDARRAY(neg, 0)
   SN_ARGV_TYPEDARRAY(s, 1)
 
-  SN_THROWS(neg_size != crypto_core_ed25519_SCALARBYTES, "negative buffer must be 32 bytes")
-  SN_THROWS(s_size != crypto_core_ed25519_SCALARBYTES, "scalar must be 32 bytes")
+  SN_ASSERT_LENGTH(neg_size, crypto_core_ed25519_SCALARBYTES, "neg")
+  SN_ASSERT_LENGTH(s_size, crypto_core_ed25519_SCALARBYTES, "s")
 
   crypto_core_ed25519_scalar_negate(neg_data, s_data);
 
@@ -1167,8 +1167,8 @@ napi_value sn_crypto_core_ed25519_scalar_complement (napi_env env, napi_callback
   SN_ARGV_TYPEDARRAY(comp, 0)
   SN_ARGV_TYPEDARRAY(s, 1)
 
-  SN_THROWS(comp_size != crypto_core_ed25519_SCALARBYTES, "complement buffer must be 32 bytes")
-  SN_THROWS(s_size != crypto_core_ed25519_SCALARBYTES, "scalar must be 32 bytes")
+  SN_ASSERT_LENGTH(comp_size, crypto_core_ed25519_SCALARBYTES, "comp")
+  SN_ASSERT_LENGTH(s_size, crypto_core_ed25519_SCALARBYTES, "s")
 
   crypto_core_ed25519_scalar_complement(comp_data, s_data);
 
@@ -1182,9 +1182,9 @@ napi_value sn_crypto_core_ed25519_scalar_add (napi_env env, napi_callback_info i
   SN_ARGV_TYPEDARRAY(x, 1)
   SN_ARGV_TYPEDARRAY(y, 2)
 
-  SN_THROWS(z_size != crypto_core_ed25519_SCALARBYTES, "result buffer must be 32 bytes")
-  SN_THROWS(x_size != crypto_core_ed25519_SCALARBYTES, "x must be 32 bytes")
-  SN_THROWS(y_size != crypto_core_ed25519_SCALARBYTES, "y must be 32 bytes")
+  SN_ASSERT_LENGTH(z_size, crypto_core_ed25519_SCALARBYTES, "z")
+  SN_ASSERT_LENGTH(x_size, crypto_core_ed25519_SCALARBYTES, "x")
+  SN_ASSERT_LENGTH(y_size, crypto_core_ed25519_SCALARBYTES, "y")
 
   crypto_core_ed25519_scalar_add(z_data, x_data, y_data);
 
@@ -1199,9 +1199,9 @@ napi_value sn_crypto_core_ed25519_scalar_sub (napi_env env, napi_callback_info i
   SN_ARGV_TYPEDARRAY(x, 1)
   SN_ARGV_TYPEDARRAY(y, 2)
 
-  SN_THROWS(z_size != crypto_core_ed25519_SCALARBYTES, "result buffer must be 32 bytes")
-  SN_THROWS(x_size != crypto_core_ed25519_SCALARBYTES, "x must be 32 bytes")
-  SN_THROWS(y_size != crypto_core_ed25519_SCALARBYTES, "y must be 32 bytes")
+  SN_ASSERT_LENGTH(z_size, crypto_core_ed25519_SCALARBYTES, "z")
+  SN_ASSERT_LENGTH(x_size, crypto_core_ed25519_SCALARBYTES, "x")
+  SN_ASSERT_LENGTH(y_size, crypto_core_ed25519_SCALARBYTES, "y")
 
   crypto_core_ed25519_scalar_sub(z_data, x_data, y_data);
 
@@ -1211,14 +1211,14 @@ napi_value sn_crypto_core_ed25519_scalar_sub (napi_env env, napi_callback_info i
 napi_value sn_crypto_shorthash (napi_env env, napi_callback_info info) {
   SN_ARGV(3, crypto_shorthash)
 
-  SN_ARGV_TYPEDARRAY(output, 0)
-  SN_ARGV_TYPEDARRAY(input, 1)
-  SN_ARGV_TYPEDARRAY(key, 2)
+  SN_ARGV_TYPEDARRAY(out, 0)
+  SN_ARGV_TYPEDARRAY(in, 1)
+  SN_ARGV_TYPEDARRAY(k, 2)
 
-  SN_THROWS(output_size != crypto_shorthash_BYTES, "output must be 8 bytes")
-  SN_THROWS(key_size != crypto_shorthash_KEYBYTES, "key must be 16 bytes")
+  SN_ASSERT_LENGTH(out_size, crypto_shorthash_BYTES, "out")
+  SN_ASSERT_LENGTH(k_size, crypto_shorthash_KEYBYTES, "k")
 
-  SN_RETURN(crypto_shorthash(output_data, input_data, input_size, key_data), "could not compute hash")
+  SN_RETURN(crypto_shorthash(out_data, in_data, in_size, k_data), "could not compute hash")
 }
 
 napi_value sn_crypto_kdf_keygen (napi_env env, napi_callback_info info) {
@@ -1226,7 +1226,7 @@ napi_value sn_crypto_kdf_keygen (napi_env env, napi_callback_info info) {
 
   SN_ARGV_TYPEDARRAY(key, 0)
 
-  SN_THROWS(key_size != crypto_kdf_KEYBYTES, "output must be 32 bytes")
+  SN_ASSERT_LENGTH(key_size, crypto_kdf_KEYBYTES, "key")
 
   crypto_kdf_keygen(key_data);
 
@@ -1241,10 +1241,10 @@ napi_value sn_crypto_kdf_derive_from_key (napi_env env, napi_callback_info info)
   SN_ARGV_TYPEDARRAY(ctx, 2)
   SN_ARGV_TYPEDARRAY(key, 3)
 
-  SN_THROWS(subkey_size < crypto_kdf_BYTES_MIN, "subkey must at least 16 bytes")
-  SN_THROWS(subkey_size > crypto_kdf_BYTES_MAX, "subkey must at most 64 bytes")
-  SN_THROWS(ctx_size != crypto_kdf_CONTEXTBYTES, "context must be 8 bytes")
-  SN_THROWS(key_size != crypto_kdf_KEYBYTES, "output must be 32 bytes")
+  SN_ASSERT_MIN_LENGTH(subkey_size, crypto_kdf_BYTES_MIN, "subkey")
+  SN_ASSERT_MAX_LENGTH(subkey_size, crypto_kdf_BYTES_MAX, "subkey")
+  SN_ASSERT_LENGTH(ctx_size, crypto_kdf_CONTEXTBYTES, "ctx")
+  SN_ASSERT_LENGTH(key_size, crypto_kdf_KEYBYTES, "key")
 
   SN_RETURN(crypto_kdf_derive_from_key(subkey_data, subkey_size, subkey_id, ctx_data, key_data), "could not generate key")
 }
@@ -1252,23 +1252,23 @@ napi_value sn_crypto_kdf_derive_from_key (napi_env env, napi_callback_info info)
 napi_value sn_crypto_hash (napi_env env, napi_callback_info info) {
   SN_ARGV(2, crypto_hash_sha256)
 
-  SN_ARGV_TYPEDARRAY(output, 0)
-  SN_ARGV_TYPEDARRAY(input, 1)
+  SN_ARGV_TYPEDARRAY(out, 0)
+  SN_ARGV_TYPEDARRAY(in, 1)
 
-  SN_THROWS(output_size != crypto_hash_BYTES, "output must 64 bytes")
+  SN_ASSERT_LENGTH(out_size, crypto_hash_BYTES, "out")
 
-  SN_RETURN(crypto_hash(output_data, input_data, input_size), "could not compute hash")
+  SN_RETURN(crypto_hash(out_data, in_data, in_size), "could not compute hash")
 }
 
 napi_value sn_crypto_hash_sha256 (napi_env env, napi_callback_info info) {
   SN_ARGV(2, crypto_hash_sha256)
 
-  SN_ARGV_TYPEDARRAY(output, 0)
-  SN_ARGV_TYPEDARRAY(input, 1)
+  SN_ARGV_TYPEDARRAY(out, 0)
+  SN_ARGV_TYPEDARRAY(in, 1)
 
-  SN_THROWS(output_size != crypto_hash_sha256_BYTES, "output must 32 bytes")
+  SN_ASSERT_LENGTH(out_size, crypto_hash_sha256_BYTES, "out")
 
-  SN_RETURN(crypto_hash_sha256(output_data, input_data, input_size), "could not compute hash")
+  SN_RETURN(crypto_hash_sha256(out_data, in_data, in_size), "could not compute hash")
 }
 
 napi_value sn_crypto_hash_sha256_init (napi_env env, napi_callback_info info) {
@@ -1276,7 +1276,7 @@ napi_value sn_crypto_hash_sha256_init (napi_env env, napi_callback_info info) {
 
   SN_ARGV_BUFFER_CAST(crypto_hash_sha256_state *, state, 0)
 
-  SN_THROWS(state_size != sizeof(crypto_hash_sha256_state), "state must be 64 bytes")
+  SN_THROWS(state_size != sizeof(crypto_hash_sha256_state), "state must be 'crypto_hash_sha256_STATEBYTES' bytes")
 
   SN_RETURN(crypto_hash_sha256_init(state), "failed to initialise sha256")
 }
@@ -1285,34 +1285,34 @@ napi_value sn_crypto_hash_sha256_update(napi_env env, napi_callback_info info) {
   SN_ARGV(2, crypto_hash_sha256_update)
 
   SN_ARGV_BUFFER_CAST(crypto_hash_sha256_state *, state, 0)
-  SN_ARGV_TYPEDARRAY(input, 1)
+  SN_ARGV_TYPEDARRAY(in, 1)
 
-  SN_THROWS(state_size != sizeof(crypto_hash_sha256_state), "state must be 64 bytes")
+  SN_THROWS(state_size != sizeof(crypto_hash_sha256_state), "state must be 'crypto_hash_sha256_STATEBYTES' bytes")
 
-  SN_RETURN(crypto_hash_sha256_update(state, input_data, input_size), "update failed")
+  SN_RETURN(crypto_hash_sha256_update(state, in_data, in_size), "update failed")
 }
 
 napi_value sn_crypto_hash_sha256_final(napi_env env, napi_callback_info info) {
   SN_ARGV(2, crypto_hash_sha256_final)
 
   SN_ARGV_BUFFER_CAST(crypto_hash_sha256_state *, state, 0)
-  SN_ARGV_TYPEDARRAY(output, 1)
+  SN_ARGV_TYPEDARRAY(out, 1)
 
-  SN_THROWS(state_size != sizeof(crypto_hash_sha256_state), "state must be 64 bytes")
-  SN_THROWS(output_size != crypto_hash_sha256_BYTES, "state must be 32 bytes")
+  SN_THROWS(state_size != sizeof(crypto_hash_sha256_state), "state must be 'crypto_hash_sha256_STATEBYTES' bytes")
+  SN_ASSERT_LENGTH(out_size, crypto_hash_sha256_BYTES, "state")
 
-  SN_RETURN(crypto_hash_sha256_final(state, output_data), "failed to finalise")
+  SN_RETURN(crypto_hash_sha256_final(state, out_data), "failed to finalise")
 }
 
 napi_value sn_crypto_hash_sha512 (napi_env env, napi_callback_info info) {
   SN_ARGV(2, crypto_hash_sha512)
 
-  SN_ARGV_TYPEDARRAY(output, 0)
-  SN_ARGV_TYPEDARRAY(input, 1)
+  SN_ARGV_TYPEDARRAY(out, 0)
+  SN_ARGV_TYPEDARRAY(in, 1)
 
-  SN_THROWS(output_size != crypto_hash_sha512_BYTES, "output must 64 bytes")
+  SN_ASSERT_LENGTH(out_size, crypto_hash_sha512_BYTES, "out")
 
-  SN_RETURN(crypto_hash_sha512(output_data, input_data, input_size), "could not compute hash")
+  SN_RETURN(crypto_hash_sha512(out_data, in_data, in_size), "could not compute hash")
 }
 
 napi_value sn_crypto_hash_sha512_init (napi_env env, napi_callback_info info) {
@@ -1320,7 +1320,7 @@ napi_value sn_crypto_hash_sha512_init (napi_env env, napi_callback_info info) {
 
   SN_ARGV_BUFFER_CAST(crypto_hash_sha512_state *, state, 0)
 
-  SN_THROWS(state_size != sizeof(crypto_hash_sha512_state), "state must be 128 bytes")
+  SN_THROWS(state_size != sizeof(crypto_hash_sha512_state), "state must be 'crypto_hash_sha256_STATEBYTES' bytes")
 
   SN_RETURN(crypto_hash_sha512_init(state), "failed to initialise sha512")
 }
@@ -1329,124 +1329,124 @@ napi_value sn_crypto_hash_sha512_update(napi_env env, napi_callback_info info) {
   SN_ARGV(2, crypto_hash_sha512_update)
 
   SN_ARGV_BUFFER_CAST(crypto_hash_sha512_state *, state, 0)
-  SN_ARGV_TYPEDARRAY(input, 1)
+  SN_ARGV_TYPEDARRAY(in, 1)
 
-  SN_THROWS(state_size != sizeof(crypto_hash_sha512_state), "state must be 128 bytes")
+  SN_THROWS(state_size != sizeof(crypto_hash_sha512_state), "state must be 'crypto_hash_sha256_STATEBYTES' bytes")
 
-  SN_RETURN(crypto_hash_sha512_update(state, input_data, input_size), "update failed")
+  SN_RETURN(crypto_hash_sha512_update(state, in_data, in_size), "update failed")
 }
 
 napi_value sn_crypto_hash_sha512_final(napi_env env, napi_callback_info info) {
   SN_ARGV(2, crypto_hash_sha512_final)
 
   SN_ARGV_BUFFER_CAST(crypto_hash_sha512_state *, state, 0)
-  SN_ARGV_TYPEDARRAY(output, 1)
+  SN_ARGV_TYPEDARRAY(out, 1)
 
-  SN_THROWS(state_size != sizeof(crypto_hash_sha512_state), "state must be 128 bytes")
-  SN_THROWS(output_size != crypto_hash_sha512_BYTES, "state must be 64 bytes")
+  SN_THROWS(state_size != sizeof(crypto_hash_sha512_state), "state must be 'crypto_hash_sha256_STATEBYTES' bytes")
+  SN_ASSERT_LENGTH(out_size, crypto_hash_sha512_BYTES, "out")
 
-  SN_RETURN(crypto_hash_sha512_final(state, output_data), "failed to finalise hash")
+  SN_RETURN(crypto_hash_sha512_final(state, out_data), "failed to finalise hash")
 }
 
 napi_value sn_crypto_aead_xchacha20poly1305_ietf_keygen (napi_env env, napi_callback_info info) {
   SN_ARGV(1, crypto_aead_xchacha20poly1305_ietf_keygen)
 
-  SN_ARGV_TYPEDARRAY(key, 0)
+  SN_ARGV_TYPEDARRAY(k, 0)
 
-  SN_THROWS(key_size != crypto_aead_xchacha20poly1305_ietf_KEYBYTES, "key buffer must 32 bytes")
+  SN_ASSERT_LENGTH(k_size, crypto_aead_xchacha20poly1305_ietf_KEYBYTES, "k")
 
-  crypto_aead_xchacha20poly1305_ietf_keygen(key_data);
+  crypto_aead_xchacha20poly1305_ietf_keygen(k_data);
   return NULL;
 }
 
 napi_value sn_crypto_aead_xchacha20poly1305_ietf_encrypt (napi_env env, napi_callback_info info) {
   SN_ARGV(6, crypto_aead_xchacha20poly1305_ietf_encrypt)
 
-  SN_ARGV_TYPEDARRAY(ciphertext, 0)
-  SN_ARGV_TYPEDARRAY(message, 1)
+  SN_ARGV_TYPEDARRAY(c, 0)
+  SN_ARGV_TYPEDARRAY(m, 1)
   SN_ARGV_OPTS_TYPEDARRAY(ad, 2)
-  SN_ARGV_CHECK_NULL(nSec, 3)
+  SN_ARGV_CHECK_NULL(nsec, 3)
   SN_ARGV_TYPEDARRAY(npub, 4)
-  SN_ARGV_TYPEDARRAY(key, 5)
+  SN_ARGV_TYPEDARRAY(k, 5)
 
-  SN_THROWS(!nSec_is_null, "nSec must always be set to null")
+  SN_THROWS(!nsec_is_null, "nsec must always be set to null")
 
-  SN_THROWS(ciphertext_size != message_size + crypto_aead_xchacha20poly1305_ietf_ABYTES, "output must 16 bytes longer than message")
-  SN_THROWS(npub_size != crypto_aead_xchacha20poly1305_ietf_NPUBBYTES, "npub key must 24 bytes")
-  SN_THROWS(key_size != crypto_aead_xchacha20poly1305_ietf_KEYBYTES, "key must 32 bytes")
+  SN_THROWS(c_size != m_size + crypto_aead_xchacha20poly1305_ietf_ABYTES, "c must 'm.byteLength + crypto_aead_xchacha20poly1305_ietf_ABYTES' bytes")
+  SN_ASSERT_LENGTH(npub_size, crypto_aead_xchacha20poly1305_ietf_NPUBBYTES, "npub")
+  SN_ASSERT_LENGTH(k_size, crypto_aead_xchacha20poly1305_ietf_KEYBYTES, "k")
 
-  SN_RETURN(crypto_aead_xchacha20poly1305_ietf_encrypt(ciphertext_data, NULL, message_data, message_size, ad_data, ad_size, NULL, npub_data, key_data), "could not encrypt data")
+  SN_RETURN(crypto_aead_xchacha20poly1305_ietf_encrypt(c_data, NULL, m_data, m_size, ad_data, ad_size, NULL, npub_data, k_data), "could not encrypt data")
 }
 
 napi_value sn_crypto_aead_xchacha20poly1305_ietf_decrypt (napi_env env, napi_callback_info info) {
   SN_ARGV(6, crypto_aead_xchacha20poly1305_ietf_decrypt)
 
-  SN_ARGV_TYPEDARRAY(message, 0)
-  SN_ARGV_CHECK_NULL(nSec, 1)
-  SN_ARGV_TYPEDARRAY(ciphertext, 2)
+  SN_ARGV_TYPEDARRAY(m, 0)
+  SN_ARGV_CHECK_NULL(nsec, 1)
+  SN_ARGV_TYPEDARRAY(c, 2)
   SN_ARGV_OPTS_TYPEDARRAY(ad, 3)
   SN_ARGV_TYPEDARRAY(npub, 4)
-  SN_ARGV_TYPEDARRAY(key, 5)
+  SN_ARGV_TYPEDARRAY(k, 5)
 
-  SN_THROWS(!nSec_is_null, "nSec must always be set to null")
+  SN_THROWS(!nsec_is_null, "nsec must always be set to null")
 
-  SN_THROWS(message_size != ciphertext_size - crypto_aead_xchacha20poly1305_ietf_ABYTES, "output must 16 bytes shorter than ciphertext")
-  SN_THROWS(npub_size != crypto_aead_xchacha20poly1305_ietf_NPUBBYTES, "npub key must 24 bytes")
-  SN_THROWS(key_size != crypto_aead_xchacha20poly1305_ietf_KEYBYTES, "key must 32 bytes")
+  SN_THROWS(m_size != c_size - crypto_aead_xchacha20poly1305_ietf_ABYTES, "m must 'c.byteLength - crypto_aead_xchacha20poly1305_ietf_ABYTES' bytes")
+  SN_ASSERT_LENGTH(npub_size, crypto_aead_xchacha20poly1305_ietf_NPUBBYTES, "npub")
+  SN_ASSERT_LENGTH(k_size, crypto_aead_xchacha20poly1305_ietf_KEYBYTES, "k")
 
-  SN_RETURN(crypto_aead_xchacha20poly1305_ietf_decrypt(message_data, NULL, NULL, ciphertext_data, ciphertext_size, ad_data, ad_size, npub_data, key_data), "could not verify data")
+  SN_RETURN(crypto_aead_xchacha20poly1305_ietf_decrypt(m_data, NULL, NULL, c_data, c_size, ad_data, ad_size, npub_data, k_data), "could not verify data")
 }
 
 napi_value sn_crypto_aead_xchacha20poly1305_ietf_encrypt_detached (napi_env env, napi_callback_info info) {
   SN_ARGV(7, crypto_aead_xchacha20poly1305_ietf_encrypt_detached)
 
-  SN_ARGV_TYPEDARRAY(ciphertext, 0)
+  SN_ARGV_TYPEDARRAY(c, 0)
   SN_ARGV_TYPEDARRAY(mac, 1)
-  SN_ARGV_TYPEDARRAY(message, 2)
+  SN_ARGV_TYPEDARRAY(m, 2)
   SN_ARGV_OPTS_TYPEDARRAY(ad, 3)
-  SN_ARGV_CHECK_NULL(nSec, 4)
+  SN_ARGV_CHECK_NULL(nsec, 4)
   SN_ARGV_TYPEDARRAY(npub, 5)
-  SN_ARGV_TYPEDARRAY(key, 6)
+  SN_ARGV_TYPEDARRAY(k, 6)
 
-  SN_THROWS(!nSec_is_null, "nSec must always be set to null")
+  SN_THROWS(!nsec_is_null, "nsec must always be set to null")
 
-  SN_THROWS(ciphertext_size != message_size, "output must equal in length to message")
-  SN_THROWS(mac_size != crypto_aead_xchacha20poly1305_ietf_ABYTES, "MAC buffer must be 16 bytes")
-  SN_THROWS(npub_size != crypto_aead_xchacha20poly1305_ietf_NPUBBYTES, "npub key must 24 bytes")
-  SN_THROWS(key_size != crypto_aead_xchacha20poly1305_ietf_KEYBYTES, "key must 32 bytes")
+  SN_THROWS(c_size != m_size, "c must be 'm.byteLength' bytes")
+  SN_ASSERT_LENGTH(mac_size, crypto_aead_xchacha20poly1305_ietf_ABYTES, "mac")
+  SN_ASSERT_LENGTH(npub_size, crypto_aead_xchacha20poly1305_ietf_NPUBBYTES, "npub")
+  SN_ASSERT_LENGTH(k_size, crypto_aead_xchacha20poly1305_ietf_KEYBYTES, "k")
 
-  SN_RETURN(crypto_aead_xchacha20poly1305_ietf_encrypt_detached(ciphertext_data, mac_data, NULL, message_data, message_size, ad_data, ad_size, NULL, npub_data, key_data), "could not encrypt data")
+  SN_RETURN(crypto_aead_xchacha20poly1305_ietf_encrypt_detached(c_data, mac_data, NULL, m_data, m_size, ad_data, ad_size, NULL, npub_data, k_data), "could not encrypt data")
 }
 
 napi_value sn_crypto_aead_xchacha20poly1305_ietf_decrypt_detached (napi_env env, napi_callback_info info) {
   SN_ARGV(7, crypto_aead_xchacha20poly1305_ietf_decrypt_detached)
 
-  SN_ARGV_TYPEDARRAY(message, 0)
-  SN_ARGV_CHECK_NULL(nSec, 1)
-  SN_ARGV_TYPEDARRAY(ciphertext, 2)
+  SN_ARGV_TYPEDARRAY(m, 0)
+  SN_ARGV_CHECK_NULL(nsec, 1)
+  SN_ARGV_TYPEDARRAY(c, 2)
   SN_ARGV_TYPEDARRAY(mac, 3)
   SN_ARGV_OPTS_TYPEDARRAY(ad, 4)
   SN_ARGV_TYPEDARRAY(npub, 5)
-  SN_ARGV_TYPEDARRAY(key, 6)
+  SN_ARGV_TYPEDARRAY(k, 6)
 
-  SN_THROWS(!nSec_is_null, "nSec must always be set to null")
+  SN_THROWS(!nsec_is_null, "nsec must always be set to null")
 
-  SN_THROWS(message_size != ciphertext_size, "output must equal in length to ciphertext")
-  SN_THROWS(mac_size != crypto_aead_xchacha20poly1305_ietf_ABYTES, "MAC buffer must be 16 bytes")
-  SN_THROWS(npub_size != crypto_aead_xchacha20poly1305_ietf_NPUBBYTES, "npub key must 24 bytes")
-  SN_THROWS(key_size != crypto_aead_xchacha20poly1305_ietf_KEYBYTES, "key must 32 bytes")
+  SN_THROWS(m_size != c_size, "m must be 'c.byteLength' bytes")
+  SN_ASSERT_LENGTH(mac_size, crypto_aead_xchacha20poly1305_ietf_ABYTES, "mac")
+  SN_ASSERT_LENGTH(npub_size, crypto_aead_xchacha20poly1305_ietf_NPUBBYTES, "npub")
+  SN_ASSERT_LENGTH(k_size, crypto_aead_xchacha20poly1305_ietf_KEYBYTES, "k")
 
-  SN_RETURN(crypto_aead_xchacha20poly1305_ietf_decrypt_detached(message_data, NULL, ciphertext_data, ciphertext_size, mac_data, ad_data, ad_size, npub_data, key_data), "could not verify data")
+  SN_RETURN(crypto_aead_xchacha20poly1305_ietf_decrypt_detached(m_data, NULL, c_data, c_size, mac_data, ad_data, ad_size, npub_data, k_data), "could not verify data")
 }
 
 napi_value sn_crypto_secretstream_xchacha20poly1305_keygen (napi_env env, napi_callback_info info) {
   SN_ARGV(1, crypto_secretstream_xchacha20poly1305_keygen)
 
-  SN_ARGV_TYPEDARRAY(key, 0)
+  SN_ARGV_TYPEDARRAY(k, 0)
  
-  SN_THROWS(key_size != crypto_secretstream_xchacha20poly1305_KEYBYTES, "key must 32 bytes")
+  SN_ASSERT_LENGTH(k_size, crypto_secretstream_xchacha20poly1305_KEYBYTES, "k")
 
-  crypto_secretstream_xchacha20poly1305_keygen(key_data);
+  crypto_secretstream_xchacha20poly1305_keygen(k_data);
 
   return NULL;
 }
@@ -1456,29 +1456,29 @@ napi_value sn_crypto_secretstream_xchacha20poly1305_init_push (napi_env env, nap
 
   SN_ARGV_BUFFER_CAST(crypto_secretstream_xchacha20poly1305_state *, state, 0)
   SN_ARGV_TYPEDARRAY(header, 1)
-  SN_ARGV_TYPEDARRAY(key, 2)
+  SN_ARGV_TYPEDARRAY(k, 2)
 
-  SN_THROWS(state_size != sizeof(crypto_secretstream_xchacha20poly1305_state), "state must be 52")
-  SN_THROWS(header_size != crypto_secretstream_xchacha20poly1305_HEADERBYTES, "key must 24 bytes")
-  SN_THROWS(key_size != crypto_secretstream_xchacha20poly1305_KEYBYTES, "key must 32 bytes")
+  SN_THROWS(state_size != sizeof(crypto_secretstream_xchacha20poly1305_state), "state must be 'crypto_secretstream_xchacha20poly1305_STATEBYTES' bytes")
+  SN_ASSERT_LENGTH(header_size, crypto_secretstream_xchacha20poly1305_HEADERBYTES, "header")
+  SN_ASSERT_LENGTH(k_size, crypto_secretstream_xchacha20poly1305_KEYBYTES, "k")
 
-  SN_RETURN(crypto_secretstream_xchacha20poly1305_init_push(state, header_data, key_data), "initial push failed")
+  SN_RETURN(crypto_secretstream_xchacha20poly1305_init_push(state, header_data, k_data), "initial push failed")
 }
 
 napi_value sn_crypto_secretstream_xchacha20poly1305_push (napi_env env, napi_callback_info info) {
   SN_ARGV(5, crypto_secretstream_xchacha20poly1305_push)
 
   SN_ARGV_BUFFER_CAST(crypto_secretstream_xchacha20poly1305_state *, state, 0)
-  SN_ARGV_TYPEDARRAY(ciphertext, 1)
-  SN_ARGV_TYPEDARRAY(message, 2)
+  SN_ARGV_TYPEDARRAY(c, 1)
+  SN_ARGV_TYPEDARRAY(m, 2)
   SN_ARGV_OPTS_TYPEDARRAY(ad, 3)
   SN_ARGV_UINT32(tag, 4)
 
-  SN_THROWS(state_size != sizeof(crypto_secretstream_xchacha20poly1305_state), "state must be 52")
-  SN_THROWS(message_size > crypto_secretstream_xchacha20poly1305_MESSAGEBYTES_MAX, "message must be less than 256GB")
-  SN_THROWS(ciphertext_size != message_size + crypto_secretstream_xchacha20poly1305_ABYTES, "key must 24 bytes")
+  SN_THROWS(state_size != sizeof(crypto_secretstream_xchacha20poly1305_state), "state must be state must be 'crypto_secretstream_xchacha20poly1305_STATEBYTES' bytes")
+  SN_ASSERT_MAX_LENGTH(m_size, crypto_secretstream_xchacha20poly1305_MESSAGEBYTES_MAX, "m")
+  SN_THROWS(c_size != m_size + crypto_secretstream_xchacha20poly1305_ABYTES, "c must be 'm.byteLength + crypto_secretstream_xchacha20poly1305_ABYTES' bytes")
 
-  SN_RETURN(crypto_secretstream_xchacha20poly1305_push(state, ciphertext_data, NULL, message_data, message_size, ad_data, ad_size, tag), "push failed")
+  SN_RETURN(crypto_secretstream_xchacha20poly1305_push(state, c_data, NULL, m_data, m_size, ad_data, ad_size, tag), "push failed")
 }
 
 napi_value sn_crypto_secretstream_xchacha20poly1305_init_pull (napi_env env, napi_callback_info info) {
@@ -1486,28 +1486,28 @@ napi_value sn_crypto_secretstream_xchacha20poly1305_init_pull (napi_env env, nap
 
   SN_ARGV_BUFFER_CAST(crypto_secretstream_xchacha20poly1305_state *, state, 0)
   SN_ARGV_TYPEDARRAY(header, 1)
-  SN_ARGV_TYPEDARRAY(key, 2)
+  SN_ARGV_TYPEDARRAY(k, 2)
 
-  SN_THROWS(state_size != sizeof(crypto_secretstream_xchacha20poly1305_state), "state must be 52")
-  SN_THROWS(header_size != crypto_secretstream_xchacha20poly1305_HEADERBYTES, "key must 24 bytes")
-  SN_THROWS(key_size != crypto_secretstream_xchacha20poly1305_KEYBYTES, "key must 32 bytes")
+  SN_THROWS(state_size != sizeof(crypto_secretstream_xchacha20poly1305_state), "state must be state must be 'crypto_secretstream_xchacha20poly1305_STATEBYTES' bytes")
+  SN_ASSERT_LENGTH(header_size, crypto_secretstream_xchacha20poly1305_HEADERBYTES, "header")
+  SN_ASSERT_LENGTH(k_size, crypto_secretstream_xchacha20poly1305_KEYBYTES, "k")
 
-  SN_RETURN(crypto_secretstream_xchacha20poly1305_init_pull(state, header_data, key_data), "initial pull failed")
+  SN_RETURN(crypto_secretstream_xchacha20poly1305_init_pull(state, header_data, k_data), "initial pull failed")
 }
 
 napi_value sn_crypto_secretstream_xchacha20poly1305_pull (napi_env env, napi_callback_info info) {
   SN_ARGV(4, crypto_secretstream_xchacha20poly1305_pull)
 
   SN_ARGV_BUFFER_CAST(crypto_secretstream_xchacha20poly1305_state *, state, 0)
-  SN_ARGV_TYPEDARRAY(message, 1)
-  SN_ARGV_TYPEDARRAY(ciphertext, 2)
+  SN_ARGV_TYPEDARRAY(m, 1)
+  SN_ARGV_TYPEDARRAY(c, 2)
   SN_ARGV_OPTS_TYPEDARRAY(ad, 3)
 
-  SN_THROWS(state_size != sizeof(crypto_secretstream_xchacha20poly1305_state), "state must be 52 bytes")
-  SN_THROWS(message_size != ciphertext_size - crypto_secretstream_xchacha20poly1305_ABYTES, "message must be less than 17 bytes")
-  SN_THROWS(ciphertext_size != message_size + crypto_secretstream_xchacha20poly1305_ABYTES, "key must 24 bytes")
+  SN_THROWS(state_size != sizeof(crypto_secretstream_xchacha20poly1305_state), "state must be state must be 'crypto_secretstream_xchacha20poly1305_STATEBYTES' bytes")
+  SN_ASSERT_MIN_LENGTH(c_size, crypto_secretstream_xchacha20poly1305_ABYTES, "c")
+  SN_THROWS(m_size != c_size - crypto_secretstream_xchacha20poly1305_ABYTES, "m must be 'c.byteLength - crypto_secretstream_xchacha20poly1305_ABYTES")
 
-  SN_RETURN(crypto_secretstream_xchacha20poly1305_pull(state, message_data, NULL, NULL, ciphertext_data, ciphertext_size, ad_data, ad_size), "pull failed")
+  SN_RETURN(crypto_secretstream_xchacha20poly1305_pull(state, m_data, NULL, NULL, c_data, c_size, ad_data, ad_size), "pull failed")
 }
 
 napi_value sn_crypto_secretstream_xchacha20poly1305_rekey (napi_env env, napi_callback_info info) {
@@ -1515,7 +1515,7 @@ napi_value sn_crypto_secretstream_xchacha20poly1305_rekey (napi_env env, napi_ca
 
   SN_ARGV_BUFFER_CAST(crypto_secretstream_xchacha20poly1305_state *, state, 0)
 
-  SN_THROWS(state_size != sizeof(crypto_secretstream_xchacha20poly1305_state), "state must be 52 bytes")
+  SN_THROWS(state_size != sizeof(crypto_secretstream_xchacha20poly1305_state), "state must be 'crypto_secretstream_xchacha20poly1305_STATEBYTES' bytes")
 
   crypto_secretstream_xchacha20poly1305_rekey(state);
 
@@ -1526,9 +1526,9 @@ napi_value sn_crypto_secretstream_xchacha20poly1305_rekey (napi_env env, napi_ca
 
 // async
 typedef struct async_pwhash_request {
-  napi_ref output_ref;
-  unsigned char * output_data;
-  size_t output_size;
+  napi_ref out_ref;
+  unsigned char * out_data;
+  size_t out_size;
   napi_ref pwd_ref;
   const char * pwd_data;
   size_t pwd_size;
@@ -1536,7 +1536,7 @@ typedef struct async_pwhash_request {
   unsigned char * salt;
   uint32_t opslimit;
   uint32_t memlimit;
-  uint32_t algorithm;
+  uint32_t alg;
   napi_ref cb;
   int n;
   napi_async_work task;
@@ -1544,7 +1544,7 @@ typedef struct async_pwhash_request {
 
 static void async_pwhash_execute(napi_env env, void* req_v) {
   struct async_pwhash_request * req = (async_pwhash_request *)req_v;
-  req->n = crypto_pwhash(req->output_data, req->output_size, req-> pwd_data, req->pwd_size, req->salt, req->opslimit, req->memlimit, req->algorithm);
+  req->n = crypto_pwhash(req->out_data, req->out_size, req-> pwd_data, req->pwd_size, req->salt, req->opslimit, req->memlimit, req->alg);
 }
 
 static void async_pwhash_complete(napi_env env, napi_status status, void* data) {
@@ -1563,7 +1563,7 @@ static void async_pwhash_complete(napi_env env, napi_status status, void* data) 
   napi_value return_val;
   SN_STATUS_THROWS_VOID(napi_call_function(env, global, callback, 1, argv, &return_val), "");
   SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->cb), "");
-  SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->output_ref), "");
+  SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->out_ref), "");
   SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->pwd_ref), "");
   SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->salt_ref), "");
   SN_STATUS_THROWS_VOID(napi_delete_async_work(env, req->task), "");
@@ -1573,36 +1573,36 @@ static void async_pwhash_complete(napi_env env, napi_status status, void* data) 
 napi_value sn_crypto_pwhash_async (napi_env env, napi_callback_info info) {
   SN_ARGV(7, crypto_pwhash_async)
 
-  SN_ARGV_BUFFER_CAST(unsigned char *, output, 0)
+  SN_ARGV_BUFFER_CAST(unsigned char *, out, 0)
   SN_ARGV_BUFFER_CAST(char *, pwd, 1)
   SN_ARGV_BUFFER_CAST(unsigned char *, salt, 2)
   SN_ARGV_UINT64(opslimit, 3)
   SN_ARGV_UINT64(memlimit, 4)
-  SN_ARGV_UINT8(algorithm, 5)
+  SN_ARGV_UINT8(alg, 5)
   napi_value cb = argv[6];
 
-  SN_THROWS(output_size < crypto_pwhash_BYTES_MIN, "output must be at least 16 bytes")
-  SN_THROWS(output_size > crypto_pwhash_BYTES_MAX, "output must be smaller than 2^32 bytes")
-  SN_THROWS(salt_size != crypto_pwhash_SALTBYTES, "salt must be 16 bytes")
-  SN_THROWS(opslimit < crypto_pwhash_OPSLIMIT_MIN, "opslimit must be at least 1")
-  SN_THROWS(opslimit > crypto_pwhash_OPSLIMIT_MAX, "opslimit must be at most 4294967295")
-  SN_THROWS(memlimit < crypto_pwhash_MEMLIMIT_MIN, "memlimit must be at least 8 kB")
-  SN_THROWS(memlimit > (int64_t) crypto_pwhash_MEMLIMIT_MAX, "memlimit must be at most 4398 GB")
-  SN_THROWS(algorithm < 1, "algorithm must be either Argon2i 1.3 or Argon2id 1.3")
-  SN_THROWS(algorithm > 2, "algorithm must be either Argon2i 1.3 or Argon2id 1.3")
+  SN_ASSERT_MIN_LENGTH(out_size, crypto_pwhash_BYTES_MIN, "out")
+  SN_ASSERT_MAX_LENGTH(out_size, crypto_pwhash_BYTES_MAX, "out")
+  SN_ASSERT_LENGTH(salt_size, crypto_pwhash_SALTBYTES, "salt")
+  SN_ASSERT_MIN_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MIN, "opslimit")
+  SN_ASSERT_MAX_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MAX, "opslimit")
+  SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_MEMLIMIT_MIN, "memlimit")
+  SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_MEMLIMIT_MAX, "memlimit")
+  SN_THROWS(alg < 1, "alg must be either Argon2i 1.3 or Argon2id 1.3")
+  SN_THROWS(alg > 2, "algorithm must be either Argon2i 1.3 or Argon2id 1.3")
 
   async_pwhash_request * req = (async_pwhash_request *) malloc(sizeof(async_pwhash_request));
-  req->output_data = output;
-  req->output_size = output_size;
+  req->out_data = out;
+  req->out_size = out_size;
   req->pwd_data = pwd;
   req->pwd_size = pwd_size;
   req-> salt = salt;
   req->opslimit = opslimit;
   req->memlimit = memlimit;
-  req->algorithm = algorithm;
+  req->alg = alg;
 
   SN_STATUS_THROWS(napi_create_reference(env, cb, 1, &req->cb), "")
-  SN_STATUS_THROWS(napi_create_reference(env, output_argv, 1, &req->output_ref), "")
+  SN_STATUS_THROWS(napi_create_reference(env, out_argv, 1, &req->out_ref), "")
   SN_STATUS_THROWS(napi_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
   SN_STATUS_THROWS(napi_create_reference(env, salt_argv, 1, &req->salt_ref), "")
 
@@ -1620,8 +1620,8 @@ napi_value sn_crypto_pwhash_async (napi_env env, napi_callback_info info) {
 }
 
 typedef struct async_pwhash_str_request {
-  napi_ref output_ref;
-  char * output_data;
+  napi_ref out_ref;
+  char * out_data;
   napi_ref pwd_ref;
   const char * pwd_data;
   size_t pwd_size;
@@ -1634,7 +1634,7 @@ typedef struct async_pwhash_str_request {
 
 static void async_pwhash_str_execute(napi_env env, void* req_v) {
   struct async_pwhash_str_request * req = (async_pwhash_str_request *)req_v;
-  req->n = crypto_pwhash_str(req->output_data, req->pwd_data, req->pwd_size, req->opslimit, req->memlimit);
+  req->n = crypto_pwhash_str(req->out_data, req->pwd_data, req->pwd_size, req->opslimit, req->memlimit);
 }
 
 static void async_pwhash_str_complete(napi_env env, napi_status status, void* data) {
@@ -1653,7 +1653,7 @@ static void async_pwhash_str_complete(napi_env env, napi_status status, void* da
   napi_value return_val;
   SN_STATUS_THROWS_VOID(napi_call_function(env, global, callback, 1, argv, &return_val), "");
   SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->cb), "");
-  SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->output_ref), "");
+  SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->out_ref), "");
   SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->pwd_ref), "");
   SN_STATUS_THROWS_VOID(napi_delete_async_work(env, req->task), "");
   free(req);
@@ -1662,27 +1662,27 @@ static void async_pwhash_str_complete(napi_env env, napi_status status, void* da
 napi_value sn_crypto_pwhash_str_async (napi_env env, napi_callback_info info) {
   SN_ARGV(5, crypto_pwhash_str_async)
 
-  SN_ARGV_BUFFER_CAST(char *, output, 0)
+  SN_ARGV_BUFFER_CAST(char *, out, 0)
   SN_ARGV_BUFFER_CAST(char *, pwd, 1)
   SN_ARGV_UINT64(opslimit, 2)
   SN_ARGV_UINT64(memlimit, 3)
   napi_value cb = argv[4];
 
-  SN_THROWS(output_size != crypto_pwhash_STRBYTES, "output must be 128 bytes")
-  SN_THROWS(opslimit < crypto_pwhash_OPSLIMIT_MIN, "opslimit must be at least 1")
-  SN_THROWS(opslimit > crypto_pwhash_OPSLIMIT_MAX, "opslimit must be at most 4294967295")
-  SN_THROWS(memlimit < crypto_pwhash_MEMLIMIT_MIN, "memlimit must be at least 8 kB")
-  SN_THROWS(memlimit > (int64_t) crypto_pwhash_MEMLIMIT_MAX, "memlimit must be at most 4398 GB")
-
+  SN_ASSERT_LENGTH(out_size, crypto_pwhash_STRBYTES, "out")
+  SN_ASSERT_MIN_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MIN, "opslimit")
+  SN_ASSERT_MAX_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MAX, "opslimit")
+  SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_MEMLIMIT_MIN, "memlimit")
+  SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_MEMLIMIT_MAX, "memlimit")
+ 
   async_pwhash_str_request * req = (async_pwhash_str_request *) malloc(sizeof(async_pwhash_str_request));
-  req->output_data = output;
+  req->out_data = out;
   req->pwd_data = pwd;
   req->pwd_size = pwd_size;
   req->opslimit = opslimit;
   req->memlimit = memlimit;
 
   SN_STATUS_THROWS(napi_create_reference(env, cb, 1, &req->cb), "")
-  SN_STATUS_THROWS(napi_create_reference(env, output_argv, 1, &req->output_ref), "")
+  SN_STATUS_THROWS(napi_create_reference(env, out_argv, 1, &req->out_ref), "")
   SN_STATUS_THROWS(napi_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
 
   napi_value async_resource_name;
@@ -1699,8 +1699,8 @@ napi_value sn_crypto_pwhash_str_async (napi_env env, napi_callback_info info) {
 }
 
 typedef struct async_pwhash_str_verify_request {
-  napi_ref hash_ref;
-  char * hash_data;
+  napi_ref str_ref;
+  char * str_data;
   napi_ref pwd_ref;
   const char * pwd_data;
   size_t pwd_size;
@@ -1711,7 +1711,7 @@ typedef struct async_pwhash_str_verify_request {
 
 static void async_pwhash_str_verify_execute(napi_env env, void* req_v) {
   struct async_pwhash_str_verify_request * req = (async_pwhash_str_verify_request *)req_v;
-  req->n = crypto_pwhash_str_verify(req->hash_data, req->pwd_data, req->pwd_size);
+  req->n = crypto_pwhash_str_verify(req->str_data, req->pwd_data, req->pwd_size);
 }
 
 static void async_pwhash_str_verify_complete(napi_env env, napi_status status, void* data) {
@@ -1731,7 +1731,7 @@ static void async_pwhash_str_verify_complete(napi_env env, napi_status status, v
   napi_value return_val;
   SN_STATUS_THROWS_VOID(napi_call_function(env, global, callback, 2, argv, &return_val), "");
   SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->cb), "");
-  SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->hash_ref), "");
+  SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->str_ref), "");
   SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->pwd_ref), "");
   SN_STATUS_THROWS_VOID(napi_delete_async_work(env, req->task), "");
   free(req);
@@ -1740,19 +1740,19 @@ static void async_pwhash_str_verify_complete(napi_env env, napi_status status, v
 napi_value sn_crypto_pwhash_str_verify_async (napi_env env, napi_callback_info info) {
   SN_ARGV(3, crypto_pwhash_str_async)
 
-  SN_ARGV_BUFFER_CAST(char *, hash, 0)
+  SN_ARGV_BUFFER_CAST(char *, str, 0)
   SN_ARGV_BUFFER_CAST(char *, pwd, 1)
   napi_value cb = argv[2];
 
-  SN_THROWS(hash_size != crypto_pwhash_STRBYTES, "hash must be 128 bytes")
+  SN_ASSERT_LENGTH(str_size, crypto_pwhash_STRBYTES, "str")
 
   async_pwhash_str_verify_request * req = (async_pwhash_str_verify_request *) malloc(sizeof(async_pwhash_str_verify_request));
-  req->hash_data = hash;
+  req->str_data = str;
   req->pwd_data = pwd;
   req->pwd_size = pwd_size;
 
   SN_STATUS_THROWS(napi_create_reference(env, cb, 1, &req->cb), "")
-  SN_STATUS_THROWS(napi_create_reference(env, hash_argv, 1, &req->hash_ref), "")
+  SN_STATUS_THROWS(napi_create_reference(env, str_argv, 1, &req->str_ref), "")
   SN_STATUS_THROWS(napi_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
 
   napi_value async_resource_name;
@@ -1769,9 +1769,9 @@ napi_value sn_crypto_pwhash_str_verify_async (napi_env env, napi_callback_info i
 }
 
 typedef struct async_pwhash_scryptsalsa208sha256_request {
-  napi_ref output_ref;
-  unsigned char * output_data;
-  size_t output_size;
+  napi_ref out_ref;
+  unsigned char * out_data;
+  size_t out_size;
   napi_ref pwd_ref;
   const char * pwd_data;
   size_t pwd_size;
@@ -1779,7 +1779,6 @@ typedef struct async_pwhash_scryptsalsa208sha256_request {
   unsigned char * salt;
   uint32_t opslimit;
   uint32_t memlimit;
-  uint32_t algorithm;
   napi_ref cb;
   int n;
   napi_async_work task;
@@ -1787,7 +1786,7 @@ typedef struct async_pwhash_scryptsalsa208sha256_request {
 
 static void async_pwhash_scryptsalsa208sha256_execute(napi_env env, void* req_v) {
   struct async_pwhash_scryptsalsa208sha256_request * req = (async_pwhash_scryptsalsa208sha256_request *)req_v;
-  req->n = crypto_pwhash_scryptsalsa208sha256(req->output_data, req->output_size, req-> pwd_data, req->pwd_size, req->salt, req->opslimit, req->memlimit);
+  req->n = crypto_pwhash_scryptsalsa208sha256(req->out_data, req->out_size, req-> pwd_data, req->pwd_size, req->salt, req->opslimit, req->memlimit);
 }
 
 static void async_pwhash_scryptsalsa208sha256_complete(napi_env env, napi_status status, void* data) {
@@ -1806,7 +1805,7 @@ static void async_pwhash_scryptsalsa208sha256_complete(napi_env env, napi_status
   napi_value return_val;
   SN_STATUS_THROWS_VOID(napi_call_function(env, global, callback, 1, argv, &return_val), "");
   SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->cb), "");
-  SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->output_ref), "");
+  SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->out_ref), "");
   SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->pwd_ref), "");
   SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->salt_ref), "");
   SN_STATUS_THROWS_VOID(napi_delete_async_work(env, req->task), "");
@@ -1816,24 +1815,24 @@ static void async_pwhash_scryptsalsa208sha256_complete(napi_env env, napi_status
 napi_value sn_crypto_pwhash_scryptsalsa208sha256_async (napi_env env, napi_callback_info info) {
   SN_ARGV(6, crypto_pwhash_scryptsalsa208sha256_async)
 
-  SN_ARGV_BUFFER_CAST(unsigned char *, output, 0)
+  SN_ARGV_BUFFER_CAST(unsigned char *, out, 0)
   SN_ARGV_BUFFER_CAST(char *, pwd, 1)
   SN_ARGV_BUFFER_CAST(unsigned char *, salt, 2)
   SN_ARGV_UINT64(opslimit, 3)
   SN_ARGV_UINT64(memlimit, 4)
   napi_value cb = argv[5];
 
-  SN_THROWS(output_size < crypto_pwhash_scryptsalsa208sha256_BYTES_MIN, "output must be at least 16 bytes")
-  SN_THROWS(output_size > crypto_pwhash_scryptsalsa208sha256_BYTES_MAX, "output must be at most than 137438953440 bytes")
-  SN_THROWS(salt_size != crypto_pwhash_scryptsalsa208sha256_SALTBYTES, "salt must be 32 bytes")
-  SN_THROWS(opslimit < crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN, "opslimit must be at least 32768")
-  SN_THROWS(opslimit > crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, "opslimit must be at most 4294967295")
-  SN_THROWS(memlimit < crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, "memlimit must be at least 16.7 MB")
-  SN_THROWS(memlimit > (int64_t) crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, "memlimit must be at most 68.7 GB")
-
+  SN_ASSERT_MIN_LENGTH(out_size, crypto_pwhash_scryptsalsa208sha256_BYTES_MIN, "out")
+  SN_ASSERT_MAX_LENGTH(out_size, crypto_pwhash_scryptsalsa208sha256_BYTES_MAX, "out")
+  SN_ASSERT_LENGTH(salt_size, crypto_pwhash_scryptsalsa208sha256_SALTBYTES, "salt")
+  SN_ASSERT_MIN_LENGTH(opslimit, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN, "opslimit")
+  SN_ASSERT_MAX_LENGTH(opslimit, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, "opslimit")
+  SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, "memlimit")
+  SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, "memlimit")
+  
   async_pwhash_scryptsalsa208sha256_request * req = (async_pwhash_scryptsalsa208sha256_request *) malloc(sizeof(async_pwhash_scryptsalsa208sha256_request));
-  req->output_data = output;
-  req->output_size = output_size;
+  req->out_data = out;
+  req->out_size = out_size;
   req->pwd_data = pwd;
   req->pwd_size = pwd_size;
   req-> salt = salt;
@@ -1841,7 +1840,7 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_async (napi_env env, napi_callb
   req->memlimit = memlimit;
 
   SN_STATUS_THROWS(napi_create_reference(env, cb, 1, &req->cb), "")
-  SN_STATUS_THROWS(napi_create_reference(env, output_argv, 1, &req->output_ref), "")
+  SN_STATUS_THROWS(napi_create_reference(env, out_argv, 1, &req->out_ref), "")
   SN_STATUS_THROWS(napi_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
   SN_STATUS_THROWS(napi_create_reference(env, salt_argv, 1, &req->salt_ref), "")
 
@@ -1859,8 +1858,8 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_async (napi_env env, napi_callb
 }
 
 typedef struct async_pwhash_scryptsalsa208sha256_str_request {
-  napi_ref output_ref;
-  char * output_data;
+  napi_ref out_ref;
+  char * out_data;
   napi_ref pwd_ref;
   const char * pwd_data;
   size_t pwd_size;
@@ -1873,7 +1872,7 @@ typedef struct async_pwhash_scryptsalsa208sha256_str_request {
 
 static void async_pwhash_scryptsalsa208sha256_str_execute(napi_env env, void* req_v) {
   struct async_pwhash_scryptsalsa208sha256_str_request * req = (async_pwhash_scryptsalsa208sha256_str_request *)req_v;
-  req->n = crypto_pwhash_scryptsalsa208sha256_str(req->output_data, req->pwd_data, req->pwd_size, req->opslimit, req->memlimit);
+  req->n = crypto_pwhash_scryptsalsa208sha256_str(req->out_data, req->pwd_data, req->pwd_size, req->opslimit, req->memlimit);
 }
 
 static void async_pwhash_scryptsalsa208sha256_str_complete(napi_env env, napi_status status, void* data) {
@@ -1892,7 +1891,7 @@ static void async_pwhash_scryptsalsa208sha256_str_complete(napi_env env, napi_st
   napi_value return_val;
   SN_STATUS_THROWS_VOID(napi_call_function(env, global, callback, 1, argv, &return_val), "");
   SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->cb), "");
-  SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->output_ref), "");
+  SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->out_ref), "");
   SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->pwd_ref), "");
   SN_STATUS_THROWS_VOID(napi_delete_async_work(env, req->task), "");
   free(req);
@@ -1901,27 +1900,27 @@ static void async_pwhash_scryptsalsa208sha256_str_complete(napi_env env, napi_st
 napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_async (napi_env env, napi_callback_info info) {
   SN_ARGV(5, crypto_pwhash_scryptsalsa208sha256_str_async)
 
-  SN_ARGV_BUFFER_CAST(char *, output, 0)
+  SN_ARGV_BUFFER_CAST(char *, out, 0)
   SN_ARGV_BUFFER_CAST(char *, pwd, 1)
   SN_ARGV_UINT64(opslimit, 2)
   SN_ARGV_UINT64(memlimit, 3)
   napi_value cb = argv[4];
 
-  SN_THROWS(output_size != crypto_pwhash_scryptsalsa208sha256_STRBYTES, "output must be 102 bytes")
-  SN_THROWS(opslimit < crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN, "opslimit must be at least 32768")
-  SN_THROWS(opslimit > crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, "opslimit must be at most 4294967295")
-  SN_THROWS(memlimit < crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, "memlimit must be at least 16.7 MB")
-  SN_THROWS(memlimit > (int64_t) crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, "memlimit must be at most 68.7 GB")
-
+  SN_ASSERT_LENGTH(out_size, crypto_pwhash_scryptsalsa208sha256_STRBYTES, "out")
+  SN_ASSERT_MIN_LENGTH(opslimit, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN, "opslimit")
+  SN_ASSERT_MAX_LENGTH(opslimit, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, "opslimit")
+  SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, "memlimit")
+  SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, "memlimit")
+ 
   async_pwhash_scryptsalsa208sha256_str_request * req = (async_pwhash_scryptsalsa208sha256_str_request *) malloc(sizeof(async_pwhash_scryptsalsa208sha256_str_request));
-  req->output_data = output;
+  req->out_data = out;
   req->pwd_data = pwd;
   req->pwd_size = pwd_size;
   req->opslimit = opslimit;
   req->memlimit = memlimit;
 
   SN_STATUS_THROWS(napi_create_reference(env, cb, 1, &req->cb), "")
-  SN_STATUS_THROWS(napi_create_reference(env, output_argv, 1, &req->output_ref), "")
+  SN_STATUS_THROWS(napi_create_reference(env, out_argv, 1, &req->out_ref), "")
   SN_STATUS_THROWS(napi_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
 
   napi_value async_resource_name;
@@ -1938,8 +1937,8 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_async (napi_env env, napi_c
 }
 
 typedef struct async_pwhash_scryptsalsa208sha256_str_verify_request {
-  napi_ref hash_ref;
-  char * hash_data;
+  napi_ref str_ref;
+  char * str_data;
   napi_ref pwd_ref;
   const char * pwd_data;
   size_t pwd_size;
@@ -1950,7 +1949,7 @@ typedef struct async_pwhash_scryptsalsa208sha256_str_verify_request {
 
 static void async_pwhash_scryptsalsa208sha256_str_verify_execute(napi_env env, void* req_v) {
   struct async_pwhash_scryptsalsa208sha256_str_verify_request * req = (async_pwhash_scryptsalsa208sha256_str_verify_request *)req_v;
-  req->n = crypto_pwhash_scryptsalsa208sha256_str_verify(req->hash_data, req->pwd_data, req->pwd_size);
+  req->n = crypto_pwhash_scryptsalsa208sha256_str_verify(req->str_data, req->pwd_data, req->pwd_size);
 }
 
 static void async_pwhash_scryptsalsa208sha256_str_verify_complete(napi_env env, napi_status status, void* data) {
@@ -1970,7 +1969,7 @@ static void async_pwhash_scryptsalsa208sha256_str_verify_complete(napi_env env, 
   napi_value return_val;
   SN_STATUS_THROWS_VOID(napi_call_function(env, global, callback, 2, argv, &return_val), "");
   SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->cb), "");
-  SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->hash_ref), "");
+  SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->str_ref), "");
   SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->pwd_ref), "");
   SN_STATUS_THROWS_VOID(napi_delete_async_work(env, req->task), "");
   free(req);
@@ -1979,19 +1978,19 @@ static void async_pwhash_scryptsalsa208sha256_str_verify_complete(napi_env env, 
 napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_verify_async (napi_env env, napi_callback_info info) {
   SN_ARGV(3, crypto_pwhash_scryptsalsa208sha256_str_async)
 
-  SN_ARGV_BUFFER_CAST(char *, hash, 0)
+  SN_ARGV_BUFFER_CAST(char *, str, 0)
   SN_ARGV_BUFFER_CAST(char *, pwd, 1)
   napi_value cb = argv[2];
 
-  SN_THROWS(hash_size != crypto_pwhash_scryptsalsa208sha256_STRBYTES, "hash must be 102 bytes")
+  SN_ASSERT_LENGTH(str_size, crypto_pwhash_scryptsalsa208sha256_STRBYTES, "str")
 
   async_pwhash_scryptsalsa208sha256_str_verify_request * req = (async_pwhash_scryptsalsa208sha256_str_verify_request *) malloc(sizeof(async_pwhash_scryptsalsa208sha256_str_verify_request));
-  req->hash_data = hash;
+  req->str_data = str;
   req->pwd_data = pwd;
   req->pwd_size = pwd_size;
 
   SN_STATUS_THROWS(napi_create_reference(env, cb, 1, &req->cb), "")
-  SN_STATUS_THROWS(napi_create_reference(env, hash_argv, 1, &req->hash_ref), "")
+  SN_STATUS_THROWS(napi_create_reference(env, str_argv, 1, &req->str_ref), "")
   SN_STATUS_THROWS(napi_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
 
   napi_value async_resource_name;
@@ -2007,7 +2006,7 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_verify_async (napi_env env,
   return NULL;
 }
 
-napi_value create_sodium_native(napi_env env) {
+static napi_value create_sodium_native(napi_env env) {
   SN_THROWS(sodium_init() == -1, "sodium_init() failed")
 
   napi_value exports;
