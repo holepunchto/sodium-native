@@ -2007,6 +2007,89 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_verify_async (napi_env env,
   return NULL;
 }
 
+typedef struct crypto_stream_xor_state {
+  unsigned char n[crypto_stream_NONCEBYTES];
+  unsigned char k[crypto_stream_KEYBYTES];
+  unsigned char next_block[64];
+  int remainder;
+  uint64_t block_counter;
+} crypto_stream_xor_state;
+
+napi_value sn_crypto_stream_xor_wrap_init (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_stream_xor_instance_init)
+
+  SN_ARGV_BUFFER_CAST(crypto_stream_xor_state *, state, 0)
+  SN_ARGV_TYPEDARRAY(n, 1)
+  SN_ARGV_TYPEDARRAY(k, 2)
+
+  SN_THROWS(state_size != sizeof(crypto_stream_xor_state), "state must be 'crypto_stream_xor_STATEBYTES' bytes")
+  SN_ASSERT_LENGTH(n_size, crypto_stream_NONCEBYTES, "n")
+  SN_ASSERT_LENGTH(k_size, crypto_stream_KEYBYTES, "k")
+
+  state->remainder = 0;
+  state->block_counter = 0;
+  memcpy(state->n, n_data, crypto_stream_NONCEBYTES);
+  memcpy(state->k, k_data, crypto_stream_KEYBYTES);
+}
+
+
+napi_value sn_crypto_stream_xor_wrap_update (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_stream_xor_instance_init)
+
+  SN_ARGV_BUFFER_CAST(crypto_stream_xor_state *, state, 0)
+  SN_ARGV_BUFFER_CAST(unsigned char *, c, 1)
+  SN_ARGV_BUFFER_CAST(unsigned char *, m, 2)
+
+  SN_THROWS(state_size != sizeof(crypto_stream_xor_state), "state must be 'crypto_stream_xor_STATEBYTES' bytes")
+  SN_THROWS(c_size != m_size, "c must be 'm.byteLength' bytes")
+
+  unsigned char * next_block = state->next_block;
+
+  if (state->remainder) {
+    uint64_t offset = 0;
+    int rem = state->remainder;
+
+    while (rem < 64 && offset < m_size) {
+      c[offset] = next_block[rem]  ^ m[offset];
+      offset++;
+      rem++;
+    }
+
+    c += offset;
+    m += offset;
+    m_size -= offset;
+    state->remainder = rem == 64 ? 0 : rem;
+
+    if (!m_size) return NULL;
+  }
+
+  state->remainder = m_size & 63;
+  m_size -= state->remainder;
+  crypto_stream_xsalsa20_xor_ic(c, m, m_size, state->n, state->block_counter, state->k);
+  state->block_counter += m_size / 64;
+
+  if (state->remainder) {
+    sodium_memzero(next_block + state->remainder, 64 - state->remainder);
+    memcpy(next_block, m + m_size, state->remainder);
+
+    crypto_stream_xsalsa20_xor_ic(next_block, next_block, 64, state->n, state->block_counter, state->k);
+    memcpy(c + m_size, next_block, state->remainder);
+
+    state->block_counter++;
+  }
+}
+
+napi_value sn_crypto_stream_xor_wrap_final (napi_env env, napi_callback_info info) {
+  SN_ARGV(1, crypto_stream_xor_instance_init)
+
+  SN_ARGV_BUFFER_CAST(crypto_stream_xor_state *, state, 0)
+
+  sodium_memzero(state->n, sizeof(state->n));
+  sodium_memzero(state->k, sizeof(state->k));
+  sodium_memzero(state->next_block, sizeof(state->next_block));
+  state->remainder = 0;
+}
+
 static napi_value create_sodium_native(napi_env env) {
   SN_THROWS(sodium_init() == -1, "sodium_init() failed")
 
@@ -2057,6 +2140,9 @@ static napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_secretbox_open_detached, sn_crypto_secretbox_open_detached)
   SN_EXPORT_FUNCTION(crypto_stream, sn_crypto_stream)
   SN_EXPORT_FUNCTION(crypto_stream_xor, sn_crypto_stream_xor)
+  SN_EXPORT_FUNCTION(crypto_stream_xor_init, sn_crypto_stream_xor_wrap_init)
+  SN_EXPORT_FUNCTION(crypto_stream_xor_update, sn_crypto_stream_xor_wrap_update)
+  SN_EXPORT_FUNCTION(crypto_stream_xor_final, sn_crypto_stream_xor_wrap_final)
   SN_EXPORT_FUNCTION(crypto_stream_chacha20_xor, sn_crypto_stream_chacha20_xor)
   SN_EXPORT_FUNCTION(crypto_auth, sn_crypto_auth)
   SN_EXPORT_FUNCTION(crypto_auth_verify, sn_crypto_auth_verify)
@@ -2133,6 +2219,7 @@ static napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_UINT32(crypto_hash_sha256_STATEBYTES, sizeof(crypto_hash_sha256_state))
   SN_EXPORT_UINT32(crypto_hash_sha512_STATEBYTES, sizeof(crypto_hash_sha512_state))
   SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_STATEBYTES, sizeof(crypto_secretstream_xchacha20poly1305_state))
+  SN_EXPORT_UINT32(crypto_stream_xor_STATEBYTES, sizeof(crypto_stream_xor_state))
 
   SN_EXPORT_UINT32(crypto_sign_SEEDBYTES, crypto_sign_SEEDBYTES)
   SN_EXPORT_UINT32(crypto_sign_PUBLICKEYBYTES, crypto_sign_PUBLICKEYBYTES)
