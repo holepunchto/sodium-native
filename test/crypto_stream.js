@@ -40,12 +40,14 @@ tape('crypto_stream_xor_instance', function (t) {
 
   var out = Buffer.alloc(message.length)
 
-  var inst = sodium.crypto_stream_xor_instance(nonce, key)
+  var state = Buffer.alloc(sodium.crypto_stream_xor_STATEBYTES)
+  sodium.crypto_stream_xor_init(state, nonce, key)
 
   for (var i = 0; i < message.length; i++) {
-    inst.update(out.slice(i), message.slice(i, i + 1))
+    sodium.crypto_stream_xor_update(state, out.slice(i, i + 1), message.slice(i, i + 1))
   }
 
+  sodium.crypto_stream_xor_final(state)
   sodium.crypto_stream_xor(out, out, nonce, key)
   t.same(out, message, 'decrypted')
   t.end()
@@ -58,15 +60,17 @@ tape('crypto_stream_xor_instance with empty buffers', function (t) {
 
   var out = Buffer.alloc(message.length)
 
-  var inst = sodium.crypto_stream_xor_instance(nonce, key)
+  var state = Buffer.alloc(sodium.crypto_stream_xor_STATEBYTES)
+  sodium.crypto_stream_xor_init(state, nonce, key)
 
-  inst.update(Buffer.alloc(0), Buffer.alloc(0))
+  sodium.crypto_stream_xor_update(state, Buffer.alloc(0), Buffer.alloc(0))
 
   for (var i = 0; i < message.length; i++) {
-    inst.update(out.slice(i), message.slice(i, i + 1))
-    inst.update(Buffer.alloc(0), Buffer.alloc(0))
+    sodium.crypto_stream_xor_update(state, out.slice(i, i + 1), message.slice(i, i + 1))
+    sodium.crypto_stream_xor_update(state, Buffer.alloc(0), Buffer.alloc(0))
   }
 
+  sodium.crypto_stream_xor_final(state)
   sodium.crypto_stream_xor(out, out, nonce, key)
   t.same(out, message, 'decrypted')
   t.end()
@@ -76,8 +80,11 @@ tape('crypto_stream_xor_instance long stream', function (t) {
   var nonce = random(sodium.crypto_stream_NONCEBYTES)
   var key = random(sodium.crypto_stream_KEYBYTES)
 
-  var encrypt = sodium.crypto_stream_xor_instance(nonce, key)
-  var decrypt = sodium.crypto_stream_xor_instance(nonce, key)
+  var encState = Buffer.alloc(sodium.crypto_stream_xor_STATEBYTES)
+  var decState = Buffer.alloc(sodium.crypto_stream_xor_STATEBYTES)
+
+  sodium.crypto_stream_xor_init(encState, nonce, key)
+  sodium.crypto_stream_xor_init(decState, nonce, key)
   var plain = []
   var encrypted = []
   var decrypted = []
@@ -87,11 +94,11 @@ tape('crypto_stream_xor_instance long stream', function (t) {
     plain.push(next)
 
     var enc = Buffer.alloc(61)
-    encrypt.update(enc, next)
+    sodium.crypto_stream_xor_update(encState, enc, next)
     encrypted.push(enc)
 
     var dec = Buffer.alloc(61)
-    decrypt.update(dec, enc)
+    sodium.crypto_stream_xor_update(decState, dec, enc)
     decrypted.push(dec)
   }
 
@@ -107,8 +114,11 @@ tape('crypto_stream_xor_instance long stream (random chunks)', function (t) {
   var nonce = random(sodium.crypto_stream_NONCEBYTES)
   var key = random(sodium.crypto_stream_KEYBYTES)
 
-  var encrypt = sodium.crypto_stream_xor_instance(nonce, key)
-  var decrypt = sodium.crypto_stream_xor_instance(nonce, key)
+  var encState = Buffer.alloc(sodium.crypto_stream_xor_STATEBYTES)
+  var decState = Buffer.alloc(sodium.crypto_stream_xor_STATEBYTES)
+
+  sodium.crypto_stream_xor_init(encState, nonce, key)
+  sodium.crypto_stream_xor_init(decState, nonce, key)
   var plain = []
   var encrypted = []
   var decrypted = []
@@ -119,11 +129,11 @@ tape('crypto_stream_xor_instance long stream (random chunks)', function (t) {
     plain.push(next)
 
     var enc = Buffer.alloc(len)
-    encrypt.update(enc, next)
+    sodium.crypto_stream_xor_update(encState, enc, next)
     encrypted.push(enc)
 
     var dec = Buffer.alloc(len)
-    decrypt.update(dec, enc)
+    sodium.crypto_stream_xor_update(decState, dec, enc)
     decrypted.push(dec)
   }
 
@@ -139,8 +149,11 @@ tape('crypto_stream_xor_instance long stream (random chunks) with empty buffers'
   var nonce = random(sodium.crypto_stream_NONCEBYTES)
   var key = random(sodium.crypto_stream_KEYBYTES)
 
-  var encrypt = sodium.crypto_stream_xor_instance(nonce, key)
-  var decrypt = sodium.crypto_stream_xor_instance(nonce, key)
+  var encState = Buffer.alloc(sodium.crypto_stream_xor_STATEBYTES)
+  var decState = Buffer.alloc(sodium.crypto_stream_xor_STATEBYTES)
+
+  sodium.crypto_stream_xor_init(encState, nonce, key)
+  sodium.crypto_stream_xor_init(decState, nonce, key)
   var plain = []
   var encrypted = []
   var decrypted = []
@@ -150,16 +163,16 @@ tape('crypto_stream_xor_instance long stream (random chunks) with empty buffers'
     var next = random(len)
     plain.push(next)
 
-    encrypt.update(Buffer.alloc(0), Buffer.alloc(0))
+    sodium.crypto_stream_xor_update(encState, Buffer.alloc(0), Buffer.alloc(0))
 
     var enc = Buffer.alloc(len)
-    encrypt.update(enc, next)
+    sodium.crypto_stream_xor_update(encState, enc, next)
     encrypted.push(enc)
 
     var dec = Buffer.alloc(len)
-    decrypt.update(dec, enc)
+    sodium.crypto_stream_xor_update(decState, dec, enc)
     decrypted.push(dec)
-    decrypt.update(Buffer.alloc(0), Buffer.alloc(0))
+    sodium.crypto_stream_xor_update(decState, Buffer.alloc(0), Buffer.alloc(0))
   }
 
   var enc2 = Buffer.alloc(Buffer.concat(plain).length)
@@ -177,7 +190,8 @@ tape('crypto_stream_xor_instance after GC', function (t) {
 
   var out = Buffer.alloc(message.length)
 
-  var inst = sodium.crypto_stream_xor_instance(nonce, key)
+  var state = Buffer.alloc(sodium.crypto_stream_xor_STATEBYTES)
+  sodium.crypto_stream_xor_init(state, nonce, key)
 
   var nonceCopy = Buffer.from(nonce.toString('hex'), 'hex')
   var keyCopy = Buffer.from(key.toString('hex'), 'hex')
@@ -187,9 +201,10 @@ tape('crypto_stream_xor_instance after GC', function (t) {
   forceGC()
 
   for (var i = 0; i < message.length; i++) {
-    inst.update(out.slice(i), message.slice(i, i + 1))
+    sodium.crypto_stream_xor_update(state, out.slice(i, i + 1), message.slice(i, i + 1))
   }
 
+  sodium.crypto_stream_xor_final(state)
   sodium.crypto_stream_xor(out, out, nonceCopy, keyCopy)
   t.same(out, message, 'decrypted')
   t.end()
@@ -197,17 +212,19 @@ tape('crypto_stream_xor_instance after GC', function (t) {
 
 tape('crypto_stream_chacha20_xor_instance', function (t) {
   var message = Buffer.from('Hello, world!')
-  var nonce = random(sodium.crypto_stream_NONCEBYTES)
-  var key = random(sodium.crypto_stream_KEYBYTES)
+  var nonce = random(sodium.crypto_stream_chacha20_NONCEBYTES)
+  var key = random(sodium.crypto_stream_chacha20_KEYBYTES)
 
   var out = Buffer.alloc(message.length)
 
-  var inst = sodium.crypto_stream_chacha20_xor_instance(nonce, key)
+  var state = Buffer.alloc(sodium.crypto_stream_chacha20_xor_STATEBYTES)
+  sodium.crypto_stream_chacha20_xor_init(state, nonce, key)
 
   for (var i = 0; i < message.length; i++) {
-    inst.update(out.slice(i), message.slice(i, i + 1))
+    sodium.crypto_stream_chacha20_xor_update(state, out.slice(i, i + 1), message.slice(i, i + 1))
   }
 
+  sodium.crypto_stream_chacha20_xor_final(state)
   sodium.crypto_stream_chacha20_xor(out, out, nonce, key)
   t.same(out, message, 'decrypted')
   t.end()
@@ -215,31 +232,36 @@ tape('crypto_stream_chacha20_xor_instance', function (t) {
 
 tape('crypto_stream_chacha20_xor_instance with empty buffers', function (t) {
   var message = Buffer.from('Hello, world!')
-  var nonce = random(sodium.crypto_stream_NONCEBYTES)
-  var key = random(sodium.crypto_stream_KEYBYTES)
+  var nonce = random(sodium.crypto_stream_chacha20_NONCEBYTES)
+  var key = random(sodium.crypto_stream_chacha20_KEYBYTES)
 
   var out = Buffer.alloc(message.length)
 
-  var inst = sodium.crypto_stream_chacha20_xor_instance(nonce, key)
+  var state = Buffer.alloc(sodium.crypto_stream_chacha20_xor_STATEBYTES)
+  sodium.crypto_stream_chacha20_xor_init(state, nonce, key)
 
-  inst.update(Buffer.alloc(0), Buffer.alloc(0))
+  sodium.crypto_stream_chacha20_xor_update(state, Buffer.alloc(0), Buffer.alloc(0))
 
   for (var i = 0; i < message.length; i++) {
-    inst.update(out.slice(i), message.slice(i, i + 1))
-    inst.update(Buffer.alloc(0), Buffer.alloc(0))
+    sodium.crypto_stream_chacha20_xor_update(state, out.slice(i, i + 1), message.slice(i, i + 1))
+    sodium.crypto_stream_chacha20_xor_update(state, Buffer.alloc(0), Buffer.alloc(0))
   }
 
+  sodium.crypto_stream_chacha20_xor_final(state)
   sodium.crypto_stream_chacha20_xor(out, out, nonce, key)
   t.same(out, message, 'decrypted')
   t.end()
 })
 
 tape('crypto_stream_chacha20_xor_instance long stream', function (t) {
-  var nonce = random(sodium.crypto_stream_NONCEBYTES)
-  var key = random(sodium.crypto_stream_KEYBYTES)
+  var nonce = random(sodium.crypto_stream_chacha20_NONCEBYTES)
+  var key = random(sodium.crypto_stream_chacha20_KEYBYTES)
 
-  var encrypt = sodium.crypto_stream_chacha20_xor_instance(nonce, key)
-  var decrypt = sodium.crypto_stream_chacha20_xor_instance(nonce, key)
+  var encState = Buffer.alloc(sodium.crypto_stream_chacha20_xor_STATEBYTES)
+  var decState = Buffer.alloc(sodium.crypto_stream_chacha20_xor_STATEBYTES)
+
+  sodium.crypto_stream_chacha20_xor_init(encState, nonce, key)
+  sodium.crypto_stream_chacha20_xor_init(decState, nonce, key)
   var plain = []
   var encrypted = []
   var decrypted = []
@@ -249,11 +271,11 @@ tape('crypto_stream_chacha20_xor_instance long stream', function (t) {
     plain.push(next)
 
     var enc = Buffer.alloc(61)
-    encrypt.update(enc, next)
+    sodium.crypto_stream_chacha20_xor_update(encState, enc, next)
     encrypted.push(enc)
 
     var dec = Buffer.alloc(61)
-    decrypt.update(dec, enc)
+    sodium.crypto_stream_chacha20_xor_update(decState, dec, enc)
     decrypted.push(dec)
   }
 
@@ -266,11 +288,14 @@ tape('crypto_stream_chacha20_xor_instance long stream', function (t) {
 })
 
 tape('crypto_stream_chacha20_xor_instance long stream (random chunks)', function (t) {
-  var nonce = random(sodium.crypto_stream_NONCEBYTES)
-  var key = random(sodium.crypto_stream_KEYBYTES)
+  var nonce = random(sodium.crypto_stream_chacha20_NONCEBYTES)
+  var key = random(sodium.crypto_stream_chacha20_KEYBYTES)
 
-  var encrypt = sodium.crypto_stream_chacha20_xor_instance(nonce, key)
-  var decrypt = sodium.crypto_stream_chacha20_xor_instance(nonce, key)
+  var encState = Buffer.alloc(sodium.crypto_stream_chacha20_xor_STATEBYTES)
+  var decState = Buffer.alloc(sodium.crypto_stream_chacha20_xor_STATEBYTES)
+
+  sodium.crypto_stream_chacha20_xor_init(encState, nonce, key)
+  sodium.crypto_stream_chacha20_xor_init(decState, nonce, key)
   var plain = []
   var encrypted = []
   var decrypted = []
@@ -281,11 +306,11 @@ tape('crypto_stream_chacha20_xor_instance long stream (random chunks)', function
     plain.push(next)
 
     var enc = Buffer.alloc(len)
-    encrypt.update(enc, next)
+    sodium.crypto_stream_chacha20_xor_update(encState, enc, next)
     encrypted.push(enc)
 
     var dec = Buffer.alloc(len)
-    decrypt.update(dec, enc)
+    sodium.crypto_stream_chacha20_xor_update(decState, dec, enc)
     decrypted.push(dec)
   }
 
@@ -298,11 +323,14 @@ tape('crypto_stream_chacha20_xor_instance long stream (random chunks)', function
 })
 
 tape('crypto_stream_chacha20_xor_instance long stream (random chunks) with empty buffers', function (t) {
-  var nonce = random(sodium.crypto_stream_NONCEBYTES)
-  var key = random(sodium.crypto_stream_KEYBYTES)
+  var nonce = random(sodium.crypto_stream_chacha20_NONCEBYTES)
+  var key = random(sodium.crypto_stream_chacha20_KEYBYTES)
 
-  var encrypt = sodium.crypto_stream_chacha20_xor_instance(nonce, key)
-  var decrypt = sodium.crypto_stream_chacha20_xor_instance(nonce, key)
+  var encState = Buffer.alloc(sodium.crypto_stream_chacha20_xor_STATEBYTES)
+  var decState = Buffer.alloc(sodium.crypto_stream_chacha20_xor_STATEBYTES)
+
+  sodium.crypto_stream_chacha20_xor_init(encState, nonce, key)
+  sodium.crypto_stream_chacha20_xor_init(decState, nonce, key)
   var plain = []
   var encrypted = []
   var decrypted = []
@@ -312,16 +340,16 @@ tape('crypto_stream_chacha20_xor_instance long stream (random chunks) with empty
     var next = random(len)
     plain.push(next)
 
-    encrypt.update(Buffer.alloc(0), Buffer.alloc(0))
+    sodium.crypto_stream_chacha20_xor_update(encState, Buffer.alloc(0), Buffer.alloc(0))
 
     var enc = Buffer.alloc(len)
-    encrypt.update(enc, next)
+    sodium.crypto_stream_chacha20_xor_update(encState, enc, next)
     encrypted.push(enc)
 
     var dec = Buffer.alloc(len)
-    decrypt.update(dec, enc)
+    sodium.crypto_stream_chacha20_xor_update(decState, dec, enc)
     decrypted.push(dec)
-    decrypt.update(Buffer.alloc(0), Buffer.alloc(0))
+    sodium.crypto_stream_chacha20_xor_update(decState, Buffer.alloc(0), Buffer.alloc(0))
   }
 
   var enc2 = Buffer.alloc(Buffer.concat(plain).length)
@@ -334,12 +362,13 @@ tape('crypto_stream_chacha20_xor_instance long stream (random chunks) with empty
 
 tape('crypto_stream_chacha20_xor_instance after GC', function (t) {
   var message = Buffer.from('Hello, world!')
-  var nonce = random(sodium.crypto_stream_NONCEBYTES)
-  var key = random(sodium.crypto_stream_KEYBYTES)
+  var nonce = random(sodium.crypto_stream_chacha20_NONCEBYTES)
+  var key = random(sodium.crypto_stream_chacha20_KEYBYTES)
 
   var out = Buffer.alloc(message.length)
 
-  var inst = sodium.crypto_stream_chacha20_xor_instance(nonce, key)
+  var state = Buffer.alloc(sodium.crypto_stream_chacha20_xor_STATEBYTES)
+  sodium.crypto_stream_chacha20_xor_init(state, nonce, key)
 
   var nonceCopy = Buffer.from(nonce.toString('hex'), 'hex')
   var keyCopy = Buffer.from(key.toString('hex'), 'hex')
@@ -349,9 +378,10 @@ tape('crypto_stream_chacha20_xor_instance after GC', function (t) {
   forceGC()
 
   for (var i = 0; i < message.length; i++) {
-    inst.update(out.slice(i), message.slice(i, i + 1))
+    sodium.crypto_stream_chacha20_xor_update(state, out.slice(i, i + 1), message.slice(i, i + 1))
   }
 
+  sodium.crypto_stream_chacha20_xor_final(state)
   sodium.crypto_stream_chacha20_xor(out, out, nonceCopy, keyCopy)
   t.same(out, message, 'decrypted')
   t.end()
