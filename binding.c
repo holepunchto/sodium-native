@@ -782,8 +782,8 @@ napi_value sn_crypto_pwhash (napi_env env, napi_callback_info info) {
   SN_ARGV_TYPEDARRAY(out, 0)
   SN_ARGV_TYPEDARRAY(passwd, 1)
   SN_ARGV_TYPEDARRAY(salt, 2)
-  SN_ARGV_UINT64(opslimit, 3)
-  SN_ARGV_UINT64(memlimit, 4)
+  SN_ARGV_UINT32_AS_UINT64(opslimit, 3)
+  SN_ARGV_UINT32_AS_UINT64(memlimit, 4)
   SN_ARGV_UINT8(alg, 5)
 
   SN_ASSERT_MIN_LENGTH(out_size, crypto_pwhash_BYTES_MIN, "out")
@@ -804,8 +804,8 @@ napi_value sn_crypto_pwhash_str (napi_env env, napi_callback_info info) {
 
   SN_ARGV_TYPEDARRAY(out, 0)
   SN_ARGV_TYPEDARRAY(passwd, 1)
-  SN_ARGV_UINT64(opslimit, 2)
-  SN_ARGV_UINT64(memlimit, 3)
+  SN_ARGV_UINT32_AS_UINT64(opslimit, 2)
+  SN_ARGV_UINT32_AS_UINT64(memlimit, 3)
 
   SN_ASSERT_LENGTH(out_size, crypto_pwhash_STRBYTES, "out")
   SN_ASSERT_MIN_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MIN, "opslimit")
@@ -832,8 +832,8 @@ napi_value sn_crypto_pwhash_str_needs_rehash (napi_env env, napi_callback_info i
   SN_ARGV(3, crypto_pwhash_str_needs_rehash)
 
   SN_ARGV_TYPEDARRAY(str, 0)
-  SN_ARGV_UINT64(opslimit, 1)
-  SN_ARGV_UINT64(memlimit, 2)
+  SN_ARGV_UINT32_AS_UINT64(opslimit, 1)
+  SN_ARGV_UINT32_AS_UINT64(memlimit, 2)
 
   SN_ASSERT_LENGTH(str_size, crypto_pwhash_STRBYTES, "str")
   SN_ASSERT_MIN_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MIN, "opslimit")
@@ -851,8 +851,8 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256 (napi_env env, napi_callback_in
   SN_ARGV_TYPEDARRAY(out, 0)
   SN_ARGV_TYPEDARRAY(passwd, 1)
   SN_ARGV_TYPEDARRAY(salt, 2)
-  SN_ARGV_UINT64(opslimit, 3)
-  SN_ARGV_UINT64(memlimit, 4)
+  SN_ARGV_UINT32_AS_UINT64(opslimit, 3)
+  SN_ARGV_UINT32_AS_UINT64(memlimit, 4)
 
   SN_ASSERT_MIN_LENGTH(out_size, crypto_pwhash_scryptsalsa208sha256_BYTES_MIN, "out")
   SN_ASSERT_MAX_LENGTH(out_size, crypto_pwhash_scryptsalsa208sha256_BYTES_MAX, "out")
@@ -870,8 +870,8 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_str (napi_env env, napi_callbac
 
   SN_ARGV_TYPEDARRAY(out, 0)
   SN_ARGV_TYPEDARRAY(passwd, 1)
-  SN_ARGV_UINT64(opslimit, 2)
-  SN_ARGV_UINT64(memlimit, 3)
+  SN_ARGV_UINT32_AS_UINT64(opslimit, 2)
+  SN_ARGV_UINT32_AS_UINT64(memlimit, 3)
 
   SN_ASSERT_LENGTH(out_size, crypto_pwhash_scryptsalsa208sha256_STRBYTES, "out")
   SN_ASSERT_MIN_LENGTH(opslimit, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN, "opslimit")
@@ -898,8 +898,8 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_needs_rehash (napi_env env,
   SN_ARGV(3, crypto_pwhash_scryptsalsa208sha256_str_needs_rehash)
 
   SN_ARGV_TYPEDARRAY(str, 0)
-  SN_ARGV_UINT64(opslimit, 1)
-  SN_ARGV_UINT64(memlimit, 2)
+  SN_ARGV_UINT32_AS_UINT64(opslimit, 1)
+  SN_ARGV_UINT32_AS_UINT64(memlimit, 2)
 
   SN_ASSERT_LENGTH(str_size, crypto_pwhash_STRBYTES, "str")
   SN_ASSERT_MIN_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MIN, "opslimit")
@@ -1238,7 +1238,7 @@ napi_value sn_crypto_kdf_derive_from_key (napi_env env, napi_callback_info info)
   SN_ARGV(4, crypto_kdf_derive_from_key)
 
   SN_ARGV_TYPEDARRAY(subkey, 0)
-  SN_ARGV_UINT64(subkey_id, 1)
+  SN_ARGV_UINT32_AS_UINT64(subkey_id, 1)
   SN_ARGV_TYPEDARRAY(ctx, 2)
   SN_ARGV_TYPEDARRAY(key, 3)
 
@@ -1577,8 +1577,8 @@ napi_value sn_crypto_pwhash_async (napi_env env, napi_callback_info info) {
   SN_ARGV_BUFFER_CAST(unsigned char *, out, 0)
   SN_ARGV_BUFFER_CAST(char *, pwd, 1)
   SN_ARGV_BUFFER_CAST(unsigned char *, salt, 2)
-  SN_ARGV_UINT64(opslimit, 3)
-  SN_ARGV_UINT64(memlimit, 4)
+  SN_ARGV_UINT32_AS_UINT64(opslimit, 3)
+  SN_ARGV_UINT32_AS_UINT64(memlimit, 4)
   SN_ARGV_UINT8(alg, 5)
   napi_value cb = argv[6];
 
@@ -1665,8 +1665,8 @@ napi_value sn_crypto_pwhash_str_async (napi_env env, napi_callback_info info) {
 
   SN_ARGV_BUFFER_CAST(char *, out, 0)
   SN_ARGV_BUFFER_CAST(char *, pwd, 1)
-  SN_ARGV_UINT64(opslimit, 2)
-  SN_ARGV_UINT64(memlimit, 3)
+  SN_ARGV_UINT32_AS_UINT64(opslimit, 2)
+  SN_ARGV_UINT32_AS_UINT64(memlimit, 3)
   napi_value cb = argv[4];
 
   SN_ASSERT_LENGTH(out_size, crypto_pwhash_STRBYTES, "out")
@@ -1819,8 +1819,8 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_async (napi_env env, napi_callb
   SN_ARGV_BUFFER_CAST(unsigned char *, out, 0)
   SN_ARGV_BUFFER_CAST(char *, pwd, 1)
   SN_ARGV_BUFFER_CAST(unsigned char *, salt, 2)
-  SN_ARGV_UINT64(opslimit, 3)
-  SN_ARGV_UINT64(memlimit, 4)
+  SN_ARGV_UINT32_AS_UINT64(opslimit, 3)
+  SN_ARGV_UINT32_AS_UINT64(memlimit, 4)
   napi_value cb = argv[5];
 
   SN_ASSERT_MIN_LENGTH(out_size, crypto_pwhash_scryptsalsa208sha256_BYTES_MIN, "out")
@@ -1903,8 +1903,8 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_async (napi_env env, napi_c
 
   SN_ARGV_BUFFER_CAST(char *, out, 0)
   SN_ARGV_BUFFER_CAST(char *, pwd, 1)
-  SN_ARGV_UINT64(opslimit, 2)
-  SN_ARGV_UINT64(memlimit, 3)
+  SN_ARGV_UINT32_AS_UINT64(opslimit, 2)
+  SN_ARGV_UINT32_AS_UINT64(memlimit, 3)
   napi_value cb = argv[4];
 
   SN_ASSERT_LENGTH(out_size, crypto_pwhash_scryptsalsa208sha256_STRBYTES, "out")
