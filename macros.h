@@ -150,6 +150,12 @@
     return NULL; \
   }
 
+#define SN_OPT_UINT32(name, val) \
+  if (napi_get_value_uint32(env, val, (uint32_t *) &name) != napi_ok) { \
+    napi_throw_error(env, "EINVAL", "Expected number"); \
+    return NULL; \
+  }
+
 #define SN_UINT64(name, val) \
   int64_t name; \
   if (napi_get_value_int64(env, val, &name) != napi_ok) { \
@@ -203,6 +209,15 @@
   napi_value name##_argv = argv[index]; \
   SN_TYPE_ASSERT(name, name##_argv, napi_number, #name " must be an instance of Number") \
   SN_UINT32_AS_UINT64(name, name##_argv)
+
+#define SN_OPT_ARGV_UINT32(name, index) \
+  napi_value name##_argv = argv[index]; \
+  SN_TYPE_ASSERT(name, name##_argv, napi_number, #name " must be an instance of Number") \
+  SN_OPT_UINT32(name, name##_argv)
+
+#define SN_CALL(call, message) \
+  int success = call; \
+  SN_THROWS(success != 0, message)
 
 #define SN_RETURN(call, message) \
   int success = call; \

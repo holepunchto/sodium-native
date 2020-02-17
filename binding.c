@@ -191,11 +191,18 @@ napi_value sn_sodium_compare(napi_env env, napi_callback_info info) {
 }
 
 napi_value sn_sodium_is_zero(napi_env env, napi_callback_info info) {
-  SN_ARGV(1, sodium_is_zero);
+  SN_ARGV_OPTS(1, 2, sodium_is_zero);
 
   SN_ARGV_TYPEDARRAY(a, 0)
 
-  SN_RETURN_BOOLEAN(sodium_is_zero(a_data, a_size))
+  size_t a_full = a_size;
+
+  if (argc == 2) {
+    SN_OPT_ARGV_UINT32(a_size, 1)
+    SN_THROWS(a_size > a_full, "len must be shorter than buf.byteLength")
+  }
+
+  SN_RETURN_BOOLEAN_FROM_1(sodium_is_zero(a_data, a_size))
 }
 
 napi_value sn_sodium_pad(napi_env env, napi_callback_info info) {
@@ -842,7 +849,7 @@ napi_value sn_crypto_pwhash_str_needs_rehash (napi_env env, napi_callback_info i
   SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_MEMLIMIT_MIN, "memlimit")
   SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_MEMLIMIT_MAX, "memlimit")
 
-  SN_RETURN_BOOLEAN(crypto_pwhash_str_needs_rehash(str_data, opslimit, memlimit))
+  SN_RETURN_BOOLEAN_FROM_1(crypto_pwhash_str_needs_rehash(str_data, opslimit, memlimit))
 }
 
 // CHECK: memlimit can be >32bit
@@ -908,7 +915,7 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_needs_rehash (napi_env env,
   SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_MEMLIMIT_MIN, "memlimit")
   SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_MEMLIMIT_MAX, "memlimit")
 
-  SN_RETURN_BOOLEAN(crypto_pwhash_scryptsalsa208sha256_str_needs_rehash(str_data, opslimit, memlimit))
+  SN_RETURN_BOOLEAN_FROM_1(crypto_pwhash_scryptsalsa208sha256_str_needs_rehash(str_data, opslimit, memlimit))
 }
 
 napi_value sn_crypto_kx_keypair (napi_env env, napi_callback_info info) {
