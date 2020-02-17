@@ -37,6 +37,17 @@
     return NULL; \
   }
 
+#define SN_ASSERT_MIN_LENGTH(length, constant, name) \
+  SN_THROWS(length < constant, #name " must be at least " #constant " bytes long")
+
+
+#define SN_ASSERT_MAX_LENGTH(length, constant, name) \
+  SN_THROWS(length > constant, #name " must be at most " #constant " bytes long")
+
+
+#define SN_ASSERT_LENGTH(length, constant, name) \
+  SN_THROWS(length != constant, #name " must be " #constant " bytes long")
+
 #define SN_RANGE_THROWS(condition, message) \
   if (condition) { \
     napi_throw_range_error(env, NULL, message); \
