@@ -141,7 +141,7 @@ tape('crypto_pwhash_str_async', function (t) {
   })
 })
 
-tape('crypto_pwhash limits', function (t) {
+tape.skip('crypto_pwhash limits', function (t) {
   var output = Buffer.alloc(sodium.crypto_pwhash_STRBYTES)
   var passwd = Buffer.from('Hej, Verden!')
   var opslimit = Number.MAX_SAFE_INTEGER

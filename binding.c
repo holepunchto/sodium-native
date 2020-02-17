@@ -2386,6 +2386,7 @@ static napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_UINT32(crypto_onetimeauth_KEYBYTES, crypto_onetimeauth_KEYBYTES)
   SN_EXPORT_STRING(crypto_onetimeauth_PRIMITIVE, crypto_onetimeauth_PRIMITIVE)
   SN_EXPORT_UINT32(crypto_pwhash_ALG_ARGON2I13, crypto_pwhash_ALG_ARGON2I13)
+  SN_EXPORT_UINT32(crypto_pwhash_ALG_ARGON2ID13, crypto_pwhash_ALG_ARGON2ID13)
   SN_EXPORT_UINT32(crypto_pwhash_ALG_DEFAULT, crypto_pwhash_ALG_DEFAULT)
   SN_EXPORT_UINT32(crypto_pwhash_BYTES_MIN, crypto_pwhash_BYTES_MIN)
   SN_EXPORT_UINT32(crypto_pwhash_BYTES_MAX, crypto_pwhash_BYTES_MAX)
