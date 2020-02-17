@@ -1550,24 +1550,24 @@ static void async_pwhash_execute(napi_env env, void* req_v) {
 
 static void async_pwhash_complete(napi_env env, napi_status status, void* data) {
   async_pwhash_request * req = (async_pwhash_request *)data;
-  SN_STATUS_THROWS_VOID(status, "");
+  assert(status == napi_ok);
 
   napi_value global;
-  SN_STATUS_THROWS_VOID(napi_get_global(env, &global), "");
+  assert(napi_get_global(env, &global) == napi_ok);
 
   napi_value argv[1];
   napi_get_null(env, &argv[0]);
 
   napi_value callback;
-  SN_STATUS_THROWS_VOID(napi_get_reference_value(env, req->cb, &callback), "");
+  assert(napi_get_reference_value(env, req->cb, &callback) == napi_ok);
 
   napi_value return_val;
-  SN_STATUS_THROWS_VOID(napi_call_function(env, global, callback, 1, argv, &return_val), "");
-  SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->cb), "");
-  SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->out_ref), "");
-  SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->pwd_ref), "");
-  SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->salt_ref), "");
-  SN_STATUS_THROWS_VOID(napi_delete_async_work(env, req->task), "");
+  assert(napi_call_function(env, global, callback, 1, argv, &return_val) == napi_ok);
+  assert(napi_delete_reference(env, req->cb) == napi_ok);
+  assert(napi_delete_reference(env, req->out_ref) == napi_ok);
+  assert(napi_delete_reference(env, req->pwd_ref) == napi_ok);
+  assert(napi_delete_reference(env, req->salt_ref) == napi_ok);
+  assert(napi_delete_async_work(env, req->task) == napi_ok);
   free(req);
 }
 
@@ -1640,23 +1640,23 @@ static void async_pwhash_str_execute(napi_env env, void* req_v) {
 
 static void async_pwhash_str_complete(napi_env env, napi_status status, void* data) {
   async_pwhash_str_request * req = (async_pwhash_str_request *)data;
-  SN_STATUS_THROWS_VOID(status, "");
+  assert(status == napi_ok);
 
   napi_value global;
-  SN_STATUS_THROWS_VOID(napi_get_global(env, &global), "");
+  assert(napi_get_global(env, &global) == napi_ok);
 
   napi_value argv[1];
   napi_get_null(env, &argv[0]);
 
   napi_value callback;
-  SN_STATUS_THROWS_VOID(napi_get_reference_value(env, req->cb, &callback), "");
+  assert(napi_get_reference_value(env, req->cb, &callback) == napi_ok);
 
   napi_value return_val;
-  SN_STATUS_THROWS_VOID(napi_call_function(env, global, callback, 1, argv, &return_val), "");
-  SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->cb), "");
-  SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->out_ref), "");
-  SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->pwd_ref), "");
-  SN_STATUS_THROWS_VOID(napi_delete_async_work(env, req->task), "");
+  assert(napi_call_function(env, global, callback, 1, argv, &return_val) == napi_ok);
+  assert(napi_delete_reference(env, req->cb) == napi_ok);
+  assert(napi_delete_reference(env, req->out_ref) == napi_ok);
+  assert(napi_delete_reference(env, req->pwd_ref) == napi_ok);
+  assert(napi_delete_async_work(env, req->task) == napi_ok);
   free(req);
 }
 
@@ -1717,24 +1717,24 @@ static void async_pwhash_str_verify_execute(napi_env env, void* req_v) {
 
 static void async_pwhash_str_verify_complete(napi_env env, napi_status status, void* data) {
   async_pwhash_str_verify_request * req = (async_pwhash_str_verify_request *)data;
-  SN_STATUS_THROWS_VOID(status, "");
+  assert(status == napi_ok);
 
   napi_value global;
-  SN_STATUS_THROWS_VOID(napi_get_global(env, &global), "");
+  assert(napi_get_global(env, &global) == napi_ok);
 
   napi_value argv[2];
   napi_get_null(env, &argv[0]);
   napi_get_boolean(env, req->n == 0, &argv[1]);
 
   napi_value callback;
-  SN_STATUS_THROWS_VOID(napi_get_reference_value(env, req->cb, &callback), "");
+  assert(napi_get_reference_value(env, req->cb, &callback) == napi_ok);
 
   napi_value return_val;
-  SN_STATUS_THROWS_VOID(napi_call_function(env, global, callback, 2, argv, &return_val), "");
-  SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->cb), "");
-  SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->str_ref), "");
-  SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->pwd_ref), "");
-  SN_STATUS_THROWS_VOID(napi_delete_async_work(env, req->task), "");
+  assert(napi_call_function(env, global, callback, 2, argv, &return_val) == napi_ok);
+  assert(napi_delete_reference(env, req->cb) == napi_ok);
+  assert(napi_delete_reference(env, req->str_ref) == napi_ok);
+  assert(napi_delete_reference(env, req->pwd_ref) == napi_ok);
+  assert(napi_delete_async_work(env, req->task) == napi_ok);
   free(req);
 }
 
@@ -1792,24 +1792,24 @@ static void async_pwhash_scryptsalsa208sha256_execute(napi_env env, void* req_v)
 
 static void async_pwhash_scryptsalsa208sha256_complete(napi_env env, napi_status status, void* data) {
   async_pwhash_scryptsalsa208sha256_request * req = (async_pwhash_scryptsalsa208sha256_request *)data;
-  SN_STATUS_THROWS_VOID(status, "");
+  assert(status == napi_ok);
 
   napi_value global;
-  SN_STATUS_THROWS_VOID(napi_get_global(env, &global), "");
+  assert(napi_get_global(env, &global) == napi_ok);
 
   napi_value argv[1];
   napi_get_null(env, &argv[0]);
 
   napi_value callback;
-  SN_STATUS_THROWS_VOID(napi_get_reference_value(env, req->cb, &callback), "");
+  assert(napi_get_reference_value(env, req->cb, &callback) == napi_ok);
 
   napi_value return_val;
-  SN_STATUS_THROWS_VOID(napi_call_function(env, global, callback, 1, argv, &return_val), "");
-  SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->cb), "");
-  SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->out_ref), "");
-  SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->pwd_ref), "");
-  SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->salt_ref), "");
-  SN_STATUS_THROWS_VOID(napi_delete_async_work(env, req->task), "");
+  assert(napi_call_function(env, global, callback, 1, argv, &return_val) == napi_ok);
+  assert(napi_delete_reference(env, req->cb) == napi_ok);
+  assert(napi_delete_reference(env, req->out_ref) == napi_ok);
+  assert(napi_delete_reference(env, req->pwd_ref) == napi_ok);
+  assert(napi_delete_reference(env, req->salt_ref) == napi_ok);
+  assert(napi_delete_async_work(env, req->task) == napi_ok);
   free(req);
 }
 
@@ -1878,23 +1878,23 @@ static void async_pwhash_scryptsalsa208sha256_str_execute(napi_env env, void* re
 
 static void async_pwhash_scryptsalsa208sha256_str_complete(napi_env env, napi_status status, void* data) {
   async_pwhash_scryptsalsa208sha256_str_request * req = (async_pwhash_scryptsalsa208sha256_str_request *)data;
-  SN_STATUS_THROWS_VOID(status, "");
+  assert(status == napi_ok);
 
   napi_value global;
-  SN_STATUS_THROWS_VOID(napi_get_global(env, &global), "");
+  assert(napi_get_global(env, &global) == napi_ok);
 
   napi_value argv[1];
   napi_get_null(env, &argv[0]);
 
   napi_value callback;
-  SN_STATUS_THROWS_VOID(napi_get_reference_value(env, req->cb, &callback), "");
+  assert(napi_get_reference_value(env, req->cb, &callback) == napi_ok);
 
   napi_value return_val;
-  SN_STATUS_THROWS_VOID(napi_call_function(env, global, callback, 1, argv, &return_val), "");
-  SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->cb), "");
-  SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->out_ref), "");
-  SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->pwd_ref), "");
-  SN_STATUS_THROWS_VOID(napi_delete_async_work(env, req->task), "");
+  assert(napi_call_function(env, global, callback, 1, argv, &return_val) == napi_ok);
+  assert(napi_delete_reference(env, req->cb) == napi_ok);
+  assert(napi_delete_reference(env, req->out_ref) == napi_ok);
+  assert(napi_delete_reference(env, req->pwd_ref) == napi_ok);
+  assert(napi_delete_async_work(env, req->task) == napi_ok);
   free(req);
 }
 
@@ -1955,24 +1955,24 @@ static void async_pwhash_scryptsalsa208sha256_str_verify_execute(napi_env env, v
 
 static void async_pwhash_scryptsalsa208sha256_str_verify_complete(napi_env env, napi_status status, void* data) {
   async_pwhash_scryptsalsa208sha256_str_verify_request * req = (async_pwhash_scryptsalsa208sha256_str_verify_request *)data;
-  SN_STATUS_THROWS_VOID(status, "");
+  assert(status == napi_ok);
 
   napi_value global;
-  SN_STATUS_THROWS_VOID(napi_get_global(env, &global), "");
+  assert(napi_get_global(env, &global) == napi_ok);
 
   napi_value argv[2];
   napi_get_null(env, &argv[0]);
   napi_get_boolean(env, req->n == 0, &argv[1]);
 
   napi_value callback;
-  SN_STATUS_THROWS_VOID(napi_get_reference_value(env, req->cb, &callback), "");
+  assert(napi_get_reference_value(env, req->cb, &callback) == napi_ok);
 
   napi_value return_val;
-  SN_STATUS_THROWS_VOID(napi_call_function(env, global, callback, 2, argv, &return_val), "");
-  SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->cb), "");
-  SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->str_ref), "");
-  SN_STATUS_THROWS_VOID(napi_delete_reference(env, req->pwd_ref), "");
-  SN_STATUS_THROWS_VOID(napi_delete_async_work(env, req->task), "");
+  assert(napi_call_function(env, global, callback, 2, argv, &return_val) == napi_ok);
+  assert(napi_delete_reference(env, req->cb) == napi_ok);
+  assert(napi_delete_reference(env, req->str_ref) == napi_ok);
+  assert(napi_delete_reference(env, req->pwd_ref) == napi_ok);
+  assert(napi_delete_async_work(env, req->task) == napi_ok);
   free(req);
 }
 
