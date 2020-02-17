@@ -1,7 +1,8 @@
 #include <node_api.h>
+#include <string.h>
 #include <assert.h>
-#include "macros.h"
 #include <sodium.h>
+#include "macros.h"
 
 uint8_t typedarray_width(napi_typedarray_type type) {
   switch (type) {
