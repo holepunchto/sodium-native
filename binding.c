@@ -214,6 +214,8 @@ napi_value sn_sodium_pad(napi_env env, napi_callback_info info) {
 
   SN_THROWS(unpadded_buflen > buf_size, "unpadded length cannot exceed buffer length")
   SN_THROWS(blocksize > buf_size, "block size cannot exceed buffer length")
+  SN_THROWS(blocksize < 1, "block sizemust be at least 1 byte")
+  SN_THROWS(buf_size < unpadded_buflen + (blocksize - (unpadded_buflen % blocksize)), "buf not long enough")
 
   napi_value result;
   size_t padded_buflen;
@@ -231,6 +233,7 @@ napi_value sn_sodium_unpad(napi_env env, napi_callback_info info) {
 
   SN_THROWS(padded_buflen > buf_size, "unpadded length cannot exceed buffer length")
   SN_THROWS(blocksize > buf_size, "block size cannot exceed buffer length")
+  SN_THROWS(blocksize < 1, "block size must be at least 1 byte")
 
   napi_value result;
   size_t unpadded_buflen;
@@ -690,8 +693,8 @@ napi_value sn_crypto_stream_chacha20_xor (napi_env env, napi_callback_info info)
   SN_ARGV_TYPEDARRAY(k, 3)
 
   SN_THROWS(c_size != m_size, "m must be 'c.byteLength' bytes")
-  SN_ASSERT_LENGTH(n_size, crypto_stream_NONCEBYTES, "n")
-  SN_ASSERT_LENGTH(k_size, crypto_stream_KEYBYTES, "k")
+  SN_ASSERT_LENGTH(n_size, crypto_stream_chacha20_NONCEBYTES, "n")
+  SN_ASSERT_LENGTH(k_size, crypto_stream_chacha20_KEYBYTES, "k")
 
   SN_RETURN(crypto_stream_chacha20_xor(c_data, m_data, m_size, n_data, k_data), "stream encryption failed")
 }
@@ -2318,6 +2321,25 @@ static napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_UINT32(crypto_core_ed25519_NONREDUCEDSCALARBYTES, crypto_core_ed25519_NONREDUCEDSCALARBYTES)
   SN_EXPORT_UINT32(crypto_scalarmult_ed25519_BYTES, crypto_scalarmult_ed25519_BYTES)
   SN_EXPORT_UINT32(crypto_scalarmult_ed25519_SCALARBYTES, crypto_scalarmult_ed25519_SCALARBYTES)
+  SN_EXPORT_UINT32(crypto_aead_xchacha20poly1305_ietf_ABYTES, crypto_aead_xchacha20poly1305_ietf_ABYTES)
+  SN_EXPORT_UINT32(crypto_aead_xchacha20poly1305_ietf_KEYBYTES, crypto_aead_xchacha20poly1305_ietf_KEYBYTES)
+  SN_EXPORT_UINT32(crypto_aead_xchacha20poly1305_ietf_NPUBBYTES, crypto_aead_xchacha20poly1305_ietf_NPUBBYTES)
+  SN_EXPORT_UINT32(crypto_aead_xchacha20poly1305_ietf_NSECBYTES, crypto_aead_xchacha20poly1305_ietf_NSECBYTES)
+  SN_EXPORT_UINT32(crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX, crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX)
+  SN_EXPORT_UINT32(crypto_kx_PUBLICKEYBYTES, crypto_kx_PUBLICKEYBYTES)
+  SN_EXPORT_UINT32(crypto_kx_SECRETKEYBYTES, crypto_kx_SECRETKEYBYTES)
+  SN_EXPORT_UINT32(crypto_kx_SEEDBYTES, crypto_kx_SEEDBYTES)
+  SN_EXPORT_UINT32(crypto_kx_SESSIONKEYBYTES, crypto_kx_SESSIONKEYBYTES)
+  SN_EXPORT_STRING(crypto_kx_PRIMITIVE, crypto_kx_PRIMITIVE)
+  SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_ABYTES, crypto_secretstream_xchacha20poly1305_ABYTES)
+  SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_HEADERBYTES, crypto_secretstream_xchacha20poly1305_HEADERBYTES)
+  SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_KEYBYTES, crypto_secretstream_xchacha20poly1305_KEYBYTES)
+  SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_TAGBYTES, 1)
+  SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_MESSAGEBYTES_MAX, crypto_secretstream_xchacha20poly1305_MESSAGEBYTES_MAX)
+  SN_EXPORT_BYTE_TAG_AS_BUFFER(crypto_secretstream_xchacha20poly1305_TAG_MESSAGE, 1, crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
+  SN_EXPORT_BYTE_TAG_AS_BUFFER(crypto_secretstream_xchacha20poly1305_TAG_PUSH, 1, crypto_secretstream_xchacha20poly1305_TAG_PUSH)
+  SN_EXPORT_BYTE_TAG_AS_BUFFER(crypto_secretstream_xchacha20poly1305_TAG_REKEY, 1, crypto_secretstream_xchacha20poly1305_TAG_REKEY)
+  SN_EXPORT_BYTE_TAG_AS_BUFFER(crypto_secretstream_xchacha20poly1305_TAG_FINAL, 1, crypto_secretstream_xchacha20poly1305_TAG_FINAL)
 
   return exports;
 }

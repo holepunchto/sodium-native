@@ -93,6 +93,16 @@
     SN_STATUS_THROWS(napi_set_named_property(env, exports, #name, name##_string), "") \
   }
 
+#define SN_EXPORT_BYTE_TAG_AS_BUFFER(name, len, byte) \
+  { \
+    napi_value name##_buffer; \
+    int buf[1]; \
+    buf[0] = byte; \
+    void ** ptr = 0; \
+    SN_STATUS_THROWS(napi_create_buffer_copy(env, len, buf, ptr, &name##_buffer), "") \
+    SN_STATUS_THROWS(napi_set_named_property(env, exports, #name, name##_buffer), "") \
+  }
+
 #define SN_ARGV_CHECK_NULL(name, index) \
   napi_valuetype name##_valuetype; \
   SN_STATUS_THROWS(napi_typeof(env, argv[index], &name##_valuetype), "") \
@@ -184,6 +194,16 @@
 #define SN_ARGV_BUFFER_CAST(type, name, index) \
   napi_value name##_argv = argv[index]; \
   SN_BUFFER_CAST(type, name, name##_argv)
+
+#define SN_ARGV_BUFFER_TO_BYTE_TAG(type, name, index) \
+  napi_value name##_argv = argv[index]; \
+  napi_typedarray_type name##_type; \
+  size_t name##_length; \
+  uint8_t * name##_data; \
+  assert(napi_get_typedarray_info(env, name##_argv, &name##_type, &name##_length, (void**) &name##_data, NULL, NULL) == napi_ok); \
+  uint8_t name##_width = typedarray_width(name##_type); \
+  SN_THROWS(name##_width == 0, "Unexpected TypedArray type") \
+  uint8_t name = name##_data[0];
 
 #define SN_OPT_ARGV_TYPEDARRAY(name, index) \
   napi_value name##_argv = argv[index]; \
