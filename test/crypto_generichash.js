@@ -25,7 +25,9 @@ tape('crypto_generichash', function (t) {
 
 tape('crypto_generichash with key', function (t) {
   var buf = Buffer.from('Hello, World!')
-  var key = Buffer.alloc(sodium.crypto_generichash_KEYBYTES, 'lo')
+  var key = Buffer.alloc(sodium.crypto_generichash_KEYBYTES)
+
+  key.fill('lo')
 
   var out = Buffer.alloc(sodium.crypto_generichash_BYTES)
   sodium.crypto_generichash(out, buf, key)
@@ -115,7 +117,8 @@ tape('crypto_generichash_batch', function (t) {
 })
 
 tape('crypto_generichash_batch with key', function (t) {
-  var key = Buffer.alloc(sodium.crypto_generichash_KEYBYTES, 'lo')
+  var key = Buffer.alloc(sodium.crypto_generichash_KEYBYTES)
+  key.fill('lo')
 
   var buf = Buffer.from('Hej, Verden')
   var batch = []

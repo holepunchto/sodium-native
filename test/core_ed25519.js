@@ -149,8 +149,9 @@ test('ported libsodium test', function (assert) {
   do {
     addL64(sc64)
   } while (i-- > 0)
-  sodium.crypto_core_ed25519_scalar_reduce(sc64, sc64)
-  assert.ok(sodium.sodium_memcmp(sc64.subarray(0, sodium.crypto_core_ed25519_BYTES), sc))
+  const reduced = sodium.sodium_malloc(sodium.crypto_core_ed25519_SCALARBYTES)
+  sodium.crypto_core_ed25519_scalar_reduce(reduced, sc64)
+  assert.ok(sodium.sodium_memcmp(reduced, sc))
 
   sodium.randombytes_buf(h.subarray(0, sodium.crypto_core_ed25519_UNIFORMBYTES))
   sodium.crypto_core_ed25519_from_uniform(p, h)
