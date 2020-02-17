@@ -1384,10 +1384,16 @@ napi_value sn_crypto_aead_xchacha20poly1305_ietf_encrypt (napi_env env, napi_cal
   SN_THROWS(!nsec_is_null, "nsec must always be set to null")
 
   SN_THROWS(c_size != m_size + crypto_aead_xchacha20poly1305_ietf_ABYTES, "c must 'm.byteLength + crypto_aead_xchacha20poly1305_ietf_ABYTES' bytes")
+  SN_THROWS(c_size > 0xffffffff, "c.byteLength must be a 32bit integer")
   SN_ASSERT_LENGTH(npub_size, crypto_aead_xchacha20poly1305_ietf_NPUBBYTES, "npub")
   SN_ASSERT_LENGTH(k_size, crypto_aead_xchacha20poly1305_ietf_KEYBYTES, "k")
 
-  SN_RETURN(crypto_aead_xchacha20poly1305_ietf_encrypt(c_data, NULL, m_data, m_size, ad_data, ad_size, NULL, npub_data, k_data), "could not encrypt data")
+  unsigned long long clen;
+  SN_CALL(crypto_aead_xchacha20poly1305_ietf_encrypt(c_data, &clen, m_data, m_size, ad_data, ad_size, NULL, npub_data, k_data), "could not encrypt data")
+
+  napi_value result;
+  SN_STATUS_THROWS(napi_create_uint32(env, (uint32_t) clen, &result), "")
+  return result;
 }
 
 napi_value sn_crypto_aead_xchacha20poly1305_ietf_decrypt (napi_env env, napi_callback_info info) {
@@ -1405,8 +1411,14 @@ napi_value sn_crypto_aead_xchacha20poly1305_ietf_decrypt (napi_env env, napi_cal
   SN_THROWS(m_size != c_size - crypto_aead_xchacha20poly1305_ietf_ABYTES, "m must 'c.byteLength - crypto_aead_xchacha20poly1305_ietf_ABYTES' bytes")
   SN_ASSERT_LENGTH(npub_size, crypto_aead_xchacha20poly1305_ietf_NPUBBYTES, "npub")
   SN_ASSERT_LENGTH(k_size, crypto_aead_xchacha20poly1305_ietf_KEYBYTES, "k")
+  SN_THROWS(m_size > 0xffffffff, "m.byteLength must be a 32bit integer")
 
-  SN_RETURN(crypto_aead_xchacha20poly1305_ietf_decrypt(m_data, NULL, NULL, c_data, c_size, ad_data, ad_size, npub_data, k_data), "could not verify data")
+  unsigned long long mlen;
+  SN_CALL(crypto_aead_xchacha20poly1305_ietf_decrypt(m_data, &mlen, NULL, c_data, c_size, ad_data, ad_size, npub_data, k_data), "could not verify data")
+
+  napi_value result;
+  SN_STATUS_THROWS(napi_create_uint32(env, (uint32_t) mlen, &result), "")
+  return result;
 }
 
 napi_value sn_crypto_aead_xchacha20poly1305_ietf_encrypt_detached (napi_env env, napi_callback_info info) {
@@ -1427,7 +1439,12 @@ napi_value sn_crypto_aead_xchacha20poly1305_ietf_encrypt_detached (napi_env env,
   SN_ASSERT_LENGTH(npub_size, crypto_aead_xchacha20poly1305_ietf_NPUBBYTES, "npub")
   SN_ASSERT_LENGTH(k_size, crypto_aead_xchacha20poly1305_ietf_KEYBYTES, "k")
 
-  SN_RETURN(crypto_aead_xchacha20poly1305_ietf_encrypt_detached(c_data, mac_data, NULL, m_data, m_size, ad_data, ad_size, NULL, npub_data, k_data), "could not encrypt data")
+  unsigned long long maclen;
+  SN_CALL(crypto_aead_xchacha20poly1305_ietf_encrypt_detached(c_data, mac_data, &maclen, m_data, m_size, ad_data, ad_size, NULL, npub_data, k_data), "could not encrypt data")
+
+  napi_value result;
+  SN_STATUS_THROWS(napi_create_uint32(env, (uint32_t) maclen, &result), "")
+  return result;
 }
 
 napi_value sn_crypto_aead_xchacha20poly1305_ietf_decrypt_detached (napi_env env, napi_callback_info info) {
@@ -1484,13 +1501,19 @@ napi_value sn_crypto_secretstream_xchacha20poly1305_push (napi_env env, napi_cal
   SN_ARGV_TYPEDARRAY(c, 1)
   SN_ARGV_TYPEDARRAY(m, 2)
   SN_ARGV_OPTS_TYPEDARRAY(ad, 3)
-  SN_ARGV_UINT32(tag, 4)
+  SN_ARGV_BUFFER_TO_BYTE_TAG(uint8_t, tag, 4)
 
   SN_THROWS(state_size != sizeof(crypto_secretstream_xchacha20poly1305_state), "state must be state must be 'crypto_secretstream_xchacha20poly1305_STATEBYTES' bytes")
   SN_ASSERT_MAX_LENGTH(m_size, crypto_secretstream_xchacha20poly1305_MESSAGEBYTES_MAX, "m")
   SN_THROWS(c_size != m_size + crypto_secretstream_xchacha20poly1305_ABYTES, "c must be 'm.byteLength + crypto_secretstream_xchacha20poly1305_ABYTES' bytes")
+  SN_THROWS(c_size > 0xffffffff, "c.byteLength must be a 32bit integer")
 
-  SN_RETURN(crypto_secretstream_xchacha20poly1305_push(state, c_data, NULL, m_data, m_size, ad_data, ad_size, tag), "push failed")
+  unsigned long long clen;
+  SN_CALL(crypto_secretstream_xchacha20poly1305_push(state, c_data, &clen, m_data, m_size, ad_data, ad_size, tag), "push failed")
+
+  napi_value result;
+  SN_STATUS_THROWS(napi_create_uint32(env, (uint32_t) clen, &result), "")
+  return result;
 }
 
 napi_value sn_crypto_secretstream_xchacha20poly1305_init_pull (napi_env env, napi_callback_info info) {
@@ -1508,18 +1531,26 @@ napi_value sn_crypto_secretstream_xchacha20poly1305_init_pull (napi_env env, nap
 }
 
 napi_value sn_crypto_secretstream_xchacha20poly1305_pull (napi_env env, napi_callback_info info) {
-  SN_ARGV(4, crypto_secretstream_xchacha20poly1305_pull)
+  SN_ARGV(5, crypto_secretstream_xchacha20poly1305_pull)
 
   SN_ARGV_BUFFER_CAST(crypto_secretstream_xchacha20poly1305_state *, state, 0)
   SN_ARGV_TYPEDARRAY(m, 1)
-  SN_ARGV_TYPEDARRAY(c, 2)
-  SN_ARGV_OPTS_TYPEDARRAY(ad, 3)
+  SN_ARGV_TYPEDARRAY(tag, 2)
+  SN_ARGV_TYPEDARRAY(c, 3)
+  SN_ARGV_OPTS_TYPEDARRAY(ad, 4)
 
   SN_THROWS(state_size != sizeof(crypto_secretstream_xchacha20poly1305_state), "state must be state must be 'crypto_secretstream_xchacha20poly1305_STATEBYTES' bytes")
   SN_ASSERT_MIN_LENGTH(c_size, crypto_secretstream_xchacha20poly1305_ABYTES, "c")
+  SN_ASSERT_LENGTH(tag_size, 1, "tag")
   SN_THROWS(m_size != c_size - crypto_secretstream_xchacha20poly1305_ABYTES, "m must be 'c.byteLength - crypto_secretstream_xchacha20poly1305_ABYTES")
+  SN_THROWS(m_size > 0xffffffff, "m.byteLength must be a 32bit integer")
 
-  SN_RETURN(crypto_secretstream_xchacha20poly1305_pull(state, m_data, NULL, NULL, c_data, c_size, ad_data, ad_size), "pull failed")
+  unsigned long long mlen;
+  SN_CALL(crypto_secretstream_xchacha20poly1305_pull(state, m_data, &mlen, tag_data, c_data, c_size, ad_data, ad_size), "pull failed")
+
+  napi_value result;
+  SN_STATUS_THROWS(napi_create_uint32(env, (uint32_t) mlen, &result), "")
+  return result;
 }
 
 napi_value sn_crypto_secretstream_xchacha20poly1305_rekey (napi_env env, napi_callback_info info) {
