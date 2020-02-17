@@ -1,1 +1,1 @@
-require('sodium-test')(require('..'))
+// require('sodium-test')(require('..'))

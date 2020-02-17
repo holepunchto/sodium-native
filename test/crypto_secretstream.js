@@ -11,12 +11,11 @@ test('constants', function (assert) {
   assert.ok(Buffer.isBuffer(sodium.crypto_secretstream_xchacha20poly1305_TAG_PUSH), 'crypto_secretstream_xchacha20poly1305_TAG_PUSH is Buffer')
   assert.ok(Buffer.isBuffer(sodium.crypto_secretstream_xchacha20poly1305_TAG_REKEY), 'crypto_secretstream_xchacha20poly1305_TAG_REKEY is Buffer')
   assert.ok(Buffer.isBuffer(sodium.crypto_secretstream_xchacha20poly1305_TAG_FINAL), 'crypto_secretstream_xchacha20poly1305_TAG_FINAL is Buffer')
-
   assert.end()
 })
 
 test('crypto_secretstream', function (assert) {
-  var state = sodium.crypto_secretstream_xchacha20poly1305_state_new()
+  var state = Buffer.alloc(sodium.crypto_secretstream_xchacha20poly1305_STATEBYTES)
 
   var header = Buffer.alloc(sodium.crypto_secretstream_xchacha20poly1305_HEADERBYTES)
   var ad = Buffer.alloc(sodium.randombytes_uniform(100))
