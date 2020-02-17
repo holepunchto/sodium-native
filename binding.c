@@ -902,7 +902,7 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_needs_rehash (napi_env env,
   SN_ARGV_UINT32_AS_UINT64(opslimit, 1)
   SN_ARGV_UINT32_AS_UINT64(memlimit, 2)
 
-  SN_ASSERT_LENGTH(str_size, crypto_pwhash_STRBYTES, "str")
+  SN_ASSERT_LENGTH(str_size, crypto_pwhash_scryptsalsa208sha256_STRBYTES, "str")
   SN_ASSERT_MIN_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MIN, "opslimit")
   SN_ASSERT_MAX_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MAX, "opslimit")
   SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_MEMLIMIT_MIN, "memlimit")
@@ -1050,7 +1050,7 @@ napi_value sn_crypto_core_ed25519_from_uniform (napi_env env, napi_callback_info
   SN_ARGV_TYPEDARRAY(r, 1)
 
   SN_ASSERT_LENGTH(p_size, crypto_core_ed25519_BYTES, "p")
-  SN_ASSERT_LENGTH(r_size, crypto_core_ed25519_BYTES, "r")
+  SN_ASSERT_LENGTH(r_size, crypto_core_ed25519_UNIFORMBYTES, "r")
 
   SN_RETURN(crypto_core_ed25519_from_uniform(p_data, r_data), "could not generate curve point from input")
 }
