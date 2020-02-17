@@ -2309,6 +2309,8 @@ static napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_UINT32(crypto_core_ed25519_UNIFORMBYTES, crypto_core_ed25519_UNIFORMBYTES)
   SN_EXPORT_UINT32(crypto_core_ed25519_SCALARBYTES, crypto_core_ed25519_SCALARBYTES)
   SN_EXPORT_UINT32(crypto_core_ed25519_NONREDUCEDSCALARBYTES, crypto_core_ed25519_NONREDUCEDSCALARBYTES)
+  SN_EXPORT_UINT32(crypto_scalarmult_ed25519_BYTES, crypto_scalarmult_ed25519_BYTES)
+  SN_EXPORT_UINT32(crypto_scalarmult_ed25519_SCALARBYTES, crypto_scalarmult_ed25519_SCALARBYTES)
 
   return exports;
 }
