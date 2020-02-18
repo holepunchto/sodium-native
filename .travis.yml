@@ -21,7 +21,14 @@ addons:
     - g++-7
 
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then export CC=gcc-7 && CXX=g++-7; fi
+  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+      export CC=gcc-7 && CXX=g++-7
+      sudo fallocate -l 4G /swapfile
+      sudo chmod 600 /swapfile
+      sudo mkswap /swapfile
+      sudo swapon /swapfile
+      sudo sysctl vm.swappiness=10
+    fi
   - npm run fetch-libsodium
 
 before_deploy:
