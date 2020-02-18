@@ -394,9 +394,6 @@ function random (n) {
 }
 
 function forceGC () {
-  var list = []
-  for (var i = 0; i < 1e6; i++) {
-    list.push({})
-  }
-  list = null
+  require('v8').setFlagsFromString('--expose-gc')
+  require('vm').runInNewContext('gc')()
 }
