@@ -21,7 +21,8 @@ addons:
     - g++-7
 
 before_install:
-  - if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
+  - |
+    if [[ "$TRAVIS_OS_NAME" == "linux" ]]; then
       export CC=gcc-7 && CXX=g++-7
       sudo fallocate -l 4G /swapfile
       sudo chmod 600 /swapfile
