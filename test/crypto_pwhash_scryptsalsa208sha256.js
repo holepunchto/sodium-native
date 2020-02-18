@@ -134,7 +134,7 @@ tape('crypto_pwhash_scryptsalsa208sha256_str_async', function (t) {
   })
 })
 
-tape.skip('crypto_pwhash_scryptsalsa208sha256 limits', function (t) {
+tape('crypto_pwhash_scryptsalsa208sha256 limits', function (t) {
   var output = Buffer.alloc(sodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES)
   var passwd = Buffer.from('Hej, Verden!')
   var opslimit = Number.MAX_SAFE_INTEGER
@@ -143,5 +143,8 @@ tape.skip('crypto_pwhash_scryptsalsa208sha256 limits', function (t) {
   t.throws(function () {
     sodium.crypto_pwhash_scryptsalsa208sha256_str(output, passwd, opslimit, memlimit)
   }, 'should throw on large limits')
+  t.throws(function () {
+    sodium.crypto_pwhash_scryptsalsa208sha256_str(output, passwd, -1, -1)
+  }, 'should throw on negative limits')
   t.end()
 })

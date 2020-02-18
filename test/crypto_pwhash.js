@@ -70,8 +70,8 @@ tape('crypto_pwhash_str_needs_rehash', function (t) {
   var weakOps = Buffer.alloc(sodium.crypto_pwhash_STRBYTES)
   var malformed = Buffer.alloc(sodium.crypto_pwhash_STRBYTES)
   var good = Buffer.alloc(sodium.crypto_pwhash_STRBYTES)
-  var weakAlg = Buffer.alloc(128)
-  weakAlg.set('argon2i$p=2,v=19,m=1024$SGVsbG8=$SGVsbG8gd29ybA==')
+  var weakAlg = Buffer.alloc(sodium.crypto_pwhash_STRBYTES)
+  weakAlg.set(Buffer.from('$argon2id$v=19$m=8,t=1,p=1$DF4Tce8BK5di0gKeMBb2Fw$uNE4oyvyA0z68RPUom2NXu/KyGvpFppyUoN6pwFBtRU'))
 
   sodium.crypto_pwhash_str(weakMem, passwd, sodium.crypto_pwhash_OPSLIMIT_MODERATE, sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE)
   sodium.crypto_pwhash_str(weakOps, passwd, sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE, sodium.crypto_pwhash_MEMLIMIT_MODERATE)
@@ -141,7 +141,7 @@ tape('crypto_pwhash_str_async', function (t) {
   })
 })
 
-tape.skip('crypto_pwhash limits', function (t) {
+tape('crypto_pwhash limits', function (t) {
   var output = Buffer.alloc(sodium.crypto_pwhash_STRBYTES)
   var passwd = Buffer.from('Hej, Verden!')
   var opslimit = Number.MAX_SAFE_INTEGER
@@ -150,5 +150,8 @@ tape.skip('crypto_pwhash limits', function (t) {
   t.throws(function () {
     sodium.crypto_pwhash_str(output, passwd, opslimit, memlimit)
   }, 'should throw on large limits')
+  t.throws(function () {
+    sodium.crypto_pwhash_str(output, passwd, -1, -1)
+  }, 'should throw on negative limits')
   t.end()
 })

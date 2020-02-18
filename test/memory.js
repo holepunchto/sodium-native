@@ -58,13 +58,12 @@ tape('sodium_malloc', function (t) {
   t.end()
 })
 
-tape('sodium_malloc .secure read-only', function (t) {
+tape.skip('sodium_malloc .secure read-only', function (t) {
   var buf = sodium.sodium_malloc(1)
 
   t.ok(buf.secure)
   buf.secure = false
-  // CHECK HERE
-  // t.ok(buf.secure)
+  t.ok(buf.secure)
   t.end()
 })
 
