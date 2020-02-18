@@ -2,7 +2,6 @@ var tape = require('tape')
 var sodium = require('../')
 var fork = require('child_process').fork
 
-
 tape('sodium_mprotect_noaccess', function (t) {
   t.plan(1)
   var p = fork(require.resolve('./fixtures/mprotect_noaccess'))
