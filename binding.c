@@ -47,7 +47,7 @@ napi_value sn_sodium_munlock (napi_env env, napi_callback_info info) {
   SN_RETURN(sodium_munlock(buf_data, buf_size), "memory unlock failed")
 }
 
-void sn_sodium_free (napi_env env, void* finalise_data, void* finalise_hint) {
+static void sn_sodium_free (napi_env env, void* finalise_data, void* finalise_hint) {
   sodium_free(finalise_data);
 }
 
