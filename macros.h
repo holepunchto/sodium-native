@@ -167,19 +167,16 @@
   }
 
 #define SN_UINT64(name, val) \
-  int64_t name; \
-  if (napi_get_value_int64(env, val, &name) != napi_ok) { \
-    napi_throw_error(env, "EINVAL", "Expected number"); \
-    return NULL; \
-  }
-
-#define SN_UINT32_AS_UINT64(name, val) \
-  uint32_t name##_u32; \
-  if (napi_get_value_uint32(env, val, &name##_u32) != napi_ok) { \
+  int64_t name##_i64; \
+  if (napi_get_value_int64(env, val, &name##_i64) != napi_ok) { \
     napi_throw_error(env, "EINVAL", "Expected number"); \
     return NULL; \
   } \
-  uint64_t name = (uint64_t) name##_u32;
+  if (name##_i64 < 0) { \
+    napi_throw_error(env, "EINVAL", "Expected positive number"); \
+    return NULL; \
+  } \
+  uint64_t name = (uint64_t) name##_i64;
 
 #define SN_ARGV_TYPEDARRAY(name, index) \
   napi_value name##_argv = argv[index]; \
@@ -225,11 +222,6 @@
   SN_TYPE_ASSERT(name, name##_argv, napi_number, #name " must be an instance of Number") \
   SN_UINT64(name, name##_argv)
 
-#define SN_ARGV_UINT32_AS_UINT64(name, index) \
-  napi_value name##_argv = argv[index]; \
-  SN_TYPE_ASSERT(name, name##_argv, napi_number, #name " must be an instance of Number") \
-  SN_UINT32_AS_UINT64(name, name##_argv)
-
 #define SN_OPT_ARGV_UINT32(name, index) \
   napi_value name##_argv = argv[index]; \
   SN_TYPE_ASSERT(name, name##_argv, napi_number, #name " must be an instance of Number") \
@@ -253,5 +245,5 @@
 #define SN_RETURN_BOOLEAN_FROM_1(call) \
   int success = call; \
   napi_value result; \
-  SN_THROWS(napi_get_boolean(env, success == 1, &result) != napi_ok, "result not boolean") \
+  SN_THROWS(napi_get_boolean(env, success != 0, &result) != napi_ok, "result not boolean") \
   return result;
