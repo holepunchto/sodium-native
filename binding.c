@@ -47,6 +47,10 @@ napi_value sn_sodium_munlock (napi_env env, napi_callback_info info) {
   SN_RETURN(sodium_munlock(buf_data, buf_size), "memory unlock failed")
 }
 
+void sn_sodium_free (napi_env env, void* finalise_data, void* finalise_hint) {
+  sodium_free(finalise_data);
+}
+
 napi_value sn_sodium_malloc (napi_env env, napi_callback_info info) {
   SN_ARGV(1, sodium_malloc);
 
@@ -56,7 +60,7 @@ napi_value sn_sodium_malloc (napi_env env, napi_callback_info info) {
 
   napi_value buf, key, value;
 
-  SN_STATUS_THROWS(napi_create_external_buffer(env, size, ptr, NULL, NULL, &buf), "failed to create a n-api buffer")
+  SN_STATUS_THROWS(napi_create_external_buffer(env, size, ptr, &sn_sodium_free, NULL, &buf), "failed to create a n-api buffer")
   SN_STATUS_THROWS(napi_create_string_utf8(env, "secure", 6, &key), "failed to create string")
   SN_STATUS_THROWS(napi_get_boolean(env, true, &value), "failed to create boolean")
 
