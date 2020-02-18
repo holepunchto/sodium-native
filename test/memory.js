@@ -77,7 +77,7 @@ tape('sodium_malloc bounds', function (t) {
   t.end()
 })
 
-tape('sodium_mprotect_noaccess', function (t) {
+tape.only('sodium_mprotect_noaccess', function (t) {
   t.plan(1)
   var p = fork(require.resolve('./fixtures/mprotect_noaccess'))
 
