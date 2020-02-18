@@ -54,14 +54,24 @@ napi_value sn_sodium_malloc (napi_env env, napi_callback_info info) {
 
   void* ptr = sodium_malloc(size);
 
-  napi_value buf;
-  napi_value key;
-  napi_value value;
+  napi_value buf, key, value;
 
   SN_STATUS_THROWS(napi_create_external_buffer(env, size, ptr, NULL, NULL, &buf), "failed to create a n-api buffer")
   SN_STATUS_THROWS(napi_create_string_utf8(env, "secure", 6, &key), "failed to create string")
   SN_STATUS_THROWS(napi_get_boolean(env, true, &value), "failed to create boolean")
-  SN_STATUS_THROWS(napi_set_property(env, buf, key, value), "failed to set property")
+
+  napi_property_descriptor descriptor[] = {
+    { .utf8name = "secure",
+      .name = NULL,
+      .method = NULL,
+      .setter = NULL,
+      .getter = NULL,
+      .value = value,
+      .attributes = napi_default,
+      .data = ptr }
+  };
+
+  SN_STATUS_THROWS(napi_define_properties(env, buf, 1, descriptor), "failed to set property")
 
   return buf;
 }
