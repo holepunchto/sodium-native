@@ -1609,7 +1609,7 @@ static void async_pwhash_complete(napi_env env, napi_status status, void *data) 
   assert(napi_get_global(env, &global) == napi_ok);
 
   napi_value argv[1];
-  napi_get_null(env, &argv[0]);
+  SN_ASYNC_CHECK_ERROR("failed to compute password hash")
 
   napi_value callback;
   assert(napi_get_reference_value(env, req->cb, &callback) == napi_ok);
@@ -1699,7 +1699,7 @@ static void async_pwhash_str_complete(napi_env env, napi_status status, void *da
   assert(napi_get_global(env, &global) == napi_ok);
 
   napi_value argv[1];
-  napi_get_null(env, &argv[0]);
+  SN_ASYNC_CHECK_ERROR("failed to compute password hash")
 
   napi_value callback;
   assert(napi_get_reference_value(env, req->cb, &callback) == napi_ok);
@@ -1776,6 +1776,11 @@ static void async_pwhash_str_verify_complete(napi_env env, napi_status status, v
   assert(napi_get_global(env, &global) == napi_ok);
 
   napi_value argv[2];
+
+  // Due to the way that crypto_pwhash_str_verify signals error different
+  // from a verification mismatch, we will count all errors as mismatch.
+  // The other possible error is wrong argument sizes, which is protected
+  // by macros above
   napi_get_null(env, &argv[0]);
   napi_get_boolean(env, req->n == 0, &argv[1]);
 
@@ -1851,7 +1856,7 @@ static void async_pwhash_scryptsalsa208sha256_complete(napi_env env, napi_status
   assert(napi_get_global(env, &global) == napi_ok);
 
   napi_value argv[1];
-  napi_get_null(env, &argv[0]);
+  SN_ASYNC_CHECK_ERROR("failed to compute password hash")
 
   napi_value callback;
   assert(napi_get_reference_value(env, req->cb, &callback) == napi_ok);
@@ -1937,7 +1942,7 @@ static void async_pwhash_scryptsalsa208sha256_str_complete(napi_env env, napi_st
   assert(napi_get_global(env, &global) == napi_ok);
 
   napi_value argv[1];
-  napi_get_null(env, &argv[0]);
+  SN_ASYNC_CHECK_ERROR("failed to compute password hash")
 
   napi_value callback;
   assert(napi_get_reference_value(env, req->cb, &callback) == napi_ok);
@@ -2014,6 +2019,11 @@ static void async_pwhash_scryptsalsa208sha256_str_verify_complete(napi_env env, 
   assert(napi_get_global(env, &global) == napi_ok);
 
   napi_value argv[2];
+
+  // Due to the way that crypto_pwhash_scryptsalsa208sha256_str_verify
+  // signal serror different from a verification mismatch, we will count
+  // all errors as mismatch. The other possible error is wrong argument
+  // sizes, which is protected by macros above
   napi_get_null(env, &argv[0]);
   napi_get_boolean(env, req->n == 0, &argv[1]);
 
