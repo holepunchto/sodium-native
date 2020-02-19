@@ -98,7 +98,7 @@
     napi_value name##_buffer; \
     int buf[1]; \
     buf[0] = byte; \
-    void ** ptr = 0; \
+    void **ptr = 0; \
     SN_STATUS_THROWS(napi_create_buffer_copy(env, len, buf, ptr, &name##_buffer), "") \
     SN_STATUS_THROWS(napi_set_named_property(env, exports, #name, name##_buffer), "") \
   }
@@ -110,7 +110,7 @@
 
 #define SN_ARGV_OPTS_TYPEDARRAY(name, index) \
   napi_valuetype name##_valuetype; \
-  void* name##_data = NULL; \
+  void *name##_data = NULL; \
   size_t name##_size = 0; \
   SN_STATUS_THROWS(napi_typeof(env, argv[index], &name##_valuetype), "") \
   if (name##_valuetype != napi_null) { \
@@ -122,7 +122,7 @@
 #define SN_TYPEDARRAY(name, var) \
   napi_typedarray_type name##_type; \
   size_t name##_length; \
-  void * name##_data; \
+  void *name##_data; \
   assert(napi_get_typedarray_info(env, (var), &name##_type, &name##_length, &name##_data, NULL, NULL) == napi_ok); \
   uint8_t name##_width = typedarray_width(name##_type); \
   SN_THROWS(name##_width == 0, "Unexpected TypedArray type") \
@@ -131,7 +131,7 @@
 #define SN_TYPEDARRAY_PTR(name, var) \
   napi_typedarray_type name##_type; \
   size_t name##_length; \
-  void * name##_data; \
+  void *name##_data; \
   assert(napi_get_typedarray_info(env, (var), &name##_type, &name##_length, &name##_data, NULL, NULL) == napi_ok); \
   uint8_t name##_width = typedarray_width(name##_type); \
   SN_THROWS(name##_width == 0, "Unexpected TypedArray type") \
@@ -196,7 +196,7 @@
   napi_value name##_argv = argv[index]; \
   napi_typedarray_type name##_type; \
   size_t name##_length; \
-  uint8_t * name##_data; \
+  uint8_t *name##_data; \
   assert(napi_get_typedarray_info(env, name##_argv, &name##_type, &name##_length, (void**) &name##_data, NULL, NULL) == napi_ok); \
   uint8_t name##_width = typedarray_width(name##_type); \
   SN_THROWS(name##_width == 0, "Unexpected TypedArray type") \

@@ -4,7 +4,7 @@
 #include <sodium.h>
 #include "macros.h"
 
-uint8_t typedarray_width(napi_typedarray_type type) {
+static uint8_t typedarray_width(napi_typedarray_type type) {
   switch (type) {
     case napi_int8_array: return 1;
     case napi_uint8_array: return 1;
@@ -47,7 +47,7 @@ napi_value sn_sodium_munlock (napi_env env, napi_callback_info info) {
   SN_RETURN(sodium_munlock(buf_data, buf_size), "memory unlock failed")
 }
 
-static void sn_sodium_free (napi_env env, void* finalise_data, void* finalise_hint) {
+static void sn_sodium_free (napi_env env, void *finalise_data, void *finalise_hint) {
   sodium_free(finalise_data);
 }
 
@@ -56,7 +56,7 @@ napi_value sn_sodium_malloc (napi_env env, napi_callback_info info) {
 
   SN_ARGV_UINT32(size, 0)
 
-  void* ptr = sodium_malloc(size);
+  void *ptr = sodium_malloc(size);
 
   napi_value buf, key, value;
 
@@ -1579,30 +1579,30 @@ napi_value sn_crypto_secretstream_xchacha20poly1305_rekey (napi_env env, napi_ca
   return NULL;
 }
 
-typedef struct async_pwhash_request {
+typedef struct sn_async_pwhash_request {
   napi_ref out_ref;
-  unsigned char * out_data;
+  unsigned char *out_data;
   size_t out_size;
   napi_ref pwd_ref;
-  const char * pwd_data;
+  const char *pwd_data;
   size_t pwd_size;
   napi_ref salt_ref;
-  unsigned char * salt;
+  unsigned char *salt;
   uint32_t opslimit;
   uint32_t memlimit;
   uint32_t alg;
   napi_ref cb;
   int n;
   napi_async_work task;
-} async_pwhash_request;
+} sn_async_pwhash_request;
 
-static void async_pwhash_execute(napi_env env, void* req_v) {
-  struct async_pwhash_request * req = (async_pwhash_request *)req_v;
+static void async_pwhash_execute(napi_env env, void *req_v) {
+  struct sn_async_pwhash_request *req = (sn_async_pwhash_request *)req_v;
   req->n = crypto_pwhash(req->out_data, req->out_size, req-> pwd_data, req->pwd_size, req->salt, req->opslimit, req->memlimit, req->alg);
 }
 
-static void async_pwhash_complete(napi_env env, napi_status status, void* data) {
-  async_pwhash_request * req = (async_pwhash_request *)data;
+static void async_pwhash_complete(napi_env env, napi_status status, void *data) {
+  sn_async_pwhash_request *req = (sn_async_pwhash_request *)data;
   assert(status == napi_ok);
 
   napi_value global;
@@ -1645,7 +1645,7 @@ napi_value sn_crypto_pwhash_async (napi_env env, napi_callback_info info) {
   SN_THROWS(alg < 1, "alg must be either Argon2i 1.3 or Argon2id 1.3")
   SN_THROWS(alg > 2, "algorithm must be either Argon2i 1.3 or Argon2id 1.3")
 
-  async_pwhash_request * req = (async_pwhash_request *) malloc(sizeof(async_pwhash_request));
+  sn_async_pwhash_request *req = (sn_async_pwhash_request *) malloc(sizeof(sn_async_pwhash_request));
   req->out_data = out;
   req->out_size = out_size;
   req->pwd_data = pwd;
@@ -1673,26 +1673,26 @@ napi_value sn_crypto_pwhash_async (napi_env env, napi_callback_info info) {
   return NULL;
 }
 
-typedef struct async_pwhash_str_request {
+typedef struct sn_async_pwhash_str_request {
   napi_ref out_ref;
-  char * out_data;
+  char *out_data;
   napi_ref pwd_ref;
-  const char * pwd_data;
+  const char *pwd_data;
   size_t pwd_size;
   uint32_t opslimit;
   uint32_t memlimit;
   napi_ref cb;
   int n;
   napi_async_work task;
-} async_pwhash_str_request;
+} sn_async_pwhash_str_request;
 
-static void async_pwhash_str_execute(napi_env env, void* req_v) {
-  struct async_pwhash_str_request * req = (async_pwhash_str_request *)req_v;
+static void async_pwhash_str_execute(napi_env env, void *req_v) {
+  struct sn_async_pwhash_str_request *req = (sn_async_pwhash_str_request *)req_v;
   req->n = crypto_pwhash_str(req->out_data, req->pwd_data, req->pwd_size, req->opslimit, req->memlimit);
 }
 
-static void async_pwhash_str_complete(napi_env env, napi_status status, void* data) {
-  async_pwhash_str_request * req = (async_pwhash_str_request *)data;
+static void async_pwhash_str_complete(napi_env env, napi_status status, void *data) {
+  sn_async_pwhash_str_request *req = (sn_async_pwhash_str_request *)data;
   assert(status == napi_ok);
 
   napi_value global;
@@ -1728,7 +1728,7 @@ napi_value sn_crypto_pwhash_str_async (napi_env env, napi_callback_info info) {
   SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_MEMLIMIT_MIN, "memlimit")
   SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_MEMLIMIT_MAX, "memlimit")
  
-  async_pwhash_str_request * req = (async_pwhash_str_request *) malloc(sizeof(async_pwhash_str_request));
+  sn_async_pwhash_str_request *req = (sn_async_pwhash_str_request *) malloc(sizeof(sn_async_pwhash_str_request));
   req->out_data = out;
   req->pwd_data = pwd;
   req->pwd_size = pwd_size;
@@ -1752,24 +1752,24 @@ napi_value sn_crypto_pwhash_str_async (napi_env env, napi_callback_info info) {
   return NULL;
 }
 
-typedef struct async_pwhash_str_verify_request {
+typedef struct sn_async_pwhash_str_verify_request {
   napi_ref str_ref;
-  char * str_data;
+  char *str_data;
   napi_ref pwd_ref;
-  const char * pwd_data;
+  const char *pwd_data;
   size_t pwd_size;
   napi_ref cb;
   int n;
   napi_async_work task;
-} async_pwhash_str_verify_request;
+} sn_async_pwhash_str_verify_request;
 
-static void async_pwhash_str_verify_execute(napi_env env, void* req_v) {
-  struct async_pwhash_str_verify_request * req = (async_pwhash_str_verify_request *)req_v;
+static void async_pwhash_str_verify_execute(napi_env env, void *req_v) {
+  struct sn_async_pwhash_str_verify_request *req = (sn_async_pwhash_str_verify_request *)req_v;
   req->n = crypto_pwhash_str_verify(req->str_data, req->pwd_data, req->pwd_size);
 }
 
-static void async_pwhash_str_verify_complete(napi_env env, napi_status status, void* data) {
-  async_pwhash_str_verify_request * req = (async_pwhash_str_verify_request *)data;
+static void async_pwhash_str_verify_complete(napi_env env, napi_status status, void *data) {
+  sn_async_pwhash_str_verify_request *req = (sn_async_pwhash_str_verify_request *)data;
   assert(status == napi_ok);
 
   napi_value global;
@@ -1800,7 +1800,7 @@ napi_value sn_crypto_pwhash_str_verify_async (napi_env env, napi_callback_info i
 
   SN_ASSERT_LENGTH(str_size, crypto_pwhash_STRBYTES, "str")
 
-  async_pwhash_str_verify_request * req = (async_pwhash_str_verify_request *) malloc(sizeof(async_pwhash_str_verify_request));
+  sn_async_pwhash_str_verify_request *req = (sn_async_pwhash_str_verify_request *) malloc(sizeof(sn_async_pwhash_str_verify_request));
   req->str_data = str;
   req->pwd_data = pwd;
   req->pwd_size = pwd_size;
@@ -1822,29 +1822,29 @@ napi_value sn_crypto_pwhash_str_verify_async (napi_env env, napi_callback_info i
   return NULL;
 }
 
-typedef struct async_pwhash_scryptsalsa208sha256_request {
+typedef struct sn_async_pwhash_scryptsalsa208sha256_request {
   napi_ref out_ref;
-  unsigned char * out_data;
+  unsigned char *out_data;
   size_t out_size;
   napi_ref pwd_ref;
-  const char * pwd_data;
+  const char *pwd_data;
   size_t pwd_size;
   napi_ref salt_ref;
-  unsigned char * salt;
+  unsigned char *salt;
   uint32_t opslimit;
   uint32_t memlimit;
   napi_ref cb;
   int n;
   napi_async_work task;
-} async_pwhash_scryptsalsa208sha256_request;
+} sn_async_pwhash_scryptsalsa208sha256_request;
 
-static void async_pwhash_scryptsalsa208sha256_execute(napi_env env, void* req_v) {
-  struct async_pwhash_scryptsalsa208sha256_request * req = (async_pwhash_scryptsalsa208sha256_request *)req_v;
+static void async_pwhash_scryptsalsa208sha256_execute(napi_env env, void *req_v) {
+  struct sn_async_pwhash_scryptsalsa208sha256_request *req = (sn_async_pwhash_scryptsalsa208sha256_request *)req_v;
   req->n = crypto_pwhash_scryptsalsa208sha256(req->out_data, req->out_size, req-> pwd_data, req->pwd_size, req->salt, req->opslimit, req->memlimit);
 }
 
-static void async_pwhash_scryptsalsa208sha256_complete(napi_env env, napi_status status, void* data) {
-  async_pwhash_scryptsalsa208sha256_request * req = (async_pwhash_scryptsalsa208sha256_request *)data;
+static void async_pwhash_scryptsalsa208sha256_complete(napi_env env, napi_status status, void *data) {
+  sn_async_pwhash_scryptsalsa208sha256_request *req = (sn_async_pwhash_scryptsalsa208sha256_request *)data;
   assert(status == napi_ok);
 
   napi_value global;
@@ -1884,7 +1884,7 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_async (napi_env env, napi_callb
   SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, "memlimit")
   SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, "memlimit")
   
-  async_pwhash_scryptsalsa208sha256_request * req = (async_pwhash_scryptsalsa208sha256_request *) malloc(sizeof(async_pwhash_scryptsalsa208sha256_request));
+  sn_async_pwhash_scryptsalsa208sha256_request *req = (sn_async_pwhash_scryptsalsa208sha256_request *) malloc(sizeof(sn_async_pwhash_scryptsalsa208sha256_request));
   req->out_data = out;
   req->out_size = out_size;
   req->pwd_data = pwd;
@@ -1911,26 +1911,26 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_async (napi_env env, napi_callb
   return NULL;
 }
 
-typedef struct async_pwhash_scryptsalsa208sha256_str_request {
+typedef struct sn_async_pwhash_scryptsalsa208sha256_str_request {
   napi_ref out_ref;
-  char * out_data;
+  char *out_data;
   napi_ref pwd_ref;
-  const char * pwd_data;
+  const char *pwd_data;
   size_t pwd_size;
   uint32_t opslimit;
   uint32_t memlimit;
   napi_ref cb;
   int n;
   napi_async_work task;
-} async_pwhash_scryptsalsa208sha256_str_request;
+} sn_async_pwhash_scryptsalsa208sha256_str_request;
 
-static void async_pwhash_scryptsalsa208sha256_str_execute(napi_env env, void* req_v) {
-  struct async_pwhash_scryptsalsa208sha256_str_request * req = (async_pwhash_scryptsalsa208sha256_str_request *)req_v;
+static void async_pwhash_scryptsalsa208sha256_str_execute(napi_env env, void *req_v) {
+  struct sn_async_pwhash_scryptsalsa208sha256_str_request *req = (sn_async_pwhash_scryptsalsa208sha256_str_request *)req_v;
   req->n = crypto_pwhash_scryptsalsa208sha256_str(req->out_data, req->pwd_data, req->pwd_size, req->opslimit, req->memlimit);
 }
 
-static void async_pwhash_scryptsalsa208sha256_str_complete(napi_env env, napi_status status, void* data) {
-  async_pwhash_scryptsalsa208sha256_str_request * req = (async_pwhash_scryptsalsa208sha256_str_request *)data;
+static void async_pwhash_scryptsalsa208sha256_str_complete(napi_env env, napi_status status, void *data) {
+  sn_async_pwhash_scryptsalsa208sha256_str_request *req = (sn_async_pwhash_scryptsalsa208sha256_str_request *)data;
   assert(status == napi_ok);
 
   napi_value global;
@@ -1966,7 +1966,7 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_async (napi_env env, napi_c
   SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, "memlimit")
   SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, "memlimit")
  
-  async_pwhash_scryptsalsa208sha256_str_request * req = (async_pwhash_scryptsalsa208sha256_str_request *) malloc(sizeof(async_pwhash_scryptsalsa208sha256_str_request));
+  sn_async_pwhash_scryptsalsa208sha256_str_request *req = (sn_async_pwhash_scryptsalsa208sha256_str_request *) malloc(sizeof(sn_async_pwhash_scryptsalsa208sha256_str_request));
   req->out_data = out;
   req->pwd_data = pwd;
   req->pwd_size = pwd_size;
@@ -1990,24 +1990,24 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_async (napi_env env, napi_c
   return NULL;
 }
 
-typedef struct async_pwhash_scryptsalsa208sha256_str_verify_request {
+typedef struct sn_async_pwhash_scryptsalsa208sha256_str_verify_request {
   napi_ref str_ref;
-  char * str_data;
+  char *str_data;
   napi_ref pwd_ref;
-  const char * pwd_data;
+  const char *pwd_data;
   size_t pwd_size;
   napi_ref cb;
   int n;
   napi_async_work task;
-} async_pwhash_scryptsalsa208sha256_str_verify_request;
+} sn_async_pwhash_scryptsalsa208sha256_str_verify_request;
 
-static void async_pwhash_scryptsalsa208sha256_str_verify_execute(napi_env env, void* req_v) {
-  struct async_pwhash_scryptsalsa208sha256_str_verify_request * req = (async_pwhash_scryptsalsa208sha256_str_verify_request *)req_v;
+static void async_pwhash_scryptsalsa208sha256_str_verify_execute(napi_env env, void *req_v) {
+  struct sn_async_pwhash_scryptsalsa208sha256_str_verify_request *req = (sn_async_pwhash_scryptsalsa208sha256_str_verify_request *)req_v;
   req->n = crypto_pwhash_scryptsalsa208sha256_str_verify(req->str_data, req->pwd_data, req->pwd_size);
 }
 
-static void async_pwhash_scryptsalsa208sha256_str_verify_complete(napi_env env, napi_status status, void* data) {
-  async_pwhash_scryptsalsa208sha256_str_verify_request * req = (async_pwhash_scryptsalsa208sha256_str_verify_request *)data;
+static void async_pwhash_scryptsalsa208sha256_str_verify_complete(napi_env env, napi_status status, void *data) {
+  sn_async_pwhash_scryptsalsa208sha256_str_verify_request *req = (sn_async_pwhash_scryptsalsa208sha256_str_verify_request *)data;
   assert(status == napi_ok);
 
   napi_value global;
@@ -2038,7 +2038,7 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_verify_async (napi_env env,
 
   SN_ASSERT_LENGTH(str_size, crypto_pwhash_scryptsalsa208sha256_STRBYTES, "str")
 
-  async_pwhash_scryptsalsa208sha256_str_verify_request * req = (async_pwhash_scryptsalsa208sha256_str_verify_request *) malloc(sizeof(async_pwhash_scryptsalsa208sha256_str_verify_request));
+  sn_async_pwhash_scryptsalsa208sha256_str_verify_request *req = (sn_async_pwhash_scryptsalsa208sha256_str_verify_request *) malloc(sizeof(sn_async_pwhash_scryptsalsa208sha256_str_verify_request));
   req->str_data = str;
   req->pwd_data = pwd;
   req->pwd_size = pwd_size;
@@ -2060,22 +2060,22 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_verify_async (napi_env env,
   return NULL;
 }
 
-typedef struct crypto_stream_xor_state {
+typedef struct sn_crypto_stream_xor_state {
   unsigned char n[crypto_stream_NONCEBYTES];
   unsigned char k[crypto_stream_KEYBYTES];
   unsigned char next_block[64];
   int remainder;
   uint64_t block_counter;
-} crypto_stream_xor_state;
+} sn_crypto_stream_xor_state;
 
 napi_value sn_crypto_stream_xor_wrap_init (napi_env env, napi_callback_info info) {
   SN_ARGV(3, crypto_stream_xor_instance_init)
 
-  SN_ARGV_BUFFER_CAST(crypto_stream_xor_state *, state, 0)
+  SN_ARGV_BUFFER_CAST(sn_crypto_stream_xor_state *, state, 0)
   SN_ARGV_TYPEDARRAY(n, 1)
   SN_ARGV_TYPEDARRAY(k, 2)
 
-  SN_THROWS(state_size != sizeof(crypto_stream_xor_state), "state must be 'crypto_stream_xor_STATEBYTES' bytes")
+  SN_THROWS(state_size != sizeof(sn_crypto_stream_xor_state), "state must be 'sn_crypto_stream_xor_STATEBYTES' bytes")
   SN_ASSERT_LENGTH(n_size, crypto_stream_NONCEBYTES, "n")
   SN_ASSERT_LENGTH(k_size, crypto_stream_KEYBYTES, "k")
 
@@ -2091,14 +2091,14 @@ napi_value sn_crypto_stream_xor_wrap_init (napi_env env, napi_callback_info info
 napi_value sn_crypto_stream_xor_wrap_update (napi_env env, napi_callback_info info) {
   SN_ARGV(3, crypto_stream_xor_instance_init)
 
-  SN_ARGV_BUFFER_CAST(crypto_stream_xor_state *, state, 0)
+  SN_ARGV_BUFFER_CAST(sn_crypto_stream_xor_state *, state, 0)
   SN_ARGV_BUFFER_CAST(unsigned char *, c, 1)
   SN_ARGV_BUFFER_CAST(unsigned char *, m, 2)
 
-  SN_THROWS(state_size != sizeof(crypto_stream_xor_state), "state must be 'crypto_stream_xor_STATEBYTES' bytes")
+  SN_THROWS(state_size != sizeof(sn_crypto_stream_xor_state), "state must be 'sn_crypto_stream_xor_STATEBYTES' bytes")
   SN_THROWS(c_size != m_size, "c must be 'm.byteLength' bytes")
 
-  unsigned char * next_block = state->next_block;
+  unsigned char *next_block = state->next_block;
 
   if (state->remainder) {
     uint64_t offset = 0;
@@ -2139,7 +2139,9 @@ napi_value sn_crypto_stream_xor_wrap_update (napi_env env, napi_callback_info in
 napi_value sn_crypto_stream_xor_wrap_final (napi_env env, napi_callback_info info) {
   SN_ARGV(1, crypto_stream_xor_instance_init)
 
-  SN_ARGV_BUFFER_CAST(crypto_stream_xor_state *, state, 0)
+  SN_ARGV_BUFFER_CAST(sn_crypto_stream_xor_state *, state, 0)
+
+  SN_THROWS(state_size != sizeof(sn_crypto_stream_xor_state), "state must be 'sn_crypto_stream_xor_STATEBYTES' bytes")
 
   sodium_memzero(state->n, sizeof(state->n));
   sodium_memzero(state->k, sizeof(state->k));
@@ -2149,22 +2151,22 @@ napi_value sn_crypto_stream_xor_wrap_final (napi_env env, napi_callback_info inf
   return NULL;
 }
 
-typedef struct crypto_stream_chacha20_xor_state {
+typedef struct sn_crypto_stream_chacha20_xor_state {
   unsigned char n[crypto_stream_chacha20_NONCEBYTES];
   unsigned char k[crypto_stream_chacha20_KEYBYTES];
   unsigned char next_block[64];
   int remainder;
   uint64_t block_counter;
-} crypto_stream_chacha20_xor_state;
+} sn_crypto_stream_chacha20_xor_state;
 
 napi_value sn_crypto_stream_chacha20_xor_wrap_init (napi_env env, napi_callback_info info) {
   SN_ARGV(3, crypto_stream_chacha20_xor_instance_init)
 
-  SN_ARGV_BUFFER_CAST(crypto_stream_chacha20_xor_state *, state, 0)
+  SN_ARGV_BUFFER_CAST(sn_crypto_stream_chacha20_xor_state *, state, 0)
   SN_ARGV_TYPEDARRAY(n, 1)
   SN_ARGV_TYPEDARRAY(k, 2)
 
-  SN_THROWS(state_size != sizeof(crypto_stream_chacha20_xor_state), "state must be 'crypto_stream_chacha20_xor_STATEBYTES' bytes")
+  SN_THROWS(state_size != sizeof(sn_crypto_stream_chacha20_xor_state), "state must be 'crypto_stream_chacha20_xor_STATEBYTES' bytes")
   SN_ASSERT_LENGTH(n_size, crypto_stream_chacha20_NONCEBYTES, "n")
   SN_ASSERT_LENGTH(k_size, crypto_stream_chacha20_KEYBYTES, "k")
 
@@ -2180,14 +2182,14 @@ napi_value sn_crypto_stream_chacha20_xor_wrap_init (napi_env env, napi_callback_
 napi_value sn_crypto_stream_chacha20_xor_wrap_update (napi_env env, napi_callback_info info) {
   SN_ARGV(3, crypto_stream_chacha20_xor_instance_init)
 
-  SN_ARGV_BUFFER_CAST(crypto_stream_chacha20_xor_state *, state, 0)
+  SN_ARGV_BUFFER_CAST(sn_crypto_stream_chacha20_xor_state *, state, 0)
   SN_ARGV_BUFFER_CAST(unsigned char *, c, 1)
   SN_ARGV_BUFFER_CAST(unsigned char *, m, 2)
 
-  SN_THROWS(state_size != sizeof(crypto_stream_chacha20_xor_state), "state must be 'crypto_stream_chacha20_xor_STATEBYTES' bytes")
+  SN_THROWS(state_size != sizeof(sn_crypto_stream_chacha20_xor_state), "state must be 'crypto_stream_chacha20_xor_STATEBYTES' bytes")
   SN_THROWS(c_size != m_size, "c must be 'm.byteLength' bytes")
 
-  unsigned char * next_block = state->next_block;
+  unsigned char *next_block = state->next_block;
 
   if (state->remainder) {
     uint64_t offset = 0;
@@ -2228,7 +2230,9 @@ napi_value sn_crypto_stream_chacha20_xor_wrap_update (napi_env env, napi_callbac
 napi_value sn_crypto_stream_chacha20_xor_wrap_final (napi_env env, napi_callback_info info) {
   SN_ARGV(1, crypto_stream_chacha20_xor_instance_init)
 
-  SN_ARGV_BUFFER_CAST(crypto_stream_chacha20_xor_state *, state, 0)
+  SN_ARGV_BUFFER_CAST(sn_crypto_stream_chacha20_xor_state *, state, 0)
+
+  SN_THROWS(state_size != sizeof(sn_crypto_stream_chacha20_xor_state), "state must be 'crypto_stream_chacha20_xor_STATEBYTES' bytes")
 
   sodium_memzero(state->n, sizeof(state->n));
   sodium_memzero(state->k, sizeof(state->k));
@@ -2370,8 +2374,8 @@ static napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_UINT32(crypto_hash_sha256_STATEBYTES, sizeof(crypto_hash_sha256_state))
   SN_EXPORT_UINT32(crypto_hash_sha512_STATEBYTES, sizeof(crypto_hash_sha512_state))
   SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_STATEBYTES, sizeof(crypto_secretstream_xchacha20poly1305_state))
-  SN_EXPORT_UINT32(crypto_stream_xor_STATEBYTES, sizeof(crypto_stream_xor_state))
-  SN_EXPORT_UINT32(crypto_stream_chacha20_xor_STATEBYTES, sizeof(crypto_stream_chacha20_xor_state))
+  SN_EXPORT_UINT32(crypto_stream_xor_STATEBYTES, sizeof(sn_crypto_stream_xor_state))
+  SN_EXPORT_UINT32(crypto_stream_chacha20_xor_STATEBYTES, sizeof(sn_crypto_stream_chacha20_xor_state))
   SN_EXPORT_UINT32(randombytes_SEEDBYTES, randombytes_SEEDBYTES)
   SN_EXPORT_UINT32(crypto_sign_SEEDBYTES, crypto_sign_SEEDBYTES)
   SN_EXPORT_UINT32(crypto_sign_PUBLICKEYBYTES, crypto_sign_PUBLICKEYBYTES)
