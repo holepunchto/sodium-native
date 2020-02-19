@@ -115,6 +115,7 @@ napi_value sn_randombytes_random (napi_env env, napi_callback_info info) {
 
 napi_value sn_randombytes_uniform (napi_env env, napi_callback_info info) {
   SN_ARGV(1, randombytes_uniform);
+
   SN_ARGV_UINT32(upper_bound, 0)
 
   napi_value result;
@@ -1578,9 +1579,6 @@ napi_value sn_crypto_secretstream_xchacha20poly1305_rekey (napi_env env, napi_ca
   return NULL;
 }
 
-// TODO: SN_ARGV_UINT8 not working
-
-// async
 typedef struct async_pwhash_request {
   napi_ref out_ref;
   unsigned char * out_data;
