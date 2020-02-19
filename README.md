@@ -45,7 +45,7 @@ if (!sodium.crypto_secretbox_open_easy(plainText, ciphertext, nonce, key)) {
 
 ## Documentation
 
-Complete documentation may be found on the [sodium-friends website](https://sodium-friends.github.io/docs).
+Complete documentation may be found on the [sodium-friends website](https://sodium-friends.github.io/docs/docs/getstarted)
 
 ## License
 
