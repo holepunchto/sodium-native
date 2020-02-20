@@ -248,7 +248,7 @@
   SN_THROWS(napi_get_boolean(env, success != 0, &result) != napi_ok, "result not boolean") \
   return result;
 
-#define SN_ASYNC_CHECK_ERROR(message) \
+#define SN_ASYNC_CHECK_FOR_ERROR(message) \
   if (req->n == 0) { \
     napi_get_null(env, &argv[0]); \
   } else { \
