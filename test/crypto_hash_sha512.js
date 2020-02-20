@@ -17,15 +17,18 @@ tape('crypto_hash_sha512', function (t) {
   t.end()
 })
 
-tape('crypto_hash_sha256_instance', function (t) {
+tape('crypto_hash_sha512_state', function (t) {
+  var state = Buffer.alloc(sodium.crypto_hash_sha512_STATEBYTES)
+  sodium.crypto_hash_sha512_init(state)
+
+  var buf = Buffer.from('Hej, Verden!')
+
+  for (let i = 0; i < 10; i++) sodium.crypto_hash_sha512_update(state, buf)
+
   var out = Buffer.alloc(sodium.crypto_hash_sha512_BYTES)
-  var inp = Buffer.from('Hej, Verden!')
+  sodium.crypto_hash_sha512_final(state, out)
 
-  var instance = sodium.crypto_hash_sha512_instance()
-  instance.update(inp)
-  instance.final(out)
-
-  var result = 'bcf8e6d11dec2da6e93abb99a73c8e9c387886a5f84fbca5e25af85af26ee39161b7e0c9f9cf547f2aef40523f1aab80e26ec3c630db43ce78adc8c058dc5d16'
+  var result = 'a0a9b965c23be41fa8c344f483da39bedcf88b7f25cdc0bc9ea335fa264dc3db51f08c1d0f5f6f0ffb08a1d8643e2a1cd0ea8f03408ca03711c751d61787a229'
   t.same(out.toString('hex'), result, 'hashed the string')
 
   t.end()

@@ -8,7 +8,7 @@ test('constants', function (assert) {
   assert.equal(typeof sodium.crypto_aead_xchacha20poly1305_ietf_NSECBYTES, 'number')
   assert.equal(sodium.crypto_aead_xchacha20poly1305_ietf_NSECBYTES, 0)
   assert.equal(typeof sodium.crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX, 'number')
-  assert.equal(sodium.crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX, Number.MAX_SAFE_INTEGER) // to make sure, see note in binding.cc
+  assert.equal(sodium.crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX, 0xffffffef) // to make sure, see note in binding.cc
 
   assert.end()
 })
@@ -145,13 +145,14 @@ test('ported from libsodium', function (assert) {  /* eslint-disable */
 
   assert.same(c, exp3)
 
-  m2len = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(c, null, c, null, nonce, firstkey)
+  var decrypted = sodium.sodium_malloc(c.byteLength - sodium.crypto_aead_xchacha20poly1305_ietf_ABYTES)
+  m2len = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(decrypted, null, c, null, nonce, firstkey)
   assert.equal(m2len, mlen, 'm2len is properly set (adlen=0)')
 
-  assert.same(m, c.slice(0, mlen), 'm == c (adlen=0)')
+  assert.same(m, decrypted, 'm == c (adlen=0)')
 
   sodium.crypto_aead_xchacha20poly1305_ietf_keygen(key2)
-  assert.throws(_ => m2len = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(c, null, c, null, nonce, key2))
+  assert.throws(_ => m2len = sodium.crypto_aead_xchacha20poly1305_ietf_decrypt(decrypted, null, c, null, nonce, key2))
 
   assert.end()
   /* eslint-enable */
