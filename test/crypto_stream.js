@@ -33,7 +33,7 @@ tape('crypto_stream_xor', function (t) {
   t.end()
 })
 
-tape('crypto_stream_xor_instance', function (t) {
+tape('crypto_stream_xor state', function (t) {
   var message = Buffer.from('Hello, world!')
   var nonce = random(sodium.crypto_stream_NONCEBYTES)
   var key = random(sodium.crypto_stream_KEYBYTES)
@@ -53,7 +53,7 @@ tape('crypto_stream_xor_instance', function (t) {
   t.end()
 })
 
-tape('crypto_stream_xor_instance with empty buffers', function (t) {
+tape('crypto_stream_xor state with empty buffers', function (t) {
   var message = Buffer.from('Hello, world!')
   var nonce = random(sodium.crypto_stream_NONCEBYTES)
   var key = random(sodium.crypto_stream_KEYBYTES)
@@ -76,7 +76,7 @@ tape('crypto_stream_xor_instance with empty buffers', function (t) {
   t.end()
 })
 
-tape('crypto_stream_xor_instance long stream', function (t) {
+tape('crypto_stream_xor state long stream', function (t) {
   var nonce = random(sodium.crypto_stream_NONCEBYTES)
   var key = random(sodium.crypto_stream_KEYBYTES)
 
@@ -110,7 +110,7 @@ tape('crypto_stream_xor_instance long stream', function (t) {
   t.end()
 })
 
-tape('crypto_stream_xor_instance long stream (random chunks)', function (t) {
+tape('crypto_stream_xor state long stream (random chunks)', function (t) {
   var nonce = random(sodium.crypto_stream_NONCEBYTES)
   var key = random(sodium.crypto_stream_KEYBYTES)
 
@@ -145,7 +145,7 @@ tape('crypto_stream_xor_instance long stream (random chunks)', function (t) {
   t.end()
 })
 
-tape('crypto_stream_xor_instance long stream (random chunks) with empty buffers', function (t) {
+tape('crypto_stream_xor state long stream (random chunks) with empty buffers', function (t) {
   var nonce = random(sodium.crypto_stream_NONCEBYTES)
   var key = random(sodium.crypto_stream_KEYBYTES)
 
@@ -183,7 +183,7 @@ tape('crypto_stream_xor_instance long stream (random chunks) with empty buffers'
   t.end()
 })
 
-tape('crypto_stream_xor_instance after GC', function (t) {
+tape('crypto_stream_xor state after GC', function (t) {
   var message = Buffer.from('Hello, world!')
   var nonce = random(sodium.crypto_stream_NONCEBYTES)
   var key = random(sodium.crypto_stream_KEYBYTES)
@@ -210,7 +210,7 @@ tape('crypto_stream_xor_instance after GC', function (t) {
   t.end()
 })
 
-tape('crypto_stream_chacha20_xor_instance', function (t) {
+tape('crypto_stream_chacha20_xor state', function (t) {
   var message = Buffer.from('Hello, world!')
   var nonce = random(sodium.crypto_stream_chacha20_NONCEBYTES)
   var key = random(sodium.crypto_stream_chacha20_KEYBYTES)
@@ -230,7 +230,7 @@ tape('crypto_stream_chacha20_xor_instance', function (t) {
   t.end()
 })
 
-tape('crypto_stream_chacha20_xor_instance with empty buffers', function (t) {
+tape('crypto_stream_chacha20_xor state with empty buffers', function (t) {
   var message = Buffer.from('Hello, world!')
   var nonce = random(sodium.crypto_stream_chacha20_NONCEBYTES)
   var key = random(sodium.crypto_stream_chacha20_KEYBYTES)
@@ -253,7 +253,7 @@ tape('crypto_stream_chacha20_xor_instance with empty buffers', function (t) {
   t.end()
 })
 
-tape('crypto_stream_chacha20_xor_instance long stream', function (t) {
+tape('crypto_stream_chacha20_xor state long stream', function (t) {
   var nonce = random(sodium.crypto_stream_chacha20_NONCEBYTES)
   var key = random(sodium.crypto_stream_chacha20_KEYBYTES)
 
@@ -287,7 +287,7 @@ tape('crypto_stream_chacha20_xor_instance long stream', function (t) {
   t.end()
 })
 
-tape('crypto_stream_chacha20_xor_instance long stream (random chunks)', function (t) {
+tape('crypto_stream_chacha20_xor state long stream (random chunks)', function (t) {
   var nonce = random(sodium.crypto_stream_chacha20_NONCEBYTES)
   var key = random(sodium.crypto_stream_chacha20_KEYBYTES)
 
@@ -322,7 +322,7 @@ tape('crypto_stream_chacha20_xor_instance long stream (random chunks)', function
   t.end()
 })
 
-tape('crypto_stream_chacha20_xor_instance long stream (random chunks) with empty buffers', function (t) {
+tape('crypto_stream_chacha20_xor state long stream (random chunks) with empty buffers', function (t) {
   var nonce = random(sodium.crypto_stream_chacha20_NONCEBYTES)
   var key = random(sodium.crypto_stream_chacha20_KEYBYTES)
 
@@ -360,7 +360,7 @@ tape('crypto_stream_chacha20_xor_instance long stream (random chunks) with empty
   t.end()
 })
 
-tape('crypto_stream_chacha20_xor_instance after GC', function (t) {
+tape('crypto_stream_chacha20_xor state after GC', function (t) {
   var message = Buffer.from('Hello, world!')
   var nonce = random(sodium.crypto_stream_chacha20_NONCEBYTES)
   var key = random(sodium.crypto_stream_chacha20_KEYBYTES)
