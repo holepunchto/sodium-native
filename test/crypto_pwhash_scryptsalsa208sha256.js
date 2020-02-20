@@ -64,7 +64,7 @@ tape('crypto_pwhash_scryptsalsa208sha256_str_needs_rehash', function (t) {
   var weakOps = Buffer.alloc(sodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES)
   var malformed = Buffer.alloc(sodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES)
   var good = Buffer.alloc(sodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES)
-  var weakAlg = Buffer.alloc(128)
+  var weakAlg = Buffer.alloc(sodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES)
   weakAlg.set('argon2i$p=2,v=19,m=1024$SGVsbG8=$SGVsbG8gd29ybA==')
 
   sodium.crypto_pwhash_scryptsalsa208sha256_str(weakMem, passwd, sodium.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_SENSITIVE, sodium.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE)
@@ -143,5 +143,8 @@ tape('crypto_pwhash_scryptsalsa208sha256 limits', function (t) {
   t.throws(function () {
     sodium.crypto_pwhash_scryptsalsa208sha256_str(output, passwd, opslimit, memlimit)
   }, 'should throw on large limits')
+  t.throws(function () {
+    sodium.crypto_pwhash_scryptsalsa208sha256_str(output, passwd, -1, -1)
+  }, 'should throw on negative limits')
   t.end()
 })
