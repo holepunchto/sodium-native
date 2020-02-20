@@ -2,6 +2,13 @@
 
 ## Current
 
+## v3.0.0
+
+* Updated to use n-api (@chm-diederichs).
+* Removed object instance apis and replaced them with init, update, final methods.
+* Bumped dev dependencies.
+* Bumped libsodium to 1.0.18.
+
 ## v2.4.10
 
 * Prebuilds for Electron 8
