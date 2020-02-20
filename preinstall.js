@@ -71,7 +71,7 @@ function findMsBuild () {
 
   // First try X86 paths (on 64 bit machine which is most likely) then 32 bit
   var possiblePaths = possiblePathSuffixes.map(p => process.env['PROGRAMFILES(X86)'] + p)
-    .concat(possiblePathSuffixes.map(p => process.env['PROGRAMFILES'] + p))
+    .concat(possiblePathSuffixes.map(p => process.env.PROGRAMFILES + p))
 
   possiblePaths.push(process.env.WINDIR + '/Microsoft.NET/Framework/v4.0.30319/MSBuild.exe')
 
