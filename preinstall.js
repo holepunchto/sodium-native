@@ -26,6 +26,7 @@ if (process.argv.indexOf('--print-lib') > -1) {
     case 'darwin':
       console.log('../lib/libsodium-' + arch + '.dylib')
       break
+    case 'android':
     case 'openbsd':
     case 'freebsd':
     case 'linux':
@@ -35,7 +36,7 @@ if (process.argv.indexOf('--print-lib') > -1) {
       console.log('../libsodium/Build/ReleaseDLL/' + warch + '/libsodium.lib')
       break
     default:
-      process.exit(1)
+      throw new Error('Unsupported platform: ' + os.platform())
   }
 
   process.exit(0)
