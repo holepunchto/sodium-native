@@ -155,3 +155,78 @@ tape('crypto_pwhash limits', function (t) {
   }, 'should throw on negative limits')
   t.end()
 })
+
+tape('crypto_pwhash_async uncaughtException', function (t) {
+  var output = Buffer.alloc(32) // can be any size
+  var passwd = Buffer.from('Hej, Verden!')
+  var salt = Buffer.alloc(sodium.crypto_pwhash_SALTBYTES, 'lo')
+  var opslimit = sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE
+  var memlimit = sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE
+  var algo = sodium.crypto_pwhash_ALG_DEFAULT
+
+  process.on('uncaughtException', listener)
+
+  sodium.crypto_pwhash_async(output, passwd, salt, opslimit, memlimit, algo, exception)
+
+  function exception () {
+    throw new Error('caught')
+  }
+
+  function listener (err) {
+    if (err.message !== 'caught') {
+      t.fail()
+    } else {
+      t.pass()
+    }
+    process.removeListener('uncaughtException', listener)
+    t.end()
+  }
+})
+
+tape('crypto_pwhash_str_async uncaughtException', function (t) {
+  var output = Buffer.alloc(sodium.crypto_pwhash_STRBYTES) // can be any size
+  var passwd = Buffer.from('Hej, Verden!')
+  var opslimit = sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE
+  var memlimit = sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE
+
+  process.on('uncaughtException', listener)
+
+  sodium.crypto_pwhash_str_async(output, passwd, opslimit, memlimit, exception)
+
+  function exception () {
+    throw new Error('caught')
+  }
+
+  function listener (err) {
+    if (err.message === 'caught') {
+      t.pass()
+    } else {
+      t.fail()
+    }
+    process.removeListener('uncaughtException', listener)
+    t.end()
+  }
+})
+
+tape('crypto_pwhash_str_verify_async uncaughtException', function (t) {
+  var output = Buffer.alloc(sodium.crypto_pwhash_STRBYTES) // can be any size
+  var passwd = Buffer.from('Hej, Verden!')
+
+  process.on('uncaughtException', listener)
+
+  sodium.crypto_pwhash_str_verify_async(output, passwd, exception)
+
+  function exception () {
+    throw new Error('caught')
+  }
+
+  function listener (err) {
+    if (err.message === 'caught') {
+      t.pass()
+    } else {
+      t.fail()
+    }
+    process.removeListener('uncaughtException', listener)
+    t.end()
+  }
+})

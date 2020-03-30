@@ -231,6 +231,13 @@
   int success = call; \
   SN_THROWS(success != 0, message)
 
+#define SN_CALL_FUNCTION(env, ctx, cb, n, argv, res) \
+  if (napi_call_function(env, ctx, cb, n, argv, res) == napi_pending_exception) { \
+    napi_value fatal_exception; \
+    napi_get_and_clear_last_exception(env, &fatal_exception); \
+    napi_fatal_exception(env, fatal_exception); \
+  }
+
 #define SN_RETURN(call, message) \
   int success = call; \
   SN_THROWS(success != 0, message) \

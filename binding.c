@@ -1615,7 +1615,7 @@ static void async_pwhash_complete(napi_env env, napi_status status, void *data) 
   assert(napi_get_reference_value(env, req->cb, &callback) == napi_ok);
 
   napi_value return_val;
-  assert(napi_call_function(env, global, callback, 1, argv, &return_val) == napi_ok);
+  SN_CALL_FUNCTION(env, global, callback, 1, argv, &return_val)
   assert(napi_delete_reference(env, req->cb) == napi_ok);
   assert(napi_delete_reference(env, req->out_ref) == napi_ok);
   assert(napi_delete_reference(env, req->pwd_ref) == napi_ok);
@@ -1705,7 +1705,7 @@ static void async_pwhash_str_complete(napi_env env, napi_status status, void *da
   assert(napi_get_reference_value(env, req->cb, &callback) == napi_ok);
 
   napi_value return_val;
-  assert(napi_call_function(env, global, callback, 1, argv, &return_val) == napi_ok);
+  SN_CALL_FUNCTION(env, global, callback, 1, argv, &return_val)
   assert(napi_delete_reference(env, req->cb) == napi_ok);
   assert(napi_delete_reference(env, req->out_ref) == napi_ok);
   assert(napi_delete_reference(env, req->pwd_ref) == napi_ok);
@@ -1788,7 +1788,7 @@ static void async_pwhash_str_verify_complete(napi_env env, napi_status status, v
   assert(napi_get_reference_value(env, req->cb, &callback) == napi_ok);
 
   napi_value return_val;
-  assert(napi_call_function(env, global, callback, 2, argv, &return_val) == napi_ok);
+  SN_CALL_FUNCTION(env, global, callback, 2, argv, &return_val)
   assert(napi_delete_reference(env, req->cb) == napi_ok);
   assert(napi_delete_reference(env, req->str_ref) == napi_ok);
   assert(napi_delete_reference(env, req->pwd_ref) == napi_ok);
@@ -1862,7 +1862,7 @@ static void async_pwhash_scryptsalsa208sha256_complete(napi_env env, napi_status
   assert(napi_get_reference_value(env, req->cb, &callback) == napi_ok);
 
   napi_value return_val;
-  assert(napi_call_function(env, global, callback, 1, argv, &return_val) == napi_ok);
+  SN_CALL_FUNCTION(env, global, callback, 1, argv, &return_val)
   assert(napi_delete_reference(env, req->cb) == napi_ok);
   assert(napi_delete_reference(env, req->out_ref) == napi_ok);
   assert(napi_delete_reference(env, req->pwd_ref) == napi_ok);
@@ -1948,7 +1948,7 @@ static void async_pwhash_scryptsalsa208sha256_str_complete(napi_env env, napi_st
   assert(napi_get_reference_value(env, req->cb, &callback) == napi_ok);
 
   napi_value return_val;
-  assert(napi_call_function(env, global, callback, 1, argv, &return_val) == napi_ok);
+  SN_CALL_FUNCTION(env, global, callback, 1, argv, &return_val)
   assert(napi_delete_reference(env, req->cb) == napi_ok);
   assert(napi_delete_reference(env, req->out_ref) == napi_ok);
   assert(napi_delete_reference(env, req->pwd_ref) == napi_ok);
@@ -2031,7 +2031,7 @@ static void async_pwhash_scryptsalsa208sha256_str_verify_complete(napi_env env, 
   assert(napi_get_reference_value(env, req->cb, &callback) == napi_ok);
 
   napi_value return_val;
-  assert(napi_call_function(env, global, callback, 2, argv, &return_val) == napi_ok);
+  SN_CALL_FUNCTION(env, global, callback, 2, argv, &return_val)
   assert(napi_delete_reference(env, req->cb) == napi_ok);
   assert(napi_delete_reference(env, req->str_ref) == napi_ok);
   assert(napi_delete_reference(env, req->pwd_ref) == napi_ok);
