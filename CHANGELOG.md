@@ -2,6 +2,10 @@
 
 ## Current
 
+## v3.0.1
+
+* Fixed an issue that caused an assert error if an async callback threw an exception.
+
 ## v3.0.0
 
 * Updated to use n-api (@chm-diederichs).
