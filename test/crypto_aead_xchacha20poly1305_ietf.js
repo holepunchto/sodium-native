@@ -13,7 +13,7 @@ test('constants', function (assert) {
   assert.end()
 })
 
-test('ported from libsodium', function (assert) {  /* eslint-disable */
+test('ported from libsodium', function (assert) { /* eslint-disable */
   var mlen = 114
   var adlen = 12
   var clen = mlen + sodium.crypto_aead_xchacha20poly1305_ietf_ABYTES
