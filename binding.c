@@ -702,7 +702,7 @@ napi_value sn_crypto_stream_xor(napi_env env, napi_callback_info info) {
 }
 
 napi_value sn_crypto_stream_chacha20(napi_env env, napi_callback_info info) {
-  SN_ARGV(3, crypto_stream)
+  SN_ARGV(3, crypto_stream_chacha20)
 
   SN_ARGV_TYPEDARRAY(c, 0)
   SN_ARGV_TYPEDARRAY(n, 1)
@@ -730,7 +730,7 @@ napi_value sn_crypto_stream_chacha20_xor (napi_env env, napi_callback_info info)
 }
 
 napi_value sn_crypto_stream_chacha20_xor_ic(napi_env env, napi_callback_info info) {
-  SN_ARGV(4, crypto_stream_xor)
+  SN_ARGV(4, crypto_stream_chacha20_xor_ic)
 
   SN_ARGV_TYPEDARRAY(c, 0)
   SN_ARGV_TYPEDARRAY(m, 1)
@@ -746,7 +746,7 @@ napi_value sn_crypto_stream_chacha20_xor_ic(napi_env env, napi_callback_info inf
 }
 
 napi_value sn_crypto_stream_chacha20_ietf(napi_env env, napi_callback_info info) {
-  SN_ARGV(3, crypto_stream)
+  SN_ARGV(3, crypto_stream_chacha20_ietf)
 
   SN_ARGV_TYPEDARRAY(c, 0)
   SN_ARGV_TYPEDARRAY(n, 1)
@@ -759,7 +759,7 @@ napi_value sn_crypto_stream_chacha20_ietf(napi_env env, napi_callback_info info)
 }
 
 napi_value sn_crypto_stream_chacha20_ietf_xor(napi_env env, napi_callback_info info) {
-  SN_ARGV(4, crypto_stream_xor)
+  SN_ARGV(4, crypto_stream_chacha20_ietf_xor)
 
   SN_ARGV_TYPEDARRAY(c, 0)
   SN_ARGV_TYPEDARRAY(m, 1)
@@ -774,7 +774,7 @@ napi_value sn_crypto_stream_chacha20_ietf_xor(napi_env env, napi_callback_info i
 }
 
 napi_value sn_crypto_stream_chacha20_ietf_xor_ic(napi_env env, napi_callback_info info) {
-  SN_ARGV(4, crypto_stream_xor)
+  SN_ARGV(4, crypto_stream_chacha20_ietf_xor)
 
   SN_ARGV_TYPEDARRAY(c, 0)
   SN_ARGV_TYPEDARRAY(m, 1)
@@ -2336,7 +2336,7 @@ typedef struct sn_crypto_stream_chacha20_ietf_xor_state {
 } sn_crypto_stream_chacha20_ietf_xor_state;
 
 napi_value sn_crypto_stream_chacha20_ietf_xor_wrap_init (napi_env env, napi_callback_info info) {
-  SN_ARGV(3, crypto_stream_chacha20_ietf_xor_instance_init)
+  SN_ARGV(3, crypto_stream_chacha20_ietf_xor_wrap_init)
 
   SN_ARGV_BUFFER_CAST(sn_crypto_stream_chacha20_ietf_xor_state *, state, 0)
   SN_ARGV_TYPEDARRAY(n, 1)
@@ -2356,7 +2356,7 @@ napi_value sn_crypto_stream_chacha20_ietf_xor_wrap_init (napi_env env, napi_call
 
 
 napi_value sn_crypto_stream_chacha20_ietf_xor_wrap_update (napi_env env, napi_callback_info info) {
-  SN_ARGV(3, crypto_stream_chacha20_ietf_xor_instance_init)
+  SN_ARGV(3, crypto_stream_chacha20_ietf_xor_wrap_update)
 
   SN_ARGV_BUFFER_CAST(sn_crypto_stream_chacha20_ietf_xor_state *, state, 0)
   SN_ARGV_BUFFER_CAST(unsigned char *, c, 1)
@@ -2404,7 +2404,7 @@ napi_value sn_crypto_stream_chacha20_ietf_xor_wrap_update (napi_env env, napi_ca
 }
 
 napi_value sn_crypto_stream_chacha20_ietf_xor_wrap_final (napi_env env, napi_callback_info info) {
-  SN_ARGV(1, crypto_stream_chacha20_ietf_xor_instance_init)
+  SN_ARGV(1, crypto_stream_chacha20_ietf_xor_wrap_final)
 
   SN_ARGV_BUFFER_CAST(sn_crypto_stream_chacha20_ietf_xor_state *, state, 0)
 
