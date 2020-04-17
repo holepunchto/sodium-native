@@ -82,7 +82,7 @@
 #define SN_EXPORT_UINT32(name, num) \
   { \
     napi_value name##_num; \
-    SN_STATUS_THROWS(napi_create_uint32(env, (int32_t) num, &name##_num), "") \
+    SN_STATUS_THROWS(napi_create_uint32(env, (uint32_t) num, &name##_num), "") \
     SN_STATUS_THROWS(napi_set_named_property(env, exports, #name, name##_num), "") \
   }
 
