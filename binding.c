@@ -774,7 +774,7 @@ napi_value sn_crypto_stream_chacha20_ietf_xor(napi_env env, napi_callback_info i
 }
 
 napi_value sn_crypto_stream_chacha20_ietf_xor_ic(napi_env env, napi_callback_info info) {
-  SN_ARGV(5, crypto_stream_chacha20_ietf_xor)
+  SN_ARGV(5, crypto_stream_chacha20_ietf_xor_ic)
 
   SN_ARGV_TYPEDARRAY(c, 0)
   SN_ARGV_TYPEDARRAY(m, 1)
