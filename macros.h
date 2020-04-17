@@ -86,6 +86,13 @@
     SN_STATUS_THROWS(napi_set_named_property(env, exports, #name, name##_num), "") \
   }
 
+#define SN_EXPORT_UINT64(name, num) \
+  { \
+    napi_value name##_num; \
+    SN_STATUS_THROWS(napi_create_bigint_uint64(env, (uint64_t) num, &name##_num), "") \
+    SN_STATUS_THROWS(napi_set_named_property(env, exports, #name, name##_num), "") \
+  }
+
 #define SN_EXPORT_STRING(name, string) \
   { \
     napi_value name##_string; \
