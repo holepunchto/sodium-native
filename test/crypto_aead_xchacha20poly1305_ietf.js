@@ -7,8 +7,8 @@ test('constants', function (assert) {
   assert.equal(typeof sodium.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES, 'number')
   assert.equal(typeof sodium.crypto_aead_xchacha20poly1305_ietf_NSECBYTES, 'number')
   assert.equal(sodium.crypto_aead_xchacha20poly1305_ietf_NSECBYTES, 0)
-  assert.equal(typeof sodium.crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX, 'number')
-  assert.equal(sodium.crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX, 0xffffffef) // to make sure, see note in binding.cc
+  assert.equal(typeof sodium.crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX, 'bigint')
+  assert.equal(sodium.crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX, 18446744073709551599n) // to make sure, see note in binding.cc
 
   assert.end()
 })
