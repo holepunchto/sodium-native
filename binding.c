@@ -1557,6 +1557,114 @@ napi_value sn_crypto_aead_xchacha20poly1305_ietf_decrypt_detached (napi_env env,
   SN_RETURN(crypto_aead_xchacha20poly1305_ietf_decrypt_detached(m_data, NULL, c_data, c_size, mac_data, ad_data, ad_size, npub_data, k_data), "could not verify data")
 }
 
+napi_value sn_crypto_aead_chacha20poly1305_ietf_keygen (napi_env env, napi_callback_info info) {
+  SN_ARGV(1, crypto_aead_chacha20poly1305_ietf_keygen)
+
+  SN_ARGV_TYPEDARRAY(k, 0)
+
+  SN_ASSERT_LENGTH(k_size, crypto_aead_chacha20poly1305_ietf_KEYBYTES, "k")
+
+  crypto_aead_chacha20poly1305_ietf_keygen(k_data);
+  return NULL;
+}
+
+napi_value sn_crypto_aead_chacha20poly1305_ietf_encrypt (napi_env env, napi_callback_info info) {
+  SN_ARGV(6, crypto_aead_chacha20poly1305_ietf_encrypt)
+
+  SN_ARGV_TYPEDARRAY(c, 0)
+  SN_ARGV_TYPEDARRAY(m, 1)
+  SN_ARGV_OPTS_TYPEDARRAY(ad, 2)
+  SN_ARGV_CHECK_NULL(nsec, 3)
+  SN_ARGV_TYPEDARRAY(npub, 4)
+  SN_ARGV_TYPEDARRAY(k, 5)
+
+  SN_THROWS(!nsec_is_null, "nsec must always be set to null")
+
+  SN_THROWS(c_size != m_size + crypto_aead_chacha20poly1305_ietf_ABYTES, "c must 'm.byteLength + crypto_aead_chacha20poly1305_ietf_ABYTES' bytes")
+  SN_THROWS(c_size > 0xffffffff, "c.byteLength must be a 32bit integer")
+  SN_ASSERT_LENGTH(npub_size, crypto_aead_chacha20poly1305_ietf_NPUBBYTES, "npub")
+  SN_ASSERT_LENGTH(k_size, crypto_aead_chacha20poly1305_ietf_KEYBYTES, "k")
+
+  unsigned long long clen;
+  SN_CALL(crypto_aead_chacha20poly1305_ietf_encrypt(c_data, &clen, m_data, m_size, ad_data, ad_size, NULL, npub_data, k_data), "could not encrypt data")
+
+  napi_value result;
+  SN_STATUS_THROWS(napi_create_uint32(env, (uint32_t) clen, &result), "")
+  return result;
+}
+
+napi_value sn_crypto_aead_chacha20poly1305_ietf_decrypt (napi_env env, napi_callback_info info) {
+  SN_ARGV(6, crypto_aead_chacha20poly1305_ietf_decrypt)
+
+  SN_ARGV_TYPEDARRAY(m, 0)
+  SN_ARGV_CHECK_NULL(nsec, 1)
+  SN_ARGV_TYPEDARRAY(c, 2)
+  SN_ARGV_OPTS_TYPEDARRAY(ad, 3)
+  SN_ARGV_TYPEDARRAY(npub, 4)
+  SN_ARGV_TYPEDARRAY(k, 5)
+
+  SN_THROWS(!nsec_is_null, "nsec must always be set to null")
+
+  SN_THROWS(m_size != c_size - crypto_aead_chacha20poly1305_ietf_ABYTES, "m must 'c.byteLength - crypto_aead_chacha20poly1305_ietf_ABYTES' bytes")
+  SN_ASSERT_LENGTH(npub_size, crypto_aead_chacha20poly1305_ietf_NPUBBYTES, "npub")
+  SN_ASSERT_LENGTH(k_size, crypto_aead_chacha20poly1305_ietf_KEYBYTES, "k")
+  SN_THROWS(m_size > 0xffffffff, "m.byteLength must be a 32bit integer")
+
+  unsigned long long mlen;
+  SN_CALL(crypto_aead_chacha20poly1305_ietf_decrypt(m_data, &mlen, NULL, c_data, c_size, ad_data, ad_size, npub_data, k_data), "could not verify data")
+
+  napi_value result;
+  SN_STATUS_THROWS(napi_create_uint32(env, (uint32_t) mlen, &result), "")
+  return result;
+}
+
+napi_value sn_crypto_aead_chacha20poly1305_ietf_encrypt_detached (napi_env env, napi_callback_info info) {
+  SN_ARGV(7, crypto_aead_chacha20poly1305_ietf_encrypt_detached)
+
+  SN_ARGV_TYPEDARRAY(c, 0)
+  SN_ARGV_TYPEDARRAY(mac, 1)
+  SN_ARGV_TYPEDARRAY(m, 2)
+  SN_ARGV_OPTS_TYPEDARRAY(ad, 3)
+  SN_ARGV_CHECK_NULL(nsec, 4)
+  SN_ARGV_TYPEDARRAY(npub, 5)
+  SN_ARGV_TYPEDARRAY(k, 6)
+
+  SN_THROWS(!nsec_is_null, "nsec must always be set to null")
+
+  SN_THROWS(c_size != m_size, "c must be 'm.byteLength' bytes")
+  SN_ASSERT_LENGTH(mac_size, crypto_aead_chacha20poly1305_ietf_ABYTES, "mac")
+  SN_ASSERT_LENGTH(npub_size, crypto_aead_chacha20poly1305_ietf_NPUBBYTES, "npub")
+  SN_ASSERT_LENGTH(k_size, crypto_aead_chacha20poly1305_ietf_KEYBYTES, "k")
+
+  unsigned long long maclen;
+  SN_CALL(crypto_aead_chacha20poly1305_ietf_encrypt_detached(c_data, mac_data, &maclen, m_data, m_size, ad_data, ad_size, NULL, npub_data, k_data), "could not encrypt data")
+
+  napi_value result;
+  SN_STATUS_THROWS(napi_create_uint32(env, (uint32_t) maclen, &result), "")
+  return result;
+}
+
+napi_value sn_crypto_aead_chacha20poly1305_ietf_decrypt_detached (napi_env env, napi_callback_info info) {
+  SN_ARGV(7, crypto_aead_chacha20poly1305_ietf_decrypt_detached)
+
+  SN_ARGV_TYPEDARRAY(m, 0)
+  SN_ARGV_CHECK_NULL(nsec, 1)
+  SN_ARGV_TYPEDARRAY(c, 2)
+  SN_ARGV_TYPEDARRAY(mac, 3)
+  SN_ARGV_OPTS_TYPEDARRAY(ad, 4)
+  SN_ARGV_TYPEDARRAY(npub, 5)
+  SN_ARGV_TYPEDARRAY(k, 6)
+
+  SN_THROWS(!nsec_is_null, "nsec must always be set to null")
+
+  SN_THROWS(m_size != c_size, "m must be 'c.byteLength' bytes")
+  SN_ASSERT_LENGTH(mac_size, crypto_aead_chacha20poly1305_ietf_ABYTES, "mac")
+  SN_ASSERT_LENGTH(npub_size, crypto_aead_chacha20poly1305_ietf_NPUBBYTES, "npub")
+  SN_ASSERT_LENGTH(k_size, crypto_aead_chacha20poly1305_ietf_KEYBYTES, "k")
+
+  SN_RETURN(crypto_aead_chacha20poly1305_ietf_decrypt_detached(m_data, NULL, c_data, c_size, mac_data, ad_data, ad_size, npub_data, k_data), "could not verify data")
+}
+
 napi_value sn_crypto_secretstream_xchacha20poly1305_keygen (napi_env env, napi_callback_info info) {
   SN_ARGV(1, crypto_secretstream_xchacha20poly1305_keygen)
 
@@ -2542,6 +2650,11 @@ static napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_decrypt, sn_crypto_aead_xchacha20poly1305_ietf_decrypt)
   SN_EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_encrypt_detached, sn_crypto_aead_xchacha20poly1305_ietf_encrypt_detached)
   SN_EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_decrypt_detached, sn_crypto_aead_xchacha20poly1305_ietf_decrypt_detached)
+  SN_EXPORT_FUNCTION(crypto_aead_chacha20poly1305_ietf_keygen, sn_crypto_aead_chacha20poly1305_ietf_keygen)
+  SN_EXPORT_FUNCTION(crypto_aead_chacha20poly1305_ietf_encrypt, sn_crypto_aead_chacha20poly1305_ietf_encrypt)
+  SN_EXPORT_FUNCTION(crypto_aead_chacha20poly1305_ietf_decrypt, sn_crypto_aead_chacha20poly1305_ietf_decrypt)
+  SN_EXPORT_FUNCTION(crypto_aead_chacha20poly1305_ietf_encrypt_detached, sn_crypto_aead_chacha20poly1305_ietf_encrypt_detached)
+  SN_EXPORT_FUNCTION(crypto_aead_chacha20poly1305_ietf_decrypt_detached, sn_crypto_aead_chacha20poly1305_ietf_decrypt_detached)
   SN_EXPORT_FUNCTION(crypto_generichash_keygen, sn_crypto_generichash_keygen)
   SN_EXPORT_FUNCTION(crypto_generichash_init, sn_crypto_generichash_init)
   SN_EXPORT_FUNCTION(crypto_generichash_update, sn_crypto_generichash_update)
@@ -2661,6 +2774,11 @@ static napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_UINT32(crypto_aead_xchacha20poly1305_ietf_NPUBBYTES, crypto_aead_xchacha20poly1305_ietf_NPUBBYTES)
   SN_EXPORT_UINT32(crypto_aead_xchacha20poly1305_ietf_NSECBYTES, crypto_aead_xchacha20poly1305_ietf_NSECBYTES)
   SN_EXPORT_UINT64(crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX, crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX)
+  SN_EXPORT_UINT32(crypto_aead_chacha20poly1305_ietf_ABYTES, crypto_aead_chacha20poly1305_ietf_ABYTES)
+  SN_EXPORT_UINT32(crypto_aead_chacha20poly1305_ietf_KEYBYTES, crypto_aead_chacha20poly1305_ietf_KEYBYTES)
+  SN_EXPORT_UINT32(crypto_aead_chacha20poly1305_ietf_NPUBBYTES, crypto_aead_chacha20poly1305_ietf_NPUBBYTES)
+  SN_EXPORT_UINT32(crypto_aead_chacha20poly1305_ietf_NSECBYTES, crypto_aead_chacha20poly1305_ietf_NSECBYTES)
+  SN_EXPORT_UINT64(crypto_aead_chacha20poly1305_ietf_MESSAGEBYTES_MAX, crypto_aead_chacha20poly1305_ietf_MESSAGEBYTES_MAX)
   SN_EXPORT_UINT32(crypto_kx_PUBLICKEYBYTES, crypto_kx_PUBLICKEYBYTES)
   SN_EXPORT_UINT32(crypto_kx_SECRETKEYBYTES, crypto_kx_SECRETKEYBYTES)
   SN_EXPORT_UINT32(crypto_kx_SEEDBYTES, crypto_kx_SEEDBYTES)
