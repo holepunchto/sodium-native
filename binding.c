@@ -22,6 +22,10 @@ static uint8_t typedarray_width(napi_typedarray_type type) {
   }
 }
 
+static void sn_sodium_free_finalise (napi_env env, void *finalise_data, void *finalise_hint) {
+  sodium_free(finalise_data);
+}
+
 napi_value sn_sodium_memzero (napi_env env, napi_callback_info info) {
   SN_ARGV(1, sodium_memzero)
 
@@ -48,8 +52,20 @@ napi_value sn_sodium_munlock (napi_env env, napi_callback_info info) {
   SN_RETURN(sodium_munlock(buf_data, buf_size), "memory unlock failed")
 }
 
-static void sn_sodium_free (napi_env env, void *finalise_data, void *finalise_hint) {
-  sodium_free(finalise_data);
+napi_value sn_sodium_free (napi_env env, napi_callback_info info) {
+  SN_ARGV(1, sodium_free)
+
+  SN_ARGV_TYPEDARRAY(buf, 0)
+
+  napi_value array_buf;
+
+  SN_STATUS_THROWS(napi_get_named_property(env, argv[0], "buffer", &array_buf), "failed to get arraybuffer");
+  SN_STATUS_THROWS(napi_remove_wrap(env, array_buf, NULL), "failed to remove wrap"); // remove the finalizer
+  SN_STATUS_THROWS(napi_detach_arraybuffer(env, array_buf), "failed to detach array buffer");
+
+  sodium_free(buf_data);
+
+  return NULL;
 }
 
 napi_value sn_sodium_malloc (napi_env env, napi_callback_info info) {
@@ -61,11 +77,14 @@ napi_value sn_sodium_malloc (napi_env env, napi_callback_info info) {
 
   SN_THROWS(ptr == NULL, "sodium_malloc failed");
 
-  napi_value buf, key, value;
+  napi_value buf, key, value, array_buf;
 
-  SN_STATUS_THROWS(napi_create_external_buffer(env, size, ptr, &sn_sodium_free, NULL, &buf), "failed to create a n-api buffer")
+  SN_STATUS_THROWS(napi_create_external_buffer(env, size, ptr, NULL, NULL, &buf), "failed to create a n-api buffer")
   SN_STATUS_THROWS(napi_create_string_utf8(env, "secure", 6, &key), "failed to create string")
   SN_STATUS_THROWS(napi_get_boolean(env, true, &value), "failed to create boolean")
+
+  SN_STATUS_THROWS(napi_get_named_property(env, buf, "buffer", &array_buf), "failed to get arraybuffer");
+  SN_STATUS_THROWS(napi_wrap(env, array_buf, ptr, sn_sodium_free_finalise, NULL, NULL), "failed to wrap");
 
   napi_property_descriptor descriptor[] = {
     { .utf8name = "secure",
@@ -2537,6 +2556,7 @@ static napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(sodium_mlock, sn_sodium_mlock)
   SN_EXPORT_FUNCTION(sodium_munlock, sn_sodium_munlock)
   SN_EXPORT_FUNCTION(sodium_malloc, sn_sodium_malloc)
+  SN_EXPORT_FUNCTION(sodium_free, sn_sodium_free)
   SN_EXPORT_FUNCTION(sodium_mprotect_noaccess, sn_sodium_mprotect_noaccess)
   SN_EXPORT_FUNCTION(sodium_mprotect_readonly, sn_sodium_mprotect_readonly)
   SN_EXPORT_FUNCTION(sodium_mprotect_readwrite, sn_sodium_mprotect_readwrite)
@@ -2665,7 +2685,6 @@ static napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_secretstream_xchacha20poly1305_init_pull, sn_crypto_secretstream_xchacha20poly1305_init_pull)
   SN_EXPORT_FUNCTION(crypto_secretstream_xchacha20poly1305_push, sn_crypto_secretstream_xchacha20poly1305_push)
   SN_EXPORT_FUNCTION(crypto_secretstream_xchacha20poly1305_pull, sn_crypto_secretstream_xchacha20poly1305_pull)
-  SN_EXPORT_FUNCTION(crypto_secretstream_xchacha20poly1305_rekey, sn_crypto_secretstream_xchacha20poly1305_rekey)
 
   SN_EXPORT_UINT32(crypto_generichash_STATEBYTES, sizeof(crypto_generichash_state))
   SN_EXPORT_UINT32(crypto_onetimeauth_STATEBYTES, sizeof(crypto_onetimeauth_state))
