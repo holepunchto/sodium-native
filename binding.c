@@ -58,6 +58,8 @@ napi_value sn_sodium_malloc (napi_env env, napi_callback_info info) {
 
   void *ptr = sodium_malloc(size);
 
+  SN_THROWS(ptr == NULL, "sodium_malloc failed");
+
   napi_value buf, key, value;
 
   SN_STATUS_THROWS(napi_create_external_buffer(env, size, ptr, &sn_sodium_free, NULL, &buf), "failed to create a n-api buffer")
@@ -138,7 +140,7 @@ napi_value sn_randombytes_buf_deterministic (napi_env env, napi_callback_info in
 
   SN_ARGV_TYPEDARRAY(buf, 0)
   SN_ARGV_TYPEDARRAY(seed, 1)
-  
+
   SN_ASSERT_LENGTH(seed_size, randombytes_SEEDBYTES, "seed")
 
   randombytes_buf_deterministic(buf_data, buf_size, seed_data);
@@ -1486,7 +1488,7 @@ napi_value sn_crypto_secretstream_xchacha20poly1305_keygen (napi_env env, napi_c
   SN_ARGV(1, crypto_secretstream_xchacha20poly1305_keygen)
 
   SN_ARGV_TYPEDARRAY(k, 0)
- 
+
   SN_ASSERT_LENGTH(k_size, crypto_secretstream_xchacha20poly1305_KEYBYTES, "k")
 
   crypto_secretstream_xchacha20poly1305_keygen(k_data);
@@ -1727,7 +1729,7 @@ napi_value sn_crypto_pwhash_str_async (napi_env env, napi_callback_info info) {
   SN_ASSERT_MAX_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MAX, "opslimit")
   SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_MEMLIMIT_MIN, "memlimit")
   SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_MEMLIMIT_MAX, "memlimit")
- 
+
   sn_async_pwhash_str_request *req = (sn_async_pwhash_str_request *) malloc(sizeof(sn_async_pwhash_str_request));
   req->out_data = out;
   req->pwd_data = pwd;
@@ -1888,7 +1890,7 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_async (napi_env env, napi_callb
   SN_ASSERT_MAX_LENGTH(opslimit, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, "opslimit")
   SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, "memlimit")
   SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, "memlimit")
-  
+
   sn_async_pwhash_scryptsalsa208sha256_request *req = (sn_async_pwhash_scryptsalsa208sha256_request *) malloc(sizeof(sn_async_pwhash_scryptsalsa208sha256_request));
   req->out_data = out;
   req->out_size = out_size;
@@ -1970,7 +1972,7 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_async (napi_env env, napi_c
   SN_ASSERT_MAX_LENGTH(opslimit, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, "opslimit")
   SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, "memlimit")
   SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, "memlimit")
- 
+
   sn_async_pwhash_scryptsalsa208sha256_str_request *req = (sn_async_pwhash_scryptsalsa208sha256_str_request *) malloc(sizeof(sn_async_pwhash_scryptsalsa208sha256_str_request));
   req->out_data = out;
   req->pwd_data = pwd;
