@@ -114,6 +114,14 @@ tape('sodium_malloc .secure read-only', function (t) {
   t.end()
 })
 
+tape('sodium_free', function (t) {
+  var buf = sodium.sodium_malloc(1)
+  t.ok(buf.byteLength === 1)
+  sodium.sodium_free(buf)
+  t.ok(buf.byteLength === 0)
+  t.end()
+})
+
 tape('sodium_malloc bounds', function (t) {
   t.throws(function () {
     sodium.sodium_malloc(-1)
