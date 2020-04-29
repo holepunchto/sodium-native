@@ -25,6 +25,7 @@ static uint8_t typedarray_width(napi_typedarray_type type) {
 }
 
 static void sn_sodium_free_finalise (napi_env env, void *finalise_data, void *finalise_hint) {
+  napi_adjust_external_memory(env, -4 * 4096, NULL);
   sodium_free(finalise_data);
 }
 
@@ -67,7 +68,7 @@ napi_value sn_sodium_free (napi_env env, napi_callback_info info) {
   SN_STATUS_THROWS(napi_get_named_property(env, argv[0], "buffer", &array_buf), "failed to get arraybuffer");
   SN_STATUS_THROWS(napi_remove_wrap(env, array_buf, NULL), "failed to remove wrap"); // remove the finalizer
   SN_STATUS_THROWS(napi_detach_arraybuffer(env, array_buf), "failed to detach array buffer");
-
+  napi_adjust_external_memory(env, -4 * 4096, NULL);
   sodium_free(buf_data);
 
   return NULL;
@@ -79,7 +80,9 @@ napi_value sn_sodium_malloc (napi_env env, napi_callback_info info) {
   SN_ARGV_UINT32(size, 0)
 
   void *ptr = sodium_malloc(size);
+
   SN_THROWS(ptr == NULL, "ENOMEM")
+  napi_adjust_external_memory(env, 4 * 4096, NULL);
 
   SN_THROWS(ptr == NULL, "sodium_malloc failed");
 
