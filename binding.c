@@ -5,6 +5,8 @@
 #include <sodium.h>
 #include "macros.h"
 
+static int IS_ARRAY_BUFFER_DETACH_SUPPORTED = 0;
+
 static uint8_t typedarray_width(napi_typedarray_type type) {
   switch (type) {
     case napi_int8_array: return 1;
@@ -55,7 +57,10 @@ napi_value sn_sodium_munlock (napi_env env, napi_callback_info info) {
 napi_value sn_sodium_free (napi_env env, napi_callback_info info) {
   SN_ARGV(1, sodium_free)
 
-  SN_ARGV_TYPEDARRAY(buf, 0)
+  SN_ARGV_TYPEDARRAY_PTR(buf, 0)
+
+  if (IS_ARRAY_BUFFER_DETACH_SUPPORTED == 0) return NULL;
+  if (buf_data == NULL) return NULL;
 
   napi_value array_buf;
 
@@ -74,6 +79,7 @@ napi_value sn_sodium_malloc (napi_env env, napi_callback_info info) {
   SN_ARGV_UINT32(size, 0)
 
   void *ptr = sodium_malloc(size);
+  SN_THROWS(ptr == NULL, "ENOMEM")
 
   SN_THROWS(ptr == NULL, "sodium_malloc failed");
 
@@ -2548,6 +2554,13 @@ napi_value sn_crypto_stream_chacha20_ietf_xor_wrap_final (napi_env env, napi_cal
 
 static napi_value create_sodium_native(napi_env env) {
   SN_THROWS(sodium_init() == -1, "sodium_init() failed")
+
+  const napi_node_version* version;
+  assert(napi_get_node_version(env, &version) == napi_ok);
+
+  if (version->major > 12 || (version->major == 12 && version->minor >= 16)) {
+    IS_ARRAY_BUFFER_DETACH_SUPPORTED = 1;
+  }
 
   napi_value exports;
   assert(napi_create_object(env, &exports) == napi_ok);
