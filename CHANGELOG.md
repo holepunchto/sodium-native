@@ -2,6 +2,23 @@
 
 ## Current
 
+## v3.1.0
+
+* Add explicit `sodium.sodium_free(buf)` to free the memory backed by a secure
+buffer. This uses the detach semantics known from `.transfer` in the browser and
+from Node worker threads. This is a no-op on older versions of Node and is
+currently pending backporting to Node 10.x
+* External memory book-keeping. For every secure buffer we now increment the
+external memory of node by 16 kb to better hint the garbage collector about the
+true consumption of secure buffers. This is not exactly representative if more
+than a page of system memory is allocated by the user nor if the system page
+size is not 4kb.
+* Throw an exception of `sodium_malloc` returns a NULL pointer (eg unable to
+allocate secure memory).
+* Expose new APIs and associated constants: `crypto_stream_chacha20`,
+`crypto_stream_chacha20_ietf`, `crypto_aead_chacha20`, `crypto_aead_chacha20_ietf`,
+* Expose `crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX`, `crypto_aead_chacha20poly1305_ietf_MESSAGEBYTES_MAX` and `crypto_aead_chacha20poly1305_MESSAGEBYTES_MAX` as `BigInt`s
+
 ## v3.0.1
 
 * Fixed an issue that caused an assert error if an async callback threw an exception.
