@@ -122,7 +122,7 @@ tape('sodium_free', function (t) {
   t.end()
 })
 
-tape('sodium_malloc bounds', function (t) {
+tape.skip('sodium_malloc bounds', function (t) {
   t.throws(function () {
     sodium.sodium_malloc(-1)
   }, 'too small')
