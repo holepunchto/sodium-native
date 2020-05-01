@@ -2,6 +2,10 @@
 
 ## Current
 
+## v3.1.1
+
+* Bump `prebuildify`. Electron no longer needs a custom napi build
+
 ## v3.1.0
 
 * Add explicit `sodium.sodium_free(buf)` to free the memory backed by a secure
