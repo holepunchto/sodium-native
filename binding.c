@@ -5,6 +5,9 @@
 #include <sodium.h>
 #include "macros.h"
 
+// Function prototype to statify compilers. Remove later
+napi_status napi_detach_arraybuffer(napi_env env, napi_value arraybuffer);
+
 static int IS_ARRAY_BUFFER_DETACH_SUPPORTED = 0;
 
 static uint8_t typedarray_width(napi_typedarray_type type) {
