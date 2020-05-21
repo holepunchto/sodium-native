@@ -120,7 +120,7 @@
   void *name##_data = NULL; \
   size_t name##_size = 0; \
   SN_STATUS_THROWS(napi_typeof(env, argv[index], &name##_valuetype), "") \
-  if (name##_valuetype != napi_null) { \
+  if (name##_valuetype != napi_null && name##_valuetype != napi_undefined) { \
     napi_value name##_argv = argv[index]; \
     SN_TYPEDARRAY_ASSERT(name, name##_argv, #name " must be an instance of TypedArray") \
     SN_OPT_TYPEDARRAY(name, name##_argv) \
