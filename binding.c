@@ -364,7 +364,7 @@ napi_value sn_crypto_sign_verify_detached(napi_env env, napi_callback_info info)
   SN_ARGV_TYPEDARRAY(m, 1)
   SN_ARGV_TYPEDARRAY(pk, 2)
 
-  SN_ASSERT_MIN_LENGTH(sig_size, crypto_sign_BYTES, "m")
+  SN_ASSERT_MIN_LENGTH(sig_size, crypto_sign_BYTES, "sig")
   SN_ASSERT_LENGTH(pk_size, crypto_sign_PUBLICKEYBYTES, "pk")
 
   SN_RETURN_BOOLEAN(crypto_sign_verify_detached(sig_data, m_data, m_size, pk_data))
