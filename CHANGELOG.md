@@ -2,6 +2,12 @@
 
 ## Current
 
+## v3.2.0
+* Add missing `napi` prototype for Node v10
+* Make "missing" checks behave like Javascript (`x == null`)
+* Typo in error message (Thanks @christianbundy)
+* Add missing `crypto_stream_xchacha20_*` `crypto_stream_salsa20_*` APIs
+
 ## v3.1.1
 
 * Bump `prebuildify`. Electron no longer needs a custom napi build
