@@ -821,6 +821,94 @@ napi_value sn_crypto_stream_chacha20_ietf_xor_ic(napi_env env, napi_callback_inf
   SN_RETURN(crypto_stream_chacha20_ietf_xor_ic(c_data, m_data, m_size, n_data, ic, k_data), "stream encryption failed")
 }
 
+napi_value sn_crypto_stream_xchacha20(napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_stream_xchacha20)
+
+  SN_ARGV_TYPEDARRAY(c, 0)
+  SN_ARGV_TYPEDARRAY(n, 1)
+  SN_ARGV_TYPEDARRAY(k, 2)
+
+  SN_ASSERT_LENGTH(n_size, crypto_stream_xchacha20_NONCEBYTES, "n")
+  SN_ASSERT_LENGTH(k_size, crypto_stream_xchacha20_KEYBYTES, "k")
+
+  SN_RETURN(crypto_stream_xchacha20(c_data, c_size, n_data, k_data), "stream encryption failed")
+}
+
+napi_value sn_crypto_stream_xchacha20_xor (napi_env env, napi_callback_info info) {
+  SN_ARGV(4, crypto_stream_xchacha20_xor)
+
+  SN_ARGV_TYPEDARRAY(c, 0)
+  SN_ARGV_TYPEDARRAY(m, 1)
+  SN_ARGV_TYPEDARRAY(n, 2)
+  SN_ARGV_TYPEDARRAY(k, 3)
+
+  SN_THROWS(c_size != m_size, "m must be 'c.byteLength' bytes")
+  SN_ASSERT_LENGTH(n_size, crypto_stream_xchacha20_NONCEBYTES, "n")
+  SN_ASSERT_LENGTH(k_size, crypto_stream_xchacha20_KEYBYTES, "k")
+
+  SN_RETURN(crypto_stream_xchacha20_xor(c_data, m_data, m_size, n_data, k_data), "stream encryption failed")
+}
+
+napi_value sn_crypto_stream_xchacha20_xor_ic(napi_env env, napi_callback_info info) {
+  SN_ARGV(5, crypto_stream_xchacha20_xor_ic)
+
+  SN_ARGV_TYPEDARRAY(c, 0)
+  SN_ARGV_TYPEDARRAY(m, 1)
+  SN_ARGV_TYPEDARRAY(n, 2)
+  SN_ARGV_UINT32(ic, 3)
+  SN_ARGV_TYPEDARRAY(k, 4)
+
+  SN_THROWS(c_size != m_size, "m must be 'c.byteLength' bytes")
+  SN_ASSERT_LENGTH(n_size, crypto_stream_xchacha20_NONCEBYTES, "n")
+  SN_ASSERT_LENGTH(k_size, crypto_stream_xchacha20_KEYBYTES, "k")
+
+  SN_RETURN(crypto_stream_xchacha20_xor_ic(c_data, m_data, m_size, n_data, ic, k_data), "stream encryption failed")
+}
+
+napi_value sn_crypto_stream_salsa20(napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_stream_salsa20)
+
+  SN_ARGV_TYPEDARRAY(c, 0)
+  SN_ARGV_TYPEDARRAY(n, 1)
+  SN_ARGV_TYPEDARRAY(k, 2)
+
+  SN_ASSERT_LENGTH(n_size, crypto_stream_salsa20_NONCEBYTES, "n")
+  SN_ASSERT_LENGTH(k_size, crypto_stream_salsa20_KEYBYTES, "k")
+
+  SN_RETURN(crypto_stream_salsa20(c_data, c_size, n_data, k_data), "stream encryption failed")
+}
+
+napi_value sn_crypto_stream_salsa20_xor (napi_env env, napi_callback_info info) {
+  SN_ARGV(4, crypto_stream_salsa20_xor)
+
+  SN_ARGV_TYPEDARRAY(c, 0)
+  SN_ARGV_TYPEDARRAY(m, 1)
+  SN_ARGV_TYPEDARRAY(n, 2)
+  SN_ARGV_TYPEDARRAY(k, 3)
+
+  SN_THROWS(c_size != m_size, "m must be 'c.byteLength' bytes")
+  SN_ASSERT_LENGTH(n_size, crypto_stream_salsa20_NONCEBYTES, "n")
+  SN_ASSERT_LENGTH(k_size, crypto_stream_salsa20_KEYBYTES, "k")
+
+  SN_RETURN(crypto_stream_salsa20_xor(c_data, m_data, m_size, n_data, k_data), "stream encryption failed")
+}
+
+napi_value sn_crypto_stream_salsa20_xor_ic(napi_env env, napi_callback_info info) {
+  SN_ARGV(5, crypto_stream_salsa20_xor_ic)
+
+  SN_ARGV_TYPEDARRAY(c, 0)
+  SN_ARGV_TYPEDARRAY(m, 1)
+  SN_ARGV_TYPEDARRAY(n, 2)
+  SN_ARGV_UINT32(ic, 3)
+  SN_ARGV_TYPEDARRAY(k, 4)
+
+  SN_THROWS(c_size != m_size, "m must be 'c.byteLength' bytes")
+  SN_ASSERT_LENGTH(n_size, crypto_stream_salsa20_NONCEBYTES, "n")
+  SN_ASSERT_LENGTH(k_size, crypto_stream_salsa20_KEYBYTES, "k")
+
+  SN_RETURN(crypto_stream_salsa20_xor_ic(c_data, m_data, m_size, n_data, ic, k_data), "stream encryption failed")
+}
+
 napi_value sn_crypto_auth (napi_env env, napi_callback_info info) {
   SN_ARGV(3, crypto_auth)
 
@@ -2558,6 +2646,188 @@ napi_value sn_crypto_stream_chacha20_ietf_xor_wrap_final (napi_env env, napi_cal
   return NULL;
 }
 
+typedef struct sn_crypto_stream_xchacha20_xor_state {
+  unsigned char n[crypto_stream_xchacha20_NONCEBYTES];
+  unsigned char k[crypto_stream_xchacha20_KEYBYTES];
+  unsigned char next_block[64];
+  int remainder;
+  uint64_t block_counter;
+} sn_crypto_stream_xchacha20_xor_state;
+
+napi_value sn_crypto_stream_xchacha20_xor_wrap_init (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_stream_xchacha20_xor_wrap_init)
+
+  SN_ARGV_BUFFER_CAST(sn_crypto_stream_xchacha20_xor_state *, state, 0)
+  SN_ARGV_TYPEDARRAY(n, 1)
+  SN_ARGV_TYPEDARRAY(k, 2)
+
+  SN_THROWS(state_size != sizeof(sn_crypto_stream_xchacha20_xor_state), "state must be 'crypto_stream_xchacha20_xor_STATEBYTES' bytes")
+  SN_ASSERT_LENGTH(n_size, crypto_stream_xchacha20_NONCEBYTES, "n")
+  SN_ASSERT_LENGTH(k_size, crypto_stream_xchacha20_KEYBYTES, "k")
+
+  state->remainder = 0;
+  state->block_counter = 0;
+  memcpy(state->n, n_data, crypto_stream_xchacha20_NONCEBYTES);
+  memcpy(state->k, k_data, crypto_stream_xchacha20_KEYBYTES);
+
+  return NULL;
+}
+
+
+napi_value sn_crypto_stream_xchacha20_xor_wrap_update (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_stream_xchacha20_xor_wrap_update)
+
+  SN_ARGV_BUFFER_CAST(sn_crypto_stream_xchacha20_xor_state *, state, 0)
+  SN_ARGV_BUFFER_CAST(unsigned char *, c, 1)
+  SN_ARGV_BUFFER_CAST(unsigned char *, m, 2)
+
+  SN_THROWS(state_size != sizeof(sn_crypto_stream_xchacha20_xor_state), "state must be 'crypto_stream_xchacha20_xor_STATEBYTES' bytes")
+  SN_THROWS(c_size != m_size, "c must be 'm.byteLength' bytes")
+
+  unsigned char *next_block = state->next_block;
+
+  if (state->remainder) {
+    uint64_t offset = 0;
+    int rem = state->remainder;
+
+    while (rem < 64 && offset < m_size) {
+      c[offset] = next_block[rem]  ^ m[offset];
+      offset++;
+      rem++;
+    }
+
+    c += offset;
+    m += offset;
+    m_size -= offset;
+    state->remainder = rem == 64 ? 0 : rem;
+
+    if (!m_size) return NULL;
+  }
+
+  state->remainder = m_size & 63;
+  m_size -= state->remainder;
+  crypto_stream_xchacha20_xor_ic(c, m, m_size, state->n, state->block_counter, state->k);
+  state->block_counter += m_size / 64;
+
+  if (state->remainder) {
+    sodium_memzero(next_block + state->remainder, 64 - state->remainder);
+    memcpy(next_block, m + m_size, state->remainder);
+
+    crypto_stream_xchacha20_xor_ic(next_block, next_block, 64, state->n, state->block_counter, state->k);
+    memcpy(c + m_size, next_block, state->remainder);
+
+    state->block_counter++;
+  }
+
+  return NULL;
+}
+
+napi_value sn_crypto_stream_xchacha20_xor_wrap_final (napi_env env, napi_callback_info info) {
+  SN_ARGV(1, crypto_stream_xchacha20_xor_wrap_final)
+
+  SN_ARGV_BUFFER_CAST(sn_crypto_stream_xchacha20_xor_state *, state, 0)
+
+  SN_THROWS(state_size != sizeof(sn_crypto_stream_xchacha20_xor_state), "state must be 'crypto_stream_xchacha20_xor_STATEBYTES' bytes")
+
+  sodium_memzero(state->n, sizeof(state->n));
+  sodium_memzero(state->k, sizeof(state->k));
+  sodium_memzero(state->next_block, sizeof(state->next_block));
+  state->remainder = 0;
+
+  return NULL;
+}
+
+typedef struct sn_crypto_stream_salsa20_xor_state {
+  unsigned char n[crypto_stream_salsa20_NONCEBYTES];
+  unsigned char k[crypto_stream_salsa20_KEYBYTES];
+  unsigned char next_block[64];
+  int remainder;
+  uint64_t block_counter;
+} sn_crypto_stream_salsa20_xor_state;
+
+napi_value sn_crypto_stream_salsa20_xor_wrap_init (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_stream_salsa20_xor_wrap_init)
+
+  SN_ARGV_BUFFER_CAST(sn_crypto_stream_salsa20_xor_state *, state, 0)
+  SN_ARGV_TYPEDARRAY(n, 1)
+  SN_ARGV_TYPEDARRAY(k, 2)
+
+  SN_THROWS(state_size != sizeof(sn_crypto_stream_salsa20_xor_state), "state must be 'crypto_stream_salsa20_xor_STATEBYTES' bytes")
+  SN_ASSERT_LENGTH(n_size, crypto_stream_salsa20_NONCEBYTES, "n")
+  SN_ASSERT_LENGTH(k_size, crypto_stream_salsa20_KEYBYTES, "k")
+
+  state->remainder = 0;
+  state->block_counter = 0;
+  memcpy(state->n, n_data, crypto_stream_salsa20_NONCEBYTES);
+  memcpy(state->k, k_data, crypto_stream_salsa20_KEYBYTES);
+
+  return NULL;
+}
+
+
+napi_value sn_crypto_stream_salsa20_xor_wrap_update (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_stream_salsa20_xor_wrap_update)
+
+  SN_ARGV_BUFFER_CAST(sn_crypto_stream_salsa20_xor_state *, state, 0)
+  SN_ARGV_BUFFER_CAST(unsigned char *, c, 1)
+  SN_ARGV_BUFFER_CAST(unsigned char *, m, 2)
+
+  SN_THROWS(state_size != sizeof(sn_crypto_stream_salsa20_xor_state), "state must be 'crypto_stream_salsa20_xor_STATEBYTES' bytes")
+  SN_THROWS(c_size != m_size, "c must be 'm.byteLength' bytes")
+
+  unsigned char *next_block = state->next_block;
+
+  if (state->remainder) {
+    uint64_t offset = 0;
+    int rem = state->remainder;
+
+    while (rem < 64 && offset < m_size) {
+      c[offset] = next_block[rem]  ^ m[offset];
+      offset++;
+      rem++;
+    }
+
+    c += offset;
+    m += offset;
+    m_size -= offset;
+    state->remainder = rem == 64 ? 0 : rem;
+
+    if (!m_size) return NULL;
+  }
+
+  state->remainder = m_size & 63;
+  m_size -= state->remainder;
+  crypto_stream_salsa20_xor_ic(c, m, m_size, state->n, state->block_counter, state->k);
+  state->block_counter += m_size / 64;
+
+  if (state->remainder) {
+    sodium_memzero(next_block + state->remainder, 64 - state->remainder);
+    memcpy(next_block, m + m_size, state->remainder);
+
+    crypto_stream_salsa20_xor_ic(next_block, next_block, 64, state->n, state->block_counter, state->k);
+    memcpy(c + m_size, next_block, state->remainder);
+
+    state->block_counter++;
+  }
+
+  return NULL;
+}
+
+napi_value sn_crypto_stream_salsa20_xor_wrap_final (napi_env env, napi_callback_info info) {
+  SN_ARGV(1, crypto_stream_salsa20_xor_wrap_final)
+
+  SN_ARGV_BUFFER_CAST(sn_crypto_stream_salsa20_xor_state *, state, 0)
+
+  SN_THROWS(state_size != sizeof(sn_crypto_stream_salsa20_xor_state), "state must be 'crypto_stream_salsa20_xor_STATEBYTES' bytes")
+
+  sodium_memzero(state->n, sizeof(state->n));
+  sodium_memzero(state->k, sizeof(state->k));
+  sodium_memzero(state->next_block, sizeof(state->next_block));
+  state->remainder = 0;
+
+  return NULL;
+}
+
 static napi_value create_sodium_native(napi_env env) {
   SN_THROWS(sodium_init() == -1, "sodium_init() failed")
 
@@ -2631,6 +2901,18 @@ static napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_stream_chacha20_ietf_xor_init, sn_crypto_stream_chacha20_ietf_xor_wrap_init)
   SN_EXPORT_FUNCTION(crypto_stream_chacha20_ietf_xor_update, sn_crypto_stream_chacha20_ietf_xor_wrap_update)
   SN_EXPORT_FUNCTION(crypto_stream_chacha20_ietf_xor_final, sn_crypto_stream_chacha20_ietf_xor_wrap_final)
+  SN_EXPORT_FUNCTION(crypto_stream_xchacha20, sn_crypto_stream_xchacha20)
+  SN_EXPORT_FUNCTION(crypto_stream_xchacha20_xor, sn_crypto_stream_xchacha20_xor)
+  SN_EXPORT_FUNCTION(crypto_stream_xchacha20_xor_ic, sn_crypto_stream_xchacha20_xor_ic)
+  SN_EXPORT_FUNCTION(crypto_stream_xchacha20_xor_init, sn_crypto_stream_xchacha20_xor_wrap_init)
+  SN_EXPORT_FUNCTION(crypto_stream_xchacha20_xor_update, sn_crypto_stream_xchacha20_xor_wrap_update)
+  SN_EXPORT_FUNCTION(crypto_stream_xchacha20_xor_final, sn_crypto_stream_xchacha20_xor_wrap_final)
+  SN_EXPORT_FUNCTION(crypto_stream_xchacha20, sn_crypto_stream_xchacha20)
+  SN_EXPORT_FUNCTION(crypto_stream_salsa20_xor, sn_crypto_stream_salsa20_xor)
+  SN_EXPORT_FUNCTION(crypto_stream_salsa20_xor_ic, sn_crypto_stream_salsa20_xor_ic)
+  SN_EXPORT_FUNCTION(crypto_stream_salsa20_xor_init, sn_crypto_stream_salsa20_xor_wrap_init)
+  SN_EXPORT_FUNCTION(crypto_stream_salsa20_xor_update, sn_crypto_stream_salsa20_xor_wrap_update)
+  SN_EXPORT_FUNCTION(crypto_stream_salsa20_xor_final, sn_crypto_stream_salsa20_xor_wrap_final)
   SN_EXPORT_FUNCTION(crypto_auth, sn_crypto_auth)
   SN_EXPORT_FUNCTION(crypto_auth_verify, sn_crypto_auth_verify)
   SN_EXPORT_FUNCTION(crypto_onetimeauth, sn_crypto_onetimeauth)
@@ -2713,6 +2995,8 @@ static napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_UINT32(crypto_stream_xor_STATEBYTES, sizeof(sn_crypto_stream_xor_state))
   SN_EXPORT_UINT32(crypto_stream_chacha20_xor_STATEBYTES, sizeof(sn_crypto_stream_chacha20_xor_state))
   SN_EXPORT_UINT32(crypto_stream_chacha20_ietf_xor_STATEBYTES, sizeof(sn_crypto_stream_chacha20_ietf_xor_state))
+  SN_EXPORT_UINT32(crypto_stream_xchacha20_xor_STATEBYTES, sizeof(sn_crypto_stream_xchacha20_xor_state))
+  SN_EXPORT_UINT32(crypto_stream_salsa20_xor_STATEBYTES, sizeof(sn_crypto_stream_salsa20_xor_state))
   SN_EXPORT_UINT32(randombytes_SEEDBYTES, randombytes_SEEDBYTES)
   SN_EXPORT_UINT32(crypto_sign_SEEDBYTES, crypto_sign_SEEDBYTES)
   SN_EXPORT_UINT32(crypto_sign_PUBLICKEYBYTES, crypto_sign_PUBLICKEYBYTES)
@@ -2747,6 +3031,12 @@ static napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_UINT32(crypto_stream_chacha20_ietf_KEYBYTES, crypto_stream_chacha20_ietf_KEYBYTES)
   SN_EXPORT_UINT32(crypto_stream_chacha20_ietf_NONCEBYTES, crypto_stream_chacha20_ietf_NONCEBYTES)
   SN_EXPORT_UINT64(crypto_stream_chacha20_ietf_MESSAGEBYTES_MAX, crypto_stream_chacha20_ietf_MESSAGEBYTES_MAX)
+  SN_EXPORT_UINT32(crypto_stream_xchacha20_KEYBYTES, crypto_stream_xchacha20_KEYBYTES)
+  SN_EXPORT_UINT32(crypto_stream_xchacha20_NONCEBYTES, crypto_stream_xchacha20_NONCEBYTES)
+  SN_EXPORT_UINT64(crypto_stream_xchacha20_MESSAGEBYTES_MAX, crypto_stream_xchacha20_MESSAGEBYTES_MAX)
+  SN_EXPORT_UINT32(crypto_stream_salsa20_KEYBYTES, crypto_stream_salsa20_KEYBYTES)
+  SN_EXPORT_UINT32(crypto_stream_salsa20_NONCEBYTES, crypto_stream_salsa20_NONCEBYTES)
+  SN_EXPORT_UINT64(crypto_stream_salsa20_MESSAGEBYTES_MAX, crypto_stream_salsa20_MESSAGEBYTES_MAX)
   SN_EXPORT_UINT32(crypto_auth_BYTES, crypto_auth_BYTES)
   SN_EXPORT_UINT32(crypto_auth_KEYBYTES, crypto_auth_KEYBYTES)
   SN_EXPORT_STRING(crypto_auth_PRIMITIVE, crypto_auth_PRIMITIVE)
