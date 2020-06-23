@@ -1,0 +1,104 @@
+on:
+  push:
+    tags:
+      - 'v*'
+name: Build binaries and create release
+jobs:
+  build:
+    strategy:
+      matrix: 
+        os: [ARM, windows-latest, ARM64, macos-latest, ubuntu-latest]
+    runs-on: ${{ matrix.os }}
+    name: Build 
+    steps:
+      - uses: actions/checkout@v2.1.0
+      - uses: actions/setup-node@v1
+        with:
+          node-version: 14.x
+      - run: npm run fetch-libsodium
+      - run: npm install
+      - run: npm run prebuild
+      - uses: actions/upload-artifact@v2
+        with:
+          name: ${{ matrix.os }}
+          path: ./prebuilds
+  release:
+    name: Create Release
+    runs-on: ubuntu-latest
+    needs: build
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      - name: Get builds
+        uses: actions/download-artifact@v2
+        with:
+          path: prebuilds
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          release_name: Release ${{ github.ref }}
+          body: 'Release Notes and changelog'
+          draft: true 
+          prerelease: false
+      - name: Get version
+        id: get_version
+        run: echo ::set-output name=VERSION::$(git describe --tags)
+      - name: Compress builds
+        run: |
+          tar --create --verbose --file="./${{ steps.get_version.outputs.VERSION }}-linux-arm.tar" --directory "prebuilds/ARM" .
+          tar --create --verbose --file="./${{ steps.get_version.outputs.VERSION }}-linux-arm64.tar" --directory "prebuilds/ARM64" .
+          tar --create --verbose --file="./${{ steps.get_version.outputs.VERSION }}-windows-all.tar" --directory "prebuilds/windows-latest" .
+          tar --create --verbose --file="./${{ steps.get_version.outputs.VERSION }}-linux-x86.tar" --directory "prebuilds/ubuntu-latest" .
+          tar --create --verbose --file="./${{ steps.get_version.outputs.VERSION }}-osx-x86.tar" --directory "prebuilds/macos-latest" .
+      - name: Upload armv7l build
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./${{ steps.get_version.outputs.VERSION }}-linux-arm.tar 
+          asset_name: ${{ steps.get_version.outputs.VERSION }}-linux-arm.tar
+          asset_content_type: application/x-tar
+      - name: Upload aarch64 build
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./${{ steps.get_version.outputs.VERSION }}-linux-arm64.tar 
+          asset_name: ${{ steps.get_version.outputs.VERSION }}-linux-arm64.tar
+          asset_content_type: application/x-tar
+      - name: Upload x86 build
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./${{ steps.get_version.outputs.VERSION }}-linux-x86.tar 
+          asset_name: ${{ steps.get_version.outputs.VERSION }}-linux-x86.tar
+          asset_content_type: application/x-tar
+      - name: Upload windows build
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./${{ steps.get_version.outputs.VERSION }}-windows-all.tar 
+          asset_name: ${{ steps.get_version.outputs.VERSION }}-windows-all.tar
+          asset_content_type: application/x-tar
+      - name: Upload osx build
+        uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./${{ steps.get_version.outputs.VERSION }}-osx-x86.tar 
+          asset_name: ${{ steps.get_version.outputs.VERSION }}-osx-x86.tar
+          asset_content_type: application/x-tar
+      #- uses: JS-DevTools/npm-publish@v1
+      #  with:
+      #    token: ${{ secrets.NPM_TOKEN }}
