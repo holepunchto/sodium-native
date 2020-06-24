@@ -41,9 +41,9 @@ jobs:
         with:
           tag_name: ${{ github.ref }}
           release_name: Release ${{ github.ref }}
-          body: 'Release Notes and changelog'
-          draft: true 
-          prerelease: false
+          body: 'pre-npm-release'
+          draft: false
+          prerelease: true 
       - name: Get version
         id: get_version
         run: echo ::set-output name=VERSION::$(git describe --tags)
@@ -99,6 +99,3 @@ jobs:
           asset_path: ./${{ steps.get_version.outputs.VERSION }}-osx-x86.tar 
           asset_name: ${{ steps.get_version.outputs.VERSION }}-osx-x86.tar
           asset_content_type: application/x-tar
-      #- uses: JS-DevTools/npm-publish@v1
-      #  with:
-      #    token: ${{ secrets.NPM_TOKEN }}
