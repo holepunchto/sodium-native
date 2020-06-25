@@ -7,7 +7,7 @@ jobs:
   build:
     strategy:
       matrix: 
-        os: [ARM, windows-latest, ARM64, macos-latest, ubuntu-latest]
+        os: [ARM, windows-latest, ARM64, macos-latest, ubuntu-16.04]
     runs-on: ${{ matrix.os }}
     name: Build 
     steps:
@@ -52,7 +52,7 @@ jobs:
           tar --create --verbose --file="./${{ steps.get_version.outputs.VERSION }}-linux-arm.tar" --directory "prebuilds/ARM" .
           tar --create --verbose --file="./${{ steps.get_version.outputs.VERSION }}-linux-arm64.tar" --directory "prebuilds/ARM64" .
           tar --create --verbose --file="./${{ steps.get_version.outputs.VERSION }}-windows-all.tar" --directory "prebuilds/windows-latest" .
-          tar --create --verbose --file="./${{ steps.get_version.outputs.VERSION }}-linux-x86.tar" --directory "prebuilds/ubuntu-latest" .
+          tar --create --verbose --file="./${{ steps.get_version.outputs.VERSION }}-linux-x86.tar" --directory "prebuilds/ubuntu-16.04" .
           tar --create --verbose --file="./${{ steps.get_version.outputs.VERSION }}-osx-x86.tar" --directory "prebuilds/macos-latest" .
       - name: Upload armv7l build
         uses: actions/upload-release-asset@v1
