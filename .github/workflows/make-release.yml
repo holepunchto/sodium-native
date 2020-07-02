@@ -18,6 +18,8 @@ jobs:
       - run: npm run fetch-libsodium
       - run: npm install
       - run: npm run prebuild
+      - run: npm run prebuild-ia32
+        if: ${{ matrix.os == 'windows-latest' }}
       - uses: actions/upload-artifact@v2
         with:
           name: ${{ matrix.os }}
