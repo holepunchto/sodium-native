@@ -1,0 +1,18 @@
+name: Run tests
+on: [push]
+jobs:
+  test:
+    strategy:
+      matrix: 
+        os: [ARM, windows-latest, ARM64, macos-latest, ubuntu-16.04]
+        node-version: ['10.x', '12.x', '14.x']
+    runs-on: ${{ matrix.os }}
+    name: Build 
+    steps:
+      - uses: actions/checkout@v2.1.0
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node-version}} 
+      - run: npm run fetch-libsodium
+      - run: npm install
+      - run: npm test
