@@ -17,6 +17,8 @@ jobs:
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node-version}} 
+      - run: brew install autoconf automake libtool
+        if: ${{ matrix.os == 'macos-latest' }}
       - run: npm run fetch-libsodium
       - run: npm install
       - run: npm dev
