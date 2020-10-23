@@ -17,8 +17,6 @@ jobs:
           node-version: 14.x
       - run: npm run fetch-libsodium
       - run: npm install
-      - run: npm test
-        if: ${{ matrix.os != 'ARM' && matrix.os != 'ARM64'}}
       - run: npm run prebuild
       - run: npm run prebuild-ia32
         if: ${{ matrix.os == 'windows-latest' }}
