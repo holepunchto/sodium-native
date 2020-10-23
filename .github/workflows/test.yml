@@ -8,7 +8,7 @@ jobs:
   test:
     strategy:
       matrix: 
-        os: [ARM, windows-latest, ARM64, macos-latest, ubuntu-16.04]
+        os: [windows-latest, macos-latest, ubuntu-16.04]
         node-version: ['10.x', '12.x', '14.x']
     runs-on: ${{ matrix.os }}
     name: Build 
