@@ -248,7 +248,7 @@ napi_value sn_sodium_is_zero(napi_env env, napi_callback_info info) {
 
   if (argc == 2) {
     SN_OPT_ARGV_UINT32(a_size, 1)
-    SN_THROWS(a_size > a_full, "len must be shorter than buf.byteLength")
+    SN_THROWS(a_size > a_full, "len must be shorter than 'buf.byteLength'")
   }
 
   SN_RETURN_BOOLEAN_FROM_1(sodium_is_zero(a_data, a_size))
@@ -401,7 +401,7 @@ napi_value sn_crypto_sign_ed25519_sk_to_curve25519(napi_env env, napi_callback_i
   SN_ARGV_TYPEDARRAY(ed25519_sk, 1)
 
   SN_ASSERT_LENGTH(x25519_sk_size, crypto_box_SECRETKEYBYTES, "x25519_sk")
-  SN_THROWS(ed25519_sk_size != crypto_sign_SECRETKEYBYTES && ed25519_sk_size != crypto_box_SECRETKEYBYTES, "ed25519_sk should either be 'crypto_sign_SECRETKEYBYTES' bytes of 'crypto_sign_SECRETKEYBYTES - crypto_sign_PUBLICKEYBYTES' bytes")
+  SN_THROWS(ed25519_sk_size != crypto_sign_SECRETKEYBYTES && ed25519_sk_size != crypto_box_SECRETKEYBYTES, "ed25519_sk should either be 'crypto_sign_SECRETKEYBYTES' bytes or 'crypto_sign_SECRETKEYBYTES - crypto_sign_PUBLICKEYBYTES' bytes")
 
   SN_RETURN(crypto_sign_ed25519_sk_to_curve25519(x25519_sk_data, ed25519_sk_data), "secret key conversion failed")
 }
@@ -1014,8 +1014,7 @@ napi_value sn_crypto_pwhash (napi_env env, napi_callback_info info) {
   SN_ASSERT_MAX_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MAX, "opslimit")
   SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_MEMLIMIT_MIN, "memlimit")
   SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_MEMLIMIT_MAX, "memlimit")
-  SN_THROWS(alg < 1, "alg must be either Argon2i 1.3 or Argon2id 1.3")
-  SN_THROWS(alg > 2, "algorithm must be either Argon2i 1.3 or Argon2id 1.3")
+  SN_THROWS(alg < 1 || alg > 2, "alg must be either Argon2i 1.3 or Argon2id 1.3")
 
   SN_RETURN(crypto_pwhash(out_data, out_size, passwd_data, passwd_size, salt_data, opslimit, memlimit, alg), "password hashing failed, check memory requirements.")
 }
@@ -1172,8 +1171,8 @@ napi_value sn_crypto_kx_client_session_keys (napi_env env, napi_callback_info in
   SN_ASSERT_LENGTH(client_sk_size, crypto_kx_SECRETKEYBYTES, "client_sk")
   SN_ASSERT_LENGTH(server_pk_size, crypto_kx_PUBLICKEYBYTES, "server_pk")
 
-  SN_THROWS(tx_size != crypto_kx_SESSIONKEYBYTES && tx_data != NULL, "trasnmitting key buffer must be 32 bytes or null")
-  SN_THROWS(rx_size != crypto_kx_SESSIONKEYBYTES && rx_data != NULL, "receiving key buffer must be 32 bytes or null")
+  SN_THROWS(tx_size != crypto_kx_SESSIONKEYBYTES && tx_data != NULL, "transmitting key buffer must be 'crypto_kx_SESSIONKEYBYTES' bytes or null")
+  SN_THROWS(rx_size != crypto_kx_SESSIONKEYBYTES && rx_data != NULL, "receiving key buffer must be 'crypto_kx_SESSIONKEYBYTES' bytes or null")
 
   SN_RETURN(crypto_kx_client_session_keys(rx_data, tx_data, client_pk_data, client_sk_data, server_pk_data), "failed to derive session keys")
 }
@@ -1190,14 +1189,14 @@ napi_value sn_crypto_kx_server_session_keys (napi_env env, napi_callback_info in
   SN_ARGV_TYPEDARRAY(server_sk, 3)
   SN_ARGV_TYPEDARRAY(client_pk, 4)
 
-  SN_ASSERT_LENGTH(server_pk_size, crypto_kx_PUBLICKEYBYTES, "servet_pk")
-  SN_ASSERT_LENGTH(server_sk_size, crypto_kx_SECRETKEYBYTES, "servet_sk")
+  SN_ASSERT_LENGTH(server_pk_size, crypto_kx_PUBLICKEYBYTES, "server_pk")
+  SN_ASSERT_LENGTH(server_sk_size, crypto_kx_SECRETKEYBYTES, "server_sk")
   SN_ASSERT_LENGTH(client_pk_size, crypto_kx_PUBLICKEYBYTES, "client_pk")
 
-  SN_THROWS(tx_size != crypto_kx_SESSIONKEYBYTES && tx_data != NULL, "trasnmitting key buffer must be 32 bytes or null")
-  SN_THROWS(rx_size != crypto_kx_SESSIONKEYBYTES && rx_data != NULL, "receiving key buffer must be 32 bytes or null")
+  SN_THROWS(tx_size != crypto_kx_SESSIONKEYBYTES && tx_data != NULL, "transmitting key buffer must be 'crypto_kx_SESSIONKEYBYTES' bytes or null")
+  SN_THROWS(rx_size != crypto_kx_SESSIONKEYBYTES && rx_data != NULL, "receiving key buffer must be 'crypto_kx_SESSIONKEYBYTES' bytes or null")
 
-  SN_RETURN(crypto_kx_server_session_keys(rx_data, tx_data, server_pk_data, server_sk_data, client_pk_data), "failed to dervie session keys")
+  SN_RETURN(crypto_kx_server_session_keys(rx_data, tx_data, server_pk_data, server_sk_data, client_pk_data), "failed to derive session keys")
 }
 
 napi_value sn_crypto_scalarmult_base (napi_env env, napi_callback_info info) {
@@ -1840,7 +1839,7 @@ napi_value sn_crypto_secretstream_xchacha20poly1305_init_pull (napi_env env, nap
   SN_ARGV_TYPEDARRAY(header, 1)
   SN_ARGV_TYPEDARRAY(k, 2)
 
-  SN_THROWS(state_size != sizeof(crypto_secretstream_xchacha20poly1305_state), "state must be state must be 'crypto_secretstream_xchacha20poly1305_STATEBYTES' bytes")
+  SN_THROWS(state_size != sizeof(crypto_secretstream_xchacha20poly1305_state), "state must be 'crypto_secretstream_xchacha20poly1305_STATEBYTES' bytes")
   SN_ASSERT_LENGTH(header_size, crypto_secretstream_xchacha20poly1305_HEADERBYTES, "header")
   SN_ASSERT_LENGTH(k_size, crypto_secretstream_xchacha20poly1305_KEYBYTES, "k")
 
@@ -1856,7 +1855,7 @@ napi_value sn_crypto_secretstream_xchacha20poly1305_pull (napi_env env, napi_cal
   SN_ARGV_TYPEDARRAY(c, 3)
   SN_ARGV_OPTS_TYPEDARRAY(ad, 4)
 
-  SN_THROWS(state_size != sizeof(crypto_secretstream_xchacha20poly1305_state), "state must be state must be 'crypto_secretstream_xchacha20poly1305_STATEBYTES' bytes")
+  SN_THROWS(state_size != sizeof(crypto_secretstream_xchacha20poly1305_state), "state must be 'crypto_secretstream_xchacha20poly1305_STATEBYTES' bytes")
   SN_ASSERT_MIN_LENGTH(c_size, crypto_secretstream_xchacha20poly1305_ABYTES, "c")
   SN_ASSERT_LENGTH(tag_size, 1, "tag")
   SN_THROWS(m_size != c_size - crypto_secretstream_xchacha20poly1305_ABYTES, "m must be 'c.byteLength - crypto_secretstream_xchacha20poly1305_ABYTES")
@@ -1945,8 +1944,7 @@ napi_value sn_crypto_pwhash_async (napi_env env, napi_callback_info info) {
   SN_ASSERT_MAX_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MAX, "opslimit")
   SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_MEMLIMIT_MIN, "memlimit")
   SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_MEMLIMIT_MAX, "memlimit")
-  SN_THROWS(alg < 1, "alg must be either Argon2i 1.3 or Argon2id 1.3")
-  SN_THROWS(alg > 2, "algorithm must be either Argon2i 1.3 or Argon2id 1.3")
+  SN_THROWS(alg < 1 || alg > 2, "alg must be either Argon2i 1.3 or Argon2id 1.3")
 
   sn_async_pwhash_request *req = (sn_async_pwhash_request *) malloc(sizeof(sn_async_pwhash_request));
   req->out_data = out;
