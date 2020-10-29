@@ -1,40 +1,43 @@
-on:
-  push:
-    tags:
-      - 'v*'
 name: Build binaries and create release
 jobs:
-  build:
+  test:
+    name: Test
     strategy:
-      matrix: 
-        os: [ARM, windows-latest, ARM64, macos-latest, ubuntu-16.04]
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+        node: [10, 12, 13, '*']
     runs-on: ${{ matrix.os }}
-    name: Build 
     steps:
-      - uses: actions/checkout@v2.1.0
       - uses: actions/setup-node@v1
         with:
-          node-version: 14.x
-      - run: npm run fetch-libsodium
+          node-version: ${{ matrix.node }}
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+      - run: npm install
+      - run: npm test
+
+  build:
+    strategy:
+      matrix:
+        os: [ARM, windows-latest, ARM64, macos-latest, ubuntu-16.04]
+    runs-on: ${{ matrix.os }}
+    name: Build
+    needs: test
+    steps:
+      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
       - run: npm install
       - run: npm run prebuild
       - run: npm run prebuild-ia32
-        if: ${{ matrix.os == 'windows-latest' }}
-      - uses: actions/upload-artifact@v2
-        with:
-          name: ${{ matrix.os }}
-          path: ./prebuilds
-  release:
-    name: Create Release
-    runs-on: ubuntu-latest
-    needs: build
-    steps:
-      - name: Checkout code
-        uses: actions/checkout@v2
-      - name: Get builds
-        uses: actions/download-artifact@v2
-        with:
-          path: prebuilds
+        if: matrix.os == 'windows-latest'
+      - id: archive_name
+        run: echo "::set-output name=NAME::$(`git describe --tags`-linux-`uname -m`.tar)"
+      - shell: bash
+        run: |
+          tar --create --verbose --file="${{ steps.archive_name.outputs.NAME }}" --directory "./prebuilds" .
       - name: Create Release
         id: create_release
         uses: actions/create-release@v1
@@ -42,62 +45,12 @@ jobs:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           tag_name: ${{ github.ref }}
-          release_name: Release ${{ github.ref }}
-          body: 'pre-npm-release'
-          draft: false
-          prerelease: true 
-      - name: Get version
-        id: get_version
-        run: echo ::set-output name=VERSION::$(git describe --tags)
-      - name: Compress builds
-        run: |
-          tar --create --verbose --file="./${{ steps.get_version.outputs.VERSION }}-linux-arm.tar" --directory "prebuilds/ARM" .
-          tar --create --verbose --file="./${{ steps.get_version.outputs.VERSION }}-linux-arm64.tar" --directory "prebuilds/ARM64" .
-          tar --create --verbose --file="./${{ steps.get_version.outputs.VERSION }}-windows-all.tar" --directory "prebuilds/windows-latest" .
-          tar --create --verbose --file="./${{ steps.get_version.outputs.VERSION }}-linux-x86.tar" --directory "prebuilds/ubuntu-16.04" .
-          tar --create --verbose --file="./${{ steps.get_version.outputs.VERSION }}-osx-x86.tar" --directory "prebuilds/macos-latest" .
-      - name: Upload armv7l build
-        uses: actions/upload-release-asset@v1
+          prerelease: true
+      - uses: actions/upload-release-asset@v1
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
         with:
           upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./${{ steps.get_version.outputs.VERSION }}-linux-arm.tar 
-          asset_name: ${{ steps.get_version.outputs.VERSION }}-linux-arm.tar
-          asset_content_type: application/x-tar
-      - name: Upload aarch64 build
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./${{ steps.get_version.outputs.VERSION }}-linux-arm64.tar 
-          asset_name: ${{ steps.get_version.outputs.VERSION }}-linux-arm64.tar
-          asset_content_type: application/x-tar
-      - name: Upload x86 build
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./${{ steps.get_version.outputs.VERSION }}-linux-x86.tar 
-          asset_name: ${{ steps.get_version.outputs.VERSION }}-linux-x86.tar
-          asset_content_type: application/x-tar
-      - name: Upload windows build
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./${{ steps.get_version.outputs.VERSION }}-windows-all.tar 
-          asset_name: ${{ steps.get_version.outputs.VERSION }}-windows-all.tar
-          asset_content_type: application/x-tar
-      - name: Upload osx build
-        uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./${{ steps.get_version.outputs.VERSION }}-osx-x86.tar 
-          asset_name: ${{ steps.get_version.outputs.VERSION }}-osx-x86.tar
+          asset_path: ./${{ steps.archive_name.outputs.NAME }}
+          asset_name: ${{ steps.archive_name.outputs.NAME }}
           asset_content_type: application/x-tar
