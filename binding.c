@@ -1428,6 +1428,199 @@ napi_value sn_crypto_core_ed25519_scalar_sub (napi_env env, napi_callback_info i
   return NULL;
 }
 
+napi_value sn_crypto_scalarmult_ristretto255_base (napi_env env, napi_callback_info info) {
+  SN_ARGV(2, crypto_scalarmult_ristretto255_base)
+
+  SN_ARGV_TYPEDARRAY(q, 0)
+  SN_ARGV_TYPEDARRAY(n, 1)
+
+  SN_ASSERT_LENGTH(q_size, crypto_scalarmult_ristretto255_BYTES, "q")
+  SN_ASSERT_LENGTH(n_size, crypto_scalarmult_ristretto255_SCALARBYTES, "n")
+
+  SN_RETURN(crypto_scalarmult_ristretto255_base(q_data, n_data), "failed to derive public key")
+}
+
+napi_value sn_crypto_scalarmult_ristretto255 (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_scalarmult_ristretto255)
+
+  SN_ARGV_TYPEDARRAY(q, 0)
+  SN_ARGV_TYPEDARRAY(n, 1)
+  SN_ARGV_TYPEDARRAY(p, 2)
+
+  SN_ASSERT_LENGTH(q_size, crypto_scalarmult_ristretto255_BYTES, "q")
+  SN_ASSERT_LENGTH(n_size, crypto_scalarmult_ristretto255_SCALARBYTES, "n")
+  SN_ASSERT_LENGTH(p_size, crypto_scalarmult_ristretto255_BYTES, "p")
+
+  SN_RETURN(crypto_scalarmult_ristretto255(q_data, n_data, p_data), "failed to derive shared secret")
+}
+
+napi_value sn_crypto_core_ristretto255_add (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_core_ristretto255_add)
+
+  SN_ARGV_TYPEDARRAY(r, 0)
+  SN_ARGV_TYPEDARRAY(p, 1)
+  SN_ARGV_TYPEDARRAY(q, 2)
+
+  SN_ASSERT_LENGTH(r_size, crypto_core_ristretto255_BYTES, "r")
+  SN_ASSERT_LENGTH(p_size, crypto_core_ristretto255_BYTES, "p")
+  SN_ASSERT_LENGTH(q_size, crypto_core_ristretto255_BYTES, "q")
+
+  SN_RETURN(crypto_core_ristretto255_add(r_data, p_data, q_data), "could not add curve points")
+}
+
+napi_value sn_crypto_core_ristretto255_sub (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_core_ristretto255_sub)
+
+  SN_ARGV_TYPEDARRAY(r, 0)
+  SN_ARGV_TYPEDARRAY(p, 1)
+  SN_ARGV_TYPEDARRAY(q, 2)
+
+  SN_ASSERT_LENGTH(r_size, crypto_core_ristretto255_BYTES, "r")
+  SN_ASSERT_LENGTH(p_size, crypto_core_ristretto255_BYTES, "p")
+  SN_ASSERT_LENGTH(q_size, crypto_core_ristretto255_BYTES, "q")
+
+  SN_RETURN(crypto_core_ristretto255_sub(r_data, p_data, q_data), "could not add curve points")
+}
+
+napi_value sn_crypto_core_ristretto255_scalar_random (napi_env env, napi_callback_info info) {
+  SN_ARGV(1, crypto_core_ristretto255_scalar_random)
+
+  SN_ARGV_TYPEDARRAY(r, 0)
+
+  SN_ASSERT_LENGTH(r_size, crypto_core_ristretto255_SCALARBYTES, "r")
+
+  crypto_core_ristretto255_scalar_random(r_data);
+
+  return NULL;
+}
+
+napi_value sn_crypto_core_ristretto255_scalar_reduce (napi_env env, napi_callback_info info) {
+  SN_ARGV(2, crypto_core_ristretto255_scalar_reduce)
+
+  SN_ARGV_TYPEDARRAY(r, 0)
+  SN_ARGV_TYPEDARRAY(s, 1)
+
+  SN_ASSERT_LENGTH(r_size, crypto_core_ristretto255_SCALARBYTES, "r")
+  SN_ASSERT_LENGTH(s_size, crypto_core_ristretto255_NONREDUCEDSCALARBYTES, "s")
+
+  crypto_core_ristretto255_scalar_reduce(r_data, s_data);
+
+  return NULL;
+}
+
+napi_value sn_crypto_core_ristretto255_scalar_invert (napi_env env, napi_callback_info info) {
+  SN_ARGV(2, crypto_core_ristretto255_scalar_invert)
+
+  SN_ARGV_TYPEDARRAY(recip, 0)
+  SN_ARGV_TYPEDARRAY(s, 1)
+
+  SN_ASSERT_LENGTH(recip_size, crypto_core_ristretto255_SCALARBYTES, "recip")
+  SN_ASSERT_LENGTH(s_size, crypto_core_ristretto255_SCALARBYTES, "s")
+
+  crypto_core_ristretto255_scalar_invert(recip_data, s_data);
+
+  return NULL;
+}
+
+napi_value sn_crypto_core_ristretto255_scalar_negate (napi_env env, napi_callback_info info) {
+  SN_ARGV(2, crypto_core_ristretto255_scalar_negate)
+
+  SN_ARGV_TYPEDARRAY(neg, 0)
+  SN_ARGV_TYPEDARRAY(s, 1)
+
+  SN_ASSERT_LENGTH(neg_size, crypto_core_ristretto255_SCALARBYTES, "neg")
+  SN_ASSERT_LENGTH(s_size, crypto_core_ristretto255_SCALARBYTES, "s")
+
+  crypto_core_ristretto255_scalar_negate(neg_data, s_data);
+
+  return NULL;
+}
+
+napi_value sn_crypto_core_ristretto255_scalar_complement (napi_env env, napi_callback_info info) {
+  SN_ARGV(2, crypto_core_ristretto255_scalar_complement)
+
+  SN_ARGV_TYPEDARRAY(comp, 0)
+  SN_ARGV_TYPEDARRAY(s, 1)
+
+  SN_ASSERT_LENGTH(comp_size, crypto_core_ristretto255_SCALARBYTES, "comp")
+  SN_ASSERT_LENGTH(s_size, crypto_core_ristretto255_SCALARBYTES, "s")
+
+  crypto_core_ristretto255_scalar_complement(comp_data, s_data);
+
+  return NULL;
+}
+
+napi_value sn_crypto_core_ristretto255_scalar_add (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_core_ristretto255_scalar_add)
+
+  SN_ARGV_TYPEDARRAY(z, 0)
+  SN_ARGV_TYPEDARRAY(x, 1)
+  SN_ARGV_TYPEDARRAY(y, 2)
+
+  SN_ASSERT_LENGTH(z_size, crypto_core_ristretto255_SCALARBYTES, "z")
+  SN_ASSERT_LENGTH(x_size, crypto_core_ristretto255_SCALARBYTES, "x")
+  SN_ASSERT_LENGTH(y_size, crypto_core_ristretto255_SCALARBYTES, "y")
+
+  crypto_core_ristretto255_scalar_add(z_data, x_data, y_data);
+
+  return NULL;
+}
+
+
+napi_value sn_crypto_core_ristretto255_scalar_sub (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_core_ristretto255_scalar_sub)
+
+  SN_ARGV_TYPEDARRAY(z, 0)
+  SN_ARGV_TYPEDARRAY(x, 1)
+  SN_ARGV_TYPEDARRAY(y, 2)
+
+  SN_ASSERT_LENGTH(z_size, crypto_core_ristretto255_SCALARBYTES, "z")
+  SN_ASSERT_LENGTH(x_size, crypto_core_ristretto255_SCALARBYTES, "x")
+  SN_ASSERT_LENGTH(y_size, crypto_core_ristretto255_SCALARBYTES, "y")
+
+  crypto_core_ristretto255_scalar_sub(z_data, x_data, y_data);
+
+  return NULL;
+}
+
+napi_value sn_crypto_core_ristretto255_scalar_mul (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_core_ristretto255_scalar_mul)
+
+  SN_ARGV_TYPEDARRAY(z, 0)
+  SN_ARGV_TYPEDARRAY(x, 1)
+  SN_ARGV_TYPEDARRAY(y, 2)
+
+  SN_ASSERT_LENGTH(z_size, crypto_core_ristretto255_SCALARBYTES, "z")
+  SN_ASSERT_LENGTH(x_size, crypto_core_ristretto255_SCALARBYTES, "x")
+  SN_ASSERT_LENGTH(y_size, crypto_core_ristretto255_SCALARBYTES, "y")
+
+  crypto_core_ristretto255_scalar_mul(z_data, x_data, y_data);
+
+  return NULL;
+}
+
+napi_value sn_crypto_core_ristretto255_is_valid_point (napi_env env, napi_callback_info info) {
+  SN_ARGV(1, crypto_core_ristretto255_is_valid_point)
+
+  SN_ARGV_TYPEDARRAY(p, 0)
+
+  SN_ASSERT_LENGTH(p_size, crypto_core_ristretto255_BYTES, "p")
+
+  SN_RETURN_BOOLEAN_FROM_1(crypto_core_ristretto255_is_valid_point(p_data))
+}
+
+napi_value sn_crypto_core_ristretto255_from_hash (napi_env env, napi_callback_info info) {
+  SN_ARGV(2, crypto_core_ristretto255_from_hash)
+
+  SN_ARGV_TYPEDARRAY(p, 0)
+  SN_ARGV_TYPEDARRAY(r, 1)
+
+  SN_ASSERT_LENGTH(p_size, crypto_core_ristretto255_BYTES, "p")
+  SN_ASSERT_LENGTH(r_size, crypto_core_ristretto255_HASHBYTES, "r")
+
+  SN_RETURN(crypto_core_ristretto255_from_hash(p_data, r_data), "could not generate curve point from input")
+}
+
 napi_value sn_crypto_shorthash (napi_env env, napi_callback_info info) {
   SN_ARGV(3, crypto_shorthash)
 
@@ -2953,6 +3146,20 @@ static napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_complement, sn_crypto_core_ed25519_scalar_complement)
   SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_add, sn_crypto_core_ed25519_scalar_add)
   SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_sub, sn_crypto_core_ed25519_scalar_sub)
+  SN_EXPORT_FUNCTION(crypto_scalarmult_ristretto255_base, sn_crypto_scalarmult_ristretto255_base)
+  SN_EXPORT_FUNCTION(crypto_scalarmult_ristretto255, sn_crypto_scalarmult_ristretto255)
+  SN_EXPORT_FUNCTION(crypto_core_ristretto255_add, sn_crypto_core_ristretto255_add)
+  SN_EXPORT_FUNCTION(crypto_core_ristretto255_sub, sn_crypto_core_ristretto255_sub)
+  SN_EXPORT_FUNCTION(crypto_core_ristretto255_scalar_random, sn_crypto_core_ristretto255_scalar_random)
+  SN_EXPORT_FUNCTION(crypto_core_ristretto255_scalar_reduce, sn_crypto_core_ristretto255_scalar_reduce)
+  SN_EXPORT_FUNCTION(crypto_core_ristretto255_scalar_invert, sn_crypto_core_ristretto255_scalar_invert)
+  SN_EXPORT_FUNCTION(crypto_core_ristretto255_scalar_negate, sn_crypto_core_ristretto255_scalar_negate)
+  SN_EXPORT_FUNCTION(crypto_core_ristretto255_scalar_complement, sn_crypto_core_ristretto255_scalar_complement)
+  SN_EXPORT_FUNCTION(crypto_core_ristretto255_scalar_add, sn_crypto_core_ristretto255_scalar_add)
+  SN_EXPORT_FUNCTION(crypto_core_ristretto255_scalar_sub, sn_crypto_core_ristretto255_scalar_sub)
+  SN_EXPORT_FUNCTION(crypto_core_ristretto255_scalar_mul, sn_crypto_core_ristretto255_scalar_mul)
+  SN_EXPORT_FUNCTION(crypto_core_ristretto255_from_hash, sn_crypto_core_ristretto255_from_hash)
+  SN_EXPORT_FUNCTION(crypto_core_ristretto255_is_valid_point, sn_crypto_core_ristretto255_is_valid_point)
   SN_EXPORT_FUNCTION(crypto_shorthash, sn_crypto_shorthash)
   SN_EXPORT_FUNCTION(crypto_kdf_keygen, sn_crypto_kdf_keygen)
   SN_EXPORT_FUNCTION(crypto_kdf_derive_from_key, sn_crypto_kdf_derive_from_key)
@@ -3096,6 +3303,12 @@ static napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_UINT32(crypto_core_ed25519_NONREDUCEDSCALARBYTES, crypto_core_ed25519_NONREDUCEDSCALARBYTES)
   SN_EXPORT_UINT32(crypto_scalarmult_ed25519_BYTES, crypto_scalarmult_ed25519_BYTES)
   SN_EXPORT_UINT32(crypto_scalarmult_ed25519_SCALARBYTES, crypto_scalarmult_ed25519_SCALARBYTES)
+  SN_EXPORT_UINT32(crypto_core_ristretto255_BYTES, crypto_core_ristretto255_BYTES)
+  SN_EXPORT_UINT32(crypto_core_ristretto255_HASHBYTES, crypto_core_ristretto255_HASHBYTES)
+  SN_EXPORT_UINT32(crypto_core_ristretto255_SCALARBYTES, crypto_core_ristretto255_SCALARBYTES)
+  SN_EXPORT_UINT32(crypto_core_ristretto255_NONREDUCEDSCALARBYTES, crypto_core_ristretto255_NONREDUCEDSCALARBYTES)
+  SN_EXPORT_UINT32(crypto_scalarmult_ristretto255_BYTES, crypto_scalarmult_ristretto255_BYTES)
+  SN_EXPORT_UINT32(crypto_scalarmult_ristretto255_SCALARBYTES, crypto_scalarmult_ristretto255_SCALARBYTES)
   SN_EXPORT_UINT32(crypto_aead_xchacha20poly1305_ietf_ABYTES, crypto_aead_xchacha20poly1305_ietf_ABYTES)
   SN_EXPORT_UINT32(crypto_aead_xchacha20poly1305_ietf_KEYBYTES, crypto_aead_xchacha20poly1305_ietf_KEYBYTES)
   SN_EXPORT_UINT32(crypto_aead_xchacha20poly1305_ietf_NPUBBYTES, crypto_aead_xchacha20poly1305_ietf_NPUBBYTES)
