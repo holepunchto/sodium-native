@@ -1454,6 +1454,18 @@ napi_value sn_crypto_scalarmult_ristretto255 (napi_env env, napi_callback_info i
   SN_RETURN(crypto_scalarmult_ristretto255(q_data, n_data, p_data), "failed to derive shared secret")
 }
 
+napi_value sn_crypto_core_ristretto255_random (napi_env env, napi_callback_info info) {
+  SN_ARGV(1, crypto_core_ristretto255_random)
+
+  SN_ARGV_TYPEDARRAY(p, 0)
+
+  SN_ASSERT_LENGTH(p_size, crypto_core_ristretto255_BYTES, "p")
+
+  crypto_core_ristretto255_random(p_data);
+
+  return NULL;
+}
+
 napi_value sn_crypto_core_ristretto255_add (napi_env env, napi_callback_info info) {
   SN_ARGV(3, crypto_core_ristretto255_add)
 
@@ -3148,6 +3160,7 @@ static napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_sub, sn_crypto_core_ed25519_scalar_sub)
   SN_EXPORT_FUNCTION(crypto_scalarmult_ristretto255_base, sn_crypto_scalarmult_ristretto255_base)
   SN_EXPORT_FUNCTION(crypto_scalarmult_ristretto255, sn_crypto_scalarmult_ristretto255)
+  SN_EXPORT_FUNCTION(crypto_core_ristretto255_random, sn_crypto_core_ristretto255_random)
   SN_EXPORT_FUNCTION(crypto_core_ristretto255_add, sn_crypto_core_ristretto255_add)
   SN_EXPORT_FUNCTION(crypto_core_ristretto255_sub, sn_crypto_core_ristretto255_sub)
   SN_EXPORT_FUNCTION(crypto_core_ristretto255_scalar_random, sn_crypto_core_ristretto255_scalar_random)
