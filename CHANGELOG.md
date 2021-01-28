@@ -2,6 +2,9 @@
 
 ## Current
 
+## v3.2.1
+* Normalised and typo fixed error messages (Thanks @martinheidegger)
+
 ## v3.2.0
 * Add missing `napi` prototype for Node v10
 * Make "missing" checks behave like Javascript (`x == null`)
