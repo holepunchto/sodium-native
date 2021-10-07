@@ -1529,9 +1529,7 @@ napi_value sn_crypto_core_ristretto255_scalar_invert (napi_env env, napi_callbac
   SN_ASSERT_LENGTH(recip_size, crypto_core_ristretto255_SCALARBYTES, "recip")
   SN_ASSERT_LENGTH(s_size, crypto_core_ristretto255_SCALARBYTES, "s")
 
-  crypto_core_ristretto255_scalar_invert(recip_data, s_data);
-
-  return NULL;
+  SN_RETURN(crypto_core_ristretto255_scalar_invert(recip_data, s_data), "point inversion failed")
 }
 
 napi_value sn_crypto_core_ristretto255_scalar_negate (napi_env env, napi_callback_info info) {
