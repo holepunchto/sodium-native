@@ -17,7 +17,7 @@ jobs:
     steps:
       - run: brew install automake
         if: matrix.os == 'macos-latest'
-      - run: npm --vs2015 install --global windows-build-tools && SET VCTargetsPath="C:\Program Files (x86)\Microsoft Visual Studio\2017\BuildTools\Common7\IDE\VC\VCTargets"
+      - run: npm --vs2015 install --global windows-build-tools && setx VCTargetsPath "C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\v140" /M
         if: matrix.os == 'windows-latest'
       - uses: actions/setup-node@v1
         with:
