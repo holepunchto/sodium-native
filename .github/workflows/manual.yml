@@ -1,0 +1,61 @@
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
+name: Build binaries and create release
+jobs:
+  test:
+    name: Test
+    strategy:
+      matrix:
+        os: [macos-latest, windows-latest, ubuntu-latest]
+        node: [10, 12, 13, '*']
+    runs-on: ${{ matrix.os }}
+    steps:
+      - uses: actions/setup-node@v1
+        with:
+          node-version: ${{ matrix.node }}
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+      - run: npm install
+      - run: npm test
+
+  build:
+    strategy:
+      matrix:
+        os: [ARM, windows-latest, ARM64, macos-latest, ubuntu-16.04]
+    runs-on: ${{ matrix.os }}
+    name: Build
+    needs: test
+    steps:
+      - uses: actions/setup-node@v1
+      - uses: actions/checkout@v2
+        with:
+          submodules: 'recursive'
+      - run: npm install
+      - run: npm run prebuild
+      - run: npm run prebuild-ia32
+        if: matrix.os == 'windows-latest'
+      - id: archive_name
+        run: echo "::set-output name=NAME::$(`git describe --tags`-linux-`uname -m`.tar)"
+      - shell: bash
+        run: |
+          tar --create --verbose --file="${{ steps.archive_name.outputs.NAME }}" --directory "./prebuilds" .
+      - name: Create Release
+        id: create_release
+        uses: actions/create-release@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          tag_name: ${{ github.ref }}
+          prerelease: true
+      - uses: actions/upload-release-asset@v1
+        env:
+          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+        with:
+          upload_url: ${{ steps.create_release.outputs.upload_url }}
+          asset_path: ./${{ steps.archive_name.outputs.NAME }}
+          asset_name: ${{ steps.archive_name.outputs.NAME }}
+          asset_content_type: application/x-tar
