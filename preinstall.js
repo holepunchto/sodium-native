@@ -65,8 +65,8 @@ function findMsBuild () {
     '/Microsoft Visual Studio/2017/Enterprise/MSBuild/15.0/Bin/msbuild.exe',
     '/Microsoft Visual Studio/2017/Professional/MSBuild/15.0/Bin/msbuild.exe',
     '/Microsoft Visual Studio/2017/Community/MSBuild/15.0/Bin/msbuild.exe',
-    '/MSBuild/14.0/Bin/MSBuild.exe',
-    '/MSBuild/12.0/Bin/MSBuild.exe'
+    'Program Files (x86)/MSBuild/14.0/Bin/MSBuild.exe',
+    'Program Files (x86)/MSBuild/12.0/Bin/MSBuild.exe'
   ]
 
   // First try X86 paths (on 64 bit machine which is most likely) then 32 bit
