@@ -7,6 +7,15 @@ on:
       - 'v*'
 name: Build binaries and create release
 jobs:
+  prereqs:
+    strategy:
+      matrix:
+        os: [macos-latest]
+    runs-on: ${{ matrix.os }}
+    steps:
+      - run:
+        brew install automake
+
   test:
     name: Test
     strategy:
@@ -42,22 +51,22 @@ jobs:
         if: matrix.os == 'windows-latest'
       - id: archive_name
         run: echo "::set-output name=NAME::$(`git describe --tags`-linux-`uname -m`.tar)"
-      - shell: bash
-        run: |
-          tar --create --verbose --file="${{ steps.archive_name.outputs.NAME }}" --directory "./prebuilds" .
-      - name: Create Release
-        id: create_release
-        uses: actions/create-release@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          tag_name: ${{ github.ref }}
-          prerelease: true
-      - uses: actions/upload-release-asset@v1
-        env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
-        with:
-          upload_url: ${{ steps.create_release.outputs.upload_url }}
-          asset_path: ./${{ steps.archive_name.outputs.NAME }}
-          asset_name: ${{ steps.archive_name.outputs.NAME }}
-          asset_content_type: application/x-tar
+      # - shell: bash
+      #   run: |
+      #     tar --create --verbose --file="${{ steps.archive_name.outputs.NAME }}" --directory "./prebuilds" .
+      # - name: Create Release
+      #   id: create_release
+      #   uses: actions/create-release@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     tag_name: ${{ github.ref }}
+      #     prerelease: true
+      # - uses: actions/upload-release-asset@v1
+      #   env:
+      #     GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+      #   with:
+      #     upload_url: ${{ steps.create_release.outputs.upload_url }}
+      #     asset_path: ./${{ steps.archive_name.outputs.NAME }}
+      #     asset_name: ${{ steps.archive_name.outputs.NAME }}
+      #     asset_content_type: application/x-tar
