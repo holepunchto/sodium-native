@@ -99,7 +99,7 @@ function buildWindows () {
     if (err) throw err
     var msbuild = findMsBuild()
     console.log(msbuild)
-    process.env.VCTargetsPath = 'C:\\Program Files (x86)\\MSBuild\\Microsoft.Cpp (X86)\\v4.0\\v140'
+    process.env.VCTargetsPath = 'C:\\Program Files (x86)\\MSBuild\\Microsoft.Cpp\\v4.0\\v140'
     var args = ['/p:Configuration=ReleaseDLL;Platform=' + warch, '/nologo']
     spawn(msbuild, args, { cwd: dir, stdio: 'inherit' }, function (err) {
       if (err) throw err
