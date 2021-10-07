@@ -1,3 +1,8 @@
+on:
+  workflow_dispatch:
+  push:
+    tags:
+      - 'v*'
 name: Build binaries and create release
 jobs:
   test:
