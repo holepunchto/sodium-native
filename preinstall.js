@@ -101,7 +101,7 @@ function buildWindows () {
     console.log(msbuild)
     process.env.VCTargetsPath = 'C:\\Program Files (x86)\\MSBuild\\Microsoft.Cpp\\v4.0\\v140'
     var args = ['/p:Configuration=ReleaseDLL;Platform=' + warch, '/nologo']
-    spawn(msbuild, args, { cwd: dir, stdio: 'inherit' }, function (err) {
+    spawn('msbuild', args, { cwd: dir, stdio: 'inherit' }, function (err) {
       if (err) throw err
 
       var dll = path.join(dir, 'Build/ReleaseDLL/' + warch + '/libsodium.dll')
