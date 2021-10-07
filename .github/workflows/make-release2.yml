@@ -16,7 +16,7 @@ jobs:
     runs-on: ${{ matrix.os }}
     steps:
       - run: brew install automake
-        if: matrix.os === 'macos-latest'
+        if: matrix.os == 'macos-latest'
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node }}
