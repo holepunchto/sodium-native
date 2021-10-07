@@ -1,6 +1,16 @@
 var test = require('tape')
 var sodium = require('..')
 
+const expected = [
+  '3066f82a1a747d45120d1740f14358531a8f04bbffe6a819f86dfe50f44a0a46',
+  'f26e5b6f7d362d2d2a94c5d0e7602cb4773c95a2e5c31a64f133189fa76ed61b',
+  '006ccd2a9e6867e6a2c5cea83d3302cc9de128dd2a9a57dd8ee7b9d7ffe02826',
+  'f8f0c87cf237953c5890aec3998169005dae3eca1fbb04548c635953c817f92a',
+  'ae81e7dedf20a497e10c304a765c1767a42d6e06029758d2d7e8ef7cc4c41179',
+  'e2705652ff9f5e44d3e841bf1c251cf7dddb77d140870d1ab2ed64f1a9ce8628',
+  '80bd07262511cdde4863f8a7434cef696750681cb9510eea557088f76d9e5065',
+].map(b => Buffer.from(b, 'hex'))
+
 test('bad encodings', function (assert) {
   const badEncodingsHex = [
     /* Non-canonical field encodings */
@@ -44,9 +54,9 @@ test('bad encodings', function (assert) {
     'ecffffffffffffffffffffffffffffffffffffffffffffffffffffffffffff7f'
   ]
 
-  badEncodingsHex.forEach(hex => {
+  badEncodingsHex.forEach((hex, i) => {
     const s = Buffer.from(hex, 'hex', sodium.crypto_core_ristretto255_BYTES)
-    assert.notOk(sodium.crypto_core_ristretto255_is_valid_point(s), `${hex} was rejected`)
+    assert.notOk(sodium.crypto_core_ristretto255_is_valid_point(s), `bad encoding ${i + 1} was rejected`)
   })
 
   assert.end()
@@ -76,12 +86,11 @@ test('hash to point', function (assert) {
         '2c9965a697a3b345ec24ee56335b556e677b30e6f90ac77d781064f866a3c982'
   ]
 
-  hashHex.forEach(hash => {
+  hashHex.forEach((hash, i) => {
     const s = sodium.sodium_malloc(sodium.crypto_core_ristretto255_BYTES)
     const u = Buffer.from(hash, 'hex', sodium.crypto_core_ristretto255_HASHBYTES)
     sodium.crypto_core_ristretto255_from_hash(s, u)
-    const hex = s.toString('hex')
-    assert.ok(hex, `hashed to point ${hex}`)
+    assert.same(s, expected[i], `hashed to point correctly`)
   })
   assert.end()
 })
@@ -99,115 +108,71 @@ test('1000 iteration check', function (assert) {
   for (var i = 0; i < n; i++) {
     sodium.crypto_core_ristretto255_scalar_random(r)
     sodium.crypto_scalarmult_ristretto255_base(s, r)
-    assert.ok(sodium.crypto_core_ristretto255_is_valid_point(s), 'sodium.crypto_scalarmult_ristretto255_base() succeeded')
+    validPoint(s, 'sodium.crypto_scalarmult_ristretto255_base() failed')
 
     sodium.crypto_core_ristretto255_random(s)
-    assert.ok(sodium.crypto_core_ristretto255_is_valid_point(s), 'sodium.crypto_core_ristretto255_random() succeeded')
+    validPoint(s, 'sodium.crypto_core_ristretto255_random() failed')
 
-    try {
-      sodium.crypto_scalarmult_ristretto255(s, l, s)
-      assert.notOk(true, 'scalarmult succeeds when multiplying point')
-    } catch {
-      assert.ok(true, 'scalarmult fails when multiplying point (1)')
-    }
+    call(() => sodium.crypto_scalarmult_ristretto255(s, l, s), 's*l != inf (1)', true)
 
     sodium.randombytes_buf(ru)
     sodium.crypto_core_ristretto255_from_hash(s, ru)
-    assert.ok(sodium.crypto_core_ristretto255_is_valid_point(s), 'sodium.crypto_core_ristretto255_from_hash() succeeded')
+    validPoint(s, 'sodium.crypto_core_ristretto255_from_hash() failed')
 
-    try {
-      sodium.crypto_scalarmult_ristretto255(s2, l, s)
-      assert.notOk(true, 'scalarmult succeeds when multiplying point')
-    } catch {
-      assert.ok(true, 'scalarmult fails when multiplying point (2)')
-    }
+    call(() => sodium.crypto_scalarmult_ristretto255(s2, l, s), 's*l != inf (2)', true)
 
     sodium.crypto_scalarmult_ristretto255(s2, r, s)
-    assert.ok(sodium.crypto_core_ristretto255_is_valid_point(s2), 'sodium.crypto_scalarmult_ristretto255() succeeded')
+    validPoint(s2, 'sodium.crypto_scalarmult_ristretto255() failed')
 
-    try {
-      sodium.crypto_core_ristretto255_scalar_invert(rInv, r)
-      assert.ok(true, 'sodium.crypto_core_ristretto255_scalar_invert() succeeded')
-    } catch {
-      assert.notOk(true, 'sodium.crypto_core_ristretto255_scalar_invert() failed')
-    }
+    call(() => sodium.crypto_core_ristretto255_scalar_invert(rInv, r),
+      'sodium.crypto_core_ristretto255_scalar_invert() failed')
 
     sodium.crypto_scalarmult_ristretto255(s_, rInv, s2)
-    assert.ok(sodium.crypto_core_ristretto255_is_valid_point(s_), 'sodium.crypto_scalarmult_ristretto255() succeeded')
+    validPoint(s_, 'sodium.crypto_scalarmult_ristretto255() failed')
+    if (Buffer.compare(s, s_)) assert.fail('inversion failed')
 
-    assert.ok(s.equals(s_), 'inversion succeeded')
-
-    try {
-      sodium.crypto_scalarmult_ristretto255(s2, l, s2)
-      assert.notOk(true, 'scalarmult succeeds when multiplying point')
-    } catch {
-      assert.ok(true, 'scalarmult fails when multiplying point (3)')
-    }
+    call(() => sodium.crypto_scalarmult_ristretto255(s2, l, s2), 's*l != inf (3)', true)
 
     sodium.crypto_core_ristretto255_add(s2, s, s_)
-    assert.ok(sodium.crypto_core_ristretto255_is_valid_point(s2), 'addition succeeded')
 
-    sodium.crypto_core_ristretto255_sub(s2, s2, s_)
-    assert.ok(sodium.crypto_core_ristretto255_is_valid_point(s2), 'subtraction succeeded')
+    validPoint(s2, 'addition failed')
+    call(() => sodium.crypto_core_ristretto255_sub(s2, s2, s_), 'subtraction failed')
+    validPoint(s2, 'subtraction failed')
 
-    assert.ok(s.equals(s2), 's2 + s - s_ == s')
-    sodium.crypto_core_ristretto255_sub(s2, s2, s)
-    assert.ok(sodium.crypto_core_ristretto255_is_valid_point(s2), 'subtraction succeeded')
+    if (Buffer.compare(s, s2)) assert.fail('s2 + s - s_ == s')
+
+    call(() => sodium.crypto_core_ristretto255_sub(s2, s2, s), 'subtraction failed')
+
+    validPoint(s2, 's + s\' - s - s\' != 0')
   }
 
   sodium.crypto_core_ristretto255_random(s)
-  s_ = Buffer.alloc(sodium.crypto_core_ristretto255_BYTES)
-  s_.fill('fe', 'hex')
-  try {
-    sodium.crypto_core_ristretto255_add(s2, s_, s)
-    assert.ok(true, 'successfully added bad point')
-  } catch {
-    assert.ok(true, 'failed to add bad point')
-  }
-  try {
-    sodium.crypto_core_ristretto255_add(s2, s, s_)
-    assert.ok(true, 'successfully added bad point')
-  } catch {
-    assert.ok(true, 'failed to add bad point')
-  }
-  try {
-    sodium.crypto_core_ristretto255_add(s2, s_, s_)
-    assert.ok(true, 'successfully added bad point')
-  } catch {
-    assert.ok(true, 'failed to add bad point')
-  }
-  try {
-    sodium.crypto_core_ristretto255_add(s2, s, s)
-    assert.ok(true, 'successfully added good points')
-  } catch {
-    assert.ok(true, 'failed to add good points')
-  }
-  try {
-    sodium.crypto_core_ristretto255_sub(s2, s_, s)
-    assert.ok(true, 'successfully added bad point')
-  } catch {
-    assert.ok(true, 'failed to add bad point')
-  }
-  try {
-    sodium.crypto_core_ristretto255_sub(s2, s, s_)
-    assert.ok(true, 'successfully added bad point')
-  } catch {
-    assert.ok(true, 'failed to add bad point')
-  }
-  try {
-    sodium.crypto_core_ristretto255_sub(s2, s_, s_)
-    assert.ok(true, 'successfully added bad point')
-  } catch {
-    assert.ok(true, 'failed to add bad point')
-  }
-  try {
-    sodium.crypto_core_ristretto255_sub(s2, s, s)
-    assert.ok(true, 'successfully added good points')
-  } catch {
-    assert.ok(true, 'failed to add good points')
+  s_.fill(0xfe)
+
+  call(() => sodium.crypto_core_ristretto255_add(s2, s_, s), 'successfully added bad point', true)
+  call(() => sodium.crypto_core_ristretto255_add(s2, s, s_), 'successfully added bad point', true)
+  call(() => sodium.crypto_core_ristretto255_add(s2, s_, s_), 'successfully added bad point', true)
+  call(() => sodium.crypto_core_ristretto255_add(s2, s, s), 'failed to add good points')
+  call(() => sodium.crypto_core_ristretto255_add(s2, s_, s), 'successfully added bad point', true)
+  call(() => sodium.crypto_core_ristretto255_add(s2, s, s_), 'successfully added bad point', true)
+  call(() => sodium.crypto_core_ristretto255_add(s2, s_, s_), 'successfully added bad point', true)
+  call(() => sodium.crypto_core_ristretto255_add(s2, s, s), 'failed to add good points')
+
+  assert.ok(true, 'passed all iterations')
+  assert.end()
+
+  function call (fn, msg, shouldFail = false) {
+    try {
+      fn()
+      if (shouldFail) assert.fail(msg)
+    } catch {
+      if (!shouldFail) assert.fail(msg)
+    }
   }
 
-  assert.end()
+  function validPoint (p, msg) {
+    if (!sodium.crypto_core_ristretto255_is_valid_point(p)) assert.fail(msg)
+  }
 })
 
 test('tv4', function (assert) {
