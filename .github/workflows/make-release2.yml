@@ -1,6 +1,8 @@
 on:
   workflow_dispatch:
   push:
+    branches:
+      - actionbuilds-2
     tags:
       - 'v*'
 name: Build binaries and create release
