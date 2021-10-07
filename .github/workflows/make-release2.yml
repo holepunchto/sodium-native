@@ -7,15 +7,6 @@ on:
       - 'v*'
 name: Build binaries and create release
 jobs:
-  prereqs:
-    strategy:
-      matrix:
-        os: [macos-latest]
-    runs-on: ${{ matrix.os }}
-    steps:
-      - run:
-        brew install automake
-
   test:
     name: Test
     strategy:
@@ -24,6 +15,8 @@ jobs:
         node: [14, '*']
     runs-on: ${{ matrix.os }}
     steps:
+      - run: brew install automake
+        if: matrix.os === 'macos-latest'
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node }}
