@@ -17,6 +17,8 @@ jobs:
     steps:
       - run: brew install automake
         if: matrix.os == 'macos-latest'
+      - uses: microsoft/setup-msbuild@v1.0.3
+        if: matrix.os == 'windows-latest'
       - run: npm --vs2015 install --global windows-build-tools && setx VCTargetsPath "C:\Program Files (x86)\MSBuild\Microsoft.Cpp\v4.0\v140" /M
         if: matrix.os == 'windows-latest'
       - uses: actions/setup-node@v1
