@@ -15,7 +15,7 @@ jobs:
         node: [14]
         arch:
           - amd64_x86
-    sruns-on: ${{ matrix.os }}
+    runs-on: ${{ matrix.os }}
     steps:
       - run: brew install automake
         if: matrix.os == 'macos-latest'
