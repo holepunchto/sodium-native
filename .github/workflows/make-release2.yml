@@ -11,8 +11,8 @@ jobs:
     name: Test
     strategy:
       matrix:
-        os: [macos-latest, windows-latest, ubuntu-latest]
-        node: [14, '*']
+        os: [windows-latest]
+        node: [14]
     runs-on: ${{ matrix.os }}
     steps:
       - run: brew install automake
