@@ -13,13 +13,20 @@ jobs:
       matrix:
         os: [windows-latest]
         node: [14]
-    runs-on: ${{ matrix.os }}
+        arch:
+          - amd64_x86
+    sruns-on: ${{ matrix.os }}
     steps:
       - run: brew install automake
         if: matrix.os == 'macos-latest'
       - uses: microsoft/setup-msbuild@v1.0.3
         with:
           vs-version: '[14.0,)'
+        if: matrix.os == 'windows-latest'
+      - uses: ilammy/msvc-dev-cmd@v1
+        with:
+          arch: ${{ matrix.arch }}
+          sdk: 8.1
         if: matrix.os == 'windows-latest'
       - uses: actions/setup-node@v1
         with:
