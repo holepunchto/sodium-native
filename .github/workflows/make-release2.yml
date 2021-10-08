@@ -26,6 +26,7 @@ jobs:
         with:
           vs-version: '[14.0,)'
         if: matrix.os == 'windows-latest'
+      - run: npm install --global --production --vs2015 windows-build-tools && npm config set msvs_version 2015 --global
       - uses: actions/setup-node@v1
         with:
           node-version: ${{ matrix.node }}
