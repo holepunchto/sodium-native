@@ -19,7 +19,7 @@ jobs:
         if: matrix.os == 'macos-latest'
       - uses: microsoft/setup-msbuild@v1.0.3
         with:
-          vs-version: '[14.0,15.0)'
+          vs-version: '[14.0)'
         if: matrix.os == 'windows-latest'
       - run: npm --vs2015 install --global --production windows-build-tools && npm config set msvs_version 2015 --global
         if: matrix.os == 'windows-latest'
