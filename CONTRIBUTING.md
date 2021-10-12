@@ -20,17 +20,15 @@ npm install
   this, following the steps from `.travis.yml` with stock version of `gcc`,
   `autotools` and `make`:
   ```
-  npm run fetch-libsodium
   npm install
   npm test
-  npm run prebuilds
+  npm run prebuild
   tar --create --verbose --file="`git describe --tags`-linux-`uname -m`.tar" --directory "./prebuilds" .
   ```
   This tar file should be uploaded to Github Release like the artifacts produced
   by CI services.
 * Clean out the repository on your local computer:
   ```
-  git submodule foreach --recursive git clean -x -d -f`
   git clean -x -d -f
   ```
 * Add prebuild artifacts:
