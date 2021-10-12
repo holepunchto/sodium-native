@@ -1,15 +1,23 @@
 {
   'variables': {
-    'target_arch%': '<!(node preinstall.js --print-arch)>'
+    'target_arch%': '<!(node deps/bin.js --print-arch)'
   },
   'targets': [
     {
       'target_name': 'sodium',
       'include_dirs' : [
-        'libsodium/src/libsodium/include'
+        '<!(node deps/bin.js --print-include)'
       ],
       'sources': [
         'binding.c'
+      ],
+      'conditions': [
+        ['OS=="win"', {
+          'defines': [
+            'SODIUM_STATIC=1',
+            'SODIUM_EXPORT',
+          ]
+        }],
       ],
       'xcode_settings': {
         'OTHER_CFLAGS': [
@@ -24,15 +32,8 @@
         '-Wall',
       ],
       'libraries': [
-        '<!(node preinstall.js --print-lib)'
-      ],
-      'conditions': [
-        ['OS != "mac" and OS != "win"', {
-          'link_settings': {
-            'libraries': [ "-Wl,-rpath=\\$$ORIGIN"]
-          }
-        }],
-      ],
+        '<!(node deps/bin.js --print-lib)'
+      ]
     }
   ]
 }
