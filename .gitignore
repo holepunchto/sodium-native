@@ -2,3 +2,7 @@ node_modules
 build
 tmp
 lib
+deps/libsodium*
+deps/unix
+deps/win
+deps/tmp

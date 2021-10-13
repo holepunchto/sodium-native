@@ -4,23 +4,22 @@
   "description": "Low level bindings for libsodium",
   "main": "index.js",
   "dependencies": {
-    "ini": "^1.3.5",
-    "node-gyp-build": "^4.2.0"
+    "node-gyp-build": "^4.3.0"
   },
   "devDependencies": {
-    "prebuildify": "^4.0.0",
+    "prebuildify": "^4.2.1",
     "sodium-test": "^0.8.0",
     "sodium-vectors": "^1.0.0",
     "standard": "^14.3.1",
-    "tape": "^4.13.0"
+    "tape": "^5.3.1"
   },
   "scripts": {
     "dev": "node-gyp rebuild",
-    "fetch-libsodium": "git submodule update --recursive --init",
+    "fetch-libsodium": "node deps/bin.js --fetch --no-build",
     "test": "standard && tape \"test/*.js\"",
-    "install": "node-gyp-build \"node preinstall.js\" \"node postinstall.js\"",
-    "prebuild": "prebuildify --napi --strip --preinstall \"node preinstall.js\" --postinstall \"node postinstall.js\"",
-    "prebuild-ia32": "prebuildify --arch=ia32 --napi --strip --preinstall \"node preinstall.js\" --postinstall \"node postinstall.js\""
+    "install": "node-gyp-build",
+    "prebuild": "prebuildify --napi --strip",
+    "prebuild-ia32": "prebuildify --arch=ia32 --napi --strip"
   },
   "repository": {
     "type": "git",
