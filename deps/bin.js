@@ -11,6 +11,7 @@ const os = require('os')
 const IS_WINDOWS = process.platform === 'win32'
 const VERSION = '1.0.18'
 const VS = 'v141'
+const MACOSX_DEPLOYMENT_TARGET = '10.10'
 
 const UNIX = `https://download.libsodium.org/libsodium/releases/libsodium-${VERSION}.tar.gz`
 const WIN = `https://download.libsodium.org/libsodium/releases/libsodium-${VERSION}-msvc.zip`
@@ -206,7 +207,8 @@ function run (cmd, opts = {}) {
         opts.stdin ? 'pipe' : 'ignore',
         QUIET ? 'ignore' : 2,
         QUIET ? 'ignore' : 2
-      ]
+      ],
+      env: { MACOSX_DEPLOYMENT_TARGET, ...process.env }
     })
 
     if (opts.stdin) {
