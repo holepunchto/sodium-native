@@ -2,6 +2,9 @@
 
 ## Current
 
+## v3.3.0
+* Moved to a static build to reduce build complexity and allow more platforms for our prebuilds.
+
 ## v3.2.1
 * Normalised and typo fixed error messages (Thanks @martinheidegger)
 
