@@ -1,4 +1,4 @@
-var sodium = require('./')
+var sodium = require('..')
 
 var nonce = Buffer.alloc(sodium.crypto_secretbox_NONCEBYTES)
 var key = sodium.sodium_malloc(sodium.crypto_secretbox_KEYBYTES)

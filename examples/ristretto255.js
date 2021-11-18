@@ -1,4 +1,4 @@
-var sodium = require('.')
+var sodium = require('..')
 
 // Perform a secure two-party computation of f(x) = k*p(x).
 //
