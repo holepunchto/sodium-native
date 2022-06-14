@@ -1411,6 +1411,21 @@ napi_value sn_crypto_core_ed25519_scalar_add (napi_env env, napi_callback_info i
   return NULL;
 }
 
+napi_value sn_crypto_core_ed25519_scalar_mul (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_core_ed25519_scalar_mul)
+
+  SN_ARGV_TYPEDARRAY(z, 0)
+  SN_ARGV_TYPEDARRAY(x, 1)
+  SN_ARGV_TYPEDARRAY(y, 2)
+
+  SN_ASSERT_LENGTH(z_size, crypto_core_ed25519_SCALARBYTES, "z")
+  SN_ASSERT_LENGTH(x_size, crypto_core_ed25519_SCALARBYTES, "x")
+  SN_ASSERT_LENGTH(y_size, crypto_core_ed25519_SCALARBYTES, "y")
+
+  crypto_core_ed25519_scalar_mul(z_data, x_data, y_data);
+
+  return NULL;
+}
 
 napi_value sn_crypto_core_ed25519_scalar_sub (napi_env env, napi_callback_info info) {
   SN_ARGV(3, crypto_core_ed25519_scalar_sub)
@@ -2952,6 +2967,7 @@ static napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_negate, sn_crypto_core_ed25519_scalar_negate)
   SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_complement, sn_crypto_core_ed25519_scalar_complement)
   SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_add, sn_crypto_core_ed25519_scalar_add)
+  SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_mul, sn_crypto_core_ed25519_scalar_mul)
   SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_sub, sn_crypto_core_ed25519_scalar_sub)
   SN_EXPORT_FUNCTION(crypto_shorthash, sn_crypto_shorthash)
   SN_EXPORT_FUNCTION(crypto_kdf_keygen, sn_crypto_kdf_keygen)
