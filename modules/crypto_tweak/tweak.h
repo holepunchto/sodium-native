@@ -11,7 +11,6 @@ int crypto_tweak_ed25519_sign_detached(unsigned char *sig, unsigned long long *s
 void crypto_tweak_ed25519(unsigned char *n, unsigned char *q,
                           const unsigned char *ns, unsigned long long nslen);
 
-
 // tweak a secret key
 void crypto_tweak_ed25519_secretkey(unsigned char *tsk,
                                     const unsigned char *sk,
