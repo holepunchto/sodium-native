@@ -6,10 +6,12 @@
     {
       'target_name': 'sodium',
       'include_dirs' : [
-        '<!(node deps/bin.js --print-include)'
+        '<!(node deps/bin.js --print-include)',
+        './modules/crypto_tweak'
       ],
       'sources': [
-        'binding.c'
+        'binding.c',
+        './modules/crypto_tweak/tweak.c'
       ],
       'conditions': [
         ['OS=="win"', {
