@@ -1328,6 +1328,20 @@ napi_value sn_crypto_tweak_ed25519_sign_detached (napi_env env, napi_callback_in
   SN_RETURN(crypto_tweak_ed25519_sign_detached(sig_data, NULL, m_data, m_size, scalar_data), "failed to compute signature")
 }
 
+napi_value sn_crypto_tweak_ed25519_sk_to_scalar (napi_env env, napi_callback_info info) {
+  SN_ARGV(2, crypto_tweak_ed25519_sk_to_scalar)
+
+  SN_ARGV_TYPEDARRAY(n, 0)
+  SN_ARGV_TYPEDARRAY(sk, 1)
+
+  SN_ASSERT_LENGTH(n_size, crypto_tweak_ed25519_SCALARBYTES, "n")
+  SN_ASSERT_LENGTH(sk_size, crypto_sign_SECRETKEYBYTES, "sk")
+
+  crypto_tweak_ed25519_sk_to_scalar(n_data, sk_data);
+
+  return NULL;
+}
+
 napi_value sn_crypto_tweak_ed25519_secretkey (napi_env env, napi_callback_info info) {
   SN_ARGV(3, crypto_tweak_ed25519_secretkey)
 
@@ -3074,6 +3088,7 @@ static napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_secretstream_xchacha20poly1305_rekey, sn_crypto_secretstream_xchacha20poly1305_rekey)
   SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519, sn_crypto_tweak_ed25519)
   SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519_sign_detached, sn_crypto_tweak_ed25519_sign_detached)
+  SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519_sk_to_scalar, sn_crypto_tweak_ed25519_sk_to_scalar)
   SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519_secretkey, sn_crypto_tweak_ed25519_secretkey)
   SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519_publickey, sn_crypto_tweak_ed25519_publickey)
   SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519_secretkey_add, sn_crypto_tweak_ed25519_secretkey_add)

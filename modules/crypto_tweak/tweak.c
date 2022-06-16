@@ -110,6 +110,20 @@ int crypto_tweak_ed25519_sign_detached(unsigned char *sig, unsigned long long *s
 }
 
 // tweak a secret key
+void crypto_tweak_ed25519_sk_to_scalar(unsigned char *n, const unsigned char *sk)
+{
+  unsigned char n64[64];
+
+  // get sk scalar from seed, cf. crypto_sign_keypair_seed
+  crypto_hash(n64, sk, 32);
+  n64[0] &= 248;
+  n64[31] &= 127;
+  n64[31] |= 64;
+
+  memcpy(n, n64, 32);
+}
+
+// tweak a secret key
 void crypto_tweak_ed25519_secretkey(unsigned char *tsk,
                                     const unsigned char *sk,
                                     const unsigned char *ns,
