@@ -4,9 +4,16 @@
 void _crypto_tweak_nonce (unsigned char *nonce, const unsigned char *sk,
                           const unsigned char *m, unsigned long long mlen)
 {
+  static const unsigned char TWEAK_PREFIX[32 + 2] = {
+      'S', 'i', 'g', 'E', 'd', '2', '5', '5', '1', '9', ' ',
+      't', 'w', 'e', 'a', 'k', 'e', 'd', ' ', 'n', 'o', ' ',
+      'c', 'o', 'l', 'l', 'i', 's', 'i', 'o', 'n', 's'
+  };
+
   crypto_hash_sha512_state hs;
 
   crypto_hash_sha512_init(&hs);
+  crypto_hash_sha512_update(&hs, TWEAK_PREFIX, sizeof TWEAK_PREFIX);
   crypto_hash_sha512_update(&hs, sk, 32);
   crypto_hash_sha512_update(&hs, m, mlen);
   crypto_hash_sha512_final(&hs, nonce);
