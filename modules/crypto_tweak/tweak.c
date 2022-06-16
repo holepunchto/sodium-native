@@ -1,6 +1,16 @@
 #include <string.h>
 #include "tweak.h"
 
+/*
+  *EXPERIMENTAL API*
+
+  This module is an experimental implementation of a key tweaking protocol
+  over ed25519 keys. The signature algorithm has been reimplemented from
+  libsodium, but the nonce generation algorithm is *non-standard*.
+
+  Use at your own risk
+*/
+
 void _crypto_tweak_nonce (unsigned char *nonce, const unsigned char *sk,
                           const unsigned char *m, unsigned long long mlen)
 {
