@@ -14,10 +14,13 @@
 void _crypto_tweak_nonce (unsigned char *nonce, const unsigned char *sk,
                           const unsigned char *m, unsigned long long mlen)
 {
-  static const unsigned char TWEAK_PREFIX[32 + 2] = {
+  // dom2(x, y) with x = 0 (not prehashed) and y = "crypto_tweak_ed25519"
+  static const unsigned char TWEAK_PREFIX[32 + 2 + 20] = {
       'S', 'i', 'g', 'E', 'd', '2', '5', '5', '1', '9', ' ',
-      't', 'w', 'e', 'a', 'k', 'e', 'd', ' ', 'n', 'o', ' ',
-      'c', 'o', 'l', 'l', 'i', 's', 'i', 'o', 'n', 's'
+      'n', 'o', ' ', 'E', 'd', '2', '5', '5', '1', '9', ' ',
+      'c', 'o', 'l', 'l', 'i', 's', 'i', 'o', 'n', 's', 0,
+       20, 'c', 'r', 'y', 'p', 't', 'o', '_', 't', 'w', 'e',
+      'a', 'k', '_', 'e', 'd', '2', '5', '5', '1', '9'
   };
 
   crypto_hash_sha512_state hs;
