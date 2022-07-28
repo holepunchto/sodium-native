@@ -2874,14 +2874,14 @@ napi_value sn_crypto_tweak_ed25519_sk_to_scalar (napi_env env, napi_callback_inf
 napi_value sn_crypto_tweak_ed25519_secretkey (napi_env env, napi_callback_info info) {
   SN_ARGV(3, crypto_tweak_ed25519_secretkey)
 
-  SN_ARGV_TYPEDARRAY(tsk, 0)
+  SN_ARGV_TYPEDARRAY(scalar, 0)
   SN_ARGV_TYPEDARRAY(sk, 1)
   SN_ARGV_TYPEDARRAY(ns, 2)
 
-  SN_ASSERT_LENGTH(tsk_size, crypto_tweak_ed25519_SCALARBYTES, "tsk")
+  SN_ASSERT_LENGTH(scalar_size, crypto_tweak_ed25519_SCALARBYTES, "scalar")
   SN_ASSERT_LENGTH(sk_size, crypto_sign_SECRETKEYBYTES, "sk")
 
-  crypto_tweak_ed25519_secretkey(tsk_data, sk_data, ns_data, ns_size);
+  crypto_tweak_ed25519_secretkey(scalar_data, sk_data, ns_data, ns_size);
 
   return NULL;
 }
@@ -2902,15 +2902,15 @@ napi_value sn_crypto_tweak_ed25519_publickey (napi_env env, napi_callback_info i
 napi_value sn_crypto_tweak_ed25519_secretkey_add (napi_env env, napi_callback_info info) {
   SN_ARGV(3, crypto_tweak_ed25519_secretkey_add)
 
-  SN_ARGV_TYPEDARRAY(tsk, 0)
+  SN_ARGV_TYPEDARRAY(scalar, 0)
   SN_ARGV_TYPEDARRAY(sk, 1)
   SN_ARGV_TYPEDARRAY(n, 2)
 
-  SN_ASSERT_LENGTH(tsk_size, crypto_tweak_ed25519_SCALARBYTES, "tsk")
+  SN_ASSERT_LENGTH(scalar_size, crypto_tweak_ed25519_SCALARBYTES, "scalar")
   SN_ASSERT_LENGTH(sk_size, crypto_tweak_ed25519_SCALARBYTES, "sk")
   SN_ASSERT_LENGTH(n_size, crypto_tweak_ed25519_SCALARBYTES, "n")
 
-  crypto_tweak_ed25519_secretkey_add(tsk_data, sk_data, n_data);
+  crypto_tweak_ed25519_secretkey_add(scalar_data, sk_data, n_data);
 
   return NULL;
 }

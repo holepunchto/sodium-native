@@ -14,7 +14,7 @@ void crypto_tweak_ed25519(unsigned char *n, unsigned char *q,
 void crypto_tweak_ed25519_sk_to_scalar(unsigned char *n, const unsigned char *sk);
 
 // tweak a secret key
-void crypto_tweak_ed25519_secretkey(unsigned char *tsk,
+void crypto_tweak_ed25519_secretkey(unsigned char *scalar,
                                     const unsigned char *sk,
                                     const unsigned char *ns,
                                     unsigned long long nslen);
@@ -26,7 +26,7 @@ int crypto_tweak_ed25519_publickey(unsigned char *tpk,
                                    unsigned long long nslen);
 
 // add tweak scalar to private key
-void crypto_tweak_ed25519_secretkey_add(unsigned char *tsk,
+void crypto_tweak_ed25519_secretkey_add(unsigned char *scalar,
                                         const unsigned char *sk,
                                         const unsigned char *n);
 
