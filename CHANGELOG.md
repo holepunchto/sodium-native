@@ -2,6 +2,12 @@
 
 ## Current
 
+## v3.4.1
+* Fixed intel prebuild to still support sse (performance enhancement)
+
+## v3.4.0
+* Added experimental key tweaking api for signing.
+
 ## v3.3.0
 * Moved to a static build to reduce build complexity and allow more platforms for our prebuilds.
 
