@@ -32,6 +32,14 @@ void _crypto_tweak_nonce (unsigned char *nonce, const unsigned char *sk,
   crypto_hash_sha512_final(&hs, nonce);
 }
 
+static inline void
+_crypto_sign_ed25519_clamp(unsigned char k[32])
+{
+    k[0] &= 248;
+    k[31] &= 127;
+    k[31] |= 64;
+}
+
 void _crypto_tweak_ed25519(unsigned char *n, unsigned char *q,
                            const unsigned char *ns, unsigned long long nslen)
 {
@@ -132,9 +140,7 @@ void crypto_tweak_ed25519_sk_to_scalar(unsigned char *n, const unsigned char *sk
 
   // get sk scalar from seed, cf. crypto_sign_keypair_seed
   crypto_hash(n64, sk, 32);
-  n64[0] &= 248;
-  n64[31] &= 127;
-  n64[31] |= 64;
+  _crypto_sign_ed25519_clamp(n64);
 
   memcpy(n, n64, 32);
 }
@@ -151,9 +157,7 @@ void crypto_tweak_ed25519_secretkey(unsigned char *scalar,
 
   // get sk scalar from seed, cf. crypto_sign_keypair_seed
   crypto_hash(_sk, sk, 32);
-  _sk[0] &= 248;
-  _sk[31] &= 127;
-  _sk[31] |= 64;
+  _crypto_sign_ed25519_clamp(_sk);
 
   _crypto_tweak_ed25519(n, q, ns, nslen);
   crypto_core_ed25519_scalar_add(scalar, n, _sk);
