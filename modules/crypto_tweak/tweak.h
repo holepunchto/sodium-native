@@ -6,7 +6,7 @@
 
 int crypto_tweak_ed25519_sign_detached(unsigned char *sig, unsigned long long *siglen_p,
                                        const unsigned char *m, unsigned long long mlen,
-                                       const unsigned char *n, const unsigned char *pk);
+                                       const unsigned char *n, unsigned char *pk);
 
 void crypto_tweak_ed25519(unsigned char *n, unsigned char *q,
                           const unsigned char *ns, unsigned long long nslen);
