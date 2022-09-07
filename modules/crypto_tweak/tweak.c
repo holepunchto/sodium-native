@@ -1,4 +1,3 @@
-#include <string.h>
 #include "tweak.h"
 
 /*
@@ -69,7 +68,7 @@ void crypto_tweak_ed25519(unsigned char *n, unsigned char *q,
     crypto_scalarmult_ed25519_base_noclamp(q, n64);
   }
 
-  memcpy(n, n64, 32);
+  for (int i = 0; i < 32; i++) n[i] = n64[i];
 }
 
 int crypto_tweak_ed25519_sign_detached(unsigned char *sig, unsigned long long *siglen_p,
@@ -133,7 +132,7 @@ void crypto_tweak_ed25519_sk_to_scalar(unsigned char *n, const unsigned char *sk
   n64[31] &= 127;
   n64[31] |= 64;
 
-  memcpy(n, n64, 32);
+  for (int i = 0; i < 32; i++) n[i] = n64[i];
 }
 
 // tweak a secret key
