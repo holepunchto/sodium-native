@@ -74,22 +74,28 @@ void crypto_tweak_ed25519(unsigned char *n, unsigned char *q,
 
 int crypto_tweak_ed25519_sign_detached(unsigned char *sig, unsigned long long *siglen_p,
                                        const unsigned char *m, unsigned long long mlen,
-                                       const unsigned char *sk)
+                                       const unsigned char *n, const unsigned char *pk)
 {
   crypto_hash_sha512_state hs;
 
-  unsigned char            pk[32];
+  unsigned char *          _pk;
   unsigned char            nonce[64];
   unsigned char            R[32];
   unsigned char            hram[64];
 
+  // check if pk was passed
+  if (pk != NULL) {
+    _pk = (unsigned char *) pk;
+  } else {
+    _pk = malloc(32);
 
-  // derive pk from sk
-  if (crypto_scalarmult_ed25519_base_noclamp(pk, sk) != 0) {
-    return -1;
+    // derive pk from scalar
+    if (crypto_scalarmult_ed25519_base_noclamp(_pk, n) != 0) {
+      return -1;
+    }
   }
 
-  _crypto_tweak_nonce(nonce, sk, m, mlen);
+  _crypto_tweak_nonce(nonce, n, m, mlen);
   crypto_core_ed25519_scalar_reduce(nonce, nonce);
 
   // R = G ^ nonce : curve point from nonce
@@ -100,7 +106,7 @@ int crypto_tweak_ed25519_sign_detached(unsigned char *sig, unsigned long long *s
   // generate challenge as h(ram) = hash(R, pk, message)
   crypto_hash_sha512_init(&hs);
   crypto_hash_sha512_update(&hs, R, 32);
-  crypto_hash_sha512_update(&hs, pk, 32);
+  crypto_hash_sha512_update(&hs, _pk, 32);
   crypto_hash_sha512_update(&hs, m, mlen);
 
   crypto_hash_sha512_final(&hs, hram);
@@ -108,7 +114,7 @@ int crypto_tweak_ed25519_sign_detached(unsigned char *sig, unsigned long long *s
   crypto_core_ed25519_scalar_reduce(hram, hram);
 
   // sig = nonce + sk * h(ram) 
-  crypto_core_ed25519_scalar_mul(sig, hram, sk);
+  crypto_core_ed25519_scalar_mul(sig, hram, n);
   crypto_core_ed25519_scalar_add(sig + 32, nonce, sig);
 
   // set nonce and sig
