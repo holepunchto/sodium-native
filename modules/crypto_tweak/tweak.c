@@ -130,7 +130,7 @@ void crypto_tweak_ed25519_sk_to_scalar(unsigned char *n, const unsigned char *sk
   n64[31] &= 127;
   n64[31] |= 64;
 
-  for (int i = 0; i < 32; i++) n[i] = n64[i];
+  SN_COPY_32(n, n64)
 }
 
 // tweak a secret key
