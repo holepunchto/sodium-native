@@ -68,7 +68,7 @@ void crypto_tweak_ed25519(unsigned char *n, unsigned char *q,
     crypto_scalarmult_ed25519_base_noclamp(q, n64);
   }
 
-  for (int i = 0; i < 32; i++) n[i] = n64[i];
+  COPY_32(n, n64)
 }
 
 int crypto_tweak_ed25519_sign_detached(unsigned char *sig, unsigned long long *siglen_p,
@@ -110,9 +110,7 @@ int crypto_tweak_ed25519_sign_detached(unsigned char *sig, unsigned long long *s
   crypto_core_ed25519_scalar_mul(sig, hram, sk);
   crypto_core_ed25519_scalar_add(sig + 32, nonce, sig);
 
-  // set nonce and sig
-  for (int i = 0U; i < 32; i++) sig[i] = R[i];
-  // memcpy(sig, R, 32);
+  COPY_32(sig, R)
 
   if (siglen_p != NULL) {
     *siglen_p = 64U;

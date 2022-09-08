@@ -1,5 +1,16 @@
 #include <sodium.h>
 
+// copy 32 bytes using int64_t pointers
+#define COPY_32(a, b) \
+  { \
+    long long *dst = (long long *) a; \
+    long long *src = (long long *) b; \
+    dst[0] = src[0]; \
+    dst[1] = src[1]; \
+    dst[2] = src[2]; \
+    dst[3] = src[3]; \
+  }
+
 #define crypto_tweak_ed25519_BYTES crypto_sign_ed25519_PUBLICKEYBYTES
 
 #define crypto_tweak_ed25519_SCALARBYTES crypto_scalarmult_ed25519_SCALARBYTES
