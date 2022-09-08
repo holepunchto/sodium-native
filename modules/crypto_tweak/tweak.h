@@ -1,7 +1,7 @@
 #include <sodium.h>
 
 // copy 32 bytes using int64_t pointers
-#define COPY_32(a, b) \
+#define SN_COPY_32(a, b) \
   { \
     long long *dst = (long long *) a; \
     long long *src = (long long *) b; \
