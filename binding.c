@@ -2845,19 +2845,18 @@ napi_value sn_crypto_tweak_ed25519 (napi_env env, napi_callback_info info) {
 }
 
 napi_value sn_crypto_tweak_ed25519_keypair (napi_env env, napi_callback_info info) {
-  SN_ARGV(5, crypto_tweak_ed25519_keypair)
+  SN_ARGV(4, crypto_tweak_ed25519_keypair)
 
   SN_ARGV_TYPEDARRAY(pk_out, 0)
-  SN_ARGV_TYPEDARRAY(sk_out, 1)
-  SN_ARGV_TYPEDARRAY(pk_in, 2)
-  SN_ARGV_TYPEDARRAY(sk_in, 3)
-  SN_ARGV_TYPEDARRAY(ns, 4)
+  SN_ARGV_TYPEDARRAY(scalar_out, 1)
+  SN_ARGV_TYPEDARRAY(scalar_in, 2)
+  SN_ARGV_TYPEDARRAY(ns, 3)
 
-  SN_ASSERT_LENGTH(sk_out_size, crypto_tweak_ed25519_SCALARBYTES, "sk_out")
   SN_ASSERT_LENGTH(pk_out_size, crypto_tweak_ed25519_BYTES, "pk_out")
-  SN_ASSERT_LENGTH(sk_in_size, crypto_tweak_ed25519_SCALARBYTES, "sk_in")
+  SN_ASSERT_LENGTH(scalar_out_size, crypto_tweak_ed25519_SCALARBYTES, "scalar_out")
+  SN_ASSERT_LENGTH(scalar_in_size, crypto_tweak_ed25519_SCALARBYTES, "scalar_in")
 
-  crypto_tweak_ed25519_keypair(pk_out_data, sk_out_data, pk_out_data, sk_in_data, ns_data, ns_size);
+  crypto_tweak_ed25519_keypair(pk_out_data, scalar_out_data, scalar_in_data, ns_data, ns_size);
 
   return NULL;
 }
