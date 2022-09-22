@@ -80,7 +80,7 @@ void crypto_tweak_ed25519_keypair(unsigned char *pk_out, unsigned char *scalar_o
   crypto_hash(n64, ns, nslen);
   n64[31] &= 127; // clear highest bit
 
-  crypto_tweak_ed25519_secretkey_add(scalar_out, scalar, n64);
+  crypto_tweak_ed25519_scalar_add(scalar_out, scalar, n64);
   crypto_scalarmult_ed25519_base_noclamp(pk_out, scalar_out);
 
   // hash tweak until we get a valid tweaked point
@@ -88,7 +88,7 @@ void crypto_tweak_ed25519_keypair(unsigned char *pk_out, unsigned char *scalar_o
     crypto_hash(n64, n64, 32);
     n64[31] &= 127; // clear highest bit
 
-    crypto_tweak_ed25519_secretkey_add(scalar_out, scalar, n64);
+    crypto_tweak_ed25519_scalar_add(scalar_out, scalar, n64);
     crypto_scalarmult_ed25519_base_noclamp(pk_out, scalar_out);
   }
 }
@@ -189,9 +189,9 @@ int crypto_tweak_ed25519_publickey(unsigned char *tpk,
 }
 
 // add tweak to private key
-void crypto_tweak_ed25519_secretkey_add(unsigned char *scalar,
-                                        const unsigned char *sk,
-                                        const unsigned char *n)
+void crypto_tweak_ed25519_scalar_add(unsigned char *scalar,
+                                     const unsigned char *sk,
+                                     const unsigned char *n)
 {
   crypto_core_ed25519_scalar_add(scalar, n, sk);
 }

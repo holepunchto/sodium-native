@@ -2916,8 +2916,8 @@ napi_value sn_crypto_tweak_ed25519_publickey (napi_env env, napi_callback_info i
   SN_RETURN(crypto_tweak_ed25519_publickey(tpk_data, pk_data, ns_data, ns_size), "failed to tweak public key")
 }
 
-napi_value sn_crypto_tweak_ed25519_secretkey_add (napi_env env, napi_callback_info info) {
-  SN_ARGV(3, crypto_tweak_ed25519_secretkey_add)
+napi_value sn_crypto_tweak_ed25519_scalar_add (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_tweak_ed25519_scalar_add)
 
   SN_ARGV_TYPEDARRAY(scalar, 0)
   SN_ARGV_TYPEDARRAY(sk, 1)
@@ -2927,7 +2927,7 @@ napi_value sn_crypto_tweak_ed25519_secretkey_add (napi_env env, napi_callback_in
   SN_ASSERT_LENGTH(sk_size, crypto_tweak_ed25519_SCALARBYTES, "sk")
   SN_ASSERT_LENGTH(n_size, crypto_tweak_ed25519_SCALARBYTES, "n")
 
-  crypto_tweak_ed25519_secretkey_add(scalar_data, sk_data, n_data);
+  crypto_tweak_ed25519_scalar_add(scalar_data, sk_data, n_data);
 
   return NULL;
 }
@@ -3111,7 +3111,7 @@ static napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519_sk_to_scalar, sn_crypto_tweak_ed25519_sk_to_scalar)
   SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519_secretkey, sn_crypto_tweak_ed25519_secretkey)
   SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519_publickey, sn_crypto_tweak_ed25519_publickey)
-  SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519_secretkey_add, sn_crypto_tweak_ed25519_secretkey_add)
+  SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519_scalar_add, sn_crypto_tweak_ed25519_scalar_add)
   SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519_publickey_add, sn_crypto_tweak_ed25519_publickey_add)
   SN_EXPORT_UINT32(crypto_generichash_STATEBYTES, sizeof(crypto_generichash_state))
   SN_EXPORT_UINT32(crypto_onetimeauth_STATEBYTES, sizeof(crypto_onetimeauth_state))
