@@ -2844,6 +2844,24 @@ napi_value sn_crypto_tweak_ed25519 (napi_env env, napi_callback_info info) {
   return NULL;
 }
 
+napi_value sn_crypto_tweak_ed25519_keypair (napi_env env, napi_callback_info info) {
+  SN_ARGV(5, crypto_tweak_ed25519_keypair)
+
+  SN_ARGV_TYPEDARRAY(pk_out, 0)
+  SN_ARGV_TYPEDARRAY(sk_out, 1)
+  SN_ARGV_TYPEDARRAY(pk_in, 2)
+  SN_ARGV_TYPEDARRAY(sk_in, 3)
+  SN_ARGV_TYPEDARRAY(ns, 4)
+
+  SN_ASSERT_LENGTH(sk_out_size, crypto_tweak_ed25519_SCALARBYTES, "sk_out")
+  SN_ASSERT_LENGTH(pk_out_size, crypto_tweak_ed25519_BYTES, "pk_out")
+  SN_ASSERT_LENGTH(sk_in_size, crypto_tweak_ed25519_SCALARBYTES, "sk_in")
+
+  crypto_tweak_ed25519_keypair(pk_out_data, sk_out_data, pk_out_data, sk_in_data, ns_data, ns_size);
+
+  return NULL;
+}
+
 napi_value sn_crypto_tweak_ed25519_sign_detached (napi_env env, napi_callback_info info) {
   SN_ARGV(3, crypto_tweak_ed25519_sign_detached)
 
@@ -3089,6 +3107,7 @@ static napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_secretstream_xchacha20poly1305_pull, sn_crypto_secretstream_xchacha20poly1305_pull)
   SN_EXPORT_FUNCTION(crypto_secretstream_xchacha20poly1305_rekey, sn_crypto_secretstream_xchacha20poly1305_rekey)
   SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519, sn_crypto_tweak_ed25519)
+  SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519_keypair, sn_crypto_tweak_ed25519_keypair)
   SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519_sign_detached, sn_crypto_tweak_ed25519_sign_detached)
   SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519_sk_to_scalar, sn_crypto_tweak_ed25519_sk_to_scalar)
   SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519_secretkey, sn_crypto_tweak_ed25519_secretkey)
