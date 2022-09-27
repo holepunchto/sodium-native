@@ -2845,16 +2845,21 @@ napi_value sn_crypto_tweak_ed25519 (napi_env env, napi_callback_info info) {
 }
 
 napi_value sn_crypto_tweak_ed25519_sign_detached (napi_env env, napi_callback_info info) {
-  SN_ARGV(3, crypto_tweak_ed25519_sign_detached)
+  SN_ARGV_OPTS(3, 4, crypto_tweak_ed25519_sign_detached)
 
   SN_ARGV_TYPEDARRAY(sig, 0)
   SN_ARGV_TYPEDARRAY(m, 1)
   SN_ARGV_TYPEDARRAY(scalar, 2)
+  SN_ARGV_OPTS_TYPEDARRAY(pk, 3)
 
   SN_ASSERT_LENGTH(sig_size, crypto_sign_BYTES, "sig")
   SN_ASSERT_LENGTH(scalar_size, crypto_tweak_ed25519_SCALARBYTES, "scalar")
 
-  SN_RETURN(crypto_tweak_ed25519_sign_detached(sig_data, NULL, m_data, m_size, scalar_data), "failed to compute signature")
+  if (pk_data != NULL) {
+    SN_ASSERT_LENGTH(pk_size, crypto_sign_PUBLICKEYBYTES, "pk")
+  }
+
+  SN_RETURN(crypto_tweak_ed25519_sign_detached(sig_data, NULL, m_data, m_size, scalar_data, pk_data), "failed to compute signature")
 }
 
 napi_value sn_crypto_tweak_ed25519_sk_to_scalar (napi_env env, napi_callback_info info) {

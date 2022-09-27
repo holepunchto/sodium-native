@@ -10,8 +10,8 @@
   Use at your own risk
 */
 
-void _crypto_tweak_nonce (unsigned char *nonce, const unsigned char *n,
-                          const unsigned char *m, unsigned long long mlen)
+static void _crypto_tweak_nonce (unsigned char *nonce, const unsigned char *n,
+                                 const unsigned char *m, unsigned long long mlen)
 {
   // dom2(x, y) with x = 0 (not prehashed) and y = "crypto_tweak_ed25519"
   static const unsigned char TWEAK_PREFIX[32 + 2 + 20] = {
@@ -29,6 +29,14 @@ void _crypto_tweak_nonce (unsigned char *nonce, const unsigned char *n,
   crypto_hash_sha512_update(&hs, n, 32);
   crypto_hash_sha512_update(&hs, m, mlen);
   crypto_hash_sha512_final(&hs, nonce);
+}
+
+static inline void
+_crypto_sign_ed25519_clamp(unsigned char k[32])
+{
+    k[0] &= 248;
+    k[31] &= 127;
+    k[31] |= 64;
 }
 
 void _crypto_tweak_ed25519(unsigned char *n, unsigned char *q,
@@ -84,19 +92,23 @@ void crypto_tweak_ed25519_keypair(unsigned char *pk, unsigned char *scalar_out,
 
 int crypto_tweak_ed25519_sign_detached(unsigned char *sig, unsigned long long *siglen_p,
                                        const unsigned char *m, unsigned long long mlen,
-                                       const unsigned char *n)
+                                       const unsigned char *n, unsigned char *pk)
 {
   crypto_hash_sha512_state hs;
 
-  unsigned char            pk[32];
   unsigned char            nonce[64];
   unsigned char            R[32];
   unsigned char            hram[64];
+  unsigned char            _pk[32];
 
+  // check if pk was passed
+  if (pk == NULL) {
+    pk = _pk;
 
-  // derive pk from scalar
-  if (crypto_scalarmult_ed25519_base_noclamp(pk, n) != 0) {
-    return -1;
+    // derive pk from scalar
+    if (crypto_scalarmult_ed25519_base_noclamp(pk, n) != 0) {
+      return -1;
+    }
   }
 
   _crypto_tweak_nonce(nonce, n, m, mlen);
@@ -137,9 +149,7 @@ void crypto_tweak_ed25519_sk_to_scalar(unsigned char *n, const unsigned char *sk
 
   // get sk scalar from seed, cf. crypto_sign_keypair_seed
   crypto_hash(n64, sk, 32);
-  n64[0] &= 248;
-  n64[31] &= 127;
-  n64[31] |= 64;
+  _crypto_sign_ed25519_clamp(n64);
 
   SN_TWEAK_COPY_32(n, n64)
 }

@@ -102,9 +102,16 @@ tape('crypto_tweak sign fixtures', t => {
     sodium.experimental_crypto_tweak_ed25519_sign_detached(signature, m, n)
     t.same(signature, sig)
 
+    sodium.randombytes_buf(signature)
+    sodium.crypto_sign_ed25519_sk_to_pk(pk, sk)
+
+    sodium.experimental_crypto_tweak_ed25519_sign_detached(signature, m, n, pk)
+    t.same(signature, sig)
+
     sodium.experimental_crypto_tweak_ed25519_keypair(pk, scalar, n, tweak)
     t.same(pk, tpk)
     t.same(scalar, tn)
   }
+
   t.end()
 })
