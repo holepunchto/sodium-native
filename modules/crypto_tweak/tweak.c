@@ -55,18 +55,7 @@ void crypto_tweak_ed25519(unsigned char *n, unsigned char *q,
 {
   unsigned char n64[64];
 
-  crypto_hash(n64, ns, nslen);
-  n64[31] &= 127; // clear highest bit
-
-  crypto_scalarmult_ed25519_base_noclamp(q, n64);
-
-  // hash tweak until we get a valid tweaked point
-  while (crypto_core_ed25519_is_valid_point(q) != 1) {
-    crypto_hash(n64, n64, 32);
-    n64[31] &= 127; // clear highest bit
-
-    crypto_scalarmult_ed25519_base_noclamp(q, n64);
-  }
+  _crypto_tweak_ed25519(n64, q, ns, nslen);
 
   SN_TWEAK_COPY_32(n, n64)
 }
