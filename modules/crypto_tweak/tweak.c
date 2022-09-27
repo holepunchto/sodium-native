@@ -11,8 +11,8 @@
   Use at your own risk
 */
 
-void _crypto_tweak_nonce (unsigned char *nonce, const unsigned char *sk,
-                          const unsigned char *m, unsigned long long mlen)
+static void _crypto_tweak_nonce (unsigned char *nonce, const unsigned char *sk,
+                                 const unsigned char *m, unsigned long long mlen)
 {
   // dom2(x, y) with x = 0 (not prehashed) and y = "crypto_tweak_ed25519"
   static const unsigned char TWEAK_PREFIX[32 + 2 + 20] = {
