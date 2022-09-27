@@ -2904,18 +2904,35 @@ napi_value sn_crypto_tweak_ed25519_publickey (napi_env env, napi_callback_info i
   SN_RETURN(crypto_tweak_ed25519_publickey(tpk_data, pk_data, ns_data, ns_size), "failed to tweak public key")
 }
 
-napi_value sn_crypto_tweak_ed25519_secretkey_add (napi_env env, napi_callback_info info) {
-  SN_ARGV(3, crypto_tweak_ed25519_secretkey_add)
+napi_value sn_crypto_tweak_ed25519_keypair (napi_env env, napi_callback_info info) {
+  SN_ARGV(4, crypto_tweak_ed25519_keypair)
 
-  SN_ARGV_TYPEDARRAY(scalar, 0)
-  SN_ARGV_TYPEDARRAY(sk, 1)
+  SN_ARGV_TYPEDARRAY(pk, 0)
+  SN_ARGV_TYPEDARRAY(scalar_out, 1)
+  SN_ARGV_TYPEDARRAY(scalar_in, 2)
+  SN_ARGV_TYPEDARRAY(ns, 3)
+
+  SN_ASSERT_LENGTH(pk_size, crypto_tweak_ed25519_BYTES, "pk")
+  SN_ASSERT_LENGTH(scalar_out_size, crypto_tweak_ed25519_SCALARBYTES, "scalar_out")
+  SN_ASSERT_LENGTH(scalar_in_size, crypto_tweak_ed25519_SCALARBYTES, "scalar_in")
+
+  crypto_tweak_ed25519_keypair(pk_data, scalar_out_data, scalar_in_data, ns_data, ns_size);
+
+  return NULL;
+}
+
+napi_value sn_crypto_tweak_ed25519_scalar_add (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, crypto_tweak_ed25519_scalar_add)
+
+  SN_ARGV_TYPEDARRAY(scalar_out, 0)
+  SN_ARGV_TYPEDARRAY(scalar, 1)
   SN_ARGV_TYPEDARRAY(n, 2)
 
+  SN_ASSERT_LENGTH(scalar_out_size, crypto_tweak_ed25519_SCALARBYTES, "scalar_out")
   SN_ASSERT_LENGTH(scalar_size, crypto_tweak_ed25519_SCALARBYTES, "scalar")
-  SN_ASSERT_LENGTH(sk_size, crypto_tweak_ed25519_SCALARBYTES, "sk")
   SN_ASSERT_LENGTH(n_size, crypto_tweak_ed25519_SCALARBYTES, "n")
 
-  crypto_tweak_ed25519_secretkey_add(scalar_data, sk_data, n_data);
+  crypto_tweak_ed25519_scalar_add(scalar_out_data, scalar_data, n_data);
 
   return NULL;
 }
@@ -3094,11 +3111,12 @@ static napi_value create_sodium_native(napi_env env) {
   SN_EXPORT_FUNCTION(crypto_secretstream_xchacha20poly1305_pull, sn_crypto_secretstream_xchacha20poly1305_pull)
   SN_EXPORT_FUNCTION(crypto_secretstream_xchacha20poly1305_rekey, sn_crypto_secretstream_xchacha20poly1305_rekey)
   SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519, sn_crypto_tweak_ed25519)
+  SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519_keypair, sn_crypto_tweak_ed25519_keypair)
   SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519_sign_detached, sn_crypto_tweak_ed25519_sign_detached)
   SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519_sk_to_scalar, sn_crypto_tweak_ed25519_sk_to_scalar)
   SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519_secretkey, sn_crypto_tweak_ed25519_secretkey)
   SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519_publickey, sn_crypto_tweak_ed25519_publickey)
-  SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519_secretkey_add, sn_crypto_tweak_ed25519_secretkey_add)
+  SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519_scalar_add, sn_crypto_tweak_ed25519_scalar_add)
   SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519_publickey_add, sn_crypto_tweak_ed25519_publickey_add)
   SN_EXPORT_UINT32(crypto_generichash_STATEBYTES, sizeof(crypto_generichash_state))
   SN_EXPORT_UINT32(crypto_onetimeauth_STATEBYTES, sizeof(crypto_onetimeauth_state))
