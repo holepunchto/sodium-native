@@ -21,6 +21,11 @@
     "prebuild": "prebuildify --napi --strip",
     "prebuild-ia32": "prebuildify --arch=ia32 --napi --strip"
   },
+  "standard": {
+    "ignore": [
+      "/test/fixtures/*.js"
+    ]
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/sodium-friends/sodium-native.git"
