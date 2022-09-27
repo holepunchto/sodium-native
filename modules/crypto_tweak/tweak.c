@@ -161,18 +161,13 @@ void crypto_tweak_ed25519_secretkey(unsigned char *scalar,
                                     const unsigned char *ns,
                                     unsigned long long nslen)
 {
-  unsigned char _sk[64];
   unsigned char n[64];
   unsigned char q[32];
 
-  // get sk scalar from seed, cf. crypto_sign_keypair_seed
-  crypto_hash(_sk, sk, 32);
-  _sk[0] &= 248;
-  _sk[31] &= 127;
-  _sk[31] |= 64;
+  crypto_tweak_ed25519_sk_to_scalar(scalar, sk);
 
   _crypto_tweak_ed25519(n, q, ns, nslen);
-  crypto_core_ed25519_scalar_add(scalar, n, _sk);
+  crypto_core_ed25519_scalar_add(scalar, n, scalar);
 }
 
 // tweak a public key
