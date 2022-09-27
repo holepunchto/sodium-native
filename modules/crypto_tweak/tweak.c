@@ -99,10 +99,11 @@ int crypto_tweak_ed25519_sign_detached(unsigned char *sig, unsigned long long *s
   unsigned char            nonce[64];
   unsigned char            R[32];
   unsigned char            hram[64];
+  unsigned char            _pk[32];
 
   // check if pk was passed
   if (pk == NULL) {
-    pk = malloc(32);
+    pk = _pk;
 
     // derive pk from scalar
     if (crypto_scalarmult_ed25519_base_noclamp(pk, n) != 0) {
