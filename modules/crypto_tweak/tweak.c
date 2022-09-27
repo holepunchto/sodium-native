@@ -60,7 +60,7 @@ void crypto_tweak_ed25519(unsigned char *n, unsigned char *q,
   SN_TWEAK_COPY_32(n, n64)
 }
 
-void crypto_tweak_ed25519_keypair(unsigned char *pk_out, unsigned char *scalar_out,
+void crypto_tweak_ed25519_keypair(unsigned char *pk, unsigned char *scalar_out,
                                   unsigned char *scalar, const unsigned char *ns,
                                   unsigned long long nslen)
 {
@@ -70,15 +70,15 @@ void crypto_tweak_ed25519_keypair(unsigned char *pk_out, unsigned char *scalar_o
   n64[31] &= 127; // clear highest bit
 
   crypto_tweak_ed25519_scalar_add(scalar_out, scalar, n64);
-  crypto_scalarmult_ed25519_base_noclamp(pk_out, scalar_out);
+  crypto_scalarmult_ed25519_base_noclamp(pk, scalar_out);
 
   // hash tweak until we get a valid tweaked point
-  while (crypto_core_ed25519_is_valid_point(pk_out) != 1) {
+  while (crypto_core_ed25519_is_valid_point(pk) != 1) {
     crypto_hash(n64, n64, 32);
     n64[31] &= 127; // clear highest bit
 
     crypto_tweak_ed25519_scalar_add(scalar_out, scalar, n64);
-    crypto_scalarmult_ed25519_base_noclamp(pk_out, scalar_out);
+    crypto_scalarmult_ed25519_base_noclamp(pk, scalar_out);
   }
 }
 

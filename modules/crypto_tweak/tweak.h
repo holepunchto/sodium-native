@@ -22,7 +22,7 @@ int crypto_tweak_ed25519_sign_detached(unsigned char *sig, unsigned long long *s
 void crypto_tweak_ed25519(unsigned char *n, unsigned char *q,
                           const unsigned char *ns, unsigned long long nslen);
 
-void crypto_tweak_ed25519_keypair(unsigned char *pk_out, unsigned char *scalar_out,
+void crypto_tweak_ed25519_keypair(unsigned char *pk, unsigned char *scalar_out,
                                   unsigned char *scalar, const unsigned char *ns,
                                   unsigned long long nslen);
 
