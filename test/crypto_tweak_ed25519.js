@@ -21,23 +21,24 @@ tape('crypto_tweak', function (t) {
   sodium.crypto_generichash(ns, Buffer.from('namespace'))
 
   t.throws(function () {
-    sodium.experimental_crypto_tweak_ed25519()
+    sodium.experimental_crypto_tweak_ed25519_base()
   }, 'should validate input')
 
   t.throws(function () {
-    sodium.experimental_crypto_tweak_ed25519(Buffer.alloc(0), Buffer.alloc(0), ns)
+    sodium.experimental_crypto_tweak_ed25519_base(Buffer.alloc(0), Buffer.alloc(0), ns)
   }, 'should validate input length')
 
-  sodium.experimental_crypto_tweak_ed25519(tweak, point, ns)
-
-  sodium.experimental_crypto_tweak_ed25519_publickey(tpk, pk, ns)
-  sodium.experimental_crypto_tweak_ed25519_secretkey(tsk, sk, ns)
-
-  sodium.experimental_crypto_tweak_ed25519_publickey_add(pk, pk, point)
+  sodium.experimental_crypto_tweak_ed25519_base(tweak, point, ns)
 
   const _sk = sk.subarray(0, 32)
   sodium.experimental_crypto_tweak_ed25519_sk_to_scalar(_sk, sk)
+
+  sodium.experimental_crypto_tweak_ed25519_pk(tpk, pk, ns)
+  sodium.experimental_crypto_tweak_ed25519_scalar(tsk, _sk, ns)
+
   sodium.experimental_crypto_tweak_ed25519_keypair(tkpk, tksk, _sk, ns)
+
+  sodium.experimental_crypto_tweak_ed25519_pk_add(pk, pk, point)
   sodium.experimental_crypto_tweak_ed25519_scalar_add(_sk, _sk, tweak)
 
   t.deepEquals(pk, tpk, 'tweak public key')
@@ -63,12 +64,13 @@ tape('experimental_crypto_tweak_sign', function (t) {
   const ns = Buffer.alloc(32)
   sodium.crypto_generichash(ns, Buffer.from('namespace'))
 
-  sodium.experimental_crypto_tweak_ed25519(tweak, point, ns)
+  sodium.experimental_crypto_tweak_ed25519_base(tweak, point, ns)
 
-  sodium.experimental_crypto_tweak_ed25519_publickey(tpk, pk, ns)
-  sodium.experimental_crypto_tweak_ed25519_secretkey(tsk, sk, ns)
+  sodium.experimental_crypto_tweak_ed25519_pk(tpk, pk, ns)
+  sodium.experimental_crypto_tweak_ed25519_sk_to_scalar(tsk, sk)
+  sodium.experimental_crypto_tweak_ed25519_scalar(tsk, tsk, ns)
 
-  sodium.experimental_crypto_tweak_ed25519_publickey_add(pk, pk, point)
+  sodium.experimental_crypto_tweak_ed25519_pk_add(pk, pk, point)
 
   const _sk = sk.subarray(0, 32)
   sodium.experimental_crypto_tweak_ed25519_sk_to_scalar(_sk, sk)
