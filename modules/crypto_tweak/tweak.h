@@ -49,3 +49,6 @@ void crypto_tweak_ed25519_scalar_add(unsigned char *scalar_out,
 int crypto_tweak_ed25519_pk_add(unsigned char *tpk,
                                 const unsigned char *pk,
                                 const unsigned char *q);
+
+int crypto_tweak_ed25519_keypair_add(unsigned char *pk, unsigned char *scalar_out,
+                                      unsigned char *scalar, const unsigned char *tweak);

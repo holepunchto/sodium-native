@@ -196,3 +196,11 @@ int crypto_tweak_ed25519_pk_add(unsigned char *tpk,
 {
   return crypto_core_ed25519_add(tpk, pk, q);
 }
+
+
+int crypto_tweak_ed25519_keypair_add(unsigned char *pk, unsigned char *scalar_out,
+                                      unsigned char *scalar, const unsigned char *tweak)
+{
+  crypto_tweak_ed25519_scalar_add(scalar_out, scalar, tweak);
+  return crypto_scalarmult_ed25519_base_noclamp(pk, scalar_out);
+}
