@@ -84,27 +84,15 @@ napi_value sn_sodium_malloc (napi_env env, napi_callback_info info) {
 
   SN_THROWS(ptr == NULL, "sodium_malloc failed");
 
-  napi_value buf, key, value, array_buf;
+  napi_value buf, value, array_buf;
 
   SN_STATUS_THROWS(napi_create_external_buffer(env, size, ptr, NULL, NULL, &buf), "failed to create a n-api buffer")
-  SN_STATUS_THROWS(napi_create_string_utf8(env, "secure", 6, &key), "failed to create string")
   SN_STATUS_THROWS(napi_get_boolean(env, true, &value), "failed to create boolean")
 
-  SN_STATUS_THROWS(napi_get_named_property(env, buf, "buffer", &array_buf), "failed to get arraybuffer");
-  SN_STATUS_THROWS(napi_wrap(env, array_buf, ptr, sn_sodium_free_finalise, NULL, NULL), "failed to wrap");
+  SN_STATUS_THROWS(napi_get_named_property(env, buf, "buffer", &array_buf), "failed to get arraybuffer")
+  SN_STATUS_THROWS(napi_set_named_property(env, buf, "secure", value), "failed to set secure property")
 
-  napi_property_descriptor descriptor[] = {
-    { .utf8name = "secure",
-      .name = NULL,
-      .method = NULL,
-      .setter = NULL,
-      .getter = NULL,
-      .value = value,
-      .attributes = napi_default,
-      .data = ptr }
-  };
-
-  SN_STATUS_THROWS(napi_define_properties(env, buf, 1, descriptor), "failed to set property")
+  SN_STATUS_THROWS(napi_wrap(env, array_buf, ptr, sn_sodium_free_finalise, NULL, NULL), "failed to wrap")
 
   return buf;
 }
