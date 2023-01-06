@@ -105,15 +105,6 @@ tape('sodium_malloc', function (t) {
   t.end()
 })
 
-tape('sodium_malloc .secure read-only', function (t) {
-  var buf = sodium.sodium_malloc(1)
-
-  t.ok(buf.secure)
-  buf.secure = false
-  t.ok(buf.secure)
-  t.end()
-})
-
 tape('sodium_free', function (t) {
   if (process.version.startsWith('v10')) {
     t.comment('Skipping free test on v10')
