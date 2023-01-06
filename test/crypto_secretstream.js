@@ -7,10 +7,10 @@ test('constants', function (assert) {
   assert.same(typeof sodium.crypto_secretstream_xchacha20poly1305_KEYBYTES, 'number', 'crypto_secretstream_xchacha20poly1305_KEYBYTES is number')
   assert.same(typeof sodium.crypto_secretstream_xchacha20poly1305_MESSAGEBYTES_MAX, 'bigint', 'crypto_secretstream_xchacha20poly1305_MESSAGEBYTES_MAX is number')
 
-  assert.ok(Buffer.isBuffer(sodium.crypto_secretstream_xchacha20poly1305_TAG_MESSAGE), 'crypto_secretstream_xchacha20poly1305_TAG_MESSAGE is Buffer')
-  assert.ok(Buffer.isBuffer(sodium.crypto_secretstream_xchacha20poly1305_TAG_PUSH), 'crypto_secretstream_xchacha20poly1305_TAG_PUSH is Buffer')
-  assert.ok(Buffer.isBuffer(sodium.crypto_secretstream_xchacha20poly1305_TAG_REKEY), 'crypto_secretstream_xchacha20poly1305_TAG_REKEY is Buffer')
-  assert.ok(Buffer.isBuffer(sodium.crypto_secretstream_xchacha20poly1305_TAG_FINAL), 'crypto_secretstream_xchacha20poly1305_TAG_FINAL is Buffer')
+  assert.ok(typeof sodium.crypto_secretstream_xchacha20poly1305_TAG_MESSAGE === 'number', 'crypto_secretstream_xchacha20poly1305_TAG_MESSAGE is Buffer')
+  assert.ok(typeof sodium.crypto_secretstream_xchacha20poly1305_TAG_PUSH === 'number', 'crypto_secretstream_xchacha20poly1305_TAG_PUSH is Buffer')
+  assert.ok(typeof sodium.crypto_secretstream_xchacha20poly1305_TAG_REKEY === 'number', 'crypto_secretstream_xchacha20poly1305_TAG_REKEY is Buffer')
+  assert.ok(typeof sodium.crypto_secretstream_xchacha20poly1305_TAG_FINAL === 'number', 'crypto_secretstream_xchacha20poly1305_TAG_FINAL is Buffer')
   assert.end()
 })
 
@@ -65,14 +65,14 @@ test('crypto_secretstream', function (assert) {
   tag.fill(0xdb)
   ret = sodium.crypto_secretstream_xchacha20poly1305_pull(state, m1, tag, c1, null)
   assert.same(ret, c1.length - sodium.crypto_secretstream_xchacha20poly1305_ABYTES)
-  assert.same(tag, sodium.crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
+  assert.same(tag[0], sodium.crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
   assert.ok(m1.equals(m1_))
 
   m2.fill(0)
   tag.fill(0xdb)
   ret = sodium.crypto_secretstream_xchacha20poly1305_pull(state, m2, tag, c2, null)
   assert.same(ret, c2.length - sodium.crypto_secretstream_xchacha20poly1305_ABYTES)
-  assert.same(tag, sodium.crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
+  assert.same(tag[0], sodium.crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
   assert.ok(m2.equals(m2_))
 
   if (ad.length > 0) {
@@ -85,14 +85,14 @@ test('crypto_secretstream', function (assert) {
   tag.fill(0xdb)
   ret = sodium.crypto_secretstream_xchacha20poly1305_pull(state, m3, tag, c3, ad)
   assert.same(ret, c3.length - sodium.crypto_secretstream_xchacha20poly1305_ABYTES)
-  assert.same(tag, sodium.crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
+  assert.same(tag[0], sodium.crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
   assert.ok(m3.equals(m3_))
 
   m4.fill(0)
   tag.fill(0xdb)
   ret = sodium.crypto_secretstream_xchacha20poly1305_pull(state, m4, tag, c4, null)
   assert.same(ret, c4.length - sodium.crypto_secretstream_xchacha20poly1305_ABYTES)
-  assert.same(tag, sodium.crypto_secretstream_xchacha20poly1305_TAG_FINAL)
+  assert.same(tag[0], sodium.crypto_secretstream_xchacha20poly1305_TAG_FINAL)
   assert.ok(m4.equals(m4_))
 
   assert.throws(function () {
@@ -120,10 +120,10 @@ test('crypto_secretstream', function (assert) {
   sodium.crypto_secretstream_xchacha20poly1305_init_pull(state, header, key)
   tag.fill(0xdb)
   sodium.crypto_secretstream_xchacha20poly1305_pull(state, m1, tag, c1, null)
-  assert.same(tag, sodium.crypto_secretstream_xchacha20poly1305_TAG_REKEY)
+  assert.same(tag[0], sodium.crypto_secretstream_xchacha20poly1305_TAG_REKEY)
   tag.fill(0xdb)
   sodium.crypto_secretstream_xchacha20poly1305_pull(state, m2, tag, c2, null)
-  assert.same(tag, sodium.crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
+  assert.same(tag[0], sodium.crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
 
   /* with explicit rekeying */
 
@@ -135,7 +135,7 @@ test('crypto_secretstream', function (assert) {
   sodium.crypto_secretstream_xchacha20poly1305_init_pull(state, header, key)
   tag.fill(0xdb)
   sodium.crypto_secretstream_xchacha20poly1305_pull(state, m1, tag, c1, null)
-  assert.same(tag, sodium.crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
+  assert.same(tag[0], sodium.crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
 
   assert.throws(function () {
     sodium.crypto_secretstream_xchacha20poly1305_pull(state, m2, tag, c2, null)
@@ -144,7 +144,7 @@ test('crypto_secretstream', function (assert) {
   sodium.crypto_secretstream_xchacha20poly1305_rekey(state)
   tag.fill(0xdb)
   sodium.crypto_secretstream_xchacha20poly1305_pull(state, m2, tag, c2, null)
-  assert.same(tag, sodium.crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
+  assert.same(tag[0], sodium.crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
 
   assert.end()
 })

@@ -100,16 +100,6 @@
     SN_STATUS_THROWS(napi_set_named_property(env, exports, #name, name##_string), "") \
   }
 
-#define SN_EXPORT_BYTE_TAG_AS_BUFFER(name, len, byte) \
-  { \
-    napi_value name##_buffer; \
-    int buf[1]; \
-    buf[0] = byte; \
-    void **ptr = 0; \
-    SN_STATUS_THROWS(napi_create_buffer_copy(env, len, buf, ptr, &name##_buffer), "") \
-    SN_STATUS_THROWS(napi_set_named_property(env, exports, #name, name##_buffer), "") \
-  }
-
 #define SN_ARGV_CHECK_NULL(name, index) \
   napi_valuetype name##_valuetype; \
   SN_STATUS_THROWS(napi_typeof(env, argv[index], &name##_valuetype), "") \
@@ -199,16 +189,6 @@
   napi_value name##_argv = argv[index]; \
   SN_BUFFER_CAST(type, name, name##_argv)
 
-#define SN_ARGV_BUFFER_TO_BYTE_TAG(type, name, index) \
-  napi_value name##_argv = argv[index]; \
-  napi_typedarray_type name##_type; \
-  size_t name##_length; \
-  uint8_t *name##_data; \
-  assert(napi_get_typedarray_info(env, name##_argv, &name##_type, &name##_length, (void**) &name##_data, NULL, NULL) == napi_ok); \
-  uint8_t name##_width = typedarray_width(name##_type); \
-  SN_THROWS(name##_width == 0, "Unexpected TypedArray type") \
-  uint8_t name = name##_data[0];
-
 #define SN_OPT_ARGV_TYPEDARRAY(name, index) \
   napi_value name##_argv = argv[index]; \
   SN_TYPEDARRAY_ASSERT(name, name##_argv, #name " must be an instance of TypedArray") \
@@ -239,7 +219,7 @@
   SN_THROWS(success != 0, message)
 
 #define SN_CALL_FUNCTION(env, ctx, cb, n, argv, res) \
-  if (napi_call_function(env, ctx, cb, n, argv, res) == napi_pending_exception) { \
+  if (napi_make_callback(env, NULL, ctx, cb, n, argv, res) == napi_pending_exception) { \
     napi_value fatal_exception; \
     napi_get_and_clear_last_exception(env, &fatal_exception); \
     napi_fatal_exception(env, fatal_exception); \
@@ -264,9 +244,14 @@
 
 #define SN_ASYNC_CHECK_FOR_ERROR(message) \
   if (req->n == 0) { \
-    napi_get_null(env, &argv[0]); \
+    napi_get_null(req->env, &argv[0]); \
   } else { \
     napi_value err_msg; \
-    napi_create_string_utf8(env, #message, NAPI_AUTO_LENGTH, &err_msg); \
-    napi_create_error(env, NULL, err_msg, &argv[0]); \
+    napi_create_string_utf8(req->env, #message, NAPI_AUTO_LENGTH, &err_msg); \
+    napi_create_error(req->env, NULL, err_msg, &argv[0]); \
   }
+
+#define SN_QUEUE_WORK(req, execute, complete) \
+  uv_loop_t *loop; \
+  napi_get_uv_event_loop(env, &loop); \
+  uv_queue_work(loop, (uv_work_t *) req, execute, complete);

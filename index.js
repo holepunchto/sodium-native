@@ -1,3 +1,1 @@
-var sodium = require('node-gyp-build')(__dirname)
-
-module.exports = sodium
+module.exports = require('node-gyp-build')(__dirname)
