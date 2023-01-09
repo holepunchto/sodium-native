@@ -3,6 +3,15 @@
   "version": "3.4.1",
   "description": "Low level bindings for libsodium",
   "main": "index.js",
+  "files": [
+    "index.js",
+    "deps/**",
+    "modules/**",
+    "binding.c",
+    "binding.gyp",
+    "macros.h",
+    "prebuilds/**"
+  ],
   "dependencies": {
     "node-gyp-build": "^4.3.0"
   },
