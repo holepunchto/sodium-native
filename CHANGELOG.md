@@ -2,6 +2,18 @@
 
 ## Current
 
+## v4.0.0
+* crypto_secretstream_xchacha20poly1305_push accepts an int instead of a buffer for the tag param.
+* crypto_secretstream_xchacha20poly1305_TAG_MESSAGE is now an int.
+* crypto_secretstream_xchacha20poly1305_TAG_PUSH is now an int.
+* crypto_secretstream_xchacha20poly1305_TAG_REKEY is now an int.
+* crypto_secretstream_xchacha20poly1305_TAG_FINAL is not an int.
+* Move to 1.0.18-stable instead of fixed 1.0.18 for easier build.
+* Fix memleak in secure buffers.
+* Moved to uv workers instead of n-api ones for async methods.
+* musl prebuilds (for alpine linux).
+* Update experimental tweak api.
+
 ## v3.4.1
 * Fixed intel prebuild to still support sse (performance enhancement)
 
