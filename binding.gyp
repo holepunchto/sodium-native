@@ -6,8 +6,7 @@
     {
       'target_name': 'sodium',
       'include_dirs' : [
-        '<!(node deps/bin.js --print-include)',
-        './modules/crypto_tweak'
+        '<!(node deps/bin.js --print-include)'
       ],
       'sources': [
         'binding.c',
@@ -23,13 +22,11 @@
       ],
       'xcode_settings': {
         'OTHER_CFLAGS': [
-          '-g',
           '-O3',
           '-Wall',
         ]
       },
       'cflags': [
-        '-g',
         '-O3',
         '-Wall',
       ],

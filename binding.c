@@ -4,7 +4,7 @@
 #include <assert.h>
 #include <sodium.h>
 #include "macros.h"
-#include "tweak.h"
+#include "modules/crypto_tweak/tweak.h"
 
 static uint8_t typedarray_width (napi_typedarray_type type) {
   switch (type) {
