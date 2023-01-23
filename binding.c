@@ -1,7 +1,6 @@
 #include <node_api.h>
 #include <uv.h>
 #include <string.h>
-#include <assert.h>
 #include <sodium.h>
 #include "macros.h"
 #include "modules/crypto_tweak/tweak.h"
@@ -126,7 +125,7 @@ napi_value sn_sodium_mprotect_readwrite (napi_env env, napi_callback_info info) 
 napi_value sn_randombytes_random (napi_env env, napi_callback_info info) {
   napi_value result;
 
-  assert(napi_create_uint32(env, randombytes_random(), &result) == napi_ok);
+  napi_create_uint32(env, randombytes_random(), &result);
   return result;
 }
 
@@ -136,7 +135,7 @@ napi_value sn_randombytes_uniform (napi_env env, napi_callback_info info) {
   SN_ARGV_UINT32(upper_bound, 0)
 
   napi_value result;
-  assert(napi_create_uint32(env, randombytes_uniform(upper_bound), &result) == napi_ok);
+  napi_create_uint32(env, randombytes_uniform(upper_bound), &result);
   return result;
 }
 
@@ -252,7 +251,7 @@ napi_value sn_sodium_pad(napi_env env, napi_callback_info info) {
   napi_value result;
   size_t padded_buflen;
   sodium_pad(&padded_buflen, buf_data, unpadded_buflen, blocksize, buf_size);
-  assert(napi_create_uint32(env, padded_buflen, &result) == napi_ok);
+  napi_create_uint32(env, padded_buflen, &result);
   return result;
 }
 
@@ -270,7 +269,7 @@ napi_value sn_sodium_unpad(napi_env env, napi_callback_info info) {
   napi_value result;
   size_t unpadded_buflen;
   sodium_unpad(&unpadded_buflen, buf_data, padded_buflen, blocksize);
-  assert(napi_create_uint32(env, unpadded_buflen, &result) == napi_ok);
+  napi_create_uint32(env, unpadded_buflen, &result);
   return result;
 }
 
@@ -1888,29 +1887,28 @@ static void async_pwhash_execute (uv_work_t *uv_req) {
 
 static void async_pwhash_complete (uv_work_t *uv_req, int status) {
   sn_async_pwhash_request *req = (sn_async_pwhash_request *) uv_req;
-  assert(status == 0);
 
   napi_handle_scope scope;
   napi_open_handle_scope(req->env, &scope);
 
   napi_value global;
-  assert(napi_get_global(req->env, &global) == napi_ok);
+  napi_get_global(req->env, &global);
 
   napi_value argv[1];
   SN_ASYNC_CHECK_FOR_ERROR("failed to compute password hash")
 
   napi_value callback;
-  assert(napi_get_reference_value(req->env, req->cb, &callback) == napi_ok);
+  napi_get_reference_value(req->env, req->cb, &callback);
 
   napi_value return_val;
   SN_CALL_FUNCTION(req->env, global, callback, 1, argv, &return_val)
 
   napi_close_handle_scope(req->env, scope);
 
-  assert(napi_delete_reference(req->env, req->cb) == napi_ok);
-  assert(napi_delete_reference(req->env, req->out_ref) == napi_ok);
-  assert(napi_delete_reference(req->env, req->pwd_ref) == napi_ok);
-  assert(napi_delete_reference(req->env, req->salt_ref) == napi_ok);
+  napi_delete_reference(req->env, req->cb);
+  napi_delete_reference(req->env, req->out_ref);
+  napi_delete_reference(req->env, req->pwd_ref);
+  napi_delete_reference(req->env, req->salt_ref);
   free(req);
 }
 
@@ -1976,28 +1974,27 @@ static void async_pwhash_str_execute (uv_work_t *uv_req) {
 
 static void async_pwhash_str_complete (uv_work_t *uv_req, int status) {
   sn_async_pwhash_str_request *req = (sn_async_pwhash_str_request *) uv_req;
-  assert(status == 0);
 
   napi_handle_scope scope;
   napi_open_handle_scope(req->env, &scope);
 
   napi_value global;
-  assert(napi_get_global(req->env, &global) == napi_ok);
+  napi_get_global(req->env, &global);
 
   napi_value argv[1];
   SN_ASYNC_CHECK_FOR_ERROR("failed to compute password hash")
 
   napi_value callback;
-  assert(napi_get_reference_value(req->env, req->cb, &callback) == napi_ok);
+  napi_get_reference_value(req->env, req->cb, &callback);
 
   napi_value return_val;
   SN_CALL_FUNCTION(req->env, global, callback, 1, argv, &return_val)
 
   napi_close_handle_scope(req->env, scope);
 
-  assert(napi_delete_reference(req->env, req->cb) == napi_ok);
-  assert(napi_delete_reference(req->env, req->out_ref) == napi_ok);
-  assert(napi_delete_reference(req->env, req->pwd_ref) == napi_ok);
+  napi_delete_reference(req->env, req->cb);
+  napi_delete_reference(req->env, req->out_ref);
+  napi_delete_reference(req->env, req->pwd_ref);
   free(req);
 }
 
@@ -2052,13 +2049,12 @@ static void async_pwhash_str_verify_execute (uv_work_t *uv_req) {
 
 static void async_pwhash_str_verify_complete (uv_work_t *uv_req, int status) {
   sn_async_pwhash_str_verify_request *req = (sn_async_pwhash_str_verify_request *) uv_req;
-  assert(status == 0);
 
   napi_handle_scope scope;
   napi_open_handle_scope(req->env, &scope);
 
   napi_value global;
-  assert(napi_get_global(req->env, &global) == napi_ok);
+  napi_get_global(req->env, &global);
 
   napi_value argv[2];
 
@@ -2070,16 +2066,16 @@ static void async_pwhash_str_verify_complete (uv_work_t *uv_req, int status) {
   napi_get_boolean(req->env, req->n == 0, &argv[1]);
 
   napi_value callback;
-  assert(napi_get_reference_value(req->env, req->cb, &callback) == napi_ok);
+  napi_get_reference_value(req->env, req->cb, &callback);
 
   napi_value return_val;
   SN_CALL_FUNCTION(req->env, global, callback, 2, argv, &return_val)
 
   napi_close_handle_scope(req->env, scope);
 
-  assert(napi_delete_reference(req->env, req->cb) == napi_ok);
-  assert(napi_delete_reference(req->env, req->str_ref) == napi_ok);
-  assert(napi_delete_reference(req->env, req->pwd_ref) == napi_ok);
+  napi_delete_reference(req->env, req->cb);
+  napi_delete_reference(req->env, req->str_ref);
+  napi_delete_reference(req->env, req->pwd_ref);
   free(req);
 }
 
@@ -2131,29 +2127,28 @@ static void async_pwhash_scryptsalsa208sha256_execute (uv_work_t *uv_req) {
 
 static void async_pwhash_scryptsalsa208sha256_complete (uv_work_t *uv_req, int status) {
   sn_async_pwhash_scryptsalsa208sha256_request *req = (sn_async_pwhash_scryptsalsa208sha256_request *) uv_req;
-  assert(status == 0);
 
   napi_handle_scope scope;
   napi_open_handle_scope(req->env, &scope);
 
   napi_value global;
-  assert(napi_get_global(req->env, &global) == napi_ok);
+  napi_get_global(req->env, &global);
 
   napi_value argv[1];
   SN_ASYNC_CHECK_FOR_ERROR("failed to compute password hash")
 
   napi_value callback;
-  assert(napi_get_reference_value(req->env, req->cb, &callback) == napi_ok);
+  napi_get_reference_value(req->env, req->cb, &callback);
 
   napi_value return_val;
   SN_CALL_FUNCTION(req->env, global, callback, 1, argv, &return_val)
 
   napi_close_handle_scope(req->env, scope);
 
-  assert(napi_delete_reference(req->env, req->cb) == napi_ok);
-  assert(napi_delete_reference(req->env, req->out_ref) == napi_ok);
-  assert(napi_delete_reference(req->env, req->pwd_ref) == napi_ok);
-  assert(napi_delete_reference(req->env, req->salt_ref) == napi_ok);
+  napi_delete_reference(req->env, req->cb);
+  napi_delete_reference(req->env, req->out_ref);
+  napi_delete_reference(req->env, req->pwd_ref);
+  napi_delete_reference(req->env, req->salt_ref);
   free(req);
 }
 
@@ -2216,28 +2211,27 @@ static void async_pwhash_scryptsalsa208sha256_str_execute (uv_work_t *uv_req) {
 
 static void async_pwhash_scryptsalsa208sha256_str_complete (uv_work_t *uv_req, int status) {
   sn_async_pwhash_scryptsalsa208sha256_str_request *req = (sn_async_pwhash_scryptsalsa208sha256_str_request *) uv_req;
-  assert(status == 0);
 
   napi_handle_scope scope;
   napi_open_handle_scope(req->env, &scope);
 
   napi_value global;
-  assert(napi_get_global(req->env, &global) == napi_ok);
+  napi_get_global(req->env, &global);
 
   napi_value argv[1];
   SN_ASYNC_CHECK_FOR_ERROR("failed to compute password hash")
 
   napi_value callback;
-  assert(napi_get_reference_value(req->env, req->cb, &callback) == napi_ok);
+  napi_get_reference_value(req->env, req->cb, &callback);
 
   napi_value return_val;
   SN_CALL_FUNCTION(req->env, global, callback, 1, argv, &return_val)
 
   napi_close_handle_scope(req->env, scope);
 
-  assert(napi_delete_reference(req->env, req->cb) == napi_ok);
-  assert(napi_delete_reference(req->env, req->out_ref) == napi_ok);
-  assert(napi_delete_reference(req->env, req->pwd_ref) == napi_ok);
+  napi_delete_reference(req->env, req->cb);
+  napi_delete_reference(req->env, req->out_ref);
+  napi_delete_reference(req->env, req->pwd_ref);
   free(req);
 }
 
@@ -2292,13 +2286,12 @@ static void async_pwhash_scryptsalsa208sha256_str_verify_execute (uv_work_t *uv_
 
 static void async_pwhash_scryptsalsa208sha256_str_verify_complete (uv_work_t *uv_req, int status) {
   sn_async_pwhash_scryptsalsa208sha256_str_verify_request *req = (sn_async_pwhash_scryptsalsa208sha256_str_verify_request *) uv_req;
-  assert(status == 0);
 
   napi_handle_scope scope;
   napi_open_handle_scope(req->env, &scope);
 
   napi_value global;
-  assert(napi_get_global(req->env, &global) == napi_ok);
+  napi_get_global(req->env, &global);
 
   napi_value argv[2];
 
@@ -2310,16 +2303,16 @@ static void async_pwhash_scryptsalsa208sha256_str_verify_complete (uv_work_t *uv
   napi_get_boolean(req->env, req->n == 0, &argv[1]);
 
   napi_value callback;
-  assert(napi_get_reference_value(req->env, req->cb, &callback) == napi_ok);
+  napi_get_reference_value(req->env, req->cb, &callback);
 
   napi_value return_val;
   SN_CALL_FUNCTION(req->env, global, callback, 2, argv, &return_val)
 
   napi_close_handle_scope(req->env, scope);
 
-  assert(napi_delete_reference(req->env, req->cb) == napi_ok);
-  assert(napi_delete_reference(req->env, req->str_ref) == napi_ok);
-  assert(napi_delete_reference(req->env, req->pwd_ref) == napi_ok);
+  napi_delete_reference(req->env, req->cb);
+  napi_delete_reference(req->env, req->str_ref);
+  napi_delete_reference(req->env, req->pwd_ref);
   free(req);
 }
 
@@ -2941,7 +2934,7 @@ static napi_value create_sodium_native (napi_env env) {
   SN_THROWS(sodium_init() == -1, "sodium_init() failed")
 
   napi_value exports;
-  assert(napi_create_object(env, &exports) == napi_ok);
+  napi_create_object(env, &exports);
 
   // memory
 
