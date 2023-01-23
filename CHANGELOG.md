@@ -2,6 +2,9 @@
 
 ## Current
 
+## v4.0.1
+* Remove unneeded asserts. Also fixes an issue where they would get compiled out.
+
 ## v4.0.0
 * crypto_secretstream_xchacha20poly1305_push accepts an int instead of a buffer for the tag param.
 * crypto_secretstream_xchacha20poly1305_TAG_MESSAGE is now an int.
