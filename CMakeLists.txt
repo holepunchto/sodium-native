@@ -10,6 +10,8 @@ target_sources(
   sodium_native
   PUBLIC
     binding.c
+    modules/crypto_tweak/tweak.c
+    modules/crypto_tweak/tweak.h
 )
 
 execute_process(
