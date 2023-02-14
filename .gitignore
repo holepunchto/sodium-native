@@ -1,9 +1,4 @@
+build
+prebuilds
 node_modules
 package-lock.json
-build
-tmp
-lib
-deps/libsodium*
-deps/unix
-deps/win
-deps/tmp
