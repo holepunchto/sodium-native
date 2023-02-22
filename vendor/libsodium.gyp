@@ -1,6 +1,7 @@
 {
   'variables': {
-    'sodium_version%': '<!(node ../scripts/configure-version.js)'
+    'target_endianness%': '<!(node ../scripts/endianness.js)',
+    'sodium_version%': '<!(node ../scripts/version.js)',
   },
   'targets': [{
     'target_name': 'libsodium',
@@ -19,7 +20,6 @@
       'HAVE_INLINE_ASM=1',
       'HAVE_INTTYPES_H=1',
       'HAVE_STDINT_H=1',
-      'NATIVE_LITTLE_ENDIAN=1',
     ],
     'xcode_settings': {
       'OTHER_CFLAGS': [
@@ -234,6 +234,15 @@
           'HAVE_TMMINTRIN_H=1',
         ],
       }],
+      ['target_endianness=="le"', {
+        'defines': [
+          'NATIVE_LITTLE_ENDIAN=1',
+        ],
+      }, {
+        'defines': [
+          'NATIVE_BIG_ENDIAN=1',
+        ],
+      }]
     ],
   }],
 }

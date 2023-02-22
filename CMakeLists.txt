@@ -2,12 +2,14 @@ cmake_minimum_required(VERSION 3.25)
 
 project(sodium_native C)
 
+include(TestBigEndian)
+
 include(pear)
 
 find_program(node NAMES node REQUIRED)
 
 add_custom_command(
-  COMMAND ${node} scripts/configure-version.js
+  COMMAND ${node} scripts/version.js
   WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
   OUTPUT
     ${PROJECT_SOURCE_DIR}/vendor/libsodium/src/libsodium/include/sodium/version.h
@@ -234,8 +236,23 @@ target_compile_definitions(
     HAVE_INLINE_ASM=1
     HAVE_INTTYPES_H=1
     HAVE_STDINT_H=1
-    NATIVE_LITTLE_ENDIAN=1
 )
+
+test_big_endian(is_big_endian)
+
+if(is_big_endian)
+  target_compile_definitions(
+    sodium
+    PRIVATE
+      NATIVE_BIG_ENDIAN=1
+  )
+else()
+  target_compile_definitions(
+    sodium
+    PRIVATE
+      NATIVE_LITTLE_ENDIAN=1
+  )
+endif()
 
 pear_target(target)
 
