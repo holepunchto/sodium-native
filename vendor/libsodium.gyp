@@ -222,7 +222,7 @@
       }, {
         'defines': [
           'HAVE_TI_MODE=1',
-        ]
+        ],
       }],
       ['target_arch=="x64"', {
         'defines': [
@@ -232,6 +232,24 @@
           'HAVE_PMMINTRIN_H=1',
           'HAVE_SMMINTRIN_H=1',
           'HAVE_TMMINTRIN_H=1',
+        ],
+        'conditions': [
+          ['OS!="win"', {
+            'defines': [
+              'HAVE_AMD64_ASM=1',
+              'HAVE_AVX_ASM=1',
+            ],
+            'sources': [
+              './libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/consts.S',
+              './libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/fe51_mul.S',
+              './libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/fe51_nsquare.S',
+              './libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/fe51_pack.S',
+              './libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/ladder.S',
+              './libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/ladder_base.S',
+              './libsodium/src/libsodium/crypto_stream/salsa20/xmm6/salsa20_xmm6-asm.S',
+              './libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/sandy2x.S',
+            ],
+          }],
         ],
       }],
       ['target_endianness=="le"', {
