@@ -1,6 +1,6 @@
 cmake_minimum_required(VERSION 3.25)
 
-project(sodium_native C)
+project(sodium_native C ASM)
 
 include(TestBigEndian)
 
@@ -220,6 +220,7 @@ target_compile_options(
     -flax-vector-conversions
     -Wno-unused-function
     -Wno-unknown-pragmas
+    -Wno-unused-but-set-variable
 )
 
 target_compile_definitions(
@@ -237,22 +238,6 @@ target_compile_definitions(
     HAVE_INTTYPES_H=1
     HAVE_STDINT_H=1
 )
-
-test_big_endian(is_big_endian)
-
-if(is_big_endian)
-  target_compile_definitions(
-    sodium
-    PRIVATE
-      NATIVE_BIG_ENDIAN=1
-  )
-else()
-  target_compile_definitions(
-    sodium
-    PRIVATE
-      NATIVE_LITTLE_ENDIAN=1
-  )
-endif()
 
 pear_target(target)
 
@@ -346,6 +331,44 @@ if(target MATCHES "x64")
       HAVE_PMMINTRIN_H=1
       HAVE_SMMINTRIN_H=1
       HAVE_TMMINTRIN_H=1
+  )
+
+  if(NOT target MATCHES "win32")
+    target_compile_definitions(
+      sodium
+      PRIVATE
+        HAVE_AMD64_ASM=1
+        HAVE_AVX_ASM=1
+    )
+
+    target_sources(
+      sodium
+      PRIVATE
+        vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/consts.S
+        vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/fe51_mul.S
+        vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/fe51_nsquare.S
+        vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/fe51_pack.S
+        vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/ladder.S
+        vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/ladder_base.S
+        vendor/libsodium/src/libsodium/crypto_stream/salsa20/xmm6/salsa20_xmm6-asm.S
+        vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/sandy2x.S
+    )
+  endif()
+endif()
+
+test_big_endian(is_big_endian)
+
+if(is_big_endian)
+  target_compile_definitions(
+    sodium
+    PRIVATE
+      NATIVE_BIG_ENDIAN=1
+  )
+else()
+  target_compile_definitions(
+    sodium
+    PRIVATE
+      NATIVE_LITTLE_ENDIAN=1
   )
 endif()
 
