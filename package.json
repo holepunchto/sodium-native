@@ -5,12 +5,17 @@
   "main": "index.js",
   "files": [
     "index.js",
-    "deps/**",
-    "modules/**",
     "binding.c",
     "binding.gyp",
     "macros.h",
-    "prebuilds/**"
+    "modules",
+    "scripts",
+    "prebuilds",
+    "vendor/libsodium.gyp",
+    "vendor/libsodium/src/**/*.c",
+    "vendor/libsodium/src/**/*.h",
+    "vendor/libsodium/src/**/*.h.in",
+    "vendor/libsodium/src/**/*.S"
   ],
   "dependencies": {
     "node-gyp-build": "^4.3.0"
@@ -24,11 +29,9 @@
   },
   "scripts": {
     "dev": "node-gyp rebuild",
-    "fetch-libsodium": "node deps/bin.js --fetch --no-build",
     "test": "standard && tape \"test/*.js\"",
     "install": "node-gyp-build",
-    "prebuild": "prebuildify --napi --strip",
-    "prebuild-ia32": "prebuildify --arch=ia32 --napi --strip"
+    "prebuild": "prebuildify --napi --strip"
   },
   "standard": {
     "ignore": [
