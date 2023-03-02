@@ -93,6 +93,7 @@ target_sources(
     vendor/libsodium/src/libsodium/include/sodium.h
     vendor/libsodium/src/libsodium/include/sodium/private/sse2_64_32.h
     vendor/libsodium/src/libsodium/include/sodium/utils.h
+  PUBLIC
     vendor/libsodium/src/libsodium/include/sodium/version.h
   PRIVATE
     vendor/libsodium/src/libsodium/crypto_aead/aes256gcm/aesni/aead_aes256gcm_aesni.c
@@ -313,7 +314,7 @@ if(target MATCHES "win32")
       HAVE_RAISE=1
       HAVE_SYS_PARAM_H=1
   )
-else()
+elseif(target MATCHES "arm64|x64")
   target_compile_definitions(
     sodium
     PRIVATE

@@ -219,10 +219,6 @@
           'HAVE_RAISE=1',
           'HAVE_SYS_PARAM_H=1',
         ],
-      }, {
-        'defines': [
-          'HAVE_TI_MODE=1',
-        ],
       }],
       ['target_arch=="x64"', {
         'defines': [
@@ -236,6 +232,7 @@
         'conditions': [
           ['OS!="win"', {
             'defines': [
+              'HAVE_TI_MODE=1',
               'HAVE_AMD64_ASM=1',
               'HAVE_AVX_ASM=1',
             ],
@@ -251,6 +248,15 @@
             ],
           }],
         ],
+      }],
+      ['target_arch=="arm64"', {
+        'conditions': [
+          ['OS!="win"', {
+            'defines': [
+              'HAVE_TI_MODE=1',
+            ],
+          }],
+        ]
       }],
       ['target_endianness=="le"', {
         'defines': [
