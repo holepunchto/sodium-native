@@ -252,7 +252,6 @@ if(target MATCHES "darwin|ios")
       HAVE_ARC4RANDOM_BUF=1
       HAVE_CATCHABLE_ABRT=1
       HAVE_CATCHABLE_SEGV=1
-      HAVE_GETENTROPY=1
       HAVE_GETPID=1
       HAVE_MADVISE=1
       HAVE_MEMSET_S=1
@@ -267,9 +266,17 @@ if(target MATCHES "darwin|ios")
       HAVE_SYSCONF=1
       HAVE_SYS_MMAN_H=1
       HAVE_SYS_PARAM_H=1
-      HAVE_SYS_RANDOM_H=1
       HAVE_WEAK_SYMBOLS=1
   )
+
+  if(NOT target MATCHES "ios")
+    target_compile_definitions(
+      sodium
+      PRIVATE
+        HAVE_GETENTROPY=1
+        HAVE_SYS_RANDOM_H=1
+    )
+  endif()
 endif()
 
 if(target MATCHES "linux")
