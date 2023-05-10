@@ -1,10 +1,10 @@
-var tape = require('tape')
-var sodium = require('../')
-var fork = require('child_process').fork
+const test = require('brittle')
+const sodium = require('..')
+const fork = require('child_process').fork
 
-tape('sodium_mprotect_noaccess', function (t) {
+test('sodium_mprotect_noaccess', function (t) {
   t.plan(1)
-  var p = fork(require.resolve('./fixtures/mprotect_noaccess'))
+  const p = fork(require.resolve('./fixtures/mprotect_noaccess'))
 
   p.on('message', function () {
     t.fail()
@@ -14,9 +14,9 @@ tape('sodium_mprotect_noaccess', function (t) {
   })
 })
 
-tape('sodium_mprotect_readonly', function (t) {
+test('sodium_mprotect_readonly', function (t) {
   t.plan(2)
-  var p = fork(require.resolve('./fixtures/mprotect_readonly'))
+  const p = fork(require.resolve('./fixtures/mprotect_readonly'))
 
   p.on('message', function (msg) {
     t.ok(msg === 'read')
@@ -26,9 +26,9 @@ tape('sodium_mprotect_readonly', function (t) {
   })
 })
 
-tape('sodium_mprotect_readwrite', function (t) {
+test('sodium_mprotect_readwrite', function (t) {
   t.plan(4)
-  var p = fork(require.resolve('./fixtures/mprotect_readwrite'))
+  const p = fork(require.resolve('./fixtures/mprotect_readwrite'))
 
   p.on('message', function (msg) {
     switch (msg) {
@@ -49,39 +49,35 @@ tape('sodium_mprotect_readwrite', function (t) {
   })
 })
 
-tape('sodium_memzero', function (t) {
-  var buf = Buffer.alloc(10, 0xab)
-  var exp = Buffer.alloc(10, 0xab)
-  var zero = Buffer.alloc(10)
+test('sodium_memzero', function (t) {
+  const buf = Buffer.alloc(10, 0xab)
+  const exp = Buffer.alloc(10, 0xab)
+  const zero = Buffer.alloc(10)
 
-  t.same(buf, exp, 'buffers start out with same content')
-  t.notSame(buf, zero, 'buffer is not zero')
+  t.alike(buf, exp, 'buffers start out with same content')
+  t.unlike(buf, zero, 'buffer is not zero')
 
   sodium.sodium_memzero(buf)
-  t.notSame(buf, exp, 'buffers are not longer the same')
-  t.same(buf, zero, 'buffer is now zeroed')
-
-  t.end()
+  t.unlike(buf, exp, 'buffers are not longer the same')
+  t.alike(buf, zero, 'buffer is now zeroed')
 })
 
-tape('sodium_mlock / sodium_munlock', function (t) {
-  var buf = Buffer.alloc(10, 0x18)
-  var exp = Buffer.alloc(10, 0x18)
+test('sodium_mlock / sodium_munlock', function (t) {
+  const buf = Buffer.alloc(10, 0x18)
+  const exp = Buffer.alloc(10, 0x18)
 
   sodium.sodium_mlock(buf)
-  t.notOk(buf.secure)
-  t.same(buf, exp, 'mlock did not corrupt data')
+  t.absent(buf.secure)
+  t.alike(buf, exp, 'mlock did not corrupt data')
   sodium.sodium_munlock(buf)
-  t.notOk(buf.secure)
-  t.same(buf, Buffer.alloc(10), 'munlock did zero data')
-
-  t.end()
+  t.absent(buf.secure)
+  t.alike(buf, Buffer.alloc(10), 'munlock did zero data')
 })
 
-tape('sodium_malloc', function (t) {
-  var empty = sodium.sodium_malloc(0)
-  var small = sodium.sodium_malloc(1)
-  var large = sodium.sodium_malloc(1e8)
+test('sodium_malloc', function (t) {
+  const empty = sodium.sodium_malloc(0)
+  const small = sodium.sodium_malloc(1)
+  const large = sodium.sodium_malloc(1e8)
 
   t.ok(empty.secure)
   t.ok(small.secure)
@@ -89,11 +85,14 @@ tape('sodium_malloc', function (t) {
 
   t.ok(empty.length === 0, 'has correct size')
   t.ok(small.length === 1, 'has correct size')
-  t.same(small, Buffer.from([0xdb]), 'has canary content')
   t.ok(large.length === 1e8, 'has correct size')
 
+  const expected = Buffer.from([0xdb])
+  expected.secure = true
+  t.alike(small, expected, 'has canary content')
+
   // test gc
-  for (var i = 0; i < 1e3; i++) {
+  for (let i = 0; i < 1e3; i++) {
     if (sodium.sodium_malloc(256).length !== 256) {
       t.fail('allocated incorrect size')
     }
@@ -101,29 +100,24 @@ tape('sodium_malloc', function (t) {
   t.ok(empty.length === 0, 'retained correct size')
   t.ok(small.length === 1, 'retained correct size')
   t.ok(large.length === 1e8, 'retained correct size')
-
-  t.end()
 })
 
-tape('sodium_free', function (t) {
+test('sodium_free', function (t) {
   if (process.version.startsWith('v10')) {
     t.comment('Skipping free test on v10')
-    t.end()
     return
   }
-  var buf = sodium.sodium_malloc(1)
+  const buf = sodium.sodium_malloc(1)
   t.ok(buf.byteLength === 1)
   sodium.sodium_free(buf)
   t.ok(buf.byteLength === 0)
-  t.end()
 })
 
-tape.skip('sodium_malloc bounds', function (t) {
+test.skip('sodium_malloc bounds', function (t) {
   t.throws(function () {
     sodium.sodium_malloc(-1)
   }, 'too small')
   t.throws(function () {
     sodium.sodium_malloc(Number.MAX_SAFE_INTEGER)
   }, 'too large')
-  t.end()
 })

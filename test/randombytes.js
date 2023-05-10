@@ -1,52 +1,44 @@
-var tape = require('tape')
-var sodium = require('../')
+const test = require('brittle')
+const sodium = require('..')
 
-tape('constants', function (assert) {
-  assert.same(typeof sodium.randombytes_SEEDBYTES, 'number', 'randombytes_SEEDBYTES is number')
-
-  assert.end()
+test('constants', function (t) {
+  t.alike(typeof sodium.randombytes_SEEDBYTES, 'number', 'randombytes_SEEDBYTES is number')
 })
 
-tape('randombytes_random', function (t) {
-  for (var i = 0; i < 1e6; i++) {
-    var n = sodium.randombytes_random()
+test('randombytes_random', function (t) {
+  for (let i = 0; i < 1e6; i++) {
+    const n = sodium.randombytes_random()
     if (n > 0xffffffff || n < 0) t.fail()
   }
-
-  t.end()
 })
 
-tape('randombytes_uniform', function (t) {
-  var p = 5381
-  for (var i = 0; i < 1e6; i++) {
-    var n = sodium.randombytes_uniform(5381)
+test('randombytes_uniform', function (t) {
+  const p = 5381
+  for (let i = 0; i < 1e6; i++) {
+    const n = sodium.randombytes_uniform(5381)
     if (n >= p || n < 0) t.fail()
   }
-
-  t.end()
 })
 
-tape('randombytes_buf', function (t) {
-  var buf = null
+test('randombytes_buf', function (t) {
+  let buf = null
 
   buf = Buffer.alloc(10)
   sodium.randombytes_buf(buf)
-  t.notEqual(buf, Buffer.alloc(10), 'not blank')
+  t.not(buf, Buffer.alloc(10), 'not blank')
 
   buf = Buffer.alloc(1024)
   sodium.randombytes_buf(buf)
-  t.notEqual(buf, Buffer.alloc(1024), 'large not blank')
-
-  t.end()
+  t.not(buf, Buffer.alloc(1024), 'large not blank')
 })
 
-tape('randombytes_deterministic', function (t) {
-  var seed1 = Buffer.allocUnsafe(sodium.randombytes_SEEDBYTES)
-  var seed2 = Buffer.allocUnsafe(sodium.randombytes_SEEDBYTES)
-  var buf1 = Buffer.alloc(10)
-  var buf2 = Buffer.alloc(10)
+test('randombytes_deterministic', function (t) {
+  const seed1 = Buffer.allocUnsafe(sodium.randombytes_SEEDBYTES)
+  const seed2 = Buffer.allocUnsafe(sodium.randombytes_SEEDBYTES)
+  const buf1 = Buffer.alloc(10)
+  const buf2 = Buffer.alloc(10)
 
-  for (var i = 0; i < 1e6; i++) {
+  for (let i = 0; i < 1e6; i++) {
     sodium.randombytes_buf(seed1)
     sodium.randombytes_buf(seed2)
 
@@ -66,6 +58,4 @@ tape('randombytes_deterministic', function (t) {
     sodium.randombytes_buf_deterministic(buf2, seed2)
     if (!buf1.equals(buf2)) t.fail('should equal')
   }
-
-  t.end()
 })

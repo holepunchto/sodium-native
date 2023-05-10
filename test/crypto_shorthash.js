@@ -1,19 +1,17 @@
-var tape = require('tape')
-var sodium = require('../')
+const test = require('brittle')
+const sodium = require('..')
 
-tape('crypto_shorthash', function (t) {
-  var out = Buffer.alloc(sodium.crypto_shorthash_BYTES)
-  var inp = Buffer.from('Hej, Verden!')
-  var key = Buffer.alloc(sodium.crypto_shorthash_KEYBYTES)
+test('crypto_shorthash', function (t) {
+  const out = Buffer.alloc(sodium.crypto_shorthash_BYTES)
+  const inp = Buffer.from('Hej, Verden!')
+  const key = Buffer.alloc(sodium.crypto_shorthash_KEYBYTES)
 
-  t.throws(function () {
+  t.exception.all(function () {
     sodium.crypto_shorthash(Buffer.alloc(0), inp)
   }, 'throws on bad input')
 
   sodium.crypto_shorthash(out, inp, key)
 
-  var result = '6a29984f782e684e'
-  t.same(out.toString('hex'), result, 'hashed the string')
-
-  t.end()
+  const result = '6a29984f782e684e'
+  t.alike(out.toString('hex'), result, 'hashed the string')
 })

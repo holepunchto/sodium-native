@@ -1,30 +1,30 @@
-const tape = require('tape')
-const sodium = require('../')
+const test = require('brittle')
+const sodium = require('..')
 const fixtures = require('./fixtures/crypto_tweak_ed25519_sign.js')
 
-tape('crypto_tweak', function (t) {
-  var pk = Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES)
-  var sk = Buffer.alloc(sodium.crypto_sign_SECRETKEYBYTES)
+test('crypto_tweak', function (t) {
+  const pk = Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES)
+  const sk = Buffer.alloc(sodium.crypto_sign_SECRETKEYBYTES)
 
   sodium.crypto_sign_keypair(pk, sk)
 
-  var tpk = Buffer.alloc(sodium.experimental_crypto_tweak_ed25519_BYTES)
-  var tsk = Buffer.alloc(sodium.experimental_crypto_tweak_ed25519_SCALARBYTES)
+  const tpk = Buffer.alloc(sodium.experimental_crypto_tweak_ed25519_BYTES)
+  const tsk = Buffer.alloc(sodium.experimental_crypto_tweak_ed25519_SCALARBYTES)
 
-  var tkpk = Buffer.alloc(sodium.experimental_crypto_tweak_ed25519_BYTES)
-  var tksk = Buffer.alloc(sodium.experimental_crypto_tweak_ed25519_SCALARBYTES)
+  const tkpk = Buffer.alloc(sodium.experimental_crypto_tweak_ed25519_BYTES)
+  const tksk = Buffer.alloc(sodium.experimental_crypto_tweak_ed25519_SCALARBYTES)
 
-  var point = Buffer.alloc(sodium.experimental_crypto_tweak_ed25519_BYTES)
-  var tweak = Buffer.alloc(sodium.experimental_crypto_tweak_ed25519_SCALARBYTES)
+  const point = Buffer.alloc(sodium.experimental_crypto_tweak_ed25519_BYTES)
+  const tweak = Buffer.alloc(sodium.experimental_crypto_tweak_ed25519_SCALARBYTES)
 
   const ns = Buffer.alloc(32)
   sodium.crypto_generichash(ns, Buffer.from('namespace'))
 
-  t.throws(function () {
+  t.exception.all(function () {
     sodium.experimental_crypto_tweak_ed25519_base()
   }, 'should validate input')
 
-  t.throws(function () {
+  t.exception.all(function () {
     sodium.experimental_crypto_tweak_ed25519_base(Buffer.alloc(0), Buffer.alloc(0), ns)
   }, 'should validate input length')
 
@@ -41,25 +41,23 @@ tape('crypto_tweak', function (t) {
   sodium.experimental_crypto_tweak_ed25519_pk_add(pk, pk, point)
   sodium.experimental_crypto_tweak_ed25519_scalar_add(_sk, _sk, tweak)
 
-  t.deepEquals(pk, tpk, 'tweak public key')
-  t.deepEquals(_sk, tsk, 'tweak secret key')
-  t.deepEquals(pk, tkpk, 'tweak keypair public key')
-  t.deepEquals(_sk, tksk, 'tweak keypair secret key')
-
-  t.end()
+  t.alike(pk, tpk, 'tweak public key')
+  t.alike(_sk, tsk, 'tweak secret key')
+  t.alike(pk, tkpk, 'tweak keypair public key')
+  t.alike(_sk, tksk, 'tweak keypair secret key')
 })
 
-tape('experimental_crypto_tweak_sign', function (t) {
-  var pk = Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES)
-  var sk = Buffer.alloc(sodium.crypto_sign_SECRETKEYBYTES)
+test('experimental_crypto_tweak_sign', function (t) {
+  const pk = Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES)
+  const sk = Buffer.alloc(sodium.crypto_sign_SECRETKEYBYTES)
 
   sodium.crypto_sign_keypair(pk, sk)
 
-  var tpk = Buffer.alloc(sodium.experimental_crypto_tweak_ed25519_BYTES)
-  var tsk = Buffer.alloc(sodium.experimental_crypto_tweak_ed25519_SCALARBYTES)
+  const tpk = Buffer.alloc(sodium.experimental_crypto_tweak_ed25519_BYTES)
+  const tsk = Buffer.alloc(sodium.experimental_crypto_tweak_ed25519_SCALARBYTES)
 
-  var point = Buffer.alloc(sodium.experimental_crypto_tweak_ed25519_BYTES)
-  var tweak = Buffer.alloc(sodium.experimental_crypto_tweak_ed25519_SCALARBYTES)
+  const point = Buffer.alloc(sodium.experimental_crypto_tweak_ed25519_BYTES)
+  const tweak = Buffer.alloc(sodium.experimental_crypto_tweak_ed25519_SCALARBYTES)
 
   const ns = Buffer.alloc(32)
   sodium.crypto_generichash(ns, Buffer.from('namespace'))
@@ -77,7 +75,7 @@ tape('experimental_crypto_tweak_sign', function (t) {
   sodium.experimental_crypto_tweak_ed25519_scalar_add(_sk, _sk, tweak)
 
   const m = Buffer.from('test message')
-  var sig = Buffer.alloc(sodium.crypto_sign_BYTES)
+  const sig = Buffer.alloc(sodium.crypto_sign_BYTES)
 
   sodium.experimental_crypto_tweak_ed25519_sign_detached(sig, m, _sk)
   t.ok(sodium.crypto_sign_verify_detached(sig, m, pk))
@@ -86,11 +84,9 @@ tape('experimental_crypto_tweak_sign', function (t) {
   sodium.experimental_crypto_tweak_ed25519_sign_detached(sig, m, tsk)
   t.ok(sodium.crypto_sign_verify_detached(sig, m, pk))
   t.ok(sodium.crypto_sign_verify_detached(sig, m, tpk))
-
-  t.end()
 })
 
-tape('crypto_tweak sign fixtures', t => {
+test('crypto_tweak sign fixtures', t => {
   for (const f of fixtures) {
     const [sk, n, m, sig, tweak, tpk, tn] = f.map(Buffer.from)
 
@@ -99,21 +95,19 @@ tape('crypto_tweak sign fixtures', t => {
     const pk = Buffer.alloc(32)
 
     sodium.experimental_crypto_tweak_ed25519_sk_to_scalar(scalar, sk)
-    t.same(scalar, n)
+    t.alike(scalar, n)
 
     sodium.experimental_crypto_tweak_ed25519_sign_detached(signature, m, n)
-    t.same(signature, sig)
+    t.alike(signature, sig)
 
     sodium.randombytes_buf(signature)
     sodium.crypto_sign_ed25519_sk_to_pk(pk, sk)
 
     sodium.experimental_crypto_tweak_ed25519_sign_detached(signature, m, n, pk)
-    t.same(signature, sig)
+    t.alike(signature, sig)
 
     sodium.experimental_crypto_tweak_ed25519_keypair(pk, scalar, n, tweak)
-    t.same(pk, tpk)
-    t.same(scalar, tn)
+    t.alike(pk, tpk)
+    t.alike(scalar, tn)
   }
-
-  t.end()
 })

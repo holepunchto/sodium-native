@@ -1,45 +1,44 @@
-var test = require('tape')
-var sodium = require('../')
+const test = require('brittle')
+const sodium = require('..')
 
-test('sodium_pad / sodium_unpad', function (assert) {
-  for (var i = 0; i < 2000; i++) {
-    var binLen = sodium.randombytes_uniform(200)
-    var blocksize = 1 + sodium.randombytes_uniform(100)
-    var binPaddedMaxlen = binLen + (blocksize - (binLen % blocksize))
-    var bingPaddedLong = Buffer.alloc(binPaddedMaxlen + 1)
-    var binPaddedLen = bingPaddedLong.slice(0, binPaddedMaxlen)
+test('sodium_pad / sodium_unpad', function (t) {
+  for (let i = 0; i < 2000; i++) {
+    const binLen = sodium.randombytes_uniform(200)
+    const blocksize = 1 + sodium.randombytes_uniform(100)
+    const binPaddedMaxlen = binLen + (blocksize - (binLen % blocksize))
+    const bingPaddedLong = Buffer.alloc(binPaddedMaxlen + 1)
+    const binPaddedLen = bingPaddedLong.slice(0, binPaddedMaxlen)
     sodium.randombytes_buf(binPaddedLen)
 
-    var smallThrow = didThrow(function () {
+    const smallThrow = didThrow(function () {
       sodium.sodium_pad(binPaddedLen.slice(0, binPaddedMaxlen - 1), binLen, blocksize)
     })
-    if (smallThrow === false) assert.fail('did not throw')
+    if (smallThrow === false) t.fail('did not throw')
 
-    var zeroThrow = didThrow(function () {
+    const zeroThrow = didThrow(function () {
       sodium.sodium_pad(binPaddedLen, binLen, 0)
     })
-    if (zeroThrow === false) assert.fail('did not throw')
+    if (zeroThrow === false) t.fail('did not throw')
 
     sodium.sodium_pad(bingPaddedLong, binLen, blocksize)
-    var binUnpaddedLen = sodium.sodium_pad(binPaddedLen, binLen, blocksize)
-    if (binUnpaddedLen !== binPaddedMaxlen) assert.fail('binUnpaddedLen was not same')
+    const binUnpaddedLen = sodium.sodium_pad(binPaddedLen, binLen, blocksize)
+    if (binUnpaddedLen !== binPaddedMaxlen) t.fail('binUnpaddedLen was not same')
 
-    var largeThrow = didThrow(function () {
+    const largeThrow = didThrow(function () {
       sodium.sodium_unpad(binPaddedLen, binUnpaddedLen, binPaddedMaxlen + 1)
     })
-    if (largeThrow === false) assert.fail('did not throw')
+    if (largeThrow === false) t.fail('did not throw')
 
-    var emptyThrow = didThrow(function () {
+    const emptyThrow = didThrow(function () {
       sodium.sodium_unpad(binPaddedLen, binUnpaddedLen, 0)
     })
-    if (emptyThrow === false) assert.fail('did not throw')
+    if (emptyThrow === false) t.fail('did not throw')
 
-    var len2 = sodium.sodium_unpad(binPaddedLen, binUnpaddedLen, blocksize)
-    if (len2 !== binLen) assert.fail('len2 was not same')
+    const len2 = sodium.sodium_unpad(binPaddedLen, binUnpaddedLen, blocksize)
+    if (len2 !== binLen) t.fail('len2 was not same')
   }
 
-  assert.pass()
-  assert.end()
+  t.pass()
 })
 
 function didThrow (fn) {

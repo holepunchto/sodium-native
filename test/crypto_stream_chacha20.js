@@ -1,4 +1,4 @@
-const test = require('tape')
+const test = require('brittle')
 const sodium = require('..')
 
 const tests = [
@@ -34,55 +34,52 @@ const vectors = [
   'f798a189f195e66982105ffb640bb7757f579da31602fc93ec01ac56f85ac3c134a4547b733b46413042c9440049176905d3be59ea1c53f15916155c2be8241a404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040404040'
 ]
 
-test('constants', function (assert) {
-  assert.ok(sodium.crypto_stream_chacha20_KEYBYTES > 0)
-  assert.ok(sodium.crypto_stream_chacha20_NONCEBYTES > 0)
-  assert.ok(sodium.crypto_stream_chacha20_MESSAGEBYTES_MAX > 0)
-  assert.end()
+test('constants', function (t) {
+  t.ok(sodium.crypto_stream_chacha20_KEYBYTES > 0)
+  t.ok(sodium.crypto_stream_chacha20_NONCEBYTES > 0)
+  t.ok(sodium.crypto_stream_chacha20_MESSAGEBYTES_MAX > 0)
 })
 
-test('crypto_stream_chacha20', function (assert) {
+test('crypto_stream_chacha20', function (t) {
   const key = Buffer.alloc(sodium.crypto_stream_chacha20_KEYBYTES)
   const nonce = Buffer.alloc(sodium.crypto_stream_chacha20_NONCEBYTES)
 
   const out = Buffer.alloc(160)
 
-  for (var i = 0; i < tests.length; i++) {
+  for (let i = 0; i < tests.length; i++) {
     key.write(tests[i][0], 0, key.byteLength, 'hex')
     nonce.write(tests[i][1], 0, nonce.byteLength, 'hex')
     sodium.crypto_stream_chacha20(out, nonce, key)
-    assert.deepEquals(out, Buffer.from(tests[i][2], 'hex'))
+    t.alike(out, Buffer.from(tests[i][2], 'hex'))
     for (let plen = 0; plen < out.byteLength; plen++) {
       const part = Buffer.alloc(plen)
       sodium.crypto_stream_chacha20_xor(part, out.subarray(0, plen), nonce, key)
-      if (part.every(b => b === 0) === false) return assert.fail()
+      if (part.every(b => b === 0) === false) return t.fail()
     }
   }
 
   for (let plen = 1, i = 0; plen < 66; plen += 3, i++) {
     out.fill(plen & 0xff)
     sodium.crypto_stream_chacha20(out.subarray(0, plen), nonce, key)
-    if (out.equals(Buffer.from(vectors[i], 'hex')) === false) return assert.fail()
+    if (out.equals(Buffer.from(vectors[i], 'hex')) === false) return t.fail()
   }
 
   sodium.randombytes_buf(out)
   sodium.crypto_stream_chacha20(out, nonce, key)
-  assert.deepEquals(out, Buffer.from('f798a189f195e66982105ffb640bb7757f579da31602fc93ec01ac56f85ac3c134a4547b733b46413042c9440049176905d3be59ea1c53f15916155c2be8241a38008b9a26bc35941e2444177c8ade6689de95264986d95889fb60e84629c9bd9a5acb1cc118be563eb9b3a4a472f82e09a7e778492b562ef7130e88dfe031c79db9d4f7c7a899151b9a475032b63fc385245fe054e3dd5a97a5f576fe064025', 'hex'))
+  t.alike(out, Buffer.from('f798a189f195e66982105ffb640bb7757f579da31602fc93ec01ac56f85ac3c134a4547b733b46413042c9440049176905d3be59ea1c53f15916155c2be8241a38008b9a26bc35941e2444177c8ade6689de95264986d95889fb60e84629c9bd9a5acb1cc118be563eb9b3a4a472f82e09a7e778492b562ef7130e88dfe031c79db9d4f7c7a899151b9a475032b63fc385245fe054e3dd5a97a5f576fe064025', 'hex'))
 
-  assert.doesNotThrow(() => sodium.crypto_stream_chacha20(out.subarray(0, 0), nonce, key))
-  assert.doesNotThrow(() => sodium.crypto_stream_chacha20_xor(out.subarray(0, 0), Buffer.alloc(0), nonce, key))
-  assert.doesNotThrow(() => sodium.crypto_stream_chacha20_xor(out.subarray(0, 0), Buffer.alloc(0), nonce, key))
-  assert.doesNotThrow(() => sodium.crypto_stream_chacha20_xor_ic(out.subarray(0, 0), Buffer.alloc(0), nonce, 1, key))
+  t.execution(() => sodium.crypto_stream_chacha20(out.subarray(0, 0), nonce, key))
+  t.execution(() => sodium.crypto_stream_chacha20_xor(out.subarray(0, 0), Buffer.alloc(0), nonce, key))
+  t.execution(() => sodium.crypto_stream_chacha20_xor(out.subarray(0, 0), Buffer.alloc(0), nonce, key))
+  t.execution(() => sodium.crypto_stream_chacha20_xor_ic(out.subarray(0, 0), Buffer.alloc(0), nonce, 1, key))
 
   out.fill(0x42)
   sodium.crypto_stream_chacha20_xor(out, out, nonce, key)
-  assert.deepEquals(out, Buffer.from('b5dae3cbb3d7a42bc0521db92649f5373d15dfe15440bed1ae43ee14ba18818376e616393179040372008b06420b552b4791fc1ba85e11b31b54571e69aa66587a42c9d864fe77d65c6606553ec89c24cb9cd7640bc49b1acbb922aa046b8bffd818895e835afc147cfbf1e6e630ba6c4be5a53a0b69146cb5514cca9da27385dffb96b585eadb5759d8051270f47d81c7661da216a19f18d5e7b734bc440267', 'hex'))
+  t.alike(out, Buffer.from('b5dae3cbb3d7a42bc0521db92649f5373d15dfe15440bed1ae43ee14ba18818376e616393179040372008b06420b552b4791fc1ba85e11b31b54571e69aa66587a42c9d864fe77d65c6606553ec89c24cb9cd7640bc49b1acbb922aa046b8bffd818895e835afc147cfbf1e6e630ba6c4be5a53a0b69146cb5514cca9da27385dffb96b585eadb5759d8051270f47d81c7661da216a19f18d5e7b734bc440267', 'hex'))
 
   sodium.crypto_stream_chacha20_xor_ic(out, out, nonce, 0, key)
-  assert.deepEquals(out, Buffer.from('42424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242', 'hex'))
+  t.alike(out, Buffer.from('42424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242424242', 'hex'))
 
   sodium.crypto_stream_chacha20_xor_ic(out, out, nonce, 1, key)
-  assert.deepEquals(out, Buffer.from('7a42c9d864fe77d65c6606553ec89c24cb9cd7640bc49b1acbb922aa046b8bffd818895e835afc147cfbf1e6e630ba6c4be5a53a0b69146cb5514cca9da27385dffb96b585eadb5759d8051270f47d81c7661da216a19f18d5e7b734bc440267918c466e1428f08745f37a99c77c7f2b1b244bd4162e8b86e4a8bf85358202954ced04b52fef7b3ba787744e715554285ecb0ed6e133c528d69d346abc0ce8b0', 'hex'))
-
-  assert.end()
+  t.alike(out, Buffer.from('7a42c9d864fe77d65c6606553ec89c24cb9cd7640bc49b1acbb922aa046b8bffd818895e835afc147cfbf1e6e630ba6c4be5a53a0b69146cb5514cca9da27385dffb96b585eadb5759d8051270f47d81c7661da216a19f18d5e7b734bc440267918c466e1428f08745f37a99c77c7f2b1b244bd4162e8b86e4a8bf85358202954ced04b52fef7b3ba787744e715554285ecb0ed6e133c528d69d346abc0ce8b0', 'hex'))
 })
