@@ -59,3 +59,52 @@ test('randombytes_deterministic', function (t) {
     if (!buf1.equals(buf2)) t.fail('should equal')
   }
 })
+
+test.skip('Various test cases', function (t) {
+  sodium.randombytes_buf(Buffer.alloc(0))
+  sodium.randombytes_buf(new Uint8Array(16))
+
+  t.throws(function () {
+    sodium.randombytes_buf([])
+  })
+
+  t.end()
+})
+
+test('Generates random bytes', function (t) {
+  const bufConst = Buffer.alloc(64)
+  sodium.randombytes_buf(bufConst)
+
+  const buf1 = Buffer.alloc(64)
+  for (let i = 0; i < 1e4; i++) {
+    sodium.randombytes_buf(buf1)
+    if (Buffer.compare(buf1, bufConst) === 0) {
+      t.fail('Constant buffer should not be equal')
+      t.end()
+      return
+    }
+  }
+
+  t.pass('Generated unique buffers')
+  t.end()
+})
+
+test('Exceed quota', function (t) {
+  const buf = Buffer.alloc(1 << 17)
+  sodium.randombytes_buf(buf)
+
+  const scores = new Array(256)
+  scores.fill(0)
+
+  for (const b of buf) {
+    scores[b]++
+  }
+
+  scores
+    .map(cnt => cnt / 256)
+    .forEach(cnt => {
+      if (cnt < 1 && cnt > 3) t.fail('Statistically unreasonable')
+    })
+
+  t.end()
+})
