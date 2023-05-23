@@ -262,19 +262,12 @@ test('crypto_box_easy', (t) => {
   t.end()
 })
 
-/* eslint-disable */
-test('crypto_box2', t => {
-  const small_order_p = new Uint8Array([
-    0xe0, 0xeb, 0x7a, 0x7c, 0x3b, 0x41, 0xb8, 0xae, 0x16, 0x56, 0xe3,
-    0xfa, 0xf1, 0x9f, 0xc4, 0x6a, 0xda, 0x09, 0x8d, 0xeb, 0x9c, 0x32,
-    0xb1, 0xfd, 0x86, 0x62, 0x05, 0x16, 0x5f, 0x49, 0xb8, 0x00
-  ])
-
+/* eslint-disable camelcase */
+test('crypto_box_easy2', t => {
   const alicepk = new Uint8Array(sodium.crypto_box_PUBLICKEYBYTES)
   const alicesk = new Uint8Array(sodium.crypto_box_SECRETKEYBYTES)
   const bobpk = new Uint8Array(sodium.crypto_box_PUBLICKEYBYTES)
   const bobsk = new Uint8Array(sodium.crypto_box_SECRETKEYBYTES)
-  const mac = new Uint8Array(sodium.crypto_box_MACBYTES)
   const nonce = new Uint8Array(sodium.crypto_box_NONCEBYTES)
   const m_size = 7 + Math.floor(Math.random() * 1000)
   const m = new Uint8Array(m_size)
