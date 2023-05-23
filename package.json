@@ -21,15 +21,13 @@
     "node-gyp-build": "^4.3.0"
   },
   "devDependencies": {
+    "brittle": "^3.2.1",
     "prebuildify": "^4.2.1",
-    "sodium-test": "^0.8.0",
-    "sodium-vectors": "^1.0.0",
-    "standard": "^14.3.1",
-    "tape": "^5.3.1"
+    "standard": "^17.0.0"
   },
   "scripts": {
     "dev": "node-gyp rebuild",
-    "test": "standard && tape \"test/*.js\"",
+    "test": "standard && brittle test/*.js",
     "install": "node-gyp-build",
     "prebuild": "prebuildify --napi --strip"
   },

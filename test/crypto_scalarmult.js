@@ -1,41 +1,38 @@
-var tape = require('tape')
-var sodium = require('../')
+const test = require('brittle')
+const sodium = require('..')
 
-tape('crypto_scalarmult_base', function (t) {
-  var keys = keyPair()
+test('crypto_scalarmult_base', function (t) {
+  const keys = keyPair()
 
-  t.notEqual(keys.secretKey, Buffer.alloc(keys.secretKey.length), 'secret key not blank')
-  t.notEqual(keys.publicKey, Buffer.alloc(keys.publicKey.length), 'public key not blank')
-  t.end()
+  t.not(keys.secretKey, Buffer.alloc(keys.secretKey.length), 'secret key not blank')
+  t.not(keys.publicKey, Buffer.alloc(keys.publicKey.length), 'public key not blank')
 })
 
-tape('crypto_scalarmult', function (t) {
-  var peer1 = keyPair()
-  var peer2 = keyPair()
+test('crypto_scalarmult', function (t) {
+  const peer1 = keyPair()
+  const peer2 = keyPair()
 
-  t.notEqual(peer1.secretKey, peer2.secretKey, 'diff secret keys')
-  t.notEqual(peer1.publicKey, peer2.publicKey, 'diff public keys')
+  t.not(peer1.secretKey, peer2.secretKey, 'diff secret keys')
+  t.not(peer1.publicKey, peer2.publicKey, 'diff public keys')
 
-  var shared1 = Buffer.alloc(sodium.crypto_scalarmult_BYTES)
-  var shared2 = Buffer.alloc(sodium.crypto_scalarmult_BYTES)
+  const shared1 = Buffer.alloc(sodium.crypto_scalarmult_BYTES)
+  const shared2 = Buffer.alloc(sodium.crypto_scalarmult_BYTES)
 
   sodium.crypto_scalarmult(shared1, peer1.secretKey, peer2.publicKey)
   sodium.crypto_scalarmult(shared2, peer2.secretKey, peer1.publicKey)
 
-  t.same(shared1, shared2, 'same shared secret')
-
-  t.end()
+  t.alike(shared1, shared2, 'same shared secret')
 })
 
 function keyPair () {
-  var secretKey = Buffer.alloc(sodium.crypto_scalarmult_SCALARBYTES)
+  const secretKey = Buffer.alloc(sodium.crypto_scalarmult_SCALARBYTES)
   sodium.randombytes_buf(secretKey)
 
-  var publicKey = Buffer.alloc(sodium.crypto_scalarmult_BYTES)
+  const publicKey = Buffer.alloc(sodium.crypto_scalarmult_BYTES)
   sodium.crypto_scalarmult_base(publicKey, secretKey)
 
   return {
-    publicKey: publicKey,
-    secretKey: secretKey
+    publicKey,
+    secretKey
   }
 }
