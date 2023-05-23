@@ -23,8 +23,6 @@
   "devDependencies": {
     "brittle": "^3.2.1",
     "prebuildify": "^4.2.1",
-    "sodium-test": "^0.8.0",
-    "sodium-vectors": "^1.0.0",
     "standard": "^17.0.0"
   },
   "scripts": {
