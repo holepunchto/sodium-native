@@ -107,7 +107,7 @@ test('crypto_box_seal', function (t) {
   t.alike(plain, message, 'same message')
 })
 
-tape('crypto_box_seal/crypto_box_seal_open self-decrypt', function (t) {
+test('crypto_box_seal/crypto_box_seal_open self-decrypt', function (t) {
   const pubKey = Buffer.alloc(sodium.crypto_box_PUBLICKEYBYTES)
   const secret = Buffer.alloc(sodium.crypto_box_SECRETKEYBYTES)
 
@@ -119,11 +119,11 @@ tape('crypto_box_seal/crypto_box_seal_open self-decrypt', function (t) {
 
   const out = Buffer.alloc(cipher.length - sodium.crypto_box_SEALBYTES)
   sodium.crypto_box_seal_open(out, cipher, pubKey, secret)
-  t.same(out.toString(), msg.toString())
+  t.alike(out.toString(), msg.toString())
   t.end()
 })
 
-tape('crypto_box_seal_open cross-decrypt', function (t) {
+test('crypto_box_seal_open cross-decrypt', function (t) {
   const pubKey = Buffer.from(
     'e0bb844ae3f48bb04323c8dfe7c34cf86608db2e2112f927953060c80506287f', 'hex')
   const secret = Buffer.from(
@@ -136,11 +136,11 @@ tape('crypto_box_seal_open cross-decrypt', function (t) {
 
   const out = Buffer.alloc(cipher.length - sodium.crypto_box_SEALBYTES)
   sodium.crypto_box_seal_open(out, cipher, pubKey, secret)
-  t.same(out.toString(), 'hello world')
+  t.alike(out.toString(), 'hello world')
   t.end()
 })
 
-tape('crypto_box_seed_keypair', function (t) {
+test('crypto_box_seed_keypair', function (t) {
   const seed = Buffer.from([
     0x77, 0x07, 0x6d, 0x0a, 0x73, 0x18, 0xa5,
     0x7d, 0x3c, 0x16, 0xc1, 0x72, 0x51, 0xb2,
@@ -168,13 +168,13 @@ tape('crypto_box_seed_keypair', function (t) {
 
   sodium.crypto_box_seed_keypair(pk, sk, seed)
 
-  t.same(pk, expPk)
-  t.same(sk, expSk)
+  t.alike(pk, expPk)
+  t.alike(sk, expSk)
 
   t.end()
 })
 
-tape('crypto_box_easy', (t) => {
+test('crypto_box_easy', (t) => {
   const alicesk = new Uint8Array([
     0x77, 0x07, 0x6d, 0x0a, 0x73, 0x18, 0xa5, 0x7d, 0x3c, 0x16, 0xc1, 0x72,
     0x51, 0xb2, 0x66, 0x45, 0xdf, 0x4c, 0x2f, 0x87, 0xeb, 0xc0, 0x99, 0x2a,
@@ -222,17 +222,17 @@ tape('crypto_box_easy', (t) => {
     0xe3, 0x55, 0xa5
   ])
 
-  t.deepEqual(c, expected1, 'encrypts correctly')
+  t.alike(c, expected1, 'encrypts correctly')
 
   // This test isn't found upstream, but it seems necessary to have at least
   // one crypto_box_open_easy() working since the next test diverges.
   const o = new Uint8Array(131)
   t.ok(sodium.crypto_box_open_easy(o, expected1, nonce, bobpk, alicesk))
-  t.deepEqual(o, m, 'decrypts correctly')
+  t.alike(o, m, 'decrypts correctly')
 
   const guardPage = new Uint8Array(0)
 
-  t.doesNotThrow(() => sodium.crypto_box_easy(
+  t.execution(() => sodium.crypto_box_easy(
     c.subarray(0, sodium.crypto_box_MACBYTES),
     guardPage,
     nonce,
@@ -245,7 +245,7 @@ tape('crypto_box_easy', (t) => {
     0xc8, 0xcf, 0xf8, 0x80, 0x8e
   ])
 
-  t.deepEqual(c.subarray(0, expected2.length), expected2)
+  t.alike(c.subarray(0, expected2.length), expected2)
 
   t.ok(sodium.crypto_box_open_easy(
     new Uint8Array(0),
@@ -257,13 +257,13 @@ tape('crypto_box_easy', (t) => {
 
   c[Math.floor(Math.random() * sodium.crypto_box_MACBYTES)] += 1
 
-  t.notOk(sodium.crypto_box_open_easy(new Uint8Array(0), c.subarray(0, sodium.crypto_box_MACBYTES), nonce, bobpk, alicesk))
+  t.absent(sodium.crypto_box_open_easy(new Uint8Array(0), c.subarray(0, sodium.crypto_box_MACBYTES), nonce, bobpk, alicesk))
 
   t.end()
 })
 
 /* eslint-disable */
-tape('crypto_box2', t => {
+test('crypto_box2', t => {
   const small_order_p = new Uint8Array([
     0xe0, 0xeb, 0x7a, 0x7c, 0x3b, 0x41, 0xb8, 0xae, 0x16, 0x56, 0xe3,
     0xfa, 0xf1, 0x9f, 0xc4, 0x6a, 0xda, 0x09, 0x8d, 0xeb, 0x9c, 0x32,
@@ -288,10 +288,10 @@ tape('crypto_box2', t => {
   sodium.randombytes_buf(m.subarray(0, mlen))
   sodium.randombytes_buf(nonce.subarray(0, sodium.crypto_box_NONCEBYTES))
 
-  t.doesNotThrow(() => sodium.crypto_box_easy(c.subarray(0, mlen + sodium.crypto_box_MACBYTES), m.subarray(0, mlen), nonce, bobpk, alicesk))
+  t.execution(() => sodium.crypto_box_easy(c.subarray(0, mlen + sodium.crypto_box_MACBYTES), m.subarray(0, mlen), nonce, bobpk, alicesk))
 
   t.ok(sodium.crypto_box_open_easy(m2.subarray(0, mlen), c.subarray(0, mlen + sodium.crypto_box_MACBYTES), nonce, alicepk, bobsk))
-  t.deepEqual(m.subarray(0, mlen), m2.subarray(0, mlen))
+  t.alike(m.subarray(0, mlen), m2.subarray(0, mlen))
 
   for (let i = sodium.crypto_box_MACBYTES; i < mlen + sodium.crypto_box_MACBYTES - 1; i++) {
     if (sodium.crypto_box_open_easy(m2.subarray(0, i - sodium.crypto_box_MACBYTES), c.subarray(0, i), nonce, alicepk, bobsk)) {
@@ -300,12 +300,12 @@ tape('crypto_box2', t => {
   }
 
   c.set(m.subarray(0, mlen))
-  t.doesNotThrow(() => sodium.crypto_box_easy(c.subarray(0, mlen + sodium.crypto_box_MACBYTES), c.subarray(0, mlen), nonce, bobpk, alicesk))
+  t.execution(() => sodium.crypto_box_easy(c.subarray(0, mlen + sodium.crypto_box_MACBYTES), c.subarray(0, mlen), nonce, bobpk, alicesk))
 
-  t.notDeepEqual(m.subarray(0, mlen), c.subarray(0, mlen))
-  t.notDeepEqual(m.subarray(0, mlen), c.subarray(sodium.crypto_box_MACBYTES, sodium.crypto_box_MACBYTES + mlen))
+  t.unlike(m.subarray(0, mlen), c.subarray(0, mlen))
+  t.unlike(m.subarray(0, mlen), c.subarray(sodium.crypto_box_MACBYTES, sodium.crypto_box_MACBYTES + mlen))
 
-  t.assert(sodium.crypto_box_open_easy(c.subarray(0, mlen), c.subarray(0, mlen + sodium.crypto_box_MACBYTES), nonce, alicepk, bobsk))
+  t.ok(sodium.crypto_box_open_easy(c.subarray(0, mlen), c.subarray(0, mlen + sodium.crypto_box_MACBYTES), nonce, alicepk, bobsk))
 
   t.end()
 })

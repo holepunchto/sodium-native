@@ -15,7 +15,7 @@ test('crypto_auth', function (t) {
   t.ok(sodium.crypto_auth_verify(mac, value, key), 'verifies')
 })
 
-tape('crypto_auth #1', t => {
+test('crypto_auth #1', t => {
   // "Test Case 2" from RFC 4231
   const key = stringToArray('Jefe', 32)
   const c = stringToArray('what do ya want for nothing?')
@@ -45,23 +45,23 @@ tape('crypto_auth #1', t => {
   ]
 
   sodium.crypto_auth(a, c, key)
-  t.deepEqual(a, exp[0])
-  t.assert(sodium.crypto_auth_verify(exp[0], c, key))
+  t.alike(a, exp[0])
+  t.ok(sodium.crypto_auth_verify(exp[0], c, key))
 
   a.fill(0)
   sodium.crypto_auth(a, c1, key)
-  t.deepEqual(a, exp[1])
-  t.assert(sodium.crypto_auth_verify(exp[1], c1, key))
+  t.alike(a, exp[1])
+  t.ok(sodium.crypto_auth_verify(exp[1], c1, key))
 
   // Empty message tests
   a.fill(0)
   sodium.crypto_auth(a, new Uint8Array(0), key)
-  t.deepEqual(a, exp[2])
-  t.assert(sodium.crypto_auth_verify(exp[2], new Uint8Array(0), key))
+  t.alike(a, exp[2])
+  t.ok(sodium.crypto_auth_verify(exp[2], new Uint8Array(0), key))
   t.end()
 })
 
-tape('crypto_auth', function (t) {
+test('crypto_auth', function (t) {
   const key = stringToArray('Jefe', 32)
   const c = stringToArray('what do ya want for nothing?')
   const a = new Uint8Array(sodium.crypto_auth_BYTES)
@@ -73,16 +73,16 @@ tape('crypto_auth', function (t) {
 
   sodium.crypto_auth(a, c, key)
 
-  t.deepEqual(a, expected)
+  t.alike(a, expected)
   t.ok(sodium.crypto_auth_verify(a, c, key))
 
   c[Math.floor(Math.random() * c.length)] += 1
-  t.notOk(sodium.crypto_auth_verify(a, c, key))
+  t.absent(sodium.crypto_auth_verify(a, c, key))
 
   t.end()
 })
 
-tape('wrong keylength', t => {
+test('wrong keylength', t => {
   const a = new Uint8Array(32)
   const c = new Uint8Array(0)
 
@@ -109,13 +109,13 @@ tape('wrong keylength', t => {
   t.end()
 })
 
-tape('crypto_auth constants', t => {
-  t.equal(sodium.crypto_auth_BYTES, 32)
-  t.equal(sodium.crypto_auth_KEYBYTES, 32)
+test('crypto_auth constants', t => {
+  t.is(sodium.crypto_auth_BYTES, 32)
+  t.is(sodium.crypto_auth_KEYBYTES, 32)
   t.end()
 })
 
-tape('rfc4231 test case #6', t => {
+test('rfc4231 test case #6', t => {
   const keys = [
     new Uint8Array([
       0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b, 0x0b,
@@ -204,8 +204,8 @@ tape('rfc4231 test case #6', t => {
 
   for (let i = 0; i < keys.length; i++) {
     sodium.crypto_auth(a, data[i], keys[i])
-    t.same(a, exp[i])
-    t.assert(sodium.crypto_auth_verify(exp[i], data[i], keys[i]))
+    t.alike(a, exp[i])
+    t.ok(sodium.crypto_auth_verify(exp[i], data[i], keys[i]))
   }
 
   t.end()
