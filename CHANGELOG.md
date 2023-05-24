@@ -2,6 +2,9 @@
 
 ## Current
 
+## v4.0.3
+* Added missing cmake files.
+
 ## v4.0.2
 * Move build to support iOS/Android also.
 
