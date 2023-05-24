@@ -11,6 +11,8 @@
     "modules",
     "scripts",
     "prebuilds",
+    "LICENSE",
+    "CMakeLists.txt",
     "vendor/libsodium.gyp",
     "vendor/libsodium/src/**/*.c",
     "vendor/libsodium/src/**/*.h",
