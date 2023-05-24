@@ -29,7 +29,8 @@
     "dev": "node-gyp rebuild",
     "test": "standard && brittle test/*.js",
     "install": "node-gyp-build",
-    "prebuild": "prebuildify --napi --strip"
+    "prebuild": "prebuildify --napi --strip",
+    "prebuild-ia32": "prebuildify --arch=ia32 --napi --strip"
   },
   "standard": {
     "ignore": [
