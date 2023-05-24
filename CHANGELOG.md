@@ -2,6 +2,9 @@
 
 ## Current
 
+## v4.0.2
+* Move build to support iOS/Android also.
+
 ## v4.0.1
 * Remove unneeded asserts. Also fixes an issue where they would get compiled out.
 
