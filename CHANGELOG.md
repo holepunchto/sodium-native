@@ -2,6 +2,9 @@
 
 ## Current
 
+## v4.0.4
+* Fix cmake file
+
 ## v4.0.3
 * Added missing cmake files.
 
