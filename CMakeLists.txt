@@ -4,7 +4,7 @@ project(sodium_native C ASM)
 
 include(TestBigEndian)
 
-include(pear)
+include(bare)
 
 find_program(node NAMES node REQUIRED)
 
@@ -240,7 +240,7 @@ target_compile_definitions(
     HAVE_STDINT_H=1
 )
 
-pear_target(target)
+bare_target(target)
 
 if(target MATCHES "darwin|ios")
   target_compile_definitions(
@@ -380,7 +380,7 @@ else()
   )
 endif()
 
-add_pear_module(sodium_native)
+add_bare_module(sodium_native)
 
 target_sources(
   sodium_native
