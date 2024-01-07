@@ -23,15 +23,15 @@
   },
   "devDependencies": {
     "brittle": "^3.2.1",
-    "prebuildify": "^5.0.1",
+    "prebuildify": "^6.0.0",
     "standard": "^17.0.0"
   },
   "scripts": {
     "dev": "node-gyp rebuild",
     "test": "standard && brittle test/*.js",
     "install": "node-gyp-build",
-    "prebuild": "prebuildify --napi --strip",
-    "prebuild-ia32": "prebuildify --arch=ia32 --napi --strip"
+    "prebuild": "prebuildify --strip",
+    "prebuild-ia32": "prebuildify --arch=ia32 --strip"
   },
   "standard": {
     "ignore": [
