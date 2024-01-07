@@ -2,6 +2,9 @@
 
 ## Current
 
+## v4.0.5
+* Upgrade prebuildify to make named prebuilds.
+
 ## v4.0.4
 * Fix cmake file
 
