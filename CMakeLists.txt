@@ -6,6 +6,8 @@ include(TestBigEndian)
 
 include(bare)
 
+bare_target(target)
+
 find_program(node NAMES node REQUIRED)
 
 add_custom_command(
@@ -241,8 +243,6 @@ target_compile_definitions(
     HAVE_INTTYPES_H=1
     HAVE_STDINT_H=1
 )
-
-bare_target(target)
 
 if(target MATCHES "darwin|ios")
   target_compile_definitions(
