@@ -212,17 +212,19 @@ target_include_directories(
     vendor/libsodium/src/libsodium/include/sodium
 )
 
-target_compile_options(
-  sodium
-  PRIVATE
-    -fvisibility=hidden
-    -fno-strict-aliasing
-    -fwrapv
-    -flax-vector-conversions
-    -Wno-unused-function
-    -Wno-unknown-pragmas
-    -Wno-unused-but-set-variable
-)
+if(NOT target MATCHES "win32")
+  target_compile_options(
+    sodium
+    PRIVATE
+      -fvisibility=hidden
+      -fno-strict-aliasing
+      -fwrapv
+      -flax-vector-conversions
+      -Wno-unused-function
+      -Wno-unknown-pragmas
+      -Wno-unused-but-set-variable
+  )
+endif()
 
 target_compile_definitions(
   sodium
