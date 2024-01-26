@@ -32,15 +32,6 @@
         '-Wno-unused-but-set-variable',
       ],
     },
-    'cflags': [
-      '-fvisibility=hidden',
-      '-fno-strict-aliasing',
-      '-fwrapv',
-      '-flax-vector-conversions',
-      '-Wno-unused-function',
-      '-Wno-unknown-pragmas',
-      '-Wno-unused-but-set-variable',
-    ],
     'sources': [
       './libsodium/src/libsodium/crypto_aead/aes256gcm/aesni/aead_aes256gcm_aesni.c',
       './libsodium/src/libsodium/crypto_aead/chacha20poly1305/sodium/aead_chacha20poly1305.c',
@@ -218,6 +209,16 @@
           '_CRT_SECURE_NO_WARNINGS=1',
           'HAVE_RAISE=1',
           'HAVE_SYS_PARAM_H=1',
+        ],
+      }, {
+        'cflags': [
+          '-fvisibility=hidden',
+          '-fno-strict-aliasing',
+          '-fwrapv',
+          '-flax-vector-conversions',
+          '-Wno-unused-function',
+          '-Wno-unknown-pragmas',
+          '-Wno-unused-but-set-variable',
         ],
       }],
       ['target_arch=="x64"', {
