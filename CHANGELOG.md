@@ -2,6 +2,9 @@
 
 ## Current
 
+## v4.0.7
+* Add pkg.addon.target to explicitly know the CMAKE target.
+
 ## v4.0.6
 * Fix CMAKE flag for Windows.
 
