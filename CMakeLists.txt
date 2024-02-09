@@ -385,7 +385,7 @@ endif()
 add_bare_module(sodium_native)
 
 target_sources(
-  sodium_native
+  ${sodium_native}
   PRIVATE
     binding.c
     macros.h
@@ -394,7 +394,7 @@ target_sources(
 )
 
 target_link_libraries(
-  sodium_native
+  ${sodium_native}
   PUBLIC
     sodium
 )
