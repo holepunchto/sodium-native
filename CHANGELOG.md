@@ -2,6 +2,9 @@
 
 ## Current
 
+## v4.0.8
+* Fix pkg.addon to be just the boolean.
+
 ## v4.0.7
 * Add pkg.addon.target to explicitly know the CMAKE target.
 
