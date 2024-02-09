@@ -18,9 +18,7 @@
     "vendor/libsodium/src/**/*.h.in",
     "vendor/libsodium/src/**/*.S"
   ],
-  "addon": {
-    "target": "sodium_native"
-  },
+  "addon": true,
   "dependencies": {
     "node-gyp-build": "^4.6.0"
   },
