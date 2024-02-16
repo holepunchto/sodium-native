@@ -2,6 +2,9 @@
 
 ## Current
 
+## v4.0.9
+* With CMAKE only link the objects.
+
 ## v4.0.8
 * Fix pkg.addon to be just the boolean.
 
