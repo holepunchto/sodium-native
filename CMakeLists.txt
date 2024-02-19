@@ -20,7 +20,7 @@ add_custom_command(
   VERBATIM
 )
 
-add_library(sodium OBJECT)
+add_library(sodium STATIC)
 
 target_sources(
   sodium
@@ -386,8 +386,6 @@ add_bare_module(sodium_native)
 
 target_sources(
   ${sodium_native}
-  PUBLIC
-    $<TARGET_OBJECTS:sodium>
   PRIVATE
     binding.c
     macros.h
