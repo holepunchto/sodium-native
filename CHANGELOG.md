@@ -2,6 +2,9 @@
 
 ## Current
 
+## v4.0.10
+* Revert back to a static build for CMAKE.
+
 ## v4.0.9
 * With CMAKE only link the objects.
 
