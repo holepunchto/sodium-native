@@ -3001,7 +3001,7 @@ typedef struct sn_async_pbkdf2_sha512_request {
   unsigned char *salt_data;
   size_t salt_size;
   uint64_t iter;
-  napi_ref cb;
+  napi_deferred deferred;
   int n;
 } sn_async_pbkdf2_sha512_request;
 
@@ -3020,17 +3020,14 @@ static void async_pbkdf2_sha512_complete (uv_work_t *uv_req, int status) {
   napi_get_global(req->env, &global);
 
   napi_value argv[1];
-  SN_ASYNC_CHECK_FOR_ERROR("failed to compute password hash")
+  SN_PROMISE_CHECK_FOR_ERROR("failed to compute kdf")
 
-  napi_value callback;
-  napi_get_reference_value(req->env, req->cb, &callback);
+  napi_resolve_deferred(req->env, req->deferred, argv[0]);
 
-  napi_value return_val;
-  SN_CALL_FUNCTION(req->env, global, callback, 1, argv, &return_val)
+  req->deferred = NULL;
 
   napi_close_handle_scope(req->env, scope);
 
-  napi_delete_reference(req->env, req->cb);
   napi_delete_reference(req->env, req->out_ref);
   napi_delete_reference(req->env, req->pwd_ref);
   napi_delete_reference(req->env, req->salt_ref);
@@ -3038,16 +3035,20 @@ static void async_pbkdf2_sha512_complete (uv_work_t *uv_req, int status) {
 }
 
 napi_value sn_module_pbkdf2_sha512_async (napi_env env, napi_callback_info info) {
-  SN_ARGV(6, module_pbkdf2_sha512_async)
+  SN_ARGV(5, module_pbkdf2_sha512_async)
 
   SN_ARGV_BUFFER_CAST(unsigned char *, out, 0)
   SN_ARGV_BUFFER_CAST(unsigned char *, pwd, 1)
   SN_ARGV_BUFFER_CAST(unsigned char *, salt, 2)
   SN_ARGV_UINT64(iter, 3)
   SN_ARGV_UINT64(outlen, 4)
-  napi_value cb = argv[5];
 
   SN_ASSERT_LENGTH(out_size, outlen, "output")
+
+  napi_deferred deferred;
+  napi_value promise;
+
+  napi_create_promise(env, &deferred, &promise);
 
   sn_async_pbkdf2_sha512_request *req = (sn_async_pbkdf2_sha512_request *) malloc(sizeof(sn_async_pbkdf2_sha512_request));
   req->env = env;
@@ -3059,15 +3060,15 @@ napi_value sn_module_pbkdf2_sha512_async (napi_env env, napi_callback_info info)
   req->salt_size = salt_size;
   req->iter = iter;
   req->outlen = outlen;
+  req->deferred = deferred;
 
-  SN_STATUS_THROWS(napi_create_reference(env, cb, 1, &req->cb), "")
   SN_STATUS_THROWS(napi_create_reference(env, out_argv, 1, &req->out_ref), "")
   SN_STATUS_THROWS(napi_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
   SN_STATUS_THROWS(napi_create_reference(env, salt_argv, 1, &req->salt_ref), "")
 
   SN_QUEUE_WORK(req, async_pbkdf2_sha512_execute, async_pbkdf2_sha512_complete)
 
-  return NULL;
+  return promise;
 }
 
 static napi_value create_sodium_native (napi_env env) {
