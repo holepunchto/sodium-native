@@ -4,6 +4,7 @@
 #include <sodium.h>
 #include "macros.h"
 #include "modules/crypto_tweak/tweak.h"
+#include "modules/pbkdf2/pbkdf2.h"
 
 static uint8_t typedarray_width (napi_typedarray_type type) {
   switch (type) {
@@ -2972,6 +2973,103 @@ napi_value sn_crypto_tweak_ed25519_keypair_add (napi_env env, napi_callback_info
   SN_RETURN(crypto_tweak_ed25519_keypair_add(pk_data, scalar_out_data, scalar_in_data, tweak_data), "failed to add tweak to keypair")
 }
 
+napi_value sn_module_pbkdf2_sha512 (napi_env env, napi_callback_info info) {
+  SN_ARGV(5, module_pbkdf2_sha512)
+
+  SN_ARGV_BUFFER_CAST(unsigned char *, out, 0)
+  SN_ARGV_BUFFER_CAST(unsigned char *, passwd, 1)
+  SN_ARGV_BUFFER_CAST(unsigned char *, salt, 2)
+  SN_ARGV_UINT64(iter, 3)
+  SN_ARGV_UINT64(length, 4)
+
+  SN_ASSERT_LENGTH(out_size, length, "output")
+
+  SN_RETURN(module_pbkdf2_sha512(passwd, passwd_size, salt, salt_size, iter, out, length), "failed to add tweak to public key")
+}
+
+typedef struct sn_async_pbkdf2_sha512_request {
+  uv_work_t task;
+  napi_env env;
+  napi_ref out_ref;
+  unsigned char *out_data;
+  size_t out_size;
+  size_t outlen;
+  napi_ref pwd_ref;
+  const unsigned char *pwd_data;
+  size_t pwd_size;
+  napi_ref salt_ref;
+  unsigned char *salt_data;
+  size_t salt_size;
+  uint64_t iter;
+  napi_ref cb;
+  int n;
+} sn_async_pbkdf2_sha512_request;
+
+static void async_pbkdf2_sha512_execute (uv_work_t *uv_req) {
+  sn_async_pbkdf2_sha512_request *req = (sn_async_pbkdf2_sha512_request *) uv_req;
+  req->n = module_pbkdf2_sha512(req->pwd_data, req->pwd_size, req->salt_data, req->salt_size, req->iter, req->out_data, req->outlen);
+}
+
+static void async_pbkdf2_sha512_complete (uv_work_t *uv_req, int status) {
+  sn_async_pbkdf2_sha512_request *req = (sn_async_pbkdf2_sha512_request *) uv_req;
+
+  napi_handle_scope scope;
+  napi_open_handle_scope(req->env, &scope);
+
+  napi_value global;
+  napi_get_global(req->env, &global);
+
+  napi_value argv[1];
+  SN_ASYNC_CHECK_FOR_ERROR("failed to compute password hash")
+
+  napi_value callback;
+  napi_get_reference_value(req->env, req->cb, &callback);
+
+  napi_value return_val;
+  SN_CALL_FUNCTION(req->env, global, callback, 1, argv, &return_val)
+
+  napi_close_handle_scope(req->env, scope);
+
+  napi_delete_reference(req->env, req->cb);
+  napi_delete_reference(req->env, req->out_ref);
+  napi_delete_reference(req->env, req->pwd_ref);
+  napi_delete_reference(req->env, req->salt_ref);
+  free(req);
+}
+
+napi_value sn_module_pbkdf2_sha512_async (napi_env env, napi_callback_info info) {
+  SN_ARGV(6, module_pbkdf2_sha512_async)
+
+  SN_ARGV_BUFFER_CAST(unsigned char *, out, 0)
+  SN_ARGV_BUFFER_CAST(unsigned char *, pwd, 1)
+  SN_ARGV_BUFFER_CAST(unsigned char *, salt, 2)
+  SN_ARGV_UINT64(iter, 3)
+  SN_ARGV_UINT64(outlen, 4)
+  napi_value cb = argv[5];
+
+  SN_ASSERT_LENGTH(out_size, outlen, "output")
+
+  sn_async_pbkdf2_sha512_request *req = (sn_async_pbkdf2_sha512_request *) malloc(sizeof(sn_async_pbkdf2_sha512_request));
+  req->env = env;
+  req->out_data = out;
+  req->out_size = out_size;
+  req->pwd_data = pwd;
+  req->pwd_size = pwd_size;
+  req->salt_data = salt;
+  req->salt_size = salt_size;
+  req->iter = iter;
+  req->outlen = outlen;
+
+  SN_STATUS_THROWS(napi_create_reference(env, cb, 1, &req->cb), "")
+  SN_STATUS_THROWS(napi_create_reference(env, out_argv, 1, &req->out_ref), "")
+  SN_STATUS_THROWS(napi_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
+  SN_STATUS_THROWS(napi_create_reference(env, salt_argv, 1, &req->salt_ref), "")
+
+  SN_QUEUE_WORK(req, async_pbkdf2_sha512_execute, async_pbkdf2_sha512_complete)
+
+  return NULL;
+}
+
 static napi_value create_sodium_native (napi_env env) {
   SN_THROWS(sodium_init() == -1, "sodium_init() failed")
 
@@ -3344,6 +3442,13 @@ static napi_value create_sodium_native (napi_env env) {
   SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519_keypair_add, sn_crypto_tweak_ed25519_keypair_add)
   SN_EXPORT_UINT32(experimental_crypto_tweak_ed25519_BYTES, crypto_tweak_ed25519_BYTES)
   SN_EXPORT_UINT32(experimental_crypto_tweak_ed25519_SCALARBYTES, crypto_tweak_ed25519_SCALARBYTES)
+
+  // modules
+
+  // pbkdf2
+
+  SN_EXPORT_FUNCTION(module_pbkdf2_sha512, sn_module_pbkdf2_sha512)
+  SN_EXPORT_FUNCTION(module_pbkdf2_sha512_async, sn_module_pbkdf2_sha512_async)
 
   return exports;
 }
