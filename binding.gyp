@@ -12,7 +12,7 @@
     ],
     'sources': [
       './binding.c',
-      './modules/crypto_tweak/tweak.c',
+      './modules/crypto_tweak/tweak.c'
     ],
     'configurations': {
       'Debug': {
