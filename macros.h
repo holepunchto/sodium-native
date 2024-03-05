@@ -282,6 +282,12 @@
     task->type = sn_async_task_callback; \
     promise = NULL; \
     napi_value cb = argv[cb_pos]; \
+    napi_valuetype type; \
+    SN_STATUS_THROWS(napi_typeof(env, cb, &type), "") \
+    if (type != napi_function) { \
+      napi_throw_error(env, "EINVAL", "Callback must be a function"); \
+      return NULL; \
+    } \
     SN_STATUS_THROWS(napi_create_reference(env, cb, 1, &task->cb), "") \
   } else { \
     task->type = sn_async_task_promise; \
