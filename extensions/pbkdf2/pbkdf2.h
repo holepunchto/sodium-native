@@ -42,5 +42,5 @@
  * Compute PBKDF2(passwd, salt, c, dkLen) using HMAC-SHA256 as the PRF, and
  * write the output to buf.  The value dkLen must be at most 32 * (2^32 - 1).
  */
-int module_pbkdf2_sha512(const unsigned char *, size_t, const unsigned char *, size_t,
+int extension_pbkdf2_sha512(const unsigned char *, size_t, const unsigned char *, size_t,
                            uint64_t, unsigned char *, size_t);

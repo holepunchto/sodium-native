@@ -12,8 +12,8 @@
     ],
     'sources': [
       './binding.c',
-      './modules/crypto_tweak/tweak.c',
-      './modules/pbkdf2/pbkdf2.c',
+      './extensions/tweak/tweak.c',
+      './extensions/pbkdf2/pbkdf2.c',
     ],
     'configurations': {
       'Debug': {
