@@ -2082,10 +2082,11 @@ static void async_pwhash_str_verify_complete (uv_work_t *uv_req, int status) {
   napi_get_boolean(req->env, task->code == 0, &argv[1]);
 
   switch (task->type) {
-  case sn_async_task_promise:
+  case sn_async_task_promise: {
     napi_resolve_deferred(req->env, task->deferred, argv[1]);
     task->deferred = NULL;
     break;
+  }
 
   case sn_async_task_callback: {
     napi_value callback;
@@ -2331,10 +2332,11 @@ static void async_pwhash_scryptsalsa208sha256_str_verify_complete (uv_work_t *uv
   napi_get_boolean(req->env, task->code == 0, &argv[1]);
 
   switch (task->type) {
-  case sn_async_task_promise:
+  case sn_async_task_promise: {
     napi_resolve_deferred(req->env, task->deferred, argv[1]);
     task->deferred = NULL;
     break;
+  }
 
   case sn_async_task_callback: {
     napi_value callback;

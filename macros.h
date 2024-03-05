@@ -286,7 +286,7 @@
 #define SN_ASYNC_COMPLETE(message) \
   napi_value argv[1]; \
   switch (task->type) { \
-  case sn_async_task_promise: \
+  case sn_async_task_promise: { \
     if (task->code == 0) { \
       napi_get_null(req->env, &argv[0]); \
       napi_resolve_deferred(req->env, task->deferred, argv[0]); \
@@ -298,7 +298,8 @@
     } \
     task->deferred = NULL; \
     break; \
-  case sn_async_task_callback: \
+  } \
+  case sn_async_task_callback: { \
     SN_CALLBACK_CHECK_FOR_ERROR(#message) \
     napi_value callback; \
     napi_get_reference_value(req->env, task->cb, &callback); \
@@ -307,4 +308,5 @@
     napi_close_handle_scope(req->env, scope); \
     napi_delete_reference(req->env, task->cb); \
     break; \
+  } \
   }
