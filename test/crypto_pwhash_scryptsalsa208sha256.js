@@ -214,3 +214,44 @@ test('crypto_pwhash_scryptsalsa208sha256_str_verify_async uncaughtException', fu
     }
   }
 })
+
+test('crypto_pwhash_scryptsalsa208sha256_async promise', async function (t) {
+  t.plan(4)
+
+  const output = Buffer.alloc(32) // can be any size
+  const passwd = Buffer.from('Hej, Verden!')
+  const salt = Buffer.alloc(sodium.crypto_pwhash_scryptsalsa208sha256_SALTBYTES, 'lo')
+  const opslimit = sodium.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE
+  const memlimit = sodium.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE
+
+  await t.execution(sodium.crypto_pwhash_scryptsalsa208sha256_async(output, passwd, salt, opslimit, memlimit))
+  t.alike(output.toString('hex'), 'c9d280362d495e494672e44a91b94b35bb295f62c823845dd19773ded5877c2b', 'hashes password')
+
+  salt[0] = 0
+
+  await t.execution(sodium.crypto_pwhash_scryptsalsa208sha256_async(output, passwd, salt, opslimit, memlimit))
+  t.alike(output.toString('hex'), '3831bd383708c7aff661ab4f990b116c7287bafde9abd02db3174631c97042e6', 'diff salt -> diff hash')
+})
+
+test('crypto_pwhash_scryptsalsa208sha256_str_async promise', async function (t) {
+  t.plan(6)
+
+  const output = Buffer.alloc(sodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES)
+  const passwd = Buffer.from('Hej, Verden!')
+  const opslimit = sodium.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE
+  const memlimit = sodium.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE
+
+  await t.exception.all(() => sodium.crypto_pwhash_scryptsalsa208sha256_str_async(output, passwd),
+    'should throw on missing args')
+
+  await sodium.crypto_pwhash_scryptsalsa208sha256_str_async(output, passwd, opslimit, memlimit)
+  t.not(output, Buffer.alloc(output.length), 'not blank')
+
+  let p = await sodium.crypto_pwhash_scryptsalsa208sha256_str_verify_async(Buffer.alloc(output.length), passwd)
+  await t.execution(p)
+  t.ok(p === false, 'does not verify')
+
+  p = await sodium.crypto_pwhash_scryptsalsa208sha256_str_verify_async(output, passwd)
+  await t.execution(p)
+  t.ok(p === true, 'verifies')
+})
