@@ -88,19 +88,13 @@
 
 #define SN_EXPORT_UINT64(name, num) \
   { \
-    napi_value name##_num; \
-    if (num < 0 || 0x1fffffffffffff < num) { \
-      napi_throw_error(env, NULL, "exported invalid uint64"); \
+    if (num < 0) { \
+      napi_throw_error(env, "EINVAL", "exported value is signed"); \
       return NULL; \
     } \
-    SN_STATUS_THROWS(napi_create_int64(env, (uint64_t) num, &name##_num), "") \
-    SN_STATUS_THROWS(napi_set_named_property(env, exports, #name, name##_num), "") \
-  }
-
-#define SN_EXPORT_BIGINT_UINT64(name, num) \
-  { \
     napi_value name##_num; \
-    SN_STATUS_THROWS(napi_create_bigint_uint64(env, (uint64_t) num, &name##_num), "") \
+    uint64_t max = 0x1fffffffffffffULL; \
+    SN_STATUS_THROWS(napi_create_int64(env, (uint64_t) (max < num ? max : num), &name##_num), "") \
     SN_STATUS_THROWS(napi_set_named_property(env, exports, #name, name##_num), "") \
   }
 

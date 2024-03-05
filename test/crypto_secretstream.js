@@ -5,7 +5,7 @@ test('constants', function (t) {
   t.alike(typeof sodium.crypto_secretstream_xchacha20poly1305_ABYTES, 'number', 'crypto_secretstream_xchacha20poly1305_ABYTES is number')
   t.alike(typeof sodium.crypto_secretstream_xchacha20poly1305_HEADERBYTES, 'number', 'crypto_secretstream_xchacha20poly1305_HEADERBYTES is number')
   t.alike(typeof sodium.crypto_secretstream_xchacha20poly1305_KEYBYTES, 'number', 'crypto_secretstream_xchacha20poly1305_KEYBYTES is number')
-  t.alike(typeof sodium.crypto_secretstream_xchacha20poly1305_MESSAGEBYTES_MAX, 'bigint', 'crypto_secretstream_xchacha20poly1305_MESSAGEBYTES_MAX is number')
+  t.alike(typeof sodium.crypto_secretstream_xchacha20poly1305_MESSAGEBYTES_MAX, 'number', 'crypto_secretstream_xchacha20poly1305_MESSAGEBYTES_MAX is number')
 
   t.ok(typeof sodium.crypto_secretstream_xchacha20poly1305_TAG_MESSAGE === 'number', 'crypto_secretstream_xchacha20poly1305_TAG_MESSAGE is Buffer')
   t.ok(typeof sodium.crypto_secretstream_xchacha20poly1305_TAG_PUSH === 'number', 'crypto_secretstream_xchacha20poly1305_TAG_PUSH is Buffer')
