@@ -52,7 +52,7 @@ extension_pbkdf2_sha512(const unsigned char *passwd, size_t passwdlen,
     int                          k;
     size_t                       clen;
 
-    if (dkLen > 0x1fffffffe0ULL) {
+    if (dkLen > extension_pbkdf2_sha512_BYTES_MAX) {
         return -1;
     }
 

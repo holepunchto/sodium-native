@@ -8,13 +8,7 @@ test('basic', async t => {
 
   const output = Buffer.alloc(256)
 
-  await sodium.extension_pbkdf2_sha512(
-    output,
-    password,
-    salt,
-    1000,
-    256
-  )
+  await sodium.extension_pbkdf2_sha512(output, password, salt, 1000, 256)
 
   t.unlike(output, Buffer.alloc(256))
 
@@ -24,6 +18,25 @@ test('basic', async t => {
   } catch (e) {
     t.pass()
   }
+
+  try {
+    // output is too small
+    const small = output.subarray(2)
+    sodium.extension_pbkdf2_sha512(small, password, salt, 1000, 256)
+    t.fail()
+  } catch (e) {
+    t.pass()
+  }
+
+  const big = Buffer.alloc(300)
+  sodium.extension_pbkdf2_sha512(big, password, salt, 1000, 256)
+
+  t.alike(big.subarray(0, 256), output)
+
+  t.is(sodium.extension_pbkdf2_sha512_SALTBYTES, 16)
+  t.is(sodium.extension_pbkdf2_sha512_HASHBYTES, 64)
+  t.is(sodium.extension_pbkdf2_sha512_ITERATIONS_MIN, 1)
+  t.is(sodium.extension_pbkdf2_sha512_BYTES_MAX, 0x3fffffffc0)
 })
 
 test('vectors', { timeout: 0 }, async t => {

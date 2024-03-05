@@ -29,7 +29,7 @@
  * Adapated from libsodium/crypto_pwhash/scryptsalsa208sha256/pbkdf-sha256.c
  */
 
-#include "sodium.h"
+#include <sodium.h>
 
 #define SN_PBKDF2_STORE32_BE(buf, n32) \
   buf[0] = n32 >> 24 & 0xff; \
@@ -37,8 +37,16 @@
   buf[2] = n32 >> 8 & 0xff; \
   buf[3] = n32 >> 0 & 0xff;
 
+#define extension_pbkdf2_sha512_SALTBYTES 16U
+
+#define extension_pbkdf2_sha512_HASHBYTES crypto_hash_sha512_BYTES
+
+#define extension_pbkdf2_sha512_ITERATIONS_MIN 1U
+
+#define extension_pbkdf2_sha512_BYTES_MAX 0x3fffffffc0ULL
+
 /**
- * escrypt_PBKDF2_SHA256(passwd, passwdlen, salt, saltlen, c, buf, dkLen):
+ * extension_pbkdf2_sha512(passwd, passwdlen, salt, saltlen, c, buf, dkLen):
  * Compute PBKDF2(passwd, salt, c, dkLen) using HMAC-SHA256 as the PRF, and
  * write the output to buf.  The value dkLen must be at most 32 * (2^32 - 1).
  */

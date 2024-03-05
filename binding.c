@@ -2980,11 +2980,14 @@ napi_value sn_extension_pbkdf2_sha512 (napi_env env, napi_callback_info info) {
   SN_ARGV_BUFFER_CAST(unsigned char *, passwd, 1)
   SN_ARGV_BUFFER_CAST(unsigned char *, salt, 2)
   SN_ARGV_UINT64(iter, 3)
-  SN_ARGV_UINT64(length, 4)
+  SN_ARGV_UINT64(outlen, 4)
 
-  SN_ASSERT_LENGTH(out_size, length, "output")
+  SN_ASSERT_MIN_LENGTH(iter, extension_pbkdf2_sha512_ITERATIONS_MIN, "iterations")
+  SN_ASSERT_MAX_LENGTH(outlen, extension_pbkdf2_sha512_BYTES_MAX, "outlen")
 
-  SN_RETURN(extension_pbkdf2_sha512(passwd, passwd_size, salt, salt_size, iter, out, length), "failed to add tweak to public key")
+  SN_ASSERT_MIN_LENGTH(out_size, outlen, "out")
+
+  SN_RETURN(extension_pbkdf2_sha512(passwd, passwd_size, salt, salt_size, iter, out, outlen), "failed to add tweak to public key")
 }
 
 typedef struct sn_async_pbkdf2_sha512_request {
@@ -3045,7 +3048,9 @@ napi_value sn_extension_pbkdf2_sha512_async (napi_env env, napi_callback_info in
   SN_ARGV_UINT64(iter, 3)
   SN_ARGV_UINT64(outlen, 4)
 
-  SN_ASSERT_LENGTH(out_size, outlen, "output")
+  SN_ASSERT_MIN_LENGTH(iter, extension_pbkdf2_sha512_ITERATIONS_MIN, "iterations")
+  SN_ASSERT_MAX_LENGTH(outlen, extension_pbkdf2_sha512_BYTES_MAX, "outlen")
+  SN_ASSERT_MIN_LENGTH(out_size, outlen, "output")
 
   sn_async_pbkdf2_sha512_request *req = (sn_async_pbkdf2_sha512_request *) malloc(sizeof(sn_async_pbkdf2_sha512_request));
 
@@ -3118,7 +3123,7 @@ static napi_value create_sodium_native (napi_env env) {
   SN_EXPORT_UINT32(crypto_aead_xchacha20poly1305_ietf_KEYBYTES, crypto_aead_xchacha20poly1305_ietf_KEYBYTES)
   SN_EXPORT_UINT32(crypto_aead_xchacha20poly1305_ietf_NPUBBYTES, crypto_aead_xchacha20poly1305_ietf_NPUBBYTES)
   SN_EXPORT_UINT32(crypto_aead_xchacha20poly1305_ietf_NSECBYTES, crypto_aead_xchacha20poly1305_ietf_NSECBYTES)
-  SN_EXPORT_UINT64(crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX, crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX)
+  SN_EXPORT_BIGINT_UINT64(crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX, crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX)
 
   SN_EXPORT_FUNCTION(crypto_aead_chacha20poly1305_ietf_keygen, sn_crypto_aead_chacha20poly1305_ietf_keygen)
   SN_EXPORT_FUNCTION(crypto_aead_chacha20poly1305_ietf_encrypt, sn_crypto_aead_chacha20poly1305_ietf_encrypt)
@@ -3129,7 +3134,7 @@ static napi_value create_sodium_native (napi_env env) {
   SN_EXPORT_UINT32(crypto_aead_chacha20poly1305_ietf_KEYBYTES, crypto_aead_chacha20poly1305_ietf_KEYBYTES)
   SN_EXPORT_UINT32(crypto_aead_chacha20poly1305_ietf_NPUBBYTES, crypto_aead_chacha20poly1305_ietf_NPUBBYTES)
   SN_EXPORT_UINT32(crypto_aead_chacha20poly1305_ietf_NSECBYTES, crypto_aead_chacha20poly1305_ietf_NSECBYTES)
-  SN_EXPORT_UINT64(crypto_aead_chacha20poly1305_ietf_MESSAGEBYTES_MAX, crypto_aead_chacha20poly1305_ietf_MESSAGEBYTES_MAX)
+  SN_EXPORT_BIGINT_UINT64(crypto_aead_chacha20poly1305_ietf_MESSAGEBYTES_MAX, crypto_aead_chacha20poly1305_ietf_MESSAGEBYTES_MAX)
 
   // crypto_auth
 
@@ -3339,7 +3344,7 @@ static napi_value create_sodium_native (napi_env env) {
   SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_HEADERBYTES, crypto_secretstream_xchacha20poly1305_HEADERBYTES)
   SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_KEYBYTES, crypto_secretstream_xchacha20poly1305_KEYBYTES)
   SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_TAGBYTES, 1)
-  SN_EXPORT_UINT64(crypto_secretstream_xchacha20poly1305_MESSAGEBYTES_MAX, crypto_secretstream_xchacha20poly1305_MESSAGEBYTES_MAX)
+  SN_EXPORT_BIGINT_UINT64(crypto_secretstream_xchacha20poly1305_MESSAGEBYTES_MAX, crypto_secretstream_xchacha20poly1305_MESSAGEBYTES_MAX)
   SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_TAG_MESSAGE, crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
   SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_TAG_PUSH, crypto_secretstream_xchacha20poly1305_TAG_PUSH)
   SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_TAG_REKEY, crypto_secretstream_xchacha20poly1305_TAG_REKEY)
@@ -3384,7 +3389,7 @@ static napi_value create_sodium_native (napi_env env) {
   SN_EXPORT_FUNCTION(crypto_stream_chacha20, sn_crypto_stream_chacha20)
   SN_EXPORT_UINT32(crypto_stream_chacha20_KEYBYTES, crypto_stream_chacha20_KEYBYTES)
   SN_EXPORT_UINT32(crypto_stream_chacha20_NONCEBYTES, crypto_stream_chacha20_NONCEBYTES)
-  SN_EXPORT_UINT64(crypto_stream_chacha20_MESSAGEBYTES_MAX, crypto_stream_chacha20_MESSAGEBYTES_MAX)
+  SN_EXPORT_BIGINT_UINT64(crypto_stream_chacha20_MESSAGEBYTES_MAX, crypto_stream_chacha20_MESSAGEBYTES_MAX)
 
   SN_EXPORT_FUNCTION(crypto_stream_chacha20_xor, sn_crypto_stream_chacha20_xor)
   SN_EXPORT_FUNCTION(crypto_stream_chacha20_xor_ic, sn_crypto_stream_chacha20_xor_ic)
@@ -3396,7 +3401,7 @@ static napi_value create_sodium_native (napi_env env) {
   SN_EXPORT_FUNCTION(crypto_stream_chacha20_ietf, sn_crypto_stream_chacha20_ietf)
   SN_EXPORT_UINT32(crypto_stream_chacha20_ietf_KEYBYTES, crypto_stream_chacha20_ietf_KEYBYTES)
   SN_EXPORT_UINT32(crypto_stream_chacha20_ietf_NONCEBYTES, crypto_stream_chacha20_ietf_NONCEBYTES)
-  SN_EXPORT_UINT64(crypto_stream_chacha20_ietf_MESSAGEBYTES_MAX, crypto_stream_chacha20_ietf_MESSAGEBYTES_MAX)
+  SN_EXPORT_BIGINT_UINT64(crypto_stream_chacha20_ietf_MESSAGEBYTES_MAX, crypto_stream_chacha20_ietf_MESSAGEBYTES_MAX)
   SN_EXPORT_UINT32(crypto_stream_chacha20_ietf_xor_STATEBYTES, sizeof(sn_crypto_stream_chacha20_ietf_xor_state))
 
   SN_EXPORT_FUNCTION(crypto_stream_chacha20_ietf_xor, sn_crypto_stream_chacha20_ietf_xor)
@@ -3408,7 +3413,7 @@ static napi_value create_sodium_native (napi_env env) {
   SN_EXPORT_FUNCTION(crypto_stream_xchacha20, sn_crypto_stream_xchacha20)
   SN_EXPORT_UINT32(crypto_stream_xchacha20_KEYBYTES, crypto_stream_xchacha20_KEYBYTES)
   SN_EXPORT_UINT32(crypto_stream_xchacha20_NONCEBYTES, crypto_stream_xchacha20_NONCEBYTES)
-  SN_EXPORT_UINT64(crypto_stream_xchacha20_MESSAGEBYTES_MAX, crypto_stream_xchacha20_MESSAGEBYTES_MAX)
+  SN_EXPORT_BIGINT_UINT64(crypto_stream_xchacha20_MESSAGEBYTES_MAX, crypto_stream_xchacha20_MESSAGEBYTES_MAX)
 
   SN_EXPORT_FUNCTION(crypto_stream_xchacha20_xor, sn_crypto_stream_xchacha20_xor)
   SN_EXPORT_FUNCTION(crypto_stream_xchacha20_xor_ic, sn_crypto_stream_xchacha20_xor_ic)
@@ -3421,7 +3426,7 @@ static napi_value create_sodium_native (napi_env env) {
   SN_EXPORT_FUNCTION(crypto_stream_salsa20, sn_crypto_stream_salsa20)
   SN_EXPORT_UINT32(crypto_stream_salsa20_KEYBYTES, crypto_stream_salsa20_KEYBYTES)
   SN_EXPORT_UINT32(crypto_stream_salsa20_NONCEBYTES, crypto_stream_salsa20_NONCEBYTES)
-  SN_EXPORT_UINT64(crypto_stream_salsa20_MESSAGEBYTES_MAX, crypto_stream_salsa20_MESSAGEBYTES_MAX)
+  SN_EXPORT_BIGINT_UINT64(crypto_stream_salsa20_MESSAGEBYTES_MAX, crypto_stream_salsa20_MESSAGEBYTES_MAX)
 
   SN_EXPORT_FUNCTION(crypto_stream_salsa20_xor, sn_crypto_stream_salsa20_xor)
   SN_EXPORT_FUNCTION(crypto_stream_salsa20_xor_ic, sn_crypto_stream_salsa20_xor_ic)
@@ -3450,6 +3455,10 @@ static napi_value create_sodium_native (napi_env env) {
 
   SN_EXPORT_FUNCTION(extension_pbkdf2_sha512, sn_extension_pbkdf2_sha512)
   SN_EXPORT_FUNCTION(extension_pbkdf2_sha512_async, sn_extension_pbkdf2_sha512_async)
+  SN_EXPORT_UINT32(extension_pbkdf2_sha512_SALTBYTES, extension_pbkdf2_sha512_SALTBYTES)
+  SN_EXPORT_UINT32(extension_pbkdf2_sha512_HASHBYTES, extension_pbkdf2_sha512_HASHBYTES)
+  SN_EXPORT_UINT32(extension_pbkdf2_sha512_ITERATIONS_MIN, extension_pbkdf2_sha512_ITERATIONS_MIN)
+  SN_EXPORT_UINT64(extension_pbkdf2_sha512_BYTES_MAX, extension_pbkdf2_sha512_BYTES_MAX)
 
   return exports;
 }
