@@ -1895,7 +1895,14 @@ typedef struct sn_async_pwhash_request {
 static void async_pwhash_execute (uv_work_t *uv_req) {
   sn_async_task_t *task = (sn_async_task_t *) uv_req;
   sn_async_pwhash_request *req = (sn_async_pwhash_request *) task->req;
-  task->code = crypto_pwhash(req->out_data, req->out_size, req->pwd_data, req->pwd_size, req->salt, req->opslimit, req->memlimit, req->alg);
+  task->code = crypto_pwhash(req->out_data,
+                             req->out_size,
+                             req->pwd_data,
+                             req->pwd_size,
+                             req->salt,
+                             req->opslimit,
+                             req->memlimit,
+                             req->alg);
 }
 
 static void async_pwhash_complete (uv_work_t *uv_req, int status) {
@@ -1978,7 +1985,11 @@ typedef struct sn_async_pwhash_str_request {
 static void async_pwhash_str_execute (uv_work_t *uv_req) {
   sn_async_task_t *task = (sn_async_task_t *) uv_req;
   sn_async_pwhash_str_request *req = (sn_async_pwhash_str_request *) task->req;
-  task->code = crypto_pwhash_str(req->out_data, req->pwd_data, req->pwd_size, req->opslimit, req->memlimit);
+  task->code = crypto_pwhash_str(req->out_data,
+                                 req->pwd_data,
+                                 req->pwd_size,
+                                 req->opslimit,
+                                 req->memlimit);
 }
 
 static void async_pwhash_str_complete (uv_work_t *uv_req, int status) {
@@ -2138,7 +2149,13 @@ typedef struct sn_async_pwhash_scryptsalsa208sha256_request {
 static void async_pwhash_scryptsalsa208sha256_execute (uv_work_t *uv_req) {
   sn_async_task_t *task = (sn_async_task_t *) uv_req;
   sn_async_pwhash_scryptsalsa208sha256_request *req = (sn_async_pwhash_scryptsalsa208sha256_request *) task->req;
-  task->code = crypto_pwhash_scryptsalsa208sha256(req->out_data, req->out_size, req-> pwd_data, req->pwd_size, req->salt, req->opslimit, req->memlimit);
+  task->code = crypto_pwhash_scryptsalsa208sha256(req->out_data,
+                                                  req->out_size,
+                                                  req-> pwd_data,
+                                                  req->pwd_size,
+                                                  req->salt,
+                                                  req->opslimit,
+                                                  req->memlimit);
 }
 
 static void async_pwhash_scryptsalsa208sha256_complete (uv_work_t *uv_req, int status) {
@@ -2217,7 +2234,11 @@ typedef struct sn_async_pwhash_scryptsalsa208sha256_str_request {
 static void async_pwhash_scryptsalsa208sha256_str_execute (uv_work_t *uv_req) {
   sn_async_task_t *task = (sn_async_task_t *) uv_req;
   sn_async_pwhash_scryptsalsa208sha256_str_request *req = (sn_async_pwhash_scryptsalsa208sha256_str_request *) task->req;
-  task->code = crypto_pwhash_scryptsalsa208sha256_str(req->out_data, req->pwd_data, req->pwd_size, req->opslimit, req->memlimit);
+  task->code = crypto_pwhash_scryptsalsa208sha256_str(req->out_data,
+                                                      req->pwd_data,
+                                                      req->pwd_size,
+                                                      req->opslimit,
+                                                      req->memlimit);
 }
 
 static void async_pwhash_scryptsalsa208sha256_str_complete (uv_work_t *uv_req, int status) {
