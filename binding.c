@@ -2988,11 +2988,10 @@ napi_value sn_module_pbkdf2_sha512 (napi_env env, napi_callback_info info) {
 }
 
 typedef struct sn_async_pbkdf2_sha512_request {
-  uv_work_t task;
   napi_env env;
-  napi_ref out_ref;
   unsigned char *out_data;
   size_t out_size;
+  napi_ref out_ref;
   size_t outlen;
   napi_ref pwd_ref;
   const unsigned char *pwd_data;
@@ -3001,17 +3000,23 @@ typedef struct sn_async_pbkdf2_sha512_request {
   unsigned char *salt_data;
   size_t salt_size;
   uint64_t iter;
-  napi_deferred deferred;
-  int n;
 } sn_async_pbkdf2_sha512_request;
 
 static void async_pbkdf2_sha512_execute (uv_work_t *uv_req) {
-  sn_async_pbkdf2_sha512_request *req = (sn_async_pbkdf2_sha512_request *) uv_req;
-  req->n = module_pbkdf2_sha512(req->pwd_data, req->pwd_size, req->salt_data, req->salt_size, req->iter, req->out_data, req->outlen);
+  sn_async_task_t *task = (sn_async_task_t *) uv_req;
+  sn_async_pbkdf2_sha512_request *req = (sn_async_pbkdf2_sha512_request *) task->req;
+  task->code = module_pbkdf2_sha512(req->pwd_data,
+                                    req->pwd_size,
+                                    req->salt_data,
+                                    req->salt_size,
+                                    req->iter,
+                                    req->out_data,
+                                    req->outlen);
 }
 
 static void async_pbkdf2_sha512_complete (uv_work_t *uv_req, int status) {
-  sn_async_pbkdf2_sha512_request *req = (sn_async_pbkdf2_sha512_request *) uv_req;
+  sn_async_task_t *task = (sn_async_task_t *) uv_req;
+  sn_async_pbkdf2_sha512_request *req = (sn_async_pbkdf2_sha512_request *) task->req;
 
   napi_handle_scope scope;
   napi_open_handle_scope(req->env, &scope);
@@ -3019,12 +3024,7 @@ static void async_pbkdf2_sha512_complete (uv_work_t *uv_req, int status) {
   napi_value global;
   napi_get_global(req->env, &global);
 
-  napi_value argv[1];
-  SN_PROMISE_CHECK_FOR_ERROR("failed to compute kdf")
-
-  napi_resolve_deferred(req->env, req->deferred, argv[0]);
-
-  req->deferred = NULL;
+  SN_ASYNC_COMPLETE("failed to compute kdf")
 
   napi_close_handle_scope(req->env, scope);
 
@@ -3037,7 +3037,7 @@ static void async_pbkdf2_sha512_complete (uv_work_t *uv_req, int status) {
 }
 
 napi_value sn_module_pbkdf2_sha512_async (napi_env env, napi_callback_info info) {
-  SN_ARGV(5, module_pbkdf2_sha512_async)
+  SN_ARGV_OPTS(5, 6, module_pbkdf2_sha512_async)
 
   SN_ARGV_BUFFER_CAST(unsigned char *, out, 0)
   SN_ARGV_BUFFER_CAST(unsigned char *, pwd, 1)
@@ -3047,12 +3047,8 @@ napi_value sn_module_pbkdf2_sha512_async (napi_env env, napi_callback_info info)
 
   SN_ASSERT_LENGTH(out_size, outlen, "output")
 
-  napi_deferred deferred;
-  napi_value promise;
-
-  napi_create_promise(env, &deferred, &promise);
-
   sn_async_pbkdf2_sha512_request *req = (sn_async_pbkdf2_sha512_request *) malloc(sizeof(sn_async_pbkdf2_sha512_request));
+
   req->env = env;
   req->out_data = out;
   req->out_size = out_size;
@@ -3062,13 +3058,15 @@ napi_value sn_module_pbkdf2_sha512_async (napi_env env, napi_callback_info info)
   req->salt_size = salt_size;
   req->iter = iter;
   req->outlen = outlen;
-  req->deferred = deferred;
+
+  sn_async_task_t *task = (sn_async_task_t *) malloc(sizeof(sn_async_task_t));
+  SN_ASYNC_TASK(5);
 
   SN_STATUS_THROWS(napi_create_reference(env, out_argv, 1, &req->out_ref), "")
   SN_STATUS_THROWS(napi_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
   SN_STATUS_THROWS(napi_create_reference(env, salt_argv, 1, &req->salt_ref), "")
 
-  SN_QUEUE_WORK(req, async_pbkdf2_sha512_execute, async_pbkdf2_sha512_complete)
+  SN_QUEUE_TASK(task, async_pbkdf2_sha512_execute, async_pbkdf2_sha512_complete)
 
   return promise;
 }
