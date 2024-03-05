@@ -2842,10 +2842,10 @@ napi_value sn_extension_tweak_ed25519_base (napi_env env, napi_callback_info inf
   SN_ARGV_TYPEDARRAY(p, 1)
   SN_ARGV_TYPEDARRAY(ns, 2)
 
-  SN_ASSERT_LENGTH(n_size, extension_tweak_ed25519_SCALARBYTES, "n")
-  SN_ASSERT_LENGTH(p_size, extension_tweak_ed25519_BYTES, "p")
+  SN_ASSERT_LENGTH(n_size, sn__extension_tweak_ed25519_SCALARBYTES, "n")
+  SN_ASSERT_LENGTH(p_size, sn__extension_tweak_ed25519_BYTES, "p")
 
-  extension_tweak_ed25519_base(p_data, n_data, ns_data, ns_size);
+  sn__extension_tweak_ed25519_base(p_data, n_data, ns_data, ns_size);
 
   return NULL;
 }
@@ -2859,13 +2859,13 @@ napi_value sn_extension_tweak_ed25519_sign_detached (napi_env env, napi_callback
   SN_ARGV_OPTS_TYPEDARRAY(pk, 3)
 
   SN_ASSERT_LENGTH(sig_size, crypto_sign_BYTES, "sig")
-  SN_ASSERT_LENGTH(scalar_size, extension_tweak_ed25519_SCALARBYTES, "scalar")
+  SN_ASSERT_LENGTH(scalar_size, sn__extension_tweak_ed25519_SCALARBYTES, "scalar")
 
   if (pk_data != NULL) {
     SN_ASSERT_LENGTH(pk_size, crypto_sign_PUBLICKEYBYTES, "pk")
   }
 
-  SN_RETURN(extension_tweak_ed25519_sign_detached(sig_data, NULL, m_data, m_size, scalar_data, pk_data), "failed to compute signature")
+  SN_RETURN(sn__extension_tweak_ed25519_sign_detached(sig_data, NULL, m_data, m_size, scalar_data, pk_data), "failed to compute signature")
 }
 
 napi_value sn_extension_tweak_ed25519_sk_to_scalar (napi_env env, napi_callback_info info) {
@@ -2874,10 +2874,10 @@ napi_value sn_extension_tweak_ed25519_sk_to_scalar (napi_env env, napi_callback_
   SN_ARGV_TYPEDARRAY(n, 0)
   SN_ARGV_TYPEDARRAY(sk, 1)
 
-  SN_ASSERT_LENGTH(n_size, extension_tweak_ed25519_SCALARBYTES, "n")
+  SN_ASSERT_LENGTH(n_size, sn__extension_tweak_ed25519_SCALARBYTES, "n")
   SN_ASSERT_LENGTH(sk_size, crypto_sign_SECRETKEYBYTES, "sk")
 
-  extension_tweak_ed25519_sk_to_scalar(n_data, sk_data);
+  sn__extension_tweak_ed25519_sk_to_scalar(n_data, sk_data);
 
   return NULL;
 }
@@ -2889,10 +2889,10 @@ napi_value sn_extension_tweak_ed25519_scalar (napi_env env, napi_callback_info i
   SN_ARGV_TYPEDARRAY(scalar, 1)
   SN_ARGV_TYPEDARRAY(ns, 2)
 
-  SN_ASSERT_LENGTH(scalar_out_size, extension_tweak_ed25519_SCALARBYTES, "scalar_out")
-  SN_ASSERT_LENGTH(scalar_size, extension_tweak_ed25519_SCALARBYTES, "scalar")
+  SN_ASSERT_LENGTH(scalar_out_size, sn__extension_tweak_ed25519_SCALARBYTES, "scalar_out")
+  SN_ASSERT_LENGTH(scalar_size, sn__extension_tweak_ed25519_SCALARBYTES, "scalar")
 
-  extension_tweak_ed25519_scalar(scalar_out_data, scalar_data, ns_data, ns_size);
+  sn__extension_tweak_ed25519_scalar(scalar_out_data, scalar_data, ns_data, ns_size);
 
   return NULL;
 }
@@ -2907,7 +2907,7 @@ napi_value sn_extension_tweak_ed25519_pk (napi_env env, napi_callback_info info)
   SN_ASSERT_LENGTH(tpk_size, crypto_sign_PUBLICKEYBYTES, "tpk")
   SN_ASSERT_LENGTH(pk_size, crypto_sign_PUBLICKEYBYTES, "pk")
 
-  SN_RETURN(extension_tweak_ed25519_pk(tpk_data, pk_data, ns_data, ns_size), "failed to tweak public key")
+  SN_RETURN(sn__extension_tweak_ed25519_pk(tpk_data, pk_data, ns_data, ns_size), "failed to tweak public key")
 }
 
 napi_value sn_extension_tweak_ed25519_keypair (napi_env env, napi_callback_info info) {
@@ -2918,11 +2918,11 @@ napi_value sn_extension_tweak_ed25519_keypair (napi_env env, napi_callback_info 
   SN_ARGV_TYPEDARRAY(scalar_in, 2)
   SN_ARGV_TYPEDARRAY(ns, 3)
 
-  SN_ASSERT_LENGTH(pk_size, extension_tweak_ed25519_BYTES, "pk")
-  SN_ASSERT_LENGTH(scalar_out_size, extension_tweak_ed25519_SCALARBYTES, "scalar_out")
-  SN_ASSERT_LENGTH(scalar_in_size, extension_tweak_ed25519_SCALARBYTES, "scalar_in")
+  SN_ASSERT_LENGTH(pk_size, sn__extension_tweak_ed25519_BYTES, "pk")
+  SN_ASSERT_LENGTH(scalar_out_size, sn__extension_tweak_ed25519_SCALARBYTES, "scalar_out")
+  SN_ASSERT_LENGTH(scalar_in_size, sn__extension_tweak_ed25519_SCALARBYTES, "scalar_in")
 
-  extension_tweak_ed25519_keypair(pk_data, scalar_out_data, scalar_in_data, ns_data, ns_size);
+  sn__extension_tweak_ed25519_keypair(pk_data, scalar_out_data, scalar_in_data, ns_data, ns_size);
 
   return NULL;
 }
@@ -2934,11 +2934,11 @@ napi_value sn_extension_tweak_ed25519_scalar_add (napi_env env, napi_callback_in
   SN_ARGV_TYPEDARRAY(scalar, 1)
   SN_ARGV_TYPEDARRAY(n, 2)
 
-  SN_ASSERT_LENGTH(scalar_out_size, extension_tweak_ed25519_SCALARBYTES, "scalar_out")
-  SN_ASSERT_LENGTH(scalar_size, extension_tweak_ed25519_SCALARBYTES, "scalar")
-  SN_ASSERT_LENGTH(n_size, extension_tweak_ed25519_SCALARBYTES, "n")
+  SN_ASSERT_LENGTH(scalar_out_size, sn__extension_tweak_ed25519_SCALARBYTES, "scalar_out")
+  SN_ASSERT_LENGTH(scalar_size, sn__extension_tweak_ed25519_SCALARBYTES, "scalar")
+  SN_ASSERT_LENGTH(n_size, sn__extension_tweak_ed25519_SCALARBYTES, "n")
 
-  extension_tweak_ed25519_scalar_add(scalar_out_data, scalar_data, n_data);
+  sn__extension_tweak_ed25519_scalar_add(scalar_out_data, scalar_data, n_data);
 
   return NULL;
 }
@@ -2954,7 +2954,7 @@ napi_value sn_extension_tweak_ed25519_pk_add (napi_env env, napi_callback_info i
   SN_ASSERT_LENGTH(pk_size, crypto_sign_PUBLICKEYBYTES, "pk")
   SN_ASSERT_LENGTH(p_size, crypto_sign_PUBLICKEYBYTES, "p")
 
-  SN_RETURN(extension_tweak_ed25519_pk_add(tpk_data, pk_data, p_data), "failed to add tweak to public key")
+  SN_RETURN(sn__extension_tweak_ed25519_pk_add(tpk_data, pk_data, p_data), "failed to add tweak to public key")
 }
 
 napi_value sn_extension_tweak_ed25519_keypair_add (napi_env env, napi_callback_info info) {
@@ -2965,12 +2965,12 @@ napi_value sn_extension_tweak_ed25519_keypair_add (napi_env env, napi_callback_i
   SN_ARGV_TYPEDARRAY(scalar_in, 2)
   SN_ARGV_TYPEDARRAY(tweak, 3)
 
-  SN_ASSERT_LENGTH(pk_size, extension_tweak_ed25519_BYTES, "pk")
-  SN_ASSERT_LENGTH(scalar_out_size, extension_tweak_ed25519_SCALARBYTES, "scalar_out")
-  SN_ASSERT_LENGTH(scalar_in_size, extension_tweak_ed25519_SCALARBYTES, "scalar_in")
-  SN_ASSERT_LENGTH(tweak_size, extension_tweak_ed25519_SCALARBYTES, "tweak")
+  SN_ASSERT_LENGTH(pk_size, sn__extension_tweak_ed25519_BYTES, "pk")
+  SN_ASSERT_LENGTH(scalar_out_size, sn__extension_tweak_ed25519_SCALARBYTES, "scalar_out")
+  SN_ASSERT_LENGTH(scalar_in_size, sn__extension_tweak_ed25519_SCALARBYTES, "scalar_in")
+  SN_ASSERT_LENGTH(tweak_size, sn__extension_tweak_ed25519_SCALARBYTES, "tweak")
 
-  SN_RETURN(extension_tweak_ed25519_keypair_add(pk_data, scalar_out_data, scalar_in_data, tweak_data), "failed to add tweak to keypair")
+  SN_RETURN(sn__extension_tweak_ed25519_keypair_add(pk_data, scalar_out_data, scalar_in_data, tweak_data), "failed to add tweak to keypair")
 }
 
 napi_value sn_extension_pbkdf2_sha512 (napi_env env, napi_callback_info info) {
@@ -2982,12 +2982,12 @@ napi_value sn_extension_pbkdf2_sha512 (napi_env env, napi_callback_info info) {
   SN_ARGV_UINT64(iter, 3)
   SN_ARGV_UINT64(outlen, 4)
 
-  SN_ASSERT_MIN_LENGTH(iter, extension_pbkdf2_sha512_ITERATIONS_MIN, "iterations")
-  SN_ASSERT_MAX_LENGTH(outlen, extension_pbkdf2_sha512_BYTES_MAX, "outlen")
+  SN_ASSERT_MIN_LENGTH(iter, sn__extension_pbkdf2_sha512_ITERATIONS_MIN, "iterations")
+  SN_ASSERT_MAX_LENGTH(outlen, sn__extension_pbkdf2_sha512_BYTES_MAX, "outlen")
 
   SN_ASSERT_MIN_LENGTH(out_size, outlen, "out")
 
-  SN_RETURN(extension_pbkdf2_sha512(passwd, passwd_size, salt, salt_size, iter, out, outlen), "failed to add tweak to public key")
+  SN_RETURN(sn__extension_pbkdf2_sha512(passwd, passwd_size, salt, salt_size, iter, out, outlen), "failed to add tweak to public key")
 }
 
 typedef struct sn_async_pbkdf2_sha512_request {
@@ -3008,7 +3008,7 @@ typedef struct sn_async_pbkdf2_sha512_request {
 static void async_pbkdf2_sha512_execute (uv_work_t *uv_req) {
   sn_async_task_t *task = (sn_async_task_t *) uv_req;
   sn_async_pbkdf2_sha512_request *req = (sn_async_pbkdf2_sha512_request *) task->req;
-  task->code = extension_pbkdf2_sha512(req->pwd_data,
+  task->code = sn__extension_pbkdf2_sha512(req->pwd_data,
                                     req->pwd_size,
                                     req->salt_data,
                                     req->salt_size,
@@ -3048,8 +3048,8 @@ napi_value sn_extension_pbkdf2_sha512_async (napi_env env, napi_callback_info in
   SN_ARGV_UINT64(iter, 3)
   SN_ARGV_UINT64(outlen, 4)
 
-  SN_ASSERT_MIN_LENGTH(iter, extension_pbkdf2_sha512_ITERATIONS_MIN, "iterations")
-  SN_ASSERT_MAX_LENGTH(outlen, extension_pbkdf2_sha512_BYTES_MAX, "outlen")
+  SN_ASSERT_MIN_LENGTH(iter, sn__extension_pbkdf2_sha512_ITERATIONS_MIN, "iterations")
+  SN_ASSERT_MAX_LENGTH(outlen, sn__extension_pbkdf2_sha512_BYTES_MAX, "outlen")
   SN_ASSERT_MIN_LENGTH(out_size, outlen, "output")
 
   sn_async_pbkdf2_sha512_request *req = (sn_async_pbkdf2_sha512_request *) malloc(sizeof(sn_async_pbkdf2_sha512_request));
@@ -3448,17 +3448,17 @@ static napi_value create_sodium_native (napi_env env) {
   SN_EXPORT_FUNCTION(extension_tweak_ed25519_scalar_add, sn_extension_tweak_ed25519_scalar_add)
   SN_EXPORT_FUNCTION(extension_tweak_ed25519_pk_add, sn_extension_tweak_ed25519_pk_add)
   SN_EXPORT_FUNCTION(extension_tweak_ed25519_keypair_add, sn_extension_tweak_ed25519_keypair_add)
-  SN_EXPORT_UINT32(extension_tweak_ed25519_BYTES, extension_tweak_ed25519_BYTES)
-  SN_EXPORT_UINT32(extension_tweak_ed25519_SCALARBYTES, extension_tweak_ed25519_SCALARBYTES)
+  SN_EXPORT_UINT32(extension_tweak_ed25519_BYTES, sn__extension_tweak_ed25519_BYTES)
+  SN_EXPORT_UINT32(extension_tweak_ed25519_SCALARBYTES, sn__extension_tweak_ed25519_SCALARBYTES)
 
   // pbkdf2
 
   SN_EXPORT_FUNCTION(extension_pbkdf2_sha512, sn_extension_pbkdf2_sha512)
   SN_EXPORT_FUNCTION(extension_pbkdf2_sha512_async, sn_extension_pbkdf2_sha512_async)
-  SN_EXPORT_UINT32(extension_pbkdf2_sha512_SALTBYTES, extension_pbkdf2_sha512_SALTBYTES)
-  SN_EXPORT_UINT32(extension_pbkdf2_sha512_HASHBYTES, extension_pbkdf2_sha512_HASHBYTES)
-  SN_EXPORT_UINT32(extension_pbkdf2_sha512_ITERATIONS_MIN, extension_pbkdf2_sha512_ITERATIONS_MIN)
-  SN_EXPORT_UINT64(extension_pbkdf2_sha512_BYTES_MAX, extension_pbkdf2_sha512_BYTES_MAX)
+  SN_EXPORT_UINT32(extension_pbkdf2_sha512_SALTBYTES, sn__extension_pbkdf2_sha512_SALTBYTES)
+  SN_EXPORT_UINT32(extension_pbkdf2_sha512_HASHBYTES, sn__extension_pbkdf2_sha512_HASHBYTES)
+  SN_EXPORT_UINT32(extension_pbkdf2_sha512_ITERATIONS_MIN, sn__extension_pbkdf2_sha512_ITERATIONS_MIN)
+  SN_EXPORT_UINT64(extension_pbkdf2_sha512_BYTES_MAX, sn__extension_pbkdf2_sha512_BYTES_MAX)
 
   return exports;
 }

@@ -39,7 +39,7 @@
  * write the output to buf.  The value dkLen must be at most 32 * (2^32 - 1).
  */
 int
-extension_pbkdf2_sha512(const unsigned char *passwd, size_t passwdlen,
+sn__extension_pbkdf2_sha512(const unsigned char *passwd, size_t passwdlen,
                       const unsigned char *salt, size_t saltlen, uint64_t c,
                       unsigned char *buf, size_t dkLen)
 {
@@ -52,7 +52,7 @@ extension_pbkdf2_sha512(const unsigned char *passwd, size_t passwdlen,
     int                          k;
     size_t                       clen;
 
-    if (dkLen > extension_pbkdf2_sha512_BYTES_MAX) {
+    if (dkLen > sn__extension_pbkdf2_sha512_BYTES_MAX) {
         return -1;
     }
 

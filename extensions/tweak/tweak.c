@@ -39,7 +39,7 @@ _crypto_sign_ed25519_clamp(unsigned char k[32])
     k[31] |= 64;
 }
 
-void _extension_tweak_ed25519(unsigned char *q, unsigned char *n,
+static void _extension_tweak_ed25519(unsigned char *q, unsigned char *n,
                            const unsigned char *ns, unsigned long long nslen)
 {
   sodium_memzero(q, sizeof q);
@@ -58,7 +58,7 @@ void _extension_tweak_ed25519(unsigned char *q, unsigned char *n,
   }
 }
 
-void extension_tweak_ed25519_base(unsigned char *pk, unsigned char *scalar,
+void sn__extension_tweak_ed25519_base(unsigned char *pk, unsigned char *scalar,
                                const unsigned char *ns, unsigned long long nslen)
 {
   unsigned char n64[64];
@@ -68,7 +68,7 @@ void extension_tweak_ed25519_base(unsigned char *pk, unsigned char *scalar,
   SN_TWEAK_COPY_32(scalar, n64)
 }
 
-int extension_tweak_ed25519_sign_detached(unsigned char *sig, unsigned long long *siglen_p,
+int sn__extension_tweak_ed25519_sign_detached(unsigned char *sig, unsigned long long *siglen_p,
                                        const unsigned char *m, unsigned long long mlen,
                                        const unsigned char *n, unsigned char *pk)
 {
@@ -121,7 +121,7 @@ int extension_tweak_ed25519_sign_detached(unsigned char *sig, unsigned long long
 }
 
 // tweak a secret key
-void extension_tweak_ed25519_sk_to_scalar(unsigned char *n, const unsigned char *sk)
+void sn__extension_tweak_ed25519_sk_to_scalar(unsigned char *n, const unsigned char *sk)
 {
   unsigned char n64[64];
 
@@ -133,7 +133,7 @@ void extension_tweak_ed25519_sk_to_scalar(unsigned char *n, const unsigned char 
 }
 
 // tweak a secret key
-void extension_tweak_ed25519_scalar(unsigned char *scalar_out,
+void sn__extension_tweak_ed25519_scalar(unsigned char *scalar_out,
                                  const unsigned char *scalar,
                                  const unsigned char *ns,
                                  unsigned long long nslen)
@@ -146,7 +146,7 @@ void extension_tweak_ed25519_scalar(unsigned char *scalar_out,
 }
 
 // tweak a public key
-int extension_tweak_ed25519_pk(unsigned char *tpk,
+int sn__extension_tweak_ed25519_pk(unsigned char *tpk,
                                     const unsigned char *pk,
                                     const unsigned char *ns,
                                     unsigned long long nslen)
@@ -159,7 +159,7 @@ int extension_tweak_ed25519_pk(unsigned char *tpk,
 }
 
 
-void extension_tweak_ed25519_keypair(unsigned char *pk, unsigned char *scalar_out,
+void sn__extension_tweak_ed25519_keypair(unsigned char *pk, unsigned char *scalar_out,
                                   unsigned char *scalar, const unsigned char *ns,
                                   unsigned long long nslen)
 {
@@ -168,7 +168,7 @@ void extension_tweak_ed25519_keypair(unsigned char *pk, unsigned char *scalar_ou
   crypto_hash(n64, ns, nslen);
   n64[31] &= 127; // clear highest bit
 
-  extension_tweak_ed25519_scalar_add(scalar_out, scalar, n64);
+  sn__extension_tweak_ed25519_scalar_add(scalar_out, scalar, n64);
   crypto_scalarmult_ed25519_base_noclamp(pk, scalar_out);
 
   // hash tweak until we get a valid tweaked point
@@ -176,13 +176,13 @@ void extension_tweak_ed25519_keypair(unsigned char *pk, unsigned char *scalar_ou
     crypto_hash(n64, n64, 32);
     n64[31] &= 127; // clear highest bit
 
-    extension_tweak_ed25519_scalar_add(scalar_out, scalar, n64);
+    sn__extension_tweak_ed25519_scalar_add(scalar_out, scalar, n64);
     crypto_scalarmult_ed25519_base_noclamp(pk, scalar_out);
   }
 }
 
 // add tweak to scalar
-void extension_tweak_ed25519_scalar_add(unsigned char *scalar_out,
+void sn__extension_tweak_ed25519_scalar_add(unsigned char *scalar_out,
                                      const unsigned char *scalar,
                                      const unsigned char *n)
 {
@@ -190,7 +190,7 @@ void extension_tweak_ed25519_scalar_add(unsigned char *scalar_out,
 }
 
 // add tweak point to public key
-int extension_tweak_ed25519_pk_add(unsigned char *tpk,
+int sn__extension_tweak_ed25519_pk_add(unsigned char *tpk,
                                 const unsigned char *pk,
                                 const unsigned char *q)
 {
@@ -198,9 +198,9 @@ int extension_tweak_ed25519_pk_add(unsigned char *tpk,
 }
 
 
-int extension_tweak_ed25519_keypair_add(unsigned char *pk, unsigned char *scalar_out,
+int sn__extension_tweak_ed25519_keypair_add(unsigned char *pk, unsigned char *scalar_out,
                                       unsigned char *scalar, const unsigned char *tweak)
 {
-  extension_tweak_ed25519_scalar_add(scalar_out, scalar, tweak);
+  sn__extension_tweak_ed25519_scalar_add(scalar_out, scalar, tweak);
   return crypto_scalarmult_ed25519_base_noclamp(pk, scalar_out);
 }
