@@ -2076,13 +2076,14 @@ static void async_pwhash_str_verify_complete (uv_work_t *uv_req, int status) {
     task->deferred = NULL;
     break;
 
-  case sn_async_task_callback:
+  case sn_async_task_callback: {
     napi_value callback;
     napi_get_reference_value(req->env, task->cb, &callback);
 
     napi_value return_val;
     SN_CALL_FUNCTION(req->env, global, callback, 2, argv, &return_val)
     break;
+  }
   }
 
   napi_close_handle_scope(req->env, scope);
@@ -2314,13 +2315,14 @@ static void async_pwhash_scryptsalsa208sha256_str_verify_complete (uv_work_t *uv
     task->deferred = NULL;
     break;
 
-  case sn_async_task_callback:
+  case sn_async_task_callback: {
     napi_value callback;
     napi_get_reference_value(req->env, task->cb, &callback);
 
     napi_value return_val;
     SN_CALL_FUNCTION(req->env, global, callback, 2, argv, &return_val)
     break;
+  }
   }
 
   napi_close_handle_scope(req->env, scope);
