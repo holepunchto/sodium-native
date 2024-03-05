@@ -3031,7 +3031,9 @@ static void async_pbkdf2_sha512_complete (uv_work_t *uv_req, int status) {
   napi_delete_reference(req->env, req->out_ref);
   napi_delete_reference(req->env, req->pwd_ref);
   napi_delete_reference(req->env, req->salt_ref);
+
   free(req);
+  free(task);
 }
 
 napi_value sn_module_pbkdf2_sha512_async (napi_env env, napi_callback_info info) {
