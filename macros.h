@@ -88,10 +88,6 @@
 
 #define SN_EXPORT_UINT64(name, num) \
   { \
-    if (num < 0) { \
-      napi_throw_error(env, "EINVAL", "exported value is signed"); \
-      return NULL; \
-    } \
     napi_value name##_num; \
     uint64_t max = 0x1fffffffffffffULL; \
     SN_STATUS_THROWS(napi_create_int64(env, (uint64_t) (max < num ? max : num), &name##_num), "") \
