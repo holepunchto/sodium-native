@@ -251,7 +251,62 @@
     napi_create_error(req->env, NULL, err_msg, &argv[0]); \
   }
 
+#define SN_CALLBACK_CHECK_FOR_ERROR(message) \
+  if (task->code == 0) { \
+    napi_get_null(req->env, &argv[0]); \
+  } else { \
+    napi_value err_msg; \
+    napi_create_string_utf8(req->env, #message, NAPI_AUTO_LENGTH, &err_msg); \
+    napi_create_error(req->env, NULL, err_msg, &argv[0]); \
+  }
+
 #define SN_QUEUE_WORK(req, execute, complete) \
   uv_loop_t *loop; \
   napi_get_uv_event_loop(env, &loop); \
   uv_queue_work(loop, (uv_work_t *) req, execute, complete);
+
+#define SN_QUEUE_TASK(task, execute, complete) \
+  uv_loop_t *loop; \
+  napi_get_uv_event_loop(env, &loop); \
+  uv_queue_work(loop, (uv_work_t *) task, execute, complete);
+
+#define SN_ASYNC_TASK(cb_pos) \
+  task->req = (void *) req; \
+  napi_value promise; \
+  if (argc > cb_pos) { \
+    task->type = sn_async_task_callback; \
+    promise = NULL; \
+    napi_value cb = argv[cb_pos]; \
+    SN_STATUS_THROWS(napi_create_reference(env, cb, 1, &task->cb), "") \
+  } else { \
+    task->type = sn_async_task_promise; \
+    napi_create_promise(env, &task->deferred, &promise); \
+  }
+
+#define SN_ASYNC_COMPLETE(message) \
+  napi_value argv[1]; \
+  switch (task->type) { \
+  case sn_async_task_promise: { \
+    if (task->code == 0) { \
+      napi_get_null(req->env, &argv[0]); \
+      napi_resolve_deferred(req->env, task->deferred, argv[0]); \
+    } else { \
+      napi_value err_msg; \
+      napi_create_string_utf8(req->env, #message, NAPI_AUTO_LENGTH, &err_msg); \
+      napi_create_error(req->env, NULL, err_msg, &argv[0]); \
+      napi_reject_deferred(req->env, task->deferred, argv[0]); \
+    } \
+    task->deferred = NULL; \
+    break; \
+  } \
+  case sn_async_task_callback: { \
+    SN_CALLBACK_CHECK_FOR_ERROR(#message) \
+    napi_value callback; \
+    napi_get_reference_value(req->env, task->cb, &callback); \
+    napi_value return_val; \
+    SN_CALL_FUNCTION(req->env, global, callback, 1, argv, &return_val) \
+    napi_close_handle_scope(req->env, scope); \
+    napi_delete_reference(req->env, task->cb); \
+    break; \
+  } \
+  }

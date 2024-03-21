@@ -1862,8 +1862,22 @@ napi_value sn_crypto_secretstream_xchacha20poly1305_rekey (napi_env env, napi_ca
   return NULL;
 }
 
-typedef struct sn_async_pwhash_request {
+typedef struct sn_async_task_t {
   uv_work_t task;
+
+  enum {
+    sn_async_task_promise,
+    sn_async_task_callback
+  } type;
+
+  void *req;
+  int code;
+
+  napi_deferred deferred;
+  napi_ref cb;
+} sn_async_task_t;
+
+typedef struct sn_async_pwhash_request {
   napi_env env;
   napi_ref out_ref;
   unsigned char *out_data;
@@ -1876,17 +1890,24 @@ typedef struct sn_async_pwhash_request {
   uint32_t opslimit;
   uint32_t memlimit;
   uint32_t alg;
-  napi_ref cb;
-  int n;
 } sn_async_pwhash_request;
 
 static void async_pwhash_execute (uv_work_t *uv_req) {
-  sn_async_pwhash_request *req = (sn_async_pwhash_request *) uv_req;
-  req->n = crypto_pwhash(req->out_data, req->out_size, req->pwd_data, req->pwd_size, req->salt, req->opslimit, req->memlimit, req->alg);
+  sn_async_task_t *task = (sn_async_task_t *) uv_req;
+  sn_async_pwhash_request *req = (sn_async_pwhash_request *) task->req;
+  task->code = crypto_pwhash(req->out_data,
+                             req->out_size,
+                             req->pwd_data,
+                             req->pwd_size,
+                             req->salt,
+                             req->opslimit,
+                             req->memlimit,
+                             req->alg);
 }
 
 static void async_pwhash_complete (uv_work_t *uv_req, int status) {
-  sn_async_pwhash_request *req = (sn_async_pwhash_request *) uv_req;
+  sn_async_task_t *task = (sn_async_task_t *) uv_req;
+  sn_async_pwhash_request *req = (sn_async_pwhash_request *) task->req;
 
   napi_handle_scope scope;
   napi_open_handle_scope(req->env, &scope);
@@ -1894,26 +1915,20 @@ static void async_pwhash_complete (uv_work_t *uv_req, int status) {
   napi_value global;
   napi_get_global(req->env, &global);
 
-  napi_value argv[1];
-  SN_ASYNC_CHECK_FOR_ERROR("failed to compute password hash")
-
-  napi_value callback;
-  napi_get_reference_value(req->env, req->cb, &callback);
-
-  napi_value return_val;
-  SN_CALL_FUNCTION(req->env, global, callback, 1, argv, &return_val)
+  SN_ASYNC_COMPLETE("failed to compute password hash")
 
   napi_close_handle_scope(req->env, scope);
 
-  napi_delete_reference(req->env, req->cb);
   napi_delete_reference(req->env, req->out_ref);
   napi_delete_reference(req->env, req->pwd_ref);
   napi_delete_reference(req->env, req->salt_ref);
+
   free(req);
+  free(task);
 }
 
 napi_value sn_crypto_pwhash_async (napi_env env, napi_callback_info info) {
-  SN_ARGV(7, crypto_pwhash_async)
+  SN_ARGV_OPTS(6, 7, crypto_pwhash_async)
 
   SN_ARGV_BUFFER_CAST(unsigned char *, out, 0)
   SN_ARGV_BUFFER_CAST(char *, pwd, 1)
@@ -1921,7 +1936,6 @@ napi_value sn_crypto_pwhash_async (napi_env env, napi_callback_info info) {
   SN_ARGV_UINT64(opslimit, 3)
   SN_ARGV_UINT64(memlimit, 4)
   SN_ARGV_UINT8(alg, 5)
-  napi_value cb = argv[6];
 
   SN_ASSERT_MIN_LENGTH(out_size, crypto_pwhash_BYTES_MIN, "out")
   SN_ASSERT_MAX_LENGTH(out_size, crypto_pwhash_BYTES_MAX, "out")
@@ -1933,24 +1947,27 @@ napi_value sn_crypto_pwhash_async (napi_env env, napi_callback_info info) {
   SN_THROWS(alg < 1 || alg > 2, "alg must be either Argon2i 1.3 or Argon2id 1.3")
 
   sn_async_pwhash_request *req = (sn_async_pwhash_request *) malloc(sizeof(sn_async_pwhash_request));
+
   req->env = env;
   req->out_data = out;
   req->out_size = out_size;
   req->pwd_data = pwd;
   req->pwd_size = pwd_size;
-  req-> salt = salt;
+  req->salt = salt;
   req->opslimit = opslimit;
   req->memlimit = memlimit;
   req->alg = alg;
 
-  SN_STATUS_THROWS(napi_create_reference(env, cb, 1, &req->cb), "")
+  sn_async_task_t *task = (sn_async_task_t *) malloc(sizeof(sn_async_task_t));
+  SN_ASYNC_TASK(6)
+
   SN_STATUS_THROWS(napi_create_reference(env, out_argv, 1, &req->out_ref), "")
   SN_STATUS_THROWS(napi_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
   SN_STATUS_THROWS(napi_create_reference(env, salt_argv, 1, &req->salt_ref), "")
 
-  SN_QUEUE_WORK(req, async_pwhash_execute, async_pwhash_complete)
+  SN_QUEUE_TASK(task, async_pwhash_execute, async_pwhash_complete)
 
-  return NULL;
+  return promise;
 }
 
 typedef struct sn_async_pwhash_str_request {
@@ -1963,17 +1980,21 @@ typedef struct sn_async_pwhash_str_request {
   size_t pwd_size;
   uint32_t opslimit;
   uint32_t memlimit;
-  napi_ref cb;
-  int n;
 } sn_async_pwhash_str_request;
 
 static void async_pwhash_str_execute (uv_work_t *uv_req) {
-  sn_async_pwhash_str_request *req = (sn_async_pwhash_str_request *) uv_req;
-  req->n = crypto_pwhash_str(req->out_data, req->pwd_data, req->pwd_size, req->opslimit, req->memlimit);
+  sn_async_task_t *task = (sn_async_task_t *) uv_req;
+  sn_async_pwhash_str_request *req = (sn_async_pwhash_str_request *) task->req;
+  task->code = crypto_pwhash_str(req->out_data,
+                                 req->pwd_data,
+                                 req->pwd_size,
+                                 req->opslimit,
+                                 req->memlimit);
 }
 
 static void async_pwhash_str_complete (uv_work_t *uv_req, int status) {
-  sn_async_pwhash_str_request *req = (sn_async_pwhash_str_request *) uv_req;
+  sn_async_task_t *task = (sn_async_task_t *) uv_req;
+  sn_async_pwhash_str_request *req = (sn_async_pwhash_str_request *) task->req;
 
   napi_handle_scope scope;
   napi_open_handle_scope(req->env, &scope);
@@ -1981,31 +2002,24 @@ static void async_pwhash_str_complete (uv_work_t *uv_req, int status) {
   napi_value global;
   napi_get_global(req->env, &global);
 
-  napi_value argv[1];
-  SN_ASYNC_CHECK_FOR_ERROR("failed to compute password hash")
-
-  napi_value callback;
-  napi_get_reference_value(req->env, req->cb, &callback);
-
-  napi_value return_val;
-  SN_CALL_FUNCTION(req->env, global, callback, 1, argv, &return_val)
+  SN_ASYNC_COMPLETE("failed to compute password hash")
 
   napi_close_handle_scope(req->env, scope);
 
-  napi_delete_reference(req->env, req->cb);
   napi_delete_reference(req->env, req->out_ref);
   napi_delete_reference(req->env, req->pwd_ref);
+
   free(req);
+  free(task);
 }
 
 napi_value sn_crypto_pwhash_str_async (napi_env env, napi_callback_info info) {
-  SN_ARGV(5, crypto_pwhash_str_async)
+  SN_ARGV_OPTS(4, 5, crypto_pwhash_str_async)
 
   SN_ARGV_BUFFER_CAST(char *, out, 0)
   SN_ARGV_BUFFER_CAST(char *, pwd, 1)
   SN_ARGV_UINT64(opslimit, 2)
   SN_ARGV_UINT64(memlimit, 3)
-  napi_value cb = argv[4];
 
   SN_ASSERT_LENGTH(out_size, crypto_pwhash_STRBYTES, "out")
   SN_ASSERT_MIN_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MIN, "opslimit")
@@ -2021,13 +2035,15 @@ napi_value sn_crypto_pwhash_str_async (napi_env env, napi_callback_info info) {
   req->opslimit = opslimit;
   req->memlimit = memlimit;
 
-  SN_STATUS_THROWS(napi_create_reference(env, cb, 1, &req->cb), "")
+  sn_async_task_t *task = (sn_async_task_t *) malloc(sizeof(sn_async_task_t));
+  SN_ASYNC_TASK(4)
+
   SN_STATUS_THROWS(napi_create_reference(env, out_argv, 1, &req->out_ref), "")
   SN_STATUS_THROWS(napi_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
 
-  SN_QUEUE_WORK(req, async_pwhash_str_execute, async_pwhash_str_complete)
+  SN_QUEUE_TASK(task, async_pwhash_str_execute, async_pwhash_str_complete)
 
-  return NULL;
+  return promise;
 }
 
 typedef struct sn_async_pwhash_str_verify_request {
@@ -2038,17 +2054,17 @@ typedef struct sn_async_pwhash_str_verify_request {
   napi_ref pwd_ref;
   const char *pwd_data;
   size_t pwd_size;
-  napi_ref cb;
-  int n;
 } sn_async_pwhash_str_verify_request;
 
 static void async_pwhash_str_verify_execute (uv_work_t *uv_req) {
-  sn_async_pwhash_str_verify_request *req = (sn_async_pwhash_str_verify_request *) uv_req;
-  req->n = crypto_pwhash_str_verify(req->str_data, req->pwd_data, req->pwd_size);
+  sn_async_task_t *task = (sn_async_task_t *) uv_req;
+  sn_async_pwhash_str_verify_request *req = (sn_async_pwhash_str_verify_request *) task->req;
+  task->code = crypto_pwhash_str_verify(req->str_data, req->pwd_data, req->pwd_size);
 }
 
 static void async_pwhash_str_verify_complete (uv_work_t *uv_req, int status) {
-  sn_async_pwhash_str_verify_request *req = (sn_async_pwhash_str_verify_request *) uv_req;
+  sn_async_task_t *task = (sn_async_task_t *) uv_req;
+  sn_async_pwhash_str_verify_request *req = (sn_async_pwhash_str_verify_request *) task->req;
 
   napi_handle_scope scope;
   napi_open_handle_scope(req->env, &scope);
@@ -2063,28 +2079,39 @@ static void async_pwhash_str_verify_complete (uv_work_t *uv_req, int status) {
   // The other possible error is wrong argument sizes, which is protected
   // by macros above
   napi_get_null(req->env, &argv[0]);
-  napi_get_boolean(req->env, req->n == 0, &argv[1]);
+  napi_get_boolean(req->env, task->code == 0, &argv[1]);
 
-  napi_value callback;
-  napi_get_reference_value(req->env, req->cb, &callback);
+  switch (task->type) {
+  case sn_async_task_promise: {
+    napi_resolve_deferred(req->env, task->deferred, argv[1]);
+    task->deferred = NULL;
+    break;
+  }
 
-  napi_value return_val;
-  SN_CALL_FUNCTION(req->env, global, callback, 2, argv, &return_val)
+  case sn_async_task_callback: {
+    napi_value callback;
+    napi_get_reference_value(req->env, task->cb, &callback);
+
+    napi_value return_val;
+    SN_CALL_FUNCTION(req->env, global, callback, 2, argv, &return_val)
+    break;
+  }
+  }
 
   napi_close_handle_scope(req->env, scope);
 
-  napi_delete_reference(req->env, req->cb);
   napi_delete_reference(req->env, req->str_ref);
   napi_delete_reference(req->env, req->pwd_ref);
+
   free(req);
+  free(task);
 }
 
 napi_value sn_crypto_pwhash_str_verify_async (napi_env env, napi_callback_info info) {
-  SN_ARGV(3, crypto_pwhash_str_async)
+  SN_ARGV_OPTS(2, 3, crypto_pwhash_str_async)
 
   SN_ARGV_BUFFER_CAST(char *, str, 0)
   SN_ARGV_BUFFER_CAST(char *, pwd, 1)
-  napi_value cb = argv[2];
 
   SN_ASSERT_LENGTH(str_size, crypto_pwhash_STRBYTES, "str")
 
@@ -2094,13 +2121,15 @@ napi_value sn_crypto_pwhash_str_verify_async (napi_env env, napi_callback_info i
   req->pwd_data = pwd;
   req->pwd_size = pwd_size;
 
-  SN_STATUS_THROWS(napi_create_reference(env, cb, 1, &req->cb), "")
+  sn_async_task_t *task = (sn_async_task_t *) malloc(sizeof(sn_async_task_t));
+  SN_ASYNC_TASK(2)
+
   SN_STATUS_THROWS(napi_create_reference(env, str_argv, 1, &req->str_ref), "")
   SN_STATUS_THROWS(napi_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
 
-  SN_QUEUE_WORK(req, async_pwhash_str_verify_execute, async_pwhash_str_verify_complete)
+  SN_QUEUE_TASK(task, async_pwhash_str_verify_execute, async_pwhash_str_verify_complete)
 
-  return NULL;
+  return promise;
 }
 
 typedef struct sn_async_pwhash_scryptsalsa208sha256_request {
@@ -2116,17 +2145,23 @@ typedef struct sn_async_pwhash_scryptsalsa208sha256_request {
   unsigned char *salt;
   uint32_t opslimit;
   uint32_t memlimit;
-  napi_ref cb;
-  int n;
 } sn_async_pwhash_scryptsalsa208sha256_request;
 
 static void async_pwhash_scryptsalsa208sha256_execute (uv_work_t *uv_req) {
-  sn_async_pwhash_scryptsalsa208sha256_request *req = (sn_async_pwhash_scryptsalsa208sha256_request *) uv_req;
-  req->n = crypto_pwhash_scryptsalsa208sha256(req->out_data, req->out_size, req-> pwd_data, req->pwd_size, req->salt, req->opslimit, req->memlimit);
+  sn_async_task_t *task = (sn_async_task_t *) uv_req;
+  sn_async_pwhash_scryptsalsa208sha256_request *req = (sn_async_pwhash_scryptsalsa208sha256_request *) task->req;
+  task->code = crypto_pwhash_scryptsalsa208sha256(req->out_data,
+                                                  req->out_size,
+                                                  req-> pwd_data,
+                                                  req->pwd_size,
+                                                  req->salt,
+                                                  req->opslimit,
+                                                  req->memlimit);
 }
 
 static void async_pwhash_scryptsalsa208sha256_complete (uv_work_t *uv_req, int status) {
-  sn_async_pwhash_scryptsalsa208sha256_request *req = (sn_async_pwhash_scryptsalsa208sha256_request *) uv_req;
+  sn_async_task_t *task = (sn_async_task_t *) uv_req;
+  sn_async_pwhash_scryptsalsa208sha256_request *req = (sn_async_pwhash_scryptsalsa208sha256_request *) task->req;
 
   napi_handle_scope scope;
   napi_open_handle_scope(req->env, &scope);
@@ -2134,33 +2169,26 @@ static void async_pwhash_scryptsalsa208sha256_complete (uv_work_t *uv_req, int s
   napi_value global;
   napi_get_global(req->env, &global);
 
-  napi_value argv[1];
-  SN_ASYNC_CHECK_FOR_ERROR("failed to compute password hash")
-
-  napi_value callback;
-  napi_get_reference_value(req->env, req->cb, &callback);
-
-  napi_value return_val;
-  SN_CALL_FUNCTION(req->env, global, callback, 1, argv, &return_val)
+  SN_ASYNC_COMPLETE("failed to compute password hash")
 
   napi_close_handle_scope(req->env, scope);
 
-  napi_delete_reference(req->env, req->cb);
   napi_delete_reference(req->env, req->out_ref);
   napi_delete_reference(req->env, req->pwd_ref);
   napi_delete_reference(req->env, req->salt_ref);
+
   free(req);
+  free(task);
 }
 
 napi_value sn_crypto_pwhash_scryptsalsa208sha256_async (napi_env env, napi_callback_info info) {
-  SN_ARGV(6, crypto_pwhash_scryptsalsa208sha256_async)
+  SN_ARGV_OPTS(5, 6, crypto_pwhash_scryptsalsa208sha256_async)
 
   SN_ARGV_BUFFER_CAST(unsigned char *, out, 0)
   SN_ARGV_BUFFER_CAST(char *, pwd, 1)
   SN_ARGV_BUFFER_CAST(unsigned char *, salt, 2)
   SN_ARGV_UINT64(opslimit, 3)
   SN_ARGV_UINT64(memlimit, 4)
-  napi_value cb = argv[5];
 
   SN_ASSERT_MIN_LENGTH(out_size, crypto_pwhash_scryptsalsa208sha256_BYTES_MIN, "out")
   SN_ASSERT_MAX_LENGTH(out_size, crypto_pwhash_scryptsalsa208sha256_BYTES_MAX, "out")
@@ -2180,14 +2208,16 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_async (napi_env env, napi_callb
   req->opslimit = opslimit;
   req->memlimit = memlimit;
 
-  SN_STATUS_THROWS(napi_create_reference(env, cb, 1, &req->cb), "")
+  sn_async_task_t *task = (sn_async_task_t *) malloc(sizeof(sn_async_task_t));
+  SN_ASYNC_TASK(5)
+
   SN_STATUS_THROWS(napi_create_reference(env, out_argv, 1, &req->out_ref), "")
   SN_STATUS_THROWS(napi_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
   SN_STATUS_THROWS(napi_create_reference(env, salt_argv, 1, &req->salt_ref), "")
 
-  SN_QUEUE_WORK(req, async_pwhash_scryptsalsa208sha256_execute, async_pwhash_scryptsalsa208sha256_complete)
+  SN_QUEUE_TASK(task, async_pwhash_scryptsalsa208sha256_execute, async_pwhash_scryptsalsa208sha256_complete)
 
-  return NULL;
+  return promise;
 }
 
 typedef struct sn_async_pwhash_scryptsalsa208sha256_str_request {
@@ -2200,17 +2230,21 @@ typedef struct sn_async_pwhash_scryptsalsa208sha256_str_request {
   size_t pwd_size;
   uint32_t opslimit;
   uint32_t memlimit;
-  napi_ref cb;
-  int n;
 } sn_async_pwhash_scryptsalsa208sha256_str_request;
 
 static void async_pwhash_scryptsalsa208sha256_str_execute (uv_work_t *uv_req) {
-  sn_async_pwhash_scryptsalsa208sha256_str_request *req = (sn_async_pwhash_scryptsalsa208sha256_str_request *) uv_req;
-  req->n = crypto_pwhash_scryptsalsa208sha256_str(req->out_data, req->pwd_data, req->pwd_size, req->opslimit, req->memlimit);
+  sn_async_task_t *task = (sn_async_task_t *) uv_req;
+  sn_async_pwhash_scryptsalsa208sha256_str_request *req = (sn_async_pwhash_scryptsalsa208sha256_str_request *) task->req;
+  task->code = crypto_pwhash_scryptsalsa208sha256_str(req->out_data,
+                                                      req->pwd_data,
+                                                      req->pwd_size,
+                                                      req->opslimit,
+                                                      req->memlimit);
 }
 
 static void async_pwhash_scryptsalsa208sha256_str_complete (uv_work_t *uv_req, int status) {
-  sn_async_pwhash_scryptsalsa208sha256_str_request *req = (sn_async_pwhash_scryptsalsa208sha256_str_request *) uv_req;
+  sn_async_task_t *task = (sn_async_task_t *) uv_req;
+  sn_async_pwhash_scryptsalsa208sha256_str_request *req = (sn_async_pwhash_scryptsalsa208sha256_str_request *) task->req;
 
   napi_handle_scope scope;
   napi_open_handle_scope(req->env, &scope);
@@ -2218,31 +2252,24 @@ static void async_pwhash_scryptsalsa208sha256_str_complete (uv_work_t *uv_req, i
   napi_value global;
   napi_get_global(req->env, &global);
 
-  napi_value argv[1];
-  SN_ASYNC_CHECK_FOR_ERROR("failed to compute password hash")
-
-  napi_value callback;
-  napi_get_reference_value(req->env, req->cb, &callback);
-
-  napi_value return_val;
-  SN_CALL_FUNCTION(req->env, global, callback, 1, argv, &return_val)
+  SN_ASYNC_COMPLETE("failed to compute password hash")
 
   napi_close_handle_scope(req->env, scope);
 
-  napi_delete_reference(req->env, req->cb);
   napi_delete_reference(req->env, req->out_ref);
   napi_delete_reference(req->env, req->pwd_ref);
+
   free(req);
+  free(task);
 }
 
 napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_async (napi_env env, napi_callback_info info) {
-  SN_ARGV(5, crypto_pwhash_scryptsalsa208sha256_str_async)
+  SN_ARGV_OPTS(4, 5, crypto_pwhash_scryptsalsa208sha256_str_async)
 
   SN_ARGV_BUFFER_CAST(char *, out, 0)
   SN_ARGV_BUFFER_CAST(char *, pwd, 1)
   SN_ARGV_UINT64(opslimit, 2)
   SN_ARGV_UINT64(memlimit, 3)
-  napi_value cb = argv[4];
 
   SN_ASSERT_LENGTH(out_size, crypto_pwhash_scryptsalsa208sha256_STRBYTES, "out")
   SN_ASSERT_MIN_LENGTH(opslimit, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN, "opslimit")
@@ -2258,13 +2285,15 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_async (napi_env env, napi_c
   req->opslimit = opslimit;
   req->memlimit = memlimit;
 
-  SN_STATUS_THROWS(napi_create_reference(env, cb, 1, &req->cb), "")
+  sn_async_task_t *task = (sn_async_task_t *) malloc(sizeof(sn_async_task_t));
+  SN_ASYNC_TASK(4)
+
   SN_STATUS_THROWS(napi_create_reference(env, out_argv, 1, &req->out_ref), "")
   SN_STATUS_THROWS(napi_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
 
-  SN_QUEUE_WORK(req, async_pwhash_scryptsalsa208sha256_str_execute, async_pwhash_scryptsalsa208sha256_str_complete)
+  SN_QUEUE_TASK(task, async_pwhash_scryptsalsa208sha256_str_execute, async_pwhash_scryptsalsa208sha256_str_complete)
 
-  return NULL;
+  return promise;
 }
 
 typedef struct sn_async_pwhash_scryptsalsa208sha256_str_verify_request {
@@ -2275,17 +2304,17 @@ typedef struct sn_async_pwhash_scryptsalsa208sha256_str_verify_request {
   napi_ref pwd_ref;
   const char *pwd_data;
   size_t pwd_size;
-  napi_ref cb;
-  int n;
 } sn_async_pwhash_scryptsalsa208sha256_str_verify_request;
 
 static void async_pwhash_scryptsalsa208sha256_str_verify_execute (uv_work_t *uv_req) {
-  sn_async_pwhash_scryptsalsa208sha256_str_verify_request *req = (sn_async_pwhash_scryptsalsa208sha256_str_verify_request *) uv_req;
-  req->n = crypto_pwhash_scryptsalsa208sha256_str_verify(req->str_data, req->pwd_data, req->pwd_size);
+  sn_async_task_t *task = (sn_async_task_t *) uv_req;
+  sn_async_pwhash_scryptsalsa208sha256_str_verify_request *req = (sn_async_pwhash_scryptsalsa208sha256_str_verify_request *) task->req;
+  task->code = crypto_pwhash_scryptsalsa208sha256_str_verify(req->str_data, req->pwd_data, req->pwd_size);
 }
 
 static void async_pwhash_scryptsalsa208sha256_str_verify_complete (uv_work_t *uv_req, int status) {
-  sn_async_pwhash_scryptsalsa208sha256_str_verify_request *req = (sn_async_pwhash_scryptsalsa208sha256_str_verify_request *) uv_req;
+  sn_async_task_t *task = (sn_async_task_t *) uv_req;
+  sn_async_pwhash_scryptsalsa208sha256_str_verify_request *req = (sn_async_pwhash_scryptsalsa208sha256_str_verify_request *) task->req;
 
   napi_handle_scope scope;
   napi_open_handle_scope(req->env, &scope);
@@ -2300,28 +2329,39 @@ static void async_pwhash_scryptsalsa208sha256_str_verify_complete (uv_work_t *uv
   // all errors as mismatch. The other possible error is wrong argument
   // sizes, which is protected by macros above
   napi_get_null(req->env, &argv[0]);
-  napi_get_boolean(req->env, req->n == 0, &argv[1]);
+  napi_get_boolean(req->env, task->code == 0, &argv[1]);
 
-  napi_value callback;
-  napi_get_reference_value(req->env, req->cb, &callback);
+  switch (task->type) {
+  case sn_async_task_promise: {
+    napi_resolve_deferred(req->env, task->deferred, argv[1]);
+    task->deferred = NULL;
+    break;
+  }
 
-  napi_value return_val;
-  SN_CALL_FUNCTION(req->env, global, callback, 2, argv, &return_val)
+  case sn_async_task_callback: {
+    napi_value callback;
+    napi_get_reference_value(req->env, task->cb, &callback);
+
+    napi_value return_val;
+    SN_CALL_FUNCTION(req->env, global, callback, 2, argv, &return_val)
+    break;
+  }
+  }
 
   napi_close_handle_scope(req->env, scope);
 
-  napi_delete_reference(req->env, req->cb);
   napi_delete_reference(req->env, req->str_ref);
   napi_delete_reference(req->env, req->pwd_ref);
+
   free(req);
+  free(task);
 }
 
 napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_verify_async (napi_env env, napi_callback_info info) {
-  SN_ARGV(3, crypto_pwhash_scryptsalsa208sha256_str_async)
+  SN_ARGV_OPTS(2, 3, crypto_pwhash_scryptsalsa208sha256_str_async)
 
   SN_ARGV_BUFFER_CAST(char *, str, 0)
   SN_ARGV_BUFFER_CAST(char *, pwd, 1)
-  napi_value cb = argv[2];
 
   SN_ASSERT_LENGTH(str_size, crypto_pwhash_scryptsalsa208sha256_STRBYTES, "str")
 
@@ -2331,13 +2371,15 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_verify_async (napi_env env,
   req->pwd_data = pwd;
   req->pwd_size = pwd_size;
 
-  SN_STATUS_THROWS(napi_create_reference(env, cb, 1, &req->cb), "")
+  sn_async_task_t *task = (sn_async_task_t *) malloc(sizeof(sn_async_task_t));
+  SN_ASYNC_TASK(2)
+
   SN_STATUS_THROWS(napi_create_reference(env, str_argv, 1, &req->str_ref), "")
   SN_STATUS_THROWS(napi_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
 
-  SN_QUEUE_WORK(req, async_pwhash_scryptsalsa208sha256_str_verify_execute, async_pwhash_scryptsalsa208sha256_str_verify_complete)
+  SN_QUEUE_TASK(task, async_pwhash_scryptsalsa208sha256_str_verify_execute, async_pwhash_scryptsalsa208sha256_str_verify_complete)
 
-  return NULL;
+  return promise;
 }
 
 typedef struct sn_crypto_stream_xor_state {
