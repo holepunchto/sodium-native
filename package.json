@@ -20,12 +20,12 @@
   ],
   "addon": true,
   "dependencies": {
-    "node-gyp-build": "^4.6.0"
+    "node-gyp-build": "^4.8.0"
   },
   "devDependencies": {
-    "brittle": "^3.2.1",
+    "brittle": "^3.5.0",
     "prebuildify": "^6.0.0",
-    "standard": "^17.0.0"
+    "standard": "^17.1.0"
   },
   "scripts": {
     "dev": "node-gyp rebuild",
