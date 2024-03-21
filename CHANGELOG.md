@@ -2,6 +2,11 @@
 
 ## Current
 
+## v4.1.0
+* Refactor extensions into an `extension_*` namespace for clarity on the exports.
+* Add `pbkdf2` extension
+* async operations return promises, whilst maintaining callback compat. Callbacks scheduled for removal in v5.
+
 ## v4.0.10
 * Revert back to a static build for CMAKE.
 
