@@ -45,9 +45,9 @@ sn__extension_pbkdf2_sha512(const unsigned char *passwd, size_t passwdlen,
 {
     crypto_auth_hmacsha512_state PShctx, hctx;
     size_t                       i;
-    unsigned char                      ivec[4];
-    unsigned char                      U[64];
-    unsigned char                      T[64];
+    unsigned char                ivec[4];
+    unsigned char                U[64];
+    unsigned char                T[64];
     uint64_t                     j;
     unsigned int                 k;
     size_t                       clen;
