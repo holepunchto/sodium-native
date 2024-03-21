@@ -3,7 +3,8 @@
 #include <string.h>
 #include <sodium.h>
 #include "macros.h"
-#include "modules/crypto_tweak/tweak.h"
+#include "extensions/tweak/tweak.h"
+#include "extensions/pbkdf2/pbkdf2.h"
 
 static uint8_t typedarray_width (napi_typedarray_type type) {
   switch (type) {
@@ -2834,23 +2835,23 @@ napi_value sn_crypto_stream_salsa20_xor_wrap_final (napi_env env, napi_callback_
 
 // Experimental API
 
-napi_value sn_crypto_tweak_ed25519_base (napi_env env, napi_callback_info info) {
-  SN_ARGV(3, crypto_tweak_ed25519_base)
+napi_value sn_extension_tweak_ed25519_base (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, extension_tweak_ed25519_base)
 
   SN_ARGV_TYPEDARRAY(n, 0)
   SN_ARGV_TYPEDARRAY(p, 1)
   SN_ARGV_TYPEDARRAY(ns, 2)
 
-  SN_ASSERT_LENGTH(n_size, crypto_tweak_ed25519_SCALARBYTES, "n")
-  SN_ASSERT_LENGTH(p_size, crypto_tweak_ed25519_BYTES, "p")
+  SN_ASSERT_LENGTH(n_size, sn__extension_tweak_ed25519_SCALARBYTES, "n")
+  SN_ASSERT_LENGTH(p_size, sn__extension_tweak_ed25519_BYTES, "p")
 
-  crypto_tweak_ed25519_base(p_data, n_data, ns_data, ns_size);
+  sn__extension_tweak_ed25519_base(p_data, n_data, ns_data, ns_size);
 
   return NULL;
 }
 
-napi_value sn_crypto_tweak_ed25519_sign_detached (napi_env env, napi_callback_info info) {
-  SN_ARGV_OPTS(3, 4, crypto_tweak_ed25519_sign_detached)
+napi_value sn_extension_tweak_ed25519_sign_detached (napi_env env, napi_callback_info info) {
+  SN_ARGV_OPTS(3, 4, extension_tweak_ed25519_sign_detached)
 
   SN_ARGV_TYPEDARRAY(sig, 0)
   SN_ARGV_TYPEDARRAY(m, 1)
@@ -2858,46 +2859,46 @@ napi_value sn_crypto_tweak_ed25519_sign_detached (napi_env env, napi_callback_in
   SN_ARGV_OPTS_TYPEDARRAY(pk, 3)
 
   SN_ASSERT_LENGTH(sig_size, crypto_sign_BYTES, "sig")
-  SN_ASSERT_LENGTH(scalar_size, crypto_tweak_ed25519_SCALARBYTES, "scalar")
+  SN_ASSERT_LENGTH(scalar_size, sn__extension_tweak_ed25519_SCALARBYTES, "scalar")
 
   if (pk_data != NULL) {
     SN_ASSERT_LENGTH(pk_size, crypto_sign_PUBLICKEYBYTES, "pk")
   }
 
-  SN_RETURN(crypto_tweak_ed25519_sign_detached(sig_data, NULL, m_data, m_size, scalar_data, pk_data), "failed to compute signature")
+  SN_RETURN(sn__extension_tweak_ed25519_sign_detached(sig_data, NULL, m_data, m_size, scalar_data, pk_data), "failed to compute signature")
 }
 
-napi_value sn_crypto_tweak_ed25519_sk_to_scalar (napi_env env, napi_callback_info info) {
-  SN_ARGV(2, crypto_tweak_ed25519_sk_to_scalar)
+napi_value sn_extension_tweak_ed25519_sk_to_scalar (napi_env env, napi_callback_info info) {
+  SN_ARGV(2, extension_tweak_ed25519_sk_to_scalar)
 
   SN_ARGV_TYPEDARRAY(n, 0)
   SN_ARGV_TYPEDARRAY(sk, 1)
 
-  SN_ASSERT_LENGTH(n_size, crypto_tweak_ed25519_SCALARBYTES, "n")
+  SN_ASSERT_LENGTH(n_size, sn__extension_tweak_ed25519_SCALARBYTES, "n")
   SN_ASSERT_LENGTH(sk_size, crypto_sign_SECRETKEYBYTES, "sk")
 
-  crypto_tweak_ed25519_sk_to_scalar(n_data, sk_data);
+  sn__extension_tweak_ed25519_sk_to_scalar(n_data, sk_data);
 
   return NULL;
 }
 
-napi_value sn_crypto_tweak_ed25519_scalar (napi_env env, napi_callback_info info) {
-  SN_ARGV(3, crypto_tweak_ed25519_scalar)
+napi_value sn_extension_tweak_ed25519_scalar (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, extension_tweak_ed25519_scalar)
 
   SN_ARGV_TYPEDARRAY(scalar_out, 0)
   SN_ARGV_TYPEDARRAY(scalar, 1)
   SN_ARGV_TYPEDARRAY(ns, 2)
 
-  SN_ASSERT_LENGTH(scalar_out_size, crypto_tweak_ed25519_SCALARBYTES, "scalar_out")
-  SN_ASSERT_LENGTH(scalar_size, crypto_tweak_ed25519_SCALARBYTES, "scalar")
+  SN_ASSERT_LENGTH(scalar_out_size, sn__extension_tweak_ed25519_SCALARBYTES, "scalar_out")
+  SN_ASSERT_LENGTH(scalar_size, sn__extension_tweak_ed25519_SCALARBYTES, "scalar")
 
-  crypto_tweak_ed25519_scalar(scalar_out_data, scalar_data, ns_data, ns_size);
+  sn__extension_tweak_ed25519_scalar(scalar_out_data, scalar_data, ns_data, ns_size);
 
   return NULL;
 }
 
-napi_value sn_crypto_tweak_ed25519_pk (napi_env env, napi_callback_info info) {
-  SN_ARGV(3, crypto_tweak_ed25519_pk)
+napi_value sn_extension_tweak_ed25519_pk (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, extension_tweak_ed25519_pk)
 
   SN_ARGV_TYPEDARRAY(tpk, 0)
   SN_ARGV_TYPEDARRAY(pk, 1)
@@ -2906,44 +2907,44 @@ napi_value sn_crypto_tweak_ed25519_pk (napi_env env, napi_callback_info info) {
   SN_ASSERT_LENGTH(tpk_size, crypto_sign_PUBLICKEYBYTES, "tpk")
   SN_ASSERT_LENGTH(pk_size, crypto_sign_PUBLICKEYBYTES, "pk")
 
-  SN_RETURN(crypto_tweak_ed25519_pk(tpk_data, pk_data, ns_data, ns_size), "failed to tweak public key")
+  SN_RETURN(sn__extension_tweak_ed25519_pk(tpk_data, pk_data, ns_data, ns_size), "failed to tweak public key")
 }
 
-napi_value sn_crypto_tweak_ed25519_keypair (napi_env env, napi_callback_info info) {
-  SN_ARGV(4, crypto_tweak_ed25519_keypair)
+napi_value sn_extension_tweak_ed25519_keypair (napi_env env, napi_callback_info info) {
+  SN_ARGV(4, extension_tweak_ed25519_keypair)
 
   SN_ARGV_TYPEDARRAY(pk, 0)
   SN_ARGV_TYPEDARRAY(scalar_out, 1)
   SN_ARGV_TYPEDARRAY(scalar_in, 2)
   SN_ARGV_TYPEDARRAY(ns, 3)
 
-  SN_ASSERT_LENGTH(pk_size, crypto_tweak_ed25519_BYTES, "pk")
-  SN_ASSERT_LENGTH(scalar_out_size, crypto_tweak_ed25519_SCALARBYTES, "scalar_out")
-  SN_ASSERT_LENGTH(scalar_in_size, crypto_tweak_ed25519_SCALARBYTES, "scalar_in")
+  SN_ASSERT_LENGTH(pk_size, sn__extension_tweak_ed25519_BYTES, "pk")
+  SN_ASSERT_LENGTH(scalar_out_size, sn__extension_tweak_ed25519_SCALARBYTES, "scalar_out")
+  SN_ASSERT_LENGTH(scalar_in_size, sn__extension_tweak_ed25519_SCALARBYTES, "scalar_in")
 
-  crypto_tweak_ed25519_keypair(pk_data, scalar_out_data, scalar_in_data, ns_data, ns_size);
+  sn__extension_tweak_ed25519_keypair(pk_data, scalar_out_data, scalar_in_data, ns_data, ns_size);
 
   return NULL;
 }
 
-napi_value sn_crypto_tweak_ed25519_scalar_add (napi_env env, napi_callback_info info) {
-  SN_ARGV(3, crypto_tweak_ed25519_scalar_add)
+napi_value sn_extension_tweak_ed25519_scalar_add (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, extension_tweak_ed25519_scalar_add)
 
   SN_ARGV_TYPEDARRAY(scalar_out, 0)
   SN_ARGV_TYPEDARRAY(scalar, 1)
   SN_ARGV_TYPEDARRAY(n, 2)
 
-  SN_ASSERT_LENGTH(scalar_out_size, crypto_tweak_ed25519_SCALARBYTES, "scalar_out")
-  SN_ASSERT_LENGTH(scalar_size, crypto_tweak_ed25519_SCALARBYTES, "scalar")
-  SN_ASSERT_LENGTH(n_size, crypto_tweak_ed25519_SCALARBYTES, "n")
+  SN_ASSERT_LENGTH(scalar_out_size, sn__extension_tweak_ed25519_SCALARBYTES, "scalar_out")
+  SN_ASSERT_LENGTH(scalar_size, sn__extension_tweak_ed25519_SCALARBYTES, "scalar")
+  SN_ASSERT_LENGTH(n_size, sn__extension_tweak_ed25519_SCALARBYTES, "n")
 
-  crypto_tweak_ed25519_scalar_add(scalar_out_data, scalar_data, n_data);
+  sn__extension_tweak_ed25519_scalar_add(scalar_out_data, scalar_data, n_data);
 
   return NULL;
 }
 
-napi_value sn_crypto_tweak_ed25519_pk_add (napi_env env, napi_callback_info info) {
-  SN_ARGV(3, crypto_tweak_ed25519_pk)
+napi_value sn_extension_tweak_ed25519_pk_add (napi_env env, napi_callback_info info) {
+  SN_ARGV(3, extension_tweak_ed25519_pk)
 
   SN_ARGV_TYPEDARRAY(tpk, 0)
   SN_ARGV_TYPEDARRAY(pk, 1)
@@ -2953,23 +2954,126 @@ napi_value sn_crypto_tweak_ed25519_pk_add (napi_env env, napi_callback_info info
   SN_ASSERT_LENGTH(pk_size, crypto_sign_PUBLICKEYBYTES, "pk")
   SN_ASSERT_LENGTH(p_size, crypto_sign_PUBLICKEYBYTES, "p")
 
-  SN_RETURN(crypto_tweak_ed25519_pk_add(tpk_data, pk_data, p_data), "failed to add tweak to public key")
+  SN_RETURN(sn__extension_tweak_ed25519_pk_add(tpk_data, pk_data, p_data), "failed to add tweak to public key")
 }
 
-napi_value sn_crypto_tweak_ed25519_keypair_add (napi_env env, napi_callback_info info) {
-  SN_ARGV(4, crypto_tweak_ed25519_keypair_add)
+napi_value sn_extension_tweak_ed25519_keypair_add (napi_env env, napi_callback_info info) {
+  SN_ARGV(4, extension_tweak_ed25519_keypair_add)
 
   SN_ARGV_TYPEDARRAY(pk, 0)
   SN_ARGV_TYPEDARRAY(scalar_out, 1)
   SN_ARGV_TYPEDARRAY(scalar_in, 2)
   SN_ARGV_TYPEDARRAY(tweak, 3)
 
-  SN_ASSERT_LENGTH(pk_size, crypto_tweak_ed25519_BYTES, "pk")
-  SN_ASSERT_LENGTH(scalar_out_size, crypto_tweak_ed25519_SCALARBYTES, "scalar_out")
-  SN_ASSERT_LENGTH(scalar_in_size, crypto_tweak_ed25519_SCALARBYTES, "scalar_in")
-  SN_ASSERT_LENGTH(tweak_size, crypto_tweak_ed25519_SCALARBYTES, "tweak")
+  SN_ASSERT_LENGTH(pk_size, sn__extension_tweak_ed25519_BYTES, "pk")
+  SN_ASSERT_LENGTH(scalar_out_size, sn__extension_tweak_ed25519_SCALARBYTES, "scalar_out")
+  SN_ASSERT_LENGTH(scalar_in_size, sn__extension_tweak_ed25519_SCALARBYTES, "scalar_in")
+  SN_ASSERT_LENGTH(tweak_size, sn__extension_tweak_ed25519_SCALARBYTES, "tweak")
 
-  SN_RETURN(crypto_tweak_ed25519_keypair_add(pk_data, scalar_out_data, scalar_in_data, tweak_data), "failed to add tweak to keypair")
+  SN_RETURN(sn__extension_tweak_ed25519_keypair_add(pk_data, scalar_out_data, scalar_in_data, tweak_data), "failed to add tweak to keypair")
+}
+
+napi_value sn_extension_pbkdf2_sha512 (napi_env env, napi_callback_info info) {
+  SN_ARGV(5, extension_pbkdf2_sha512)
+
+  SN_ARGV_BUFFER_CAST(unsigned char *, out, 0)
+  SN_ARGV_BUFFER_CAST(unsigned char *, passwd, 1)
+  SN_ARGV_BUFFER_CAST(unsigned char *, salt, 2)
+  SN_ARGV_UINT64(iter, 3)
+  SN_ARGV_UINT64(outlen, 4)
+
+  SN_ASSERT_MIN_LENGTH(iter, sn__extension_pbkdf2_sha512_ITERATIONS_MIN, "iterations")
+  SN_ASSERT_MAX_LENGTH(outlen, sn__extension_pbkdf2_sha512_BYTES_MAX, "outlen")
+
+  SN_ASSERT_MIN_LENGTH(out_size, outlen, "out")
+
+  SN_RETURN(sn__extension_pbkdf2_sha512(passwd, passwd_size, salt, salt_size, iter, out, outlen), "failed to add tweak to public key")
+}
+
+typedef struct sn_async_pbkdf2_sha512_request {
+  napi_env env;
+  unsigned char *out_data;
+  size_t out_size;
+  napi_ref out_ref;
+  size_t outlen;
+  napi_ref pwd_ref;
+  const unsigned char *pwd_data;
+  size_t pwd_size;
+  napi_ref salt_ref;
+  unsigned char *salt_data;
+  size_t salt_size;
+  uint64_t iter;
+} sn_async_pbkdf2_sha512_request;
+
+static void async_pbkdf2_sha512_execute (uv_work_t *uv_req) {
+  sn_async_task_t *task = (sn_async_task_t *) uv_req;
+  sn_async_pbkdf2_sha512_request *req = (sn_async_pbkdf2_sha512_request *) task->req;
+  task->code = sn__extension_pbkdf2_sha512(req->pwd_data,
+                                    req->pwd_size,
+                                    req->salt_data,
+                                    req->salt_size,
+                                    req->iter,
+                                    req->out_data,
+                                    req->outlen);
+}
+
+static void async_pbkdf2_sha512_complete (uv_work_t *uv_req, int status) {
+  sn_async_task_t *task = (sn_async_task_t *) uv_req;
+  sn_async_pbkdf2_sha512_request *req = (sn_async_pbkdf2_sha512_request *) task->req;
+
+  napi_handle_scope scope;
+  napi_open_handle_scope(req->env, &scope);
+
+  napi_value global;
+  napi_get_global(req->env, &global);
+
+  SN_ASYNC_COMPLETE("failed to compute kdf")
+
+  napi_close_handle_scope(req->env, scope);
+
+  napi_delete_reference(req->env, req->out_ref);
+  napi_delete_reference(req->env, req->pwd_ref);
+  napi_delete_reference(req->env, req->salt_ref);
+
+  free(req);
+  free(task);
+}
+
+napi_value sn_extension_pbkdf2_sha512_async (napi_env env, napi_callback_info info) {
+  SN_ARGV_OPTS(5, 6, extension_pbkdf2_sha512_async)
+
+  SN_ARGV_BUFFER_CAST(unsigned char *, out, 0)
+  SN_ARGV_BUFFER_CAST(unsigned char *, pwd, 1)
+  SN_ARGV_BUFFER_CAST(unsigned char *, salt, 2)
+  SN_ARGV_UINT64(iter, 3)
+  SN_ARGV_UINT64(outlen, 4)
+
+  SN_ASSERT_MIN_LENGTH(iter, sn__extension_pbkdf2_sha512_ITERATIONS_MIN, "iterations")
+  SN_ASSERT_MAX_LENGTH(outlen, sn__extension_pbkdf2_sha512_BYTES_MAX, "outlen")
+  SN_ASSERT_MIN_LENGTH(out_size, outlen, "output")
+
+  sn_async_pbkdf2_sha512_request *req = (sn_async_pbkdf2_sha512_request *) malloc(sizeof(sn_async_pbkdf2_sha512_request));
+
+  req->env = env;
+  req->out_data = out;
+  req->out_size = out_size;
+  req->pwd_data = pwd;
+  req->pwd_size = pwd_size;
+  req->salt_data = salt;
+  req->salt_size = salt_size;
+  req->iter = iter;
+  req->outlen = outlen;
+
+  sn_async_task_t *task = (sn_async_task_t *) malloc(sizeof(sn_async_task_t));
+  SN_ASYNC_TASK(5);
+
+  SN_STATUS_THROWS(napi_create_reference(env, out_argv, 1, &req->out_ref), "")
+  SN_STATUS_THROWS(napi_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
+  SN_STATUS_THROWS(napi_create_reference(env, salt_argv, 1, &req->salt_ref), "")
+
+  SN_QUEUE_TASK(task, async_pbkdf2_sha512_execute, async_pbkdf2_sha512_complete)
+
+  return promise;
 }
 
 static napi_value create_sodium_native (napi_env env) {
@@ -3331,19 +3435,30 @@ static napi_value create_sodium_native (napi_env env) {
   SN_EXPORT_FUNCTION(crypto_stream_salsa20_xor_final, sn_crypto_stream_salsa20_xor_wrap_final)
   SN_EXPORT_UINT32(crypto_stream_salsa20_xor_STATEBYTES, sizeof(sn_crypto_stream_salsa20_xor_state))
 
-  // crypto_tweak
+  // extensions
 
-  SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519_base, sn_crypto_tweak_ed25519_base)
-  SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519_sign_detached, sn_crypto_tweak_ed25519_sign_detached)
-  SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519_sk_to_scalar, sn_crypto_tweak_ed25519_sk_to_scalar)
-  SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519_scalar, sn_crypto_tweak_ed25519_scalar)
-  SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519_pk, sn_crypto_tweak_ed25519_pk)
-  SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519_keypair, sn_crypto_tweak_ed25519_keypair)
-  SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519_scalar_add, sn_crypto_tweak_ed25519_scalar_add)
-  SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519_pk_add, sn_crypto_tweak_ed25519_pk_add)
-  SN_EXPORT_FUNCTION(experimental_crypto_tweak_ed25519_keypair_add, sn_crypto_tweak_ed25519_keypair_add)
-  SN_EXPORT_UINT32(experimental_crypto_tweak_ed25519_BYTES, crypto_tweak_ed25519_BYTES)
-  SN_EXPORT_UINT32(experimental_crypto_tweak_ed25519_SCALARBYTES, crypto_tweak_ed25519_SCALARBYTES)
+  // tweak
+
+  SN_EXPORT_FUNCTION(extension_tweak_ed25519_base, sn_extension_tweak_ed25519_base)
+  SN_EXPORT_FUNCTION(extension_tweak_ed25519_sign_detached, sn_extension_tweak_ed25519_sign_detached)
+  SN_EXPORT_FUNCTION(extension_tweak_ed25519_sk_to_scalar, sn_extension_tweak_ed25519_sk_to_scalar)
+  SN_EXPORT_FUNCTION(extension_tweak_ed25519_scalar, sn_extension_tweak_ed25519_scalar)
+  SN_EXPORT_FUNCTION(extension_tweak_ed25519_pk, sn_extension_tweak_ed25519_pk)
+  SN_EXPORT_FUNCTION(extension_tweak_ed25519_keypair, sn_extension_tweak_ed25519_keypair)
+  SN_EXPORT_FUNCTION(extension_tweak_ed25519_scalar_add, sn_extension_tweak_ed25519_scalar_add)
+  SN_EXPORT_FUNCTION(extension_tweak_ed25519_pk_add, sn_extension_tweak_ed25519_pk_add)
+  SN_EXPORT_FUNCTION(extension_tweak_ed25519_keypair_add, sn_extension_tweak_ed25519_keypair_add)
+  SN_EXPORT_UINT32(extension_tweak_ed25519_BYTES, sn__extension_tweak_ed25519_BYTES)
+  SN_EXPORT_UINT32(extension_tweak_ed25519_SCALARBYTES, sn__extension_tweak_ed25519_SCALARBYTES)
+
+  // pbkdf2
+
+  SN_EXPORT_FUNCTION(extension_pbkdf2_sha512, sn_extension_pbkdf2_sha512)
+  SN_EXPORT_FUNCTION(extension_pbkdf2_sha512_async, sn_extension_pbkdf2_sha512_async)
+  SN_EXPORT_UINT32(extension_pbkdf2_sha512_SALTBYTES, sn__extension_pbkdf2_sha512_SALTBYTES)
+  SN_EXPORT_UINT32(extension_pbkdf2_sha512_HASHBYTES, sn__extension_pbkdf2_sha512_HASHBYTES)
+  SN_EXPORT_UINT32(extension_pbkdf2_sha512_ITERATIONS_MIN, sn__extension_pbkdf2_sha512_ITERATIONS_MIN)
+  SN_EXPORT_UINT64(extension_pbkdf2_sha512_BYTES_MAX, sn__extension_pbkdf2_sha512_BYTES_MAX)
 
   return exports;
 }

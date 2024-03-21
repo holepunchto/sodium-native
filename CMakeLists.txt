@@ -389,8 +389,10 @@ target_sources(
   PRIVATE
     binding.c
     macros.h
-    modules/crypto_tweak/tweak.c
-    modules/crypto_tweak/tweak.h
+    extensions/tweak/tweak.c
+    extensions/tweak/tweak.h
+    extensions/pbkdf2/pbkdf2.c
+    extensions/pbkdf2/pbkdf2.h
 )
 
 target_link_libraries(

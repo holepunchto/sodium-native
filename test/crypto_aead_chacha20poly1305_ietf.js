@@ -7,8 +7,8 @@ test('constants', function (t) {
   t.is(typeof sodium.crypto_aead_chacha20poly1305_ietf_NPUBBYTES, 'number')
   t.is(typeof sodium.crypto_aead_chacha20poly1305_ietf_NSECBYTES, 'number')
   t.is(sodium.crypto_aead_chacha20poly1305_ietf_NSECBYTES, 0)
-  t.is(typeof sodium.crypto_aead_chacha20poly1305_ietf_MESSAGEBYTES_MAX, 'bigint')
-  t.is(sodium.crypto_aead_chacha20poly1305_ietf_MESSAGEBYTES_MAX, 0x3fffffffc0n) // to make sure, see note in binding.cc
+  t.is(typeof sodium.crypto_aead_chacha20poly1305_ietf_MESSAGEBYTES_MAX, 'number')
+  t.is(sodium.crypto_aead_chacha20poly1305_ietf_MESSAGEBYTES_MAX, 0x3fffffffc0) // to make sure, see note in binding.cc
 })
 
 test('ported from libsodium', function (t) {
