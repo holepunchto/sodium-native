@@ -8,7 +8,7 @@
     "binding.c",
     "binding.gyp",
     "macros.h",
-    "modules",
+    "extensions",
     "scripts",
     "prebuilds",
     "CMakeLists.txt",
