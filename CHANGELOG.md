@@ -2,6 +2,9 @@
 
 ## Current
 
+## v4.1.1
+* Missing extensions folder in build when building from source.
+
 ## v4.1.0
 * Refactor extensions into an `extension_*` namespace for clarity on the exports.
 * Add `pbkdf2` extension
