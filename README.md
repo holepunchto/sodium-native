@@ -1,5 +1,4 @@
 # sodium-native
-[![build status](https://travis-ci.org/sodium-friends/sodium-native.svg?branch=master)](https://travis-ci.org/sodium-friends/sodium-native)
 
 Low level bindings for [libsodium](https://github.com/jedisct1/libsodium).
 
