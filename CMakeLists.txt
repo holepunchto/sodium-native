@@ -20,7 +20,7 @@ add_custom_command(
   VERBATIM
 )
 
-add_library(sodium STATIC)
+add_library(sodium OBJECT)
 
 target_sources(
   sodium
@@ -393,6 +393,8 @@ target_sources(
     extensions/tweak/tweak.h
     extensions/pbkdf2/pbkdf2.c
     extensions/pbkdf2/pbkdf2.h
+  PUBLIC
+    $<TARGET_OBJECTS:sodium>
 )
 
 target_link_libraries(
