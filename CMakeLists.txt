@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.25)
 
 project(sodium_native C ASM)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 include(TestBigEndian)
 
 include(bare)
