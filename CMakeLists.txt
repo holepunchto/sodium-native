@@ -2,6 +2,8 @@ cmake_minimum_required(VERSION 3.25)
 
 project(sodium_native C ASM)
 
+set(CMAKE_POSITION_INDEPENDENT_CODE ON)
+
 include(TestBigEndian)
 
 include(bare)
@@ -20,7 +22,7 @@ add_custom_command(
   VERBATIM
 )
 
-add_library(sodium STATIC)
+add_library(sodium OBJECT)
 
 target_sources(
   sodium
@@ -339,9 +341,16 @@ if(target MATCHES "x64")
       HAVE_MMINTRIN_H=1
       HAVE_EMMINTRIN_H=1
       HAVE_PMMINTRIN_H=1
-      HAVE_SMMINTRIN_H=1
       HAVE_TMMINTRIN_H=1
   )
+
+  if(NOT target MATCHES "ios")
+    target_compile_definitions(
+      sodium
+      PRIVATE
+        HAVE_TMMINTRIN_H
+    )
+  endif()
 
   if(NOT target MATCHES "win32")
     target_compile_definitions(
@@ -393,6 +402,8 @@ target_sources(
     extensions/tweak/tweak.h
     extensions/pbkdf2/pbkdf2.c
     extensions/pbkdf2/pbkdf2.h
+  PUBLIC
+    $<TARGET_OBJECTS:sodium>
 )
 
 target_link_libraries(
