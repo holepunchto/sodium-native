@@ -34,7 +34,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "https://github.com/sodium-friends/sodium-native.git"
+    "url": "https://github.com/holepunchto/sodium-native.git"
   },
   "contributors": [
     "Emil Bay <github@tixz.dk> (http://bayes.dk)",
@@ -43,7 +43,7 @@
   ],
   "license": "MIT",
   "bugs": {
-    "url": "https://github.com/sodium-friends/sodium-native/issues"
+    "url": "https://github.com/holepunchto/sodium-native/issues"
   },
-  "homepage": "https://github.com/sodium-friends/sodium-native"
+  "homepage": "https://github.com/holepunchto/sodium-native"
 }
