@@ -7,6 +7,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 include(TestBigEndian)
 
 include(bare)
+include(napi)
 
 bare_target(target)
 
@@ -391,10 +392,10 @@ else()
   )
 endif()
 
-add_bare_module(sodium_native)
+add_bare_module(sodium_native_bare)
 
 target_sources(
-  ${sodium_native}
+  ${sodium_native_bare}
   PRIVATE
     binding.c
     macros.h
@@ -407,7 +408,28 @@ target_sources(
 )
 
 target_link_libraries(
-  ${sodium_native}
+  ${sodium_native_bare}
+  PUBLIC
+    sodium
+)
+
+add_napi_module(sodium_native_node)
+
+target_sources(
+  ${sodium_native_node}
+  PRIVATE
+    binding.c
+    macros.h
+    extensions/tweak/tweak.c
+    extensions/tweak/tweak.h
+    extensions/pbkdf2/pbkdf2.c
+    extensions/pbkdf2/pbkdf2.h
+  PUBLIC
+    $<TARGET_OBJECTS:sodium>
+)
+
+target_link_libraries(
+  ${sodium_native_node}
   PUBLIC
     sodium
 )

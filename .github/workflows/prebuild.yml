@@ -64,9 +64,7 @@ jobs:
         node-version: lts/*
     - run: npm install -g bare-dev
     - run: npm install
-    - run: npm run prebuild
-      if: ${{ matrix.platform == 'linux' || matrix.platform == 'darwin' || (matrix.platform == 'win32' && matrix.arch == 'x64') }}
-    - run: bare-dev install --platform ${{ matrix.platform }} --arch ${{ matrix.arch }} ${{ matrix.flags }}
+    - run: bare-dev install --bare --node --platform ${{ matrix.platform }} --arch ${{ matrix.arch }} ${{ matrix.flags }}
     - uses: actions/upload-artifact@v4
       with:
         name: ${{ matrix.platform }}-${{ matrix.arch }}${{ matrix.tags }}

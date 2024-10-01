@@ -6,13 +6,11 @@
   "files": [
     "index.js",
     "binding.c",
-    "binding.gyp",
     "macros.h",
     "extensions",
     "scripts",
     "prebuilds",
     "CMakeLists.txt",
-    "vendor/libsodium.gyp",
     "vendor/libsodium/src/**/*.c",
     "vendor/libsodium/src/**/*.h",
     "vendor/libsodium/src/**/*.h.in",
@@ -24,15 +22,10 @@
   },
   "devDependencies": {
     "brittle": "^3.5.0",
-    "prebuildify": "^6.0.0",
     "standard": "^17.1.0"
   },
   "scripts": {
-    "dev": "node-gyp rebuild",
-    "test": "standard && brittle test/*.js",
-    "install": "node-gyp-build",
-    "prebuild": "prebuildify --strip",
-    "prebuild-ia32": "prebuildify --arch=ia32 --strip"
+    "test": "standard && brittle test/*.js"
   },
   "standard": {
     "ignore": [
