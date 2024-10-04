@@ -2,6 +2,9 @@
 
 ## Current
 
+## v4.2.1
+* Move to cmake for building.
+
 ## v4.2.0
 * Adds prebuilds for android, ios, and windows/linux arm64.
 
