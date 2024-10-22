@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.25)
 
-project(sodium_native C ASM)
+find_package(cmake-bare REQUIRED PATHS node_modules/cmake-bare)
+find_package(cmake-napi REQUIRED PATHS node_modules/cmake-napi)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-include(TestBigEndian)
+project(sodium_native C ASM)
 
-include(bare)
-include(napi)
+include(TestBigEndian)
 
 bare_target(target)
 

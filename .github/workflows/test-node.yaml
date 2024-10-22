@@ -21,7 +21,9 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: ${{ matrix.node-version }}
-    - run: npm install -g bare-runtime bare-dev
+    - run: npm install -g bare-runtime bare-make
     - run: npm install
-    - run: bare-dev install --bare --node --debug
+    - run: bare-make generate --debug
+    - run: bare-make build
+    - run: bare-make install
     - run: npm test
