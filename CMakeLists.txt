@@ -336,25 +336,24 @@ if(target MATCHES "x64")
       HAVE_EMMINTRIN_H=1 # SSE2
       HAVE_PMMINTRIN_H=1 # SSE3
       HAVE_TMMINTRIN_H=1 # SSSE3
+      HAVE_SMMINTRIN_H=1 # SSE4.1
+      HAVE_WMMINTRIN_H=1 # AES
+      HAVE_AVXINTRIN_H=1 # AVX
+      HAVE_AVX2INTRIN_H=1 # AVX2
   )
 
-  if(target MATCHES "win32")
-    target_compile_options(
-      sodium
-      PRIVATE
-        /arch:SSE2
-        /arch:SSE3
-        /arch:SSSE3
-    )
-  else()
-    target_compile_options(
-      sodium
-      PRIVATE
-        -msse2
-        -msse3
-        -mssse3
-    )
-  endif()
+  target_compile_options(
+    sodium
+    PRIVATE
+      -msse2
+      -msse3
+      -mssse3
+      -msse4.1
+      -maes
+      -mpclmul
+      -mavx
+      -mavx2
+  )
 
   if(NOT target MATCHES "win32")
     target_compile_definitions(
