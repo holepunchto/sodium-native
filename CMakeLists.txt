@@ -285,12 +285,6 @@ if(target MATCHES "darwin|ios")
 endif()
 
 if(target MATCHES "linux")
-  target_compile_options(
-    sodium
-    PRIVATE
-      -fno-strict-overflow
-  )
-
   target_compile_definitions(
     sodium
     PRIVATE
@@ -339,19 +333,10 @@ if(target MATCHES "x64")
     sodium
     PRIVATE
       HAVE_CPUID=1
-      HAVE_MMINTRIN_H=1
-      HAVE_EMMINTRIN_H=1
-      HAVE_PMMINTRIN_H=1
-      HAVE_TMMINTRIN_H=1
+      HAVE_EMMINTRIN_H=1 # SSE2
+      HAVE_PMMINTRIN_H=1 # SSE3
+      HAVE_TMMINTRIN_H=1 # SSSE3
   )
-
-  if(NOT target MATCHES "ios")
-    target_compile_definitions(
-      sodium
-      PRIVATE
-        HAVE_TMMINTRIN_H
-    )
-  endif()
 
   if(NOT target MATCHES "win32")
     target_compile_definitions(
@@ -359,6 +344,14 @@ if(target MATCHES "x64")
       PRIVATE
         HAVE_AMD64_ASM=1
         HAVE_AVX_ASM=1
+    )
+
+    target_compile_options(
+      sodium
+      PRIVATE
+        -msse2
+        -msse3
+        -mssse3
     )
 
     target_sources(
