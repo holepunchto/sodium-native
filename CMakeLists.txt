@@ -338,20 +338,30 @@ if(target MATCHES "x64")
       HAVE_TMMINTRIN_H=1 # SSSE3
   )
 
-  if(NOT target MATCHES "win32")
-    target_compile_definitions(
+  if(target MATCHES "win32")
+    target_compile_options(
       sodium
       PRIVATE
-        HAVE_AMD64_ASM=1
-        HAVE_AVX_ASM=1
+        /arch:SSE2
+        /arch:SSE3
+        /arch:SSSE3
     )
-
+  else()
     target_compile_options(
       sodium
       PRIVATE
         -msse2
         -msse3
         -mssse3
+    )
+  endif()
+
+  if(NOT target MATCHES "win32")
+    target_compile_definitions(
+      sodium
+      PRIVATE
+        HAVE_AMD64_ASM=1
+        HAVE_AVX_ASM=1
     )
 
     target_sources(
