@@ -67,3 +67,15 @@ jobs:
       with:
         name: ${{ matrix.platform }}-${{ matrix.arch }}${{ matrix.tags }}
         path: prebuilds/*
+  merge:
+    needs: prebuild
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/download-artifact@v4
+        with:
+          path: prebuilds
+          merge-multiple: true
+      - uses: actions/upload-artifact@v4
+        with:
+          name: prebuilds
+          path: prebuilds
