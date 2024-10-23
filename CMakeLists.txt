@@ -1,13 +1,13 @@
 cmake_minimum_required(VERSION 3.25)
 
-project(sodium_native C ASM)
+find_package(cmake-bare REQUIRED PATHS node_modules/cmake-bare)
+find_package(cmake-napi REQUIRED PATHS node_modules/cmake-napi)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-include(TestBigEndian)
+project(sodium_native C ASM)
 
-include(bare)
-include(napi)
+include(TestBigEndian)
 
 bare_target(target)
 
@@ -285,12 +285,6 @@ if(target MATCHES "darwin|ios")
 endif()
 
 if(target MATCHES "linux")
-  target_compile_options(
-    sodium
-    PRIVATE
-      -fno-strict-overflow
-  )
-
   target_compile_definitions(
     sodium
     PRIVATE
@@ -339,19 +333,27 @@ if(target MATCHES "x64")
     sodium
     PRIVATE
       HAVE_CPUID=1
-      HAVE_MMINTRIN_H=1
-      HAVE_EMMINTRIN_H=1
-      HAVE_PMMINTRIN_H=1
-      HAVE_TMMINTRIN_H=1
+      HAVE_EMMINTRIN_H=1 # SSE2
+      HAVE_PMMINTRIN_H=1 # SSE3
+      HAVE_TMMINTRIN_H=1 # SSSE3
+      HAVE_SMMINTRIN_H=1 # SSE4.1
+      HAVE_WMMINTRIN_H=1 # AES
+      HAVE_AVXINTRIN_H=1 # AVX
+      HAVE_AVX2INTRIN_H=1 # AVX2
   )
 
-  if(NOT target MATCHES "ios")
-    target_compile_definitions(
-      sodium
-      PRIVATE
-        HAVE_TMMINTRIN_H
-    )
-  endif()
+  target_compile_options(
+    sodium
+    PRIVATE
+      -msse2
+      -msse3
+      -mssse3
+      -msse4.1
+      -maes
+      -mpclmul
+      -mavx
+      -mavx2
+  )
 
   if(NOT target MATCHES "win32")
     target_compile_definitions(
