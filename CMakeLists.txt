@@ -38,7 +38,6 @@ target_sources(
     vendor/libsodium/src/libsodium/crypto_aead/aegis256/aegis256_common.h
     vendor/libsodium/src/libsodium/crypto_aead/aegis256/aegis256_soft.h
     vendor/libsodium/src/libsodium/crypto_aead/aegis256/implementations.h
-    vendor/libsodium/src/libsodium/crypto_core/ed25519/core_h2c.h
     vendor/libsodium/src/libsodium/crypto_core/ed25519/ref10/fe_25_5/base.h
     vendor/libsodium/src/libsodium/crypto_core/ed25519/ref10/fe_25_5/base2.h
     vendor/libsodium/src/libsodium/crypto_core/ed25519/ref10/fe_25_5/constants.h
@@ -90,7 +89,6 @@ target_sources(
     vendor/libsodium/src/libsodium/crypto_stream/chacha20/stream_chacha20.h
     vendor/libsodium/src/libsodium/crypto_stream/salsa20/ref/salsa20_ref.h
     vendor/libsodium/src/libsodium/crypto_stream/salsa20/stream_salsa20.h
-    vendor/libsodium/src/libsodium/crypto_stream/salsa20/xmm6/salsa20_xmm6-asm_namespace.h
     vendor/libsodium/src/libsodium/crypto_stream/salsa20/xmm6/salsa20_xmm6.h
     vendor/libsodium/src/libsodium/crypto_stream/salsa20/xmm6int/salsa20_xmm6int-avx2.h
     vendor/libsodium/src/libsodium/crypto_stream/salsa20/xmm6int/salsa20_xmm6int-sse2.h
@@ -147,6 +145,7 @@ target_sources(
     vendor/libsodium/src/libsodium/include/sodium/crypto_shorthash_siphash24.h
     vendor/libsodium/src/libsodium/include/sodium/crypto_sign.h
     vendor/libsodium/src/libsodium/include/sodium/crypto_sign_ed25519.h
+    vendor/libsodium/src/libsodium/include/sodium/crypto_sign_edwards25519sha512batch.h
     vendor/libsodium/src/libsodium/include/sodium/crypto_stream.h
     vendor/libsodium/src/libsodium/include/sodium/crypto_stream_chacha20.h
     vendor/libsodium/src/libsodium/include/sodium/crypto_stream_salsa20.h
@@ -166,7 +165,6 @@ target_sources(
     vendor/libsodium/src/libsodium/include/sodium/private/ed25519_ref10_fe_51.h
     vendor/libsodium/src/libsodium/include/sodium/private/implementations.h
     vendor/libsodium/src/libsodium/include/sodium/private/mutex.h
-    vendor/libsodium/src/libsodium/include/sodium/private/quirks.h
     vendor/libsodium/src/libsodium/include/sodium/private/softaes.h
     vendor/libsodium/src/libsodium/include/sodium/private/sse2_64_32.h
     vendor/libsodium/src/libsodium/include/sodium/randombytes.h
@@ -201,7 +199,6 @@ target_sources(
     vendor/libsodium/src/libsodium/crypto_box/curve25519xchacha20poly1305/box_seal_curve25519xchacha20poly1305.c
     vendor/libsodium/src/libsodium/crypto_box/curve25519xsalsa20poly1305/box_curve25519xsalsa20poly1305.c
     vendor/libsodium/src/libsodium/crypto_core/ed25519/core_ed25519.c
-    vendor/libsodium/src/libsodium/crypto_core/ed25519/core_h2c.c
     vendor/libsodium/src/libsodium/crypto_core/ed25519/core_ristretto255.c
     vendor/libsodium/src/libsodium/crypto_core/ed25519/ref10/ed25519_ref10.c
     vendor/libsodium/src/libsodium/crypto_core/hchacha20/core_hchacha20.c
@@ -268,6 +265,7 @@ target_sources(
     vendor/libsodium/src/libsodium/crypto_shorthash/siphash24/shorthash_siphashx24.c
     vendor/libsodium/src/libsodium/crypto_sign/crypto_sign.c
     vendor/libsodium/src/libsodium/crypto_sign/ed25519/ref10/keypair.c
+    vendor/libsodium/src/libsodium/crypto_sign/ed25519/ref10/obsolete.c
     vendor/libsodium/src/libsodium/crypto_sign/ed25519/ref10/open.c
     vendor/libsodium/src/libsodium/crypto_sign/ed25519/ref10/sign.c
     vendor/libsodium/src/libsodium/crypto_sign/ed25519/sign_ed25519.c
