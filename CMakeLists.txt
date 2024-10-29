@@ -28,9 +28,78 @@ add_library(sodium OBJECT)
 target_sources(
   sodium
   INTERFACE
-    vendor/libsodium/src/libsodium/include/sodium/private/chacha20_ietf_ext.h
-    vendor/libsodium/src/libsodium/include/sodium/private/common.h
+    vendor/libsodium/src/libsodium/crypto_aead/aegis128l/aegis128l_aesni.h
+    vendor/libsodium/src/libsodium/crypto_aead/aegis128l/aegis128l_armcrypto.h
+    vendor/libsodium/src/libsodium/crypto_aead/aegis128l/aegis128l_common.h
+    vendor/libsodium/src/libsodium/crypto_aead/aegis128l/aegis128l_soft.h
+    vendor/libsodium/src/libsodium/crypto_aead/aegis128l/implementations.h
+    vendor/libsodium/src/libsodium/crypto_aead/aegis256/aegis256_aesni.h
+    vendor/libsodium/src/libsodium/crypto_aead/aegis256/aegis256_armcrypto.h
+    vendor/libsodium/src/libsodium/crypto_aead/aegis256/aegis256_common.h
+    vendor/libsodium/src/libsodium/crypto_aead/aegis256/aegis256_soft.h
+    vendor/libsodium/src/libsodium/crypto_aead/aegis256/implementations.h
+    vendor/libsodium/src/libsodium/crypto_core/ed25519/ref10/fe_25_5/base.h
+    vendor/libsodium/src/libsodium/crypto_core/ed25519/ref10/fe_25_5/base2.h
+    vendor/libsodium/src/libsodium/crypto_core/ed25519/ref10/fe_25_5/constants.h
+    vendor/libsodium/src/libsodium/crypto_core/ed25519/ref10/fe_25_5/fe.h
+    vendor/libsodium/src/libsodium/crypto_core/ed25519/ref10/fe_51/base.h
+    vendor/libsodium/src/libsodium/crypto_core/ed25519/ref10/fe_51/base2.h
+    vendor/libsodium/src/libsodium/crypto_core/ed25519/ref10/fe_51/constants.h
+    vendor/libsodium/src/libsodium/crypto_core/ed25519/ref10/fe_51/fe.h
+    vendor/libsodium/src/libsodium/crypto_generichash/blake2b/ref/blake2.h
+    vendor/libsodium/src/libsodium/crypto_generichash/blake2b/ref/blake2b-compress-avx2.h
+    vendor/libsodium/src/libsodium/crypto_generichash/blake2b/ref/blake2b-compress-sse41.h
+    vendor/libsodium/src/libsodium/crypto_generichash/blake2b/ref/blake2b-compress-ssse3.h
+    vendor/libsodium/src/libsodium/crypto_generichash/blake2b/ref/blake2b-load-avx2.h
+    vendor/libsodium/src/libsodium/crypto_generichash/blake2b/ref/blake2b-load-sse2.h
+    vendor/libsodium/src/libsodium/crypto_generichash/blake2b/ref/blake2b-load-sse41.h
+    vendor/libsodium/src/libsodium/crypto_onetimeauth/poly1305/donna/poly1305_donna.h
+    vendor/libsodium/src/libsodium/crypto_onetimeauth/poly1305/donna/poly1305_donna32.h
+    vendor/libsodium/src/libsodium/crypto_onetimeauth/poly1305/donna/poly1305_donna64.h
+    vendor/libsodium/src/libsodium/crypto_onetimeauth/poly1305/onetimeauth_poly1305.h
+    vendor/libsodium/src/libsodium/crypto_onetimeauth/poly1305/sse2/poly1305_sse2.h
+    vendor/libsodium/src/libsodium/crypto_pwhash/argon2/argon2-core.h
+    vendor/libsodium/src/libsodium/crypto_pwhash/argon2/argon2-encoding.h
+    vendor/libsodium/src/libsodium/crypto_pwhash/argon2/argon2.h
+    vendor/libsodium/src/libsodium/crypto_pwhash/argon2/blake2b-long.h
+    vendor/libsodium/src/libsodium/crypto_pwhash/argon2/blamka-round-avx2.h
+    vendor/libsodium/src/libsodium/crypto_pwhash/argon2/blamka-round-avx512f.h
+    vendor/libsodium/src/libsodium/crypto_pwhash/argon2/blamka-round-ref.h
+    vendor/libsodium/src/libsodium/crypto_pwhash/argon2/blamka-round-ssse3.h
+    vendor/libsodium/src/libsodium/crypto_pwhash/scryptsalsa208sha256/crypto_scrypt.h
+    vendor/libsodium/src/libsodium/crypto_pwhash/scryptsalsa208sha256/pbkdf2-sha256.h
+    vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/ref10/x25519_ref10.h
+    vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/consts_namespace.h
+    vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/curve25519_sandy2x.h
+    vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/fe.h
+    vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/fe51.h
+    vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/fe51_namespace.h
+    vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/ladder.h
+    vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/ladder_namespace.h
+    vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/scalarmult_curve25519.h
+    vendor/libsodium/src/libsodium/crypto_shorthash/siphash24/ref/shorthash_siphash_ref.h
+    vendor/libsodium/src/libsodium/crypto_sign/ed25519/ref10/sign_ed25519_ref10.h
+    vendor/libsodium/src/libsodium/crypto_stream/chacha20/dolbeau/chacha20_dolbeau-avx2.h
+    vendor/libsodium/src/libsodium/crypto_stream/chacha20/dolbeau/chacha20_dolbeau-ssse3.h
+    vendor/libsodium/src/libsodium/crypto_stream/chacha20/dolbeau/u0.h
+    vendor/libsodium/src/libsodium/crypto_stream/chacha20/dolbeau/u1.h
+    vendor/libsodium/src/libsodium/crypto_stream/chacha20/dolbeau/u4.h
+    vendor/libsodium/src/libsodium/crypto_stream/chacha20/dolbeau/u8.h
+    vendor/libsodium/src/libsodium/crypto_stream/chacha20/ref/chacha20_ref.h
+    vendor/libsodium/src/libsodium/crypto_stream/chacha20/stream_chacha20.h
+    vendor/libsodium/src/libsodium/crypto_stream/salsa20/ref/salsa20_ref.h
+    vendor/libsodium/src/libsodium/crypto_stream/salsa20/stream_salsa20.h
+    vendor/libsodium/src/libsodium/crypto_stream/salsa20/xmm6/salsa20_xmm6.h
+    vendor/libsodium/src/libsodium/crypto_stream/salsa20/xmm6int/salsa20_xmm6int-avx2.h
+    vendor/libsodium/src/libsodium/crypto_stream/salsa20/xmm6int/salsa20_xmm6int-sse2.h
+    vendor/libsodium/src/libsodium/crypto_stream/salsa20/xmm6int/u0.h
+    vendor/libsodium/src/libsodium/crypto_stream/salsa20/xmm6int/u1.h
+    vendor/libsodium/src/libsodium/crypto_stream/salsa20/xmm6int/u4.h
+    vendor/libsodium/src/libsodium/crypto_stream/salsa20/xmm6int/u8.h
+    vendor/libsodium/src/libsodium/include/sodium.h
     vendor/libsodium/src/libsodium/include/sodium/core.h
+    vendor/libsodium/src/libsodium/include/sodium/crypto_aead_aegis128l.h
+    vendor/libsodium/src/libsodium/include/sodium/crypto_aead_aegis256.h
     vendor/libsodium/src/libsodium/include/sodium/crypto_aead_aes256gcm.h
     vendor/libsodium/src/libsodium/include/sodium/crypto_aead_chacha20poly1305.h
     vendor/libsodium/src/libsodium/include/sodium/crypto_aead_xchacha20poly1305.h
@@ -46,8 +115,8 @@ target_sources(
     vendor/libsodium/src/libsodium/include/sodium/crypto_core_hsalsa20.h
     vendor/libsodium/src/libsodium/include/sodium/crypto_core_ristretto255.h
     vendor/libsodium/src/libsodium/include/sodium/crypto_core_salsa20.h
-    vendor/libsodium/src/libsodium/include/sodium/crypto_core_salsa208.h
     vendor/libsodium/src/libsodium/include/sodium/crypto_core_salsa2012.h
+    vendor/libsodium/src/libsodium/include/sodium/crypto_core_salsa208.h
     vendor/libsodium/src/libsodium/include/sodium/crypto_generichash.h
     vendor/libsodium/src/libsodium/include/sodium/crypto_generichash_blake2b.h
     vendor/libsodium/src/libsodium/include/sodium/crypto_hash.h
@@ -55,6 +124,8 @@ target_sources(
     vendor/libsodium/src/libsodium/include/sodium/crypto_hash_sha512.h
     vendor/libsodium/src/libsodium/include/sodium/crypto_kdf.h
     vendor/libsodium/src/libsodium/include/sodium/crypto_kdf_blake2b.h
+    vendor/libsodium/src/libsodium/include/sodium/crypto_kdf_hkdf_sha256.h
+    vendor/libsodium/src/libsodium/include/sodium/crypto_kdf_hkdf_sha512.h
     vendor/libsodium/src/libsodium/include/sodium/crypto_kx.h
     vendor/libsodium/src/libsodium/include/sodium/crypto_onetimeauth.h
     vendor/libsodium/src/libsodium/include/sodium/crypto_onetimeauth_poly1305.h
@@ -78,32 +149,85 @@ target_sources(
     vendor/libsodium/src/libsodium/include/sodium/crypto_stream.h
     vendor/libsodium/src/libsodium/include/sodium/crypto_stream_chacha20.h
     vendor/libsodium/src/libsodium/include/sodium/crypto_stream_salsa20.h
-    vendor/libsodium/src/libsodium/include/sodium/crypto_stream_salsa208.h
     vendor/libsodium/src/libsodium/include/sodium/crypto_stream_salsa2012.h
+    vendor/libsodium/src/libsodium/include/sodium/crypto_stream_salsa208.h
     vendor/libsodium/src/libsodium/include/sodium/crypto_stream_xchacha20.h
     vendor/libsodium/src/libsodium/include/sodium/crypto_stream_xsalsa20.h
     vendor/libsodium/src/libsodium/include/sodium/crypto_verify_16.h
     vendor/libsodium/src/libsodium/include/sodium/crypto_verify_32.h
     vendor/libsodium/src/libsodium/include/sodium/crypto_verify_64.h
+    vendor/libsodium/src/libsodium/include/sodium/export.h
+    vendor/libsodium/src/libsodium/include/sodium/private/asm_cet.h
+    vendor/libsodium/src/libsodium/include/sodium/private/chacha20_ietf_ext.h
+    vendor/libsodium/src/libsodium/include/sodium/private/common.h
     vendor/libsodium/src/libsodium/include/sodium/private/ed25519_ref10.h
     vendor/libsodium/src/libsodium/include/sodium/private/ed25519_ref10_fe_25_5.h
     vendor/libsodium/src/libsodium/include/sodium/private/ed25519_ref10_fe_51.h
-    vendor/libsodium/src/libsodium/include/sodium/export.h
     vendor/libsodium/src/libsodium/include/sodium/private/implementations.h
     vendor/libsodium/src/libsodium/include/sodium/private/mutex.h
+    vendor/libsodium/src/libsodium/include/sodium/private/softaes.h
+    vendor/libsodium/src/libsodium/include/sodium/private/sse2_64_32.h
     vendor/libsodium/src/libsodium/include/sodium/randombytes.h
     vendor/libsodium/src/libsodium/include/sodium/randombytes_internal_random.h
     vendor/libsodium/src/libsodium/include/sodium/randombytes_sysrandom.h
     vendor/libsodium/src/libsodium/include/sodium/runtime.h
-    vendor/libsodium/src/libsodium/include/sodium.h
-    vendor/libsodium/src/libsodium/include/sodium/private/sse2_64_32.h
     vendor/libsodium/src/libsodium/include/sodium/utils.h
   PUBLIC
     vendor/libsodium/src/libsodium/include/sodium/version.h
   PRIVATE
+    vendor/libsodium/src/libsodium/crypto_aead/aegis128l/aead_aegis128l.c
+    vendor/libsodium/src/libsodium/crypto_aead/aegis128l/aegis128l_aesni.c
+    vendor/libsodium/src/libsodium/crypto_aead/aegis128l/aegis128l_armcrypto.c
+    vendor/libsodium/src/libsodium/crypto_aead/aegis128l/aegis128l_soft.c
+    vendor/libsodium/src/libsodium/crypto_aead/aegis256/aead_aegis256.c
+    vendor/libsodium/src/libsodium/crypto_aead/aegis256/aegis256_aesni.c
+    vendor/libsodium/src/libsodium/crypto_aead/aegis256/aegis256_armcrypto.c
+    vendor/libsodium/src/libsodium/crypto_aead/aegis256/aegis256_soft.c
+    vendor/libsodium/src/libsodium/crypto_aead/aes256gcm/aead_aes256gcm.c
     vendor/libsodium/src/libsodium/crypto_aead/aes256gcm/aesni/aead_aes256gcm_aesni.c
-    vendor/libsodium/src/libsodium/crypto_aead/chacha20poly1305/sodium/aead_chacha20poly1305.c
-    vendor/libsodium/src/libsodium/crypto_aead/xchacha20poly1305/sodium/aead_xchacha20poly1305.c
+    vendor/libsodium/src/libsodium/crypto_aead/aes256gcm/armcrypto/aead_aes256gcm_armcrypto.c
+    vendor/libsodium/src/libsodium/crypto_aead/chacha20poly1305/aead_chacha20poly1305.c
+    vendor/libsodium/src/libsodium/crypto_aead/xchacha20poly1305/aead_xchacha20poly1305.c
+    vendor/libsodium/src/libsodium/crypto_auth/crypto_auth.c
+    vendor/libsodium/src/libsodium/crypto_auth/hmacsha256/auth_hmacsha256.c
+    vendor/libsodium/src/libsodium/crypto_auth/hmacsha512/auth_hmacsha512.c
+    vendor/libsodium/src/libsodium/crypto_auth/hmacsha512256/auth_hmacsha512256.c
+    vendor/libsodium/src/libsodium/crypto_box/crypto_box.c
+    vendor/libsodium/src/libsodium/crypto_box/crypto_box_easy.c
+    vendor/libsodium/src/libsodium/crypto_box/crypto_box_seal.c
+    vendor/libsodium/src/libsodium/crypto_box/curve25519xchacha20poly1305/box_curve25519xchacha20poly1305.c
+    vendor/libsodium/src/libsodium/crypto_box/curve25519xchacha20poly1305/box_seal_curve25519xchacha20poly1305.c
+    vendor/libsodium/src/libsodium/crypto_box/curve25519xsalsa20poly1305/box_curve25519xsalsa20poly1305.c
+    vendor/libsodium/src/libsodium/crypto_core/ed25519/core_ed25519.c
+    vendor/libsodium/src/libsodium/crypto_core/ed25519/core_ristretto255.c
+    vendor/libsodium/src/libsodium/crypto_core/ed25519/ref10/ed25519_ref10.c
+    vendor/libsodium/src/libsodium/crypto_core/hchacha20/core_hchacha20.c
+    vendor/libsodium/src/libsodium/crypto_core/hsalsa20/core_hsalsa20.c
+    vendor/libsodium/src/libsodium/crypto_core/hsalsa20/ref2/core_hsalsa20_ref2.c
+    vendor/libsodium/src/libsodium/crypto_core/salsa/ref/core_salsa_ref.c
+    vendor/libsodium/src/libsodium/crypto_core/softaes/softaes.c
+    vendor/libsodium/src/libsodium/crypto_generichash/blake2b/generichash_blake2.c
+    vendor/libsodium/src/libsodium/crypto_generichash/blake2b/ref/blake2b-compress-avx2.c
+    vendor/libsodium/src/libsodium/crypto_generichash/blake2b/ref/blake2b-compress-ref.c
+    vendor/libsodium/src/libsodium/crypto_generichash/blake2b/ref/blake2b-compress-sse41.c
+    vendor/libsodium/src/libsodium/crypto_generichash/blake2b/ref/blake2b-compress-ssse3.c
+    vendor/libsodium/src/libsodium/crypto_generichash/blake2b/ref/blake2b-ref.c
+    vendor/libsodium/src/libsodium/crypto_generichash/blake2b/ref/generichash_blake2b.c
+    vendor/libsodium/src/libsodium/crypto_generichash/crypto_generichash.c
+    vendor/libsodium/src/libsodium/crypto_hash/crypto_hash.c
+    vendor/libsodium/src/libsodium/crypto_hash/sha256/cp/hash_sha256_cp.c
+    vendor/libsodium/src/libsodium/crypto_hash/sha256/hash_sha256.c
+    vendor/libsodium/src/libsodium/crypto_hash/sha512/cp/hash_sha512_cp.c
+    vendor/libsodium/src/libsodium/crypto_hash/sha512/hash_sha512.c
+    vendor/libsodium/src/libsodium/crypto_kdf/blake2b/kdf_blake2b.c
+    vendor/libsodium/src/libsodium/crypto_kdf/crypto_kdf.c
+    vendor/libsodium/src/libsodium/crypto_kdf/hkdf/kdf_hkdf_sha256.c
+    vendor/libsodium/src/libsodium/crypto_kdf/hkdf/kdf_hkdf_sha512.c
+    vendor/libsodium/src/libsodium/crypto_kx/crypto_kx.c
+    vendor/libsodium/src/libsodium/crypto_onetimeauth/crypto_onetimeauth.c
+    vendor/libsodium/src/libsodium/crypto_onetimeauth/poly1305/donna/poly1305_donna.c
+    vendor/libsodium/src/libsodium/crypto_onetimeauth/poly1305/onetimeauth_poly1305.c
+    vendor/libsodium/src/libsodium/crypto_onetimeauth/poly1305/sse2/poly1305_sse2.c
     vendor/libsodium/src/libsodium/crypto_pwhash/argon2/argon2-core.c
     vendor/libsodium/src/libsodium/crypto_pwhash/argon2/argon2-encoding.c
     vendor/libsodium/src/libsodium/crypto_pwhash/argon2/argon2-fill-block-avx2.c
@@ -111,102 +235,65 @@ target_sources(
     vendor/libsodium/src/libsodium/crypto_pwhash/argon2/argon2-fill-block-ref.c
     vendor/libsodium/src/libsodium/crypto_pwhash/argon2/argon2-fill-block-ssse3.c
     vendor/libsodium/src/libsodium/crypto_pwhash/argon2/argon2.c
-    vendor/libsodium/src/libsodium/crypto_auth/hmacsha256/auth_hmacsha256.c
-    vendor/libsodium/src/libsodium/crypto_auth/hmacsha512/auth_hmacsha512.c
-    vendor/libsodium/src/libsodium/crypto_auth/hmacsha512256/auth_hmacsha512256.c
-    vendor/libsodium/src/libsodium/crypto_generichash/blake2b/ref/blake2b-compress-avx2.c
-    vendor/libsodium/src/libsodium/crypto_generichash/blake2b/ref/blake2b-compress-ref.c
-    vendor/libsodium/src/libsodium/crypto_generichash/blake2b/ref/blake2b-compress-sse41.c
-    vendor/libsodium/src/libsodium/crypto_generichash/blake2b/ref/blake2b-compress-ssse3.c
     vendor/libsodium/src/libsodium/crypto_pwhash/argon2/blake2b-long.c
-    vendor/libsodium/src/libsodium/crypto_generichash/blake2b/ref/blake2b-ref.c
-    vendor/libsodium/src/libsodium/crypto_box/curve25519xchacha20poly1305/box_curve25519xchacha20poly1305.c
-    vendor/libsodium/src/libsodium/crypto_box/curve25519xsalsa20poly1305/box_curve25519xsalsa20poly1305.c
-    vendor/libsodium/src/libsodium/crypto_box/curve25519xchacha20poly1305/box_seal_curve25519xchacha20poly1305.c
-    vendor/libsodium/src/libsodium/crypto_stream/chacha20/dolbeau/chacha20_dolbeau-avx2.c
-    vendor/libsodium/src/libsodium/crypto_stream/chacha20/dolbeau/chacha20_dolbeau-ssse3.c
-    vendor/libsodium/src/libsodium/crypto_stream/chacha20/ref/chacha20_ref.c
-    vendor/libsodium/src/libsodium/sodium/codecs.c
-    vendor/libsodium/src/libsodium/sodium/core.c
-    vendor/libsodium/src/libsodium/crypto_core/ed25519/core_ed25519.c
-    vendor/libsodium/src/libsodium/crypto_core/hchacha20/core_hchacha20.c
-    vendor/libsodium/src/libsodium/crypto_core/hsalsa20/core_hsalsa20.c
-    vendor/libsodium/src/libsodium/crypto_core/hsalsa20/ref2/core_hsalsa20_ref2.c
-    vendor/libsodium/src/libsodium/crypto_core/ed25519/core_ristretto255.c
-    vendor/libsodium/src/libsodium/crypto_core/salsa/ref/core_salsa_ref.c
-    vendor/libsodium/src/libsodium/crypto_auth/crypto_auth.c
-    vendor/libsodium/src/libsodium/crypto_box/crypto_box.c
-    vendor/libsodium/src/libsodium/crypto_box/crypto_box_easy.c
-    vendor/libsodium/src/libsodium/crypto_box/crypto_box_seal.c
-    vendor/libsodium/src/libsodium/crypto_generichash/crypto_generichash.c
-    vendor/libsodium/src/libsodium/crypto_hash/crypto_hash.c
-    vendor/libsodium/src/libsodium/crypto_kdf/crypto_kdf.c
-    vendor/libsodium/src/libsodium/crypto_kx/crypto_kx.c
-    vendor/libsodium/src/libsodium/crypto_onetimeauth/crypto_onetimeauth.c
-    vendor/libsodium/src/libsodium/crypto_pwhash/crypto_pwhash.c
-    vendor/libsodium/src/libsodium/crypto_scalarmult/crypto_scalarmult.c
-    vendor/libsodium/src/libsodium/crypto_pwhash/scryptsalsa208sha256/crypto_scrypt-common.c
-    vendor/libsodium/src/libsodium/crypto_secretbox/crypto_secretbox.c
-    vendor/libsodium/src/libsodium/crypto_secretbox/crypto_secretbox_easy.c
-    vendor/libsodium/src/libsodium/crypto_shorthash/crypto_shorthash.c
-    vendor/libsodium/src/libsodium/crypto_sign/crypto_sign.c
-    vendor/libsodium/src/libsodium/crypto_stream/crypto_stream.c
-    vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/curve25519_sandy2x.c
-    vendor/libsodium/src/libsodium/crypto_core/ed25519/ref10/ed25519_ref10.c
-    vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/fe51_invert.c
-    vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/fe_frombytes_sandy2x.c
-    vendor/libsodium/src/libsodium/crypto_generichash/blake2b/generichash_blake2.c
-    vendor/libsodium/src/libsodium/crypto_generichash/blake2b/ref/generichash_blake2b.c
-    vendor/libsodium/src/libsodium/crypto_hash/sha256/hash_sha256.c
-    vendor/libsodium/src/libsodium/crypto_hash/sha256/cp/hash_sha256_cp.c
-    vendor/libsodium/src/libsodium/crypto_hash/sha512/hash_sha512.c
-    vendor/libsodium/src/libsodium/crypto_hash/sha512/cp/hash_sha512_cp.c
-    vendor/libsodium/src/libsodium/crypto_kdf/blake2b/kdf_blake2b.c
-    vendor/libsodium/src/libsodium/crypto_sign/ed25519/ref10/keypair.c
-    vendor/libsodium/src/libsodium/crypto_sign/ed25519/ref10/obsolete.c
-    vendor/libsodium/src/libsodium/crypto_onetimeauth/poly1305/onetimeauth_poly1305.c
-    vendor/libsodium/src/libsodium/crypto_sign/ed25519/ref10/open.c
-    vendor/libsodium/src/libsodium/crypto_pwhash/scryptsalsa208sha256/pbkdf2-sha256.c
-    vendor/libsodium/src/libsodium/crypto_onetimeauth/poly1305/donna/poly1305_donna.c
-    vendor/libsodium/src/libsodium/crypto_onetimeauth/poly1305/sse2/poly1305_sse2.c
     vendor/libsodium/src/libsodium/crypto_pwhash/argon2/pwhash_argon2i.c
     vendor/libsodium/src/libsodium/crypto_pwhash/argon2/pwhash_argon2id.c
-    vendor/libsodium/src/libsodium/crypto_pwhash/scryptsalsa208sha256/pwhash_scryptsalsa208sha256.c
+    vendor/libsodium/src/libsodium/crypto_pwhash/crypto_pwhash.c
+    vendor/libsodium/src/libsodium/crypto_pwhash/scryptsalsa208sha256/crypto_scrypt-common.c
     vendor/libsodium/src/libsodium/crypto_pwhash/scryptsalsa208sha256/nosse/pwhash_scryptsalsa208sha256_nosse.c
+    vendor/libsodium/src/libsodium/crypto_pwhash/scryptsalsa208sha256/pbkdf2-sha256.c
+    vendor/libsodium/src/libsodium/crypto_pwhash/scryptsalsa208sha256/pwhash_scryptsalsa208sha256.c
+    vendor/libsodium/src/libsodium/crypto_pwhash/scryptsalsa208sha256/scrypt_platform.c
     vendor/libsodium/src/libsodium/crypto_pwhash/scryptsalsa208sha256/sse/pwhash_scryptsalsa208sha256_sse.c
-    vendor/libsodium/src/libsodium/randombytes/randombytes.c
-    vendor/libsodium/src/libsodium/randombytes/internal/randombytes_internal_random.c
-    vendor/libsodium/src/libsodium/randombytes/sysrandom/randombytes_sysrandom.c
-    vendor/libsodium/src/libsodium/sodium/runtime.c
-    vendor/libsodium/src/libsodium/crypto_stream/salsa20/ref/salsa20_ref.c
-    vendor/libsodium/src/libsodium/crypto_stream/salsa20/xmm6/salsa20_xmm6.c
-    vendor/libsodium/src/libsodium/crypto_stream/salsa20/xmm6int/salsa20_xmm6int-avx2.c
-    vendor/libsodium/src/libsodium/crypto_stream/salsa20/xmm6int/salsa20_xmm6int-sse2.c
+    vendor/libsodium/src/libsodium/crypto_scalarmult/crypto_scalarmult.c
+    vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/ref10/x25519_ref10.c
+    vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/curve25519_sandy2x.c
+    vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/fe51_invert.c
+    vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/fe_frombytes_sandy2x.c
     vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/scalarmult_curve25519.c
     vendor/libsodium/src/libsodium/crypto_scalarmult/ed25519/ref10/scalarmult_ed25519_ref10.c
     vendor/libsodium/src/libsodium/crypto_scalarmult/ristretto255/ref10/scalarmult_ristretto255_ref10.c
-    vendor/libsodium/src/libsodium/crypto_pwhash/scryptsalsa208sha256/scrypt_platform.c
+    vendor/libsodium/src/libsodium/crypto_secretbox/crypto_secretbox.c
+    vendor/libsodium/src/libsodium/crypto_secretbox/crypto_secretbox_easy.c
     vendor/libsodium/src/libsodium/crypto_secretbox/xchacha20poly1305/secretbox_xchacha20poly1305.c
     vendor/libsodium/src/libsodium/crypto_secretbox/xsalsa20poly1305/secretbox_xsalsa20poly1305.c
     vendor/libsodium/src/libsodium/crypto_secretstream/xchacha20poly1305/secretstream_xchacha20poly1305.c
-    vendor/libsodium/src/libsodium/crypto_shorthash/siphash24/shorthash_siphash24.c
+    vendor/libsodium/src/libsodium/crypto_shorthash/crypto_shorthash.c
     vendor/libsodium/src/libsodium/crypto_shorthash/siphash24/ref/shorthash_siphash24_ref.c
-    vendor/libsodium/src/libsodium/crypto_shorthash/siphash24/shorthash_siphashx24.c
     vendor/libsodium/src/libsodium/crypto_shorthash/siphash24/ref/shorthash_siphashx24_ref.c
+    vendor/libsodium/src/libsodium/crypto_shorthash/siphash24/shorthash_siphash24.c
+    vendor/libsodium/src/libsodium/crypto_shorthash/siphash24/shorthash_siphashx24.c
+    vendor/libsodium/src/libsodium/crypto_sign/crypto_sign.c
+    vendor/libsodium/src/libsodium/crypto_sign/ed25519/ref10/keypair.c
+    vendor/libsodium/src/libsodium/crypto_sign/ed25519/ref10/obsolete.c
+    vendor/libsodium/src/libsodium/crypto_sign/ed25519/ref10/open.c
     vendor/libsodium/src/libsodium/crypto_sign/ed25519/ref10/sign.c
     vendor/libsodium/src/libsodium/crypto_sign/ed25519/sign_ed25519.c
+    vendor/libsodium/src/libsodium/crypto_stream/chacha20/dolbeau/chacha20_dolbeau-avx2.c
+    vendor/libsodium/src/libsodium/crypto_stream/chacha20/dolbeau/chacha20_dolbeau-ssse3.c
+    vendor/libsodium/src/libsodium/crypto_stream/chacha20/ref/chacha20_ref.c
     vendor/libsodium/src/libsodium/crypto_stream/chacha20/stream_chacha20.c
+    vendor/libsodium/src/libsodium/crypto_stream/crypto_stream.c
+    vendor/libsodium/src/libsodium/crypto_stream/salsa20/ref/salsa20_ref.c
     vendor/libsodium/src/libsodium/crypto_stream/salsa20/stream_salsa20.c
-    vendor/libsodium/src/libsodium/crypto_stream/salsa208/stream_salsa208.c
-    vendor/libsodium/src/libsodium/crypto_stream/salsa208/ref/stream_salsa208_ref.c
-    vendor/libsodium/src/libsodium/crypto_stream/salsa2012/stream_salsa2012.c
+    vendor/libsodium/src/libsodium/crypto_stream/salsa20/xmm6/salsa20_xmm6.c
+    vendor/libsodium/src/libsodium/crypto_stream/salsa20/xmm6int/salsa20_xmm6int-avx2.c
+    vendor/libsodium/src/libsodium/crypto_stream/salsa20/xmm6int/salsa20_xmm6int-sse2.c
     vendor/libsodium/src/libsodium/crypto_stream/salsa2012/ref/stream_salsa2012_ref.c
+    vendor/libsodium/src/libsodium/crypto_stream/salsa2012/stream_salsa2012.c
+    vendor/libsodium/src/libsodium/crypto_stream/salsa208/ref/stream_salsa208_ref.c
+    vendor/libsodium/src/libsodium/crypto_stream/salsa208/stream_salsa208.c
     vendor/libsodium/src/libsodium/crypto_stream/xchacha20/stream_xchacha20.c
     vendor/libsodium/src/libsodium/crypto_stream/xsalsa20/stream_xsalsa20.c
+    vendor/libsodium/src/libsodium/crypto_verify/verify.c
+    vendor/libsodium/src/libsodium/randombytes/internal/randombytes_internal_random.c
+    vendor/libsodium/src/libsodium/randombytes/randombytes.c
+    vendor/libsodium/src/libsodium/randombytes/sysrandom/randombytes_sysrandom.c
+    vendor/libsodium/src/libsodium/sodium/codecs.c
+    vendor/libsodium/src/libsodium/sodium/core.c
+    vendor/libsodium/src/libsodium/sodium/runtime.c
     vendor/libsodium/src/libsodium/sodium/utils.c
-    vendor/libsodium/src/libsodium/crypto_verify/sodium/verify.c
     vendor/libsodium/src/libsodium/sodium/version.c
-    vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/ref10/x25519_ref10.c
 )
 
 target_include_directories(
@@ -225,9 +312,6 @@ if(NOT target MATCHES "win32")
       -fno-strict-aliasing
       -fwrapv
       -flax-vector-conversions
-      -Wno-unused-function
-      -Wno-unknown-pragmas
-      -Wno-unused-but-set-variable
   )
 endif()
 
@@ -241,10 +325,12 @@ target_compile_definitions(
     DEV_MODE=1
     HAVE_ATOMIC_OPS=1
     HAVE_C11_MEMORY_FENCES=1
+    HAVE_CET_H=1
     HAVE_GCC_MEMORY_FENCES=1
     HAVE_INLINE_ASM=1
     HAVE_INTTYPES_H=1
     HAVE_STDINT_H=1
+    HAVE_TI_MODE=1
 )
 
 if(target MATCHES "darwin|ios")
@@ -257,6 +343,7 @@ if(target MATCHES "darwin|ios")
       HAVE_ARC4RANDOM_BUF=1
       HAVE_CATCHABLE_ABRT=1
       HAVE_CATCHABLE_SEGV=1
+      HAVE_CLOCK_GETTIME=1
       HAVE_GETPID=1
       HAVE_MADVISE=1
       HAVE_MEMSET_S=1
@@ -292,8 +379,8 @@ if(target MATCHES "linux")
       TLS=_Thread_local
       HAVE_CATCHABLE_ABRT=1
       HAVE_CATCHABLE_SEGV=1
+      HAVE_CLOCK_GETTIME=1
       HAVE_GETPID=1
-      HAVE_INLINE_ASM=1
       HAVE_MADVISE=1
       HAVE_MLOCK=1
       HAVE_MMAP=1
@@ -318,13 +405,6 @@ if(target MATCHES "win32")
     PRIVATE
       _CRT_SECURE_NO_WARNINGS=1
       HAVE_RAISE=1
-      HAVE_SYS_PARAM_H=1
-  )
-elseif(target MATCHES "arm64|x64")
-  target_compile_definitions(
-    sodium
-    PRIVATE
-      HAVE_TI_MODE=1
   )
 endif()
 
@@ -333,6 +413,7 @@ if(target MATCHES "x64")
     sodium
     PRIVATE
       HAVE_CPUID=1
+      HAVE_RDRAND=1
       HAVE_EMMINTRIN_H=1 # SSE2
       HAVE_PMMINTRIN_H=1 # SSE3
       HAVE_TMMINTRIN_H=1 # SSSE3
@@ -340,19 +421,7 @@ if(target MATCHES "x64")
       HAVE_WMMINTRIN_H=1 # AES
       HAVE_AVXINTRIN_H=1 # AVX
       HAVE_AVX2INTRIN_H=1 # AVX2
-  )
-
-  target_compile_options(
-    sodium
-    PRIVATE
-      -msse2
-      -msse3
-      -mssse3
-      -msse4.1
-      -maes
-      -mpclmul
-      -mavx
-      -mavx2
+      HAVE_AVX512FINTRIN_H # AVX512F
   )
 
   if(NOT target MATCHES "win32")
@@ -366,16 +435,23 @@ if(target MATCHES "x64")
     target_sources(
       sodium
       PRIVATE
-        vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/consts.S
         vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/fe51_mul.S
         vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/fe51_nsquare.S
         vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/fe51_pack.S
         vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/ladder.S
-        vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/ladder_base.S
-        vendor/libsodium/src/libsodium/crypto_stream/salsa20/xmm6/salsa20_xmm6-asm.S
         vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/sandy2x.S
+        vendor/libsodium/src/libsodium/crypto_stream/salsa20/xmm6/salsa20_xmm6-asm.S
+        vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/consts.S
     )
   endif()
+endif()
+
+if(target MATCHES "arm64")
+  target_compile_definitions(
+    sodium
+    PRIVATE
+      HAVE_ARMCRYPTO=1
+  )
 endif()
 
 test_big_endian(is_big_endian)
