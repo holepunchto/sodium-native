@@ -1,4 +1,4 @@
 [submodule "vendor/libsodium"]
 	path = vendor/libsodium
-	url = ../../holepunchto/libsodium.git
+	url = ../../jedisct1/libsodium.git
 	shallow = true
