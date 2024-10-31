@@ -424,17 +424,6 @@ if(target MATCHES "x64")
       HAVE_AVX512FINTRIN_H # AVX512F
   )
 
-  if(target MATCHES "win32")
-    target_compile_options(
-      sodium
-      PRIVATE
-        -mrdrnd
-        -mavx
-        -mavx2
-        -mavx512f
-    )
-  endif()
-
   if(NOT target MATCHES "win32")
     target_compile_definitions(
       sodium
@@ -452,7 +441,7 @@ if(target MATCHES "x64")
         vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/ladder.S
         vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/sandy2x.S
         vendor/libsodium/src/libsodium/crypto_stream/salsa20/xmm6/salsa20_xmm6-asm.S
-vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/consts.S
+        vendor/libsodium/src/libsodium/crypto_scalarmult/curve25519/sandy2x/consts.S
     )
   endif()
 endif()

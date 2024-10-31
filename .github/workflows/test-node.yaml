@@ -21,6 +21,8 @@ jobs:
       uses: actions/setup-node@v2
       with:
         node-version: ${{ matrix.node-version }}
+    - run: choco install llvm
+      if: ${{ matrix.platform == 'win32' }}
     - run: npm install -g bare-runtime bare-make
     - run: npm install
     - run: bare-make generate --debug

@@ -58,6 +58,8 @@ jobs:
     - uses: actions/setup-node@v4
       with:
         node-version: lts/*
+    - run: choco install llvm
+      if: ${{ matrix.platform == 'win32' }}
     - run: npm install -g bare-make
     - run: npm install
     - run: bare-make generate --platform ${{ matrix.platform }} --arch ${{ matrix.arch }} ${{ matrix.flags }}
