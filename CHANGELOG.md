@@ -2,6 +2,9 @@
 
 ## Current
 
+## v4.3.0
+* Upgrade libsodium
+
 ## v4.2.2
 * Use bare-make for easy cross platform prebuilding.
 
