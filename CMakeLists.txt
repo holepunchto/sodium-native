@@ -481,12 +481,12 @@ target_sources(
     extensions/tweak/tweak.h
     extensions/pbkdf2/pbkdf2.c
     extensions/pbkdf2/pbkdf2.h
-  PUBLIC
-    $<TARGET_OBJECTS:sodium>
 )
 
 target_link_libraries(
   ${sodium_native_bare}
+  PRIVATE
+    $<TARGET_OBJECTS:sodium>
   PUBLIC
     sodium
 )
@@ -502,12 +502,12 @@ target_sources(
     extensions/tweak/tweak.h
     extensions/pbkdf2/pbkdf2.c
     extensions/pbkdf2/pbkdf2.h
-  PUBLIC
-    $<TARGET_OBJECTS:sodium>
 )
 
 target_link_libraries(
   ${sodium_native_node}
+  PRIVATE
+    $<TARGET_OBJECTS:sodium>
   PUBLIC
     sodium
 )
