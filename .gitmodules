@@ -1,4 +1,0 @@
-[submodule "vendor/libsodium"]
-	path = vendor/libsodium
-	url = ../../jedisct1/libsodium.git
-	shallow = true
