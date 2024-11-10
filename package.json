@@ -8,13 +8,8 @@
     "binding.c",
     "macros.h",
     "extensions",
-    "scripts",
     "prebuilds",
-    "CMakeLists.txt",
-    "vendor/libsodium/src/**/*.c",
-    "vendor/libsodium/src/**/*.h",
-    "vendor/libsodium/src/**/*.h.in",
-    "vendor/libsodium/src/**/*.S"
+    "CMakeLists.txt"
   ],
   "addon": true,
   "dependencies": {
@@ -23,6 +18,7 @@
   "devDependencies": {
     "brittle": "^3.5.0",
     "cmake-bare": "^1.1.10",
+    "cmake-fetch": "^1.0.1",
     "cmake-napi": "^1.0.5",
     "standard": "^17.1.0"
   },
