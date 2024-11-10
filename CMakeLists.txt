@@ -292,9 +292,9 @@ target_sources(
 target_include_directories(
   sodium
   INTERFACE
-    ${sodium}/src/libsodium/include
+    "${sodium}/src/libsodium/include"
   PRIVATE
-    ${sodium}/src/libsodium/include/sodium
+    "${sodium}/src/libsodium/include/sodium"
 )
 
 if(NOT target MATCHES "win32")
