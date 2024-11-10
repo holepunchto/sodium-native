@@ -8,7 +8,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 project(sodium_native C ASM)
 
-fetch_package("github:jedisct1/libsodium#1.0.20-RELEASE" SOURCE_DIR sodium)
+fetch_package("github:jedisct1/libsodium#stable" SOURCE_DIR sodium)
 
 include(TestBigEndian)
 
