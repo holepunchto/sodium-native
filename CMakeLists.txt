@@ -14,18 +14,6 @@ include(TestBigEndian)
 
 bare_target(target)
 
-find_program(node NAMES node REQUIRED)
-
-add_custom_command(
-  COMMAND ${node} scripts/version.js ${sodium}
-  WORKING_DIRECTORY ${PROJECT_SOURCE_DIR}
-  OUTPUT
-    ${sodium}/src/libsodium/include/sodium/version.h
-  DEPENDS
-    ${sodium}/src/libsodium/include/sodium/version.h.in
-  VERBATIM
-)
-
 add_library(sodium OBJECT)
 
 target_sources(
@@ -176,7 +164,7 @@ target_sources(
     ${sodium}/src/libsodium/include/sodium/runtime.h
     ${sodium}/src/libsodium/include/sodium/utils.h
   PUBLIC
-    ${sodium}/src/libsodium/include/sodium/version.h
+    ${sodium}/builds/msvc/version.h
   PRIVATE
     ${sodium}/src/libsodium/crypto_aead/aegis128l/aead_aegis128l.c
     ${sodium}/src/libsodium/crypto_aead/aegis128l/aegis128l_aesni.c

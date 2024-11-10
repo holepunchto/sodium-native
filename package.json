@@ -8,7 +8,6 @@
     "binding.c",
     "macros.h",
     "extensions",
-    "scripts",
     "prebuilds",
     "CMakeLists.txt"
   ],
