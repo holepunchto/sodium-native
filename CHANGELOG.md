@@ -2,6 +2,9 @@
 
 ## Current
 
+## v4.3.1
+* Use cmake-fetch for fetching source on demand
+
 ## v4.3.0
 * Upgrade libsodium
 
