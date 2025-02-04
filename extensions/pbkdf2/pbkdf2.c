@@ -25,7 +25,7 @@
  */
 
 /*
- * Adapated from libsodium/crypto_pwhash/scryptsalsa208sha256/pbkdf-sha256.c
+ * Adapted from libsodium/crypto_pwhash/scryptsalsa208sha256/pbkdf-sha256.c
  */
 
 #include <string.h>
