@@ -10,9 +10,11 @@ project(sodium_native C ASM)
 
 fetch_package("github:jedisct1/libsodium#stable" SOURCE_DIR sodium)
 
-include(TestBigEndian)
-
 bare_target(target)
+
+if(target MATCHES "win32")
+  add_compile_options(/MT$<$<CONFIG:Debug>:d>)
+endif()
 
 file(COPY_FILE "${sodium}/builds/msvc/version.h" "${sodium}/src/libsodium/include/sodium/version.h")
 
@@ -182,9 +184,7 @@ if(target MATCHES "arm64")
   )
 endif()
 
-test_big_endian(is_big_endian)
-
-if(is_big_endian)
+if(CMAKE_C_BYTE_ORDER MATCHES "BIG_ENDIAN")
   target_compile_definitions(
     sodium
     PRIVATE
