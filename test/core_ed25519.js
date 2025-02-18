@@ -43,6 +43,8 @@ test('ported libsodium test', function (t) {
   let i
 
   const h = sodium.sodium_malloc(sodium.crypto_core_ed25519_UNIFORMBYTES)
+  // console.log(h, ArrayBuffer.isView(h), Buffer.isBuffer(h), h instanceof ArrayBuffer, h.offset, h.length, h.byteLength)
+  // console.log(Buffer.from(h), Buffer.from(h).length)
   const p = sodium.sodium_malloc(sodium.crypto_core_ed25519_BYTES)
   for (i = 0; i < 1000; i++) {
     sodium.randombytes_buf(h.subarray(0, sodium.crypto_core_ed25519_UNIFORMBYTES))

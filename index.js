@@ -1,1 +1,2 @@
-module.exports = require('node-gyp-build')(__dirname)
+require.addon = require('require-addon')
+module.exports = require.addon('.', __filename)
