@@ -1,5 +1,24 @@
 #define SN_LIGHT_ASSERT 1
 
+#if xx_SN_LIGHT_ASSERT
+// can't clobber all throws with asserts as there are tests
+// that rely on exceptions being thrown.
+// TODO: separate public errors (throw) & internal errors (assert)
+
+#define SN_STATUS_THROWS(call, message) \
+  { \
+    int err = (call); \
+    assert(err == 0 && message); \
+  }
+
+#define SN_STATUS_THROWS_VOID(call, message) SN_STATUS_THROWS(call, message)
+
+#define SN_THROWS(condition, message) \
+  { \
+    int err = (condition); \
+    assert(err == 0 && #condition && message); \
+  }
+#else
 #define SN_STATUS_THROWS(call, message) \
   if ((call) != 0) { \
     js_throw_error(env, NULL, message); \
@@ -17,11 +36,12 @@
     js_throw_error(env, NULL, message); \
     return NULL; \
   }
+#endif
 
 #define SN_BUFFER_CAST(type, name, val) \
   type name; \
   size_t name##_size; \
-  SN_STATUS_THROWS(js_get_arraybuffer_info(env, val, (void **) &name, &name##_size), "")
+  SN_STATUS_THROWS(js_get_typedarray_info(env, val, NULL, (void **) &name, &name##_size, NULL, NULL), "")
 
 // TODO: wrap in empty
 #define SN_TYPE_ASSERT(name, var, type, message) \
@@ -238,8 +258,8 @@
 // TODO: (trace callstacks / checkpoints)
 #define SN_CALL_FUNCTION(env, ctx, cb, n, argv, res) \
   { \
-    int err = js_call_function(env, ctx, cb, n, argv, res); \
-    assert(err == 0); \
+    int err = js_call_function_with_checkpoint(env, ctx, cb, n, argv, res); \
+    assert(err == 0 && "call fn w/ checkpoint"); \
   }
 //   if (napi_make_callback(env, NULL, ctx, cb, n, argv, res) == napi_pending_exception) { \
 //   js_value_t *fatal_exception; \
@@ -248,7 +268,7 @@
 //  }
 
 #define SN_RETURN(call, message) \
-  int success = call; \
+  int success = (call); \
   SN_THROWS(success != 0, message) \
   return NULL;
 
@@ -312,6 +332,7 @@
   }
 
 // TODO: some asserts here would be nice
+// and SN_CALL_WITH_CHECKPOINT required
 #define SN_ASYNC_COMPLETE(message) \
   js_value_t *argv[1]; \
   switch (task->type) { \
@@ -334,7 +355,6 @@
     js_get_reference_value(req->env, task->cb, &callback); \
     js_value_t *return_val; \
     SN_CALL_FUNCTION(req->env, global, callback, 1, argv, &return_val) \
-    js_close_handle_scope(req->env, scope); \
     js_delete_reference(req->env, task->cb); \
     break; \
   } \

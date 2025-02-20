@@ -90,23 +90,19 @@ sn_sodium_malloc (js_env_t *env, js_callback_info_t *info) {
 
   int64_t ext_mem;
   err = js_adjust_external_memory(env, 4 * 4096, &ext_mem);
-  printf("sodium_malloc(); ext mem=%li adjusted status=%i\n", ext_mem, err);
   assert(err == 0);
 
   SN_THROWS(ptr == NULL, "sodium_malloc failed");
 
-  js_value_t *buf, *value, *array_buf;
+  js_value_t *buffer;
 
-  SN_STATUS_THROWS(js_create_external_arraybuffer(env, ptr, size, NULL, NULL, &buf), "failed to create a n-api buffer")
+  SN_STATUS_THROWS(js_create_external_arraybuffer(env, ptr, size, sn_sodium_free_finalise, NULL, &buffer), "failed to create a native arraybuffer")
+
+  js_value_t *value;
   SN_STATUS_THROWS(js_get_boolean(env, true, &value), "failed to create boolean")
+  SN_STATUS_THROWS(js_set_named_property(env, buffer, "secure", value), "failed to set secure property")
 
-  SN_STATUS_THROWS(js_get_named_property(env, buf, "buffer", &array_buf), "failed to get arraybuffer")
-  SN_STATUS_THROWS(js_set_named_property(env, buf, "secure", value), "failed to set secure property")
-
-  // TODO: this op should probably merged into the NULL statements of create_external_arraybuf
-  SN_STATUS_THROWS(js_wrap(env, array_buf, ptr, sn_sodium_free_finalise, NULL, NULL), "failed to wrap")
-
-  return buf;
+  return buffer;
 }
 
 js_value_t *
@@ -511,6 +507,7 @@ sn_crypto_generichash_init(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV_OPTS_TYPEDARRAY(key, 1)
   SN_ARGV_UINT32(outlen, 2)
 
+  // assert(state_size == sizeof(crypto_generichash_state));
   SN_THROWS(state_size != sizeof(crypto_generichash_state), "state must be 'crypto_generichash_STATEBYTES' bytes")
 
   if (key_data != NULL) {
@@ -1396,7 +1393,6 @@ sn_crypto_core_ed25519_add (js_env_t *env, js_callback_info_t *info) {
   SN_ASSERT_LENGTH(r_size, crypto_core_ed25519_BYTES, "r")
   SN_ASSERT_LENGTH(p_size, crypto_core_ed25519_BYTES, "p")
   SN_ASSERT_LENGTH(q_size, crypto_core_ed25519_BYTES, "q")
-
   SN_RETURN(crypto_core_ed25519_add(r_data, p_data, q_data), "could not add curve points")
 }
 
@@ -2059,8 +2055,7 @@ static void async_pwhash_complete (uv_work_t *uv_req, int status) {
   err = js_get_global(req->env, &global);
   assert(err == 0);
 
-  // TODO: consider remove the following macro as it has 5 occurances
-  // and is capable of causing double close of scope
+  // TODO: consider remove the following macro as it's capable of causing double close of scope
   SN_ASYNC_COMPLETE("failed to compute password hash")
 
   err = js_close_handle_scope(req->env, scope);
@@ -2146,19 +2141,24 @@ static void async_pwhash_str_execute (uv_work_t *uv_req) {
 static void async_pwhash_str_complete (uv_work_t *uv_req, int status) {
   sn_async_task_t *task = (sn_async_task_t *) uv_req;
   sn_async_pwhash_str_request *req = (sn_async_pwhash_str_request *) task->req;
-
+  int err;
   js_handle_scope_t *scope;
-  js_open_handle_scope(req->env, &scope);
+  err = js_open_handle_scope(req->env, &scope);
+  assert(err == 0);
 
   js_value_t *global;
-  js_get_global(req->env, &global);
+  err = js_get_global(req->env, &global);
+  assert(err == 0);
 
   SN_ASYNC_COMPLETE("failed to compute password hash")
 
-  js_close_handle_scope(req->env, scope);
+  err = js_close_handle_scope(req->env, scope);
+  assert(err == 0);
 
-  js_delete_reference(req->env, req->out_ref);
-  js_delete_reference(req->env, req->pwd_ref);
+  err = js_delete_reference(req->env, req->out_ref);
+  assert(err == 0);
+  err = js_delete_reference(req->env, req->pwd_ref);
+  assert(err == 0);
 
   free(req);
   free(task);
@@ -2220,10 +2220,11 @@ static void async_pwhash_str_verify_complete (uv_work_t *uv_req, int status) {
   sn_async_pwhash_str_verify_request *req = (sn_async_pwhash_str_verify_request *) task->req;
 
   js_handle_scope_t *scope;
-  js_open_handle_scope(req->env, &scope);
-
+  err = js_open_handle_scope(req->env, &scope);
+  assert(err == 0);
   js_value_t *global;
-  js_get_global(req->env, &global);
+  err = js_get_global(req->env, &global);
+  assert(err == 0);
 
   js_value_t *argv[2];
 
@@ -2231,19 +2232,23 @@ static void async_pwhash_str_verify_complete (uv_work_t *uv_req, int status) {
   // from a verification mismatch, we will count all errors as mismatch.
   // The other possible error is wrong argument sizes, which is protected
   // by macros above
-  js_get_null(req->env, &argv[0]);
-  js_get_boolean(req->env, task->code == 0, &argv[1]);
+  err = js_get_null(req->env, &argv[0]);
+  assert(err == 0);
+  err = js_get_boolean(req->env, task->code == 0, &argv[1]);
+  assert(err == 0);
 
   switch (task->type) {
   case sn_async_task_promise: {
-    js_resolve_deferred(req->env, task->deferred, argv[1]);
+    err = js_resolve_deferred(req->env, task->deferred, argv[1]);
+    assert(err == 0);
     task->deferred = NULL;
     break;
   }
 
   case sn_async_task_callback: {
     js_value_t *callback;
-    js_get_reference_value(req->env, task->cb, &callback);
+    err = js_get_reference_value(req->env, task->cb, &callback);
+    assert(err == 0);
 
     js_value_t *return_val;
     SN_CALL_FUNCTION(req->env, global, callback, 2, argv, &return_val)
@@ -2251,10 +2256,13 @@ static void async_pwhash_str_verify_complete (uv_work_t *uv_req, int status) {
   }
   }
 
-  js_close_handle_scope(req->env, scope);
+  err = js_close_handle_scope(req->env, scope);
+  assert(err == 0);
 
-  js_delete_reference(req->env, req->str_ref);
-  js_delete_reference(req->env, req->pwd_ref);
+  err = js_delete_reference(req->env, req->str_ref);
+  assert(err == 0);
+  err = js_delete_reference(req->env, req->pwd_ref);
+  assert(err == 0);
 
   free(req);
   free(task);
@@ -2319,18 +2327,24 @@ static void async_pwhash_scryptsalsa208sha256_complete (uv_work_t *uv_req, int s
   sn_async_pwhash_scryptsalsa208sha256_request *req = (sn_async_pwhash_scryptsalsa208sha256_request *) task->req;
 
   js_handle_scope_t *scope;
-  js_open_handle_scope(req->env, &scope);
+  err = js_open_handle_scope(req->env, &scope);
+  assert(err == 0);
 
   js_value_t *global;
-  js_get_global(req->env, &global);
+  err = js_get_global(req->env, &global);
+  assert(err == 0);
 
   SN_ASYNC_COMPLETE("failed to compute password hash")
 
-  js_close_handle_scope(req->env, scope);
+  err = js_close_handle_scope(req->env, scope);
+  assert(err == 0);
 
-  js_delete_reference(req->env, req->out_ref);
-  js_delete_reference(req->env, req->pwd_ref);
-  js_delete_reference(req->env, req->salt_ref);
+  err = js_delete_reference(req->env, req->out_ref);
+  assert(err == 0);
+  err = js_delete_reference(req->env, req->pwd_ref);
+  assert(err == 0);
+  err = js_delete_reference(req->env, req->salt_ref);
+  assert(err == 0);
 
   free(req);
   free(task);
@@ -2404,17 +2418,22 @@ static void async_pwhash_scryptsalsa208sha256_str_complete (uv_work_t *uv_req, i
   sn_async_pwhash_scryptsalsa208sha256_str_request *req = (sn_async_pwhash_scryptsalsa208sha256_str_request *) task->req;
 
   js_handle_scope_t *scope;
-  js_open_handle_scope(req->env, &scope);
+  err = js_open_handle_scope(req->env, &scope);
+  assert(err == 0);
 
   js_value_t *global;
-  js_get_global(req->env, &global);
+  err = js_get_global(req->env, &global);
+  assert(err == 0);
 
   SN_ASYNC_COMPLETE("failed to compute password hash")
 
-  js_close_handle_scope(req->env, scope);
+  err = js_close_handle_scope(req->env, scope);
+  assert(err == 0);
 
-  js_delete_reference(req->env, req->out_ref);
-  js_delete_reference(req->env, req->pwd_ref);
+  err = js_delete_reference(req->env, req->out_ref);
+  assert(err == 0);
+  err = js_delete_reference(req->env, req->pwd_ref);
+  assert(err == 0);
 
   free(req);
   free(task);
@@ -3202,22 +3221,29 @@ static void async_pbkdf2_sha512_execute (uv_work_t *uv_req) {
 }
 
 static void async_pbkdf2_sha512_complete (uv_work_t *uv_req, int status) {
+  int err;
   sn_async_task_t *task = (sn_async_task_t *) uv_req;
   sn_async_pbkdf2_sha512_request *req = (sn_async_pbkdf2_sha512_request *) task->req;
 
   js_handle_scope_t *scope;
-  js_open_handle_scope(req->env, &scope);
+  err = js_open_handle_scope(req->env, &scope);
+  assert(err == 0);
 
   js_value_t *global;
-  js_get_global(req->env, &global);
+  err = js_get_global(req->env, &global);
+  assert(err == 0);
 
   SN_ASYNC_COMPLETE("failed to compute kdf")
 
-  js_close_handle_scope(req->env, scope);
+  err = js_close_handle_scope(req->env, scope);
+  assert(err == 0);
 
-  js_delete_reference(req->env, req->out_ref);
-  js_delete_reference(req->env, req->pwd_ref);
-  js_delete_reference(req->env, req->salt_ref);
+  err = js_delete_reference(req->env, req->out_ref);
+  assert(err == 0);
+  err = js_delete_reference(req->env, req->pwd_ref);
+  assert(err == 0);
+  err = js_delete_reference(req->env, req->salt_ref);
+  assert(err == 0);
 
   free(req);
   free(task);
@@ -3270,7 +3296,7 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   SN_EXPORT_FUNCTION(sodium_memzero, sn_sodium_memzero)
   SN_EXPORT_FUNCTION(sodium_mlock, sn_sodium_mlock)
   SN_EXPORT_FUNCTION(sodium_munlock, sn_sodium_munlock)
-  SN_EXPORT_FUNCTION(sodium_malloc, sn_sodium_malloc)
+  SN_EXPORT_FUNCTION(_sodium_malloc, sn_sodium_malloc) // TODO: something a bit more elegant
   SN_EXPORT_FUNCTION(sodium_free, sn_sodium_free)
   SN_EXPORT_FUNCTION(sodium_mprotect_noaccess, sn_sodium_mprotect_noaccess)
   SN_EXPORT_FUNCTION(sodium_mprotect_readonly, sn_sodium_mprotect_readonly)
