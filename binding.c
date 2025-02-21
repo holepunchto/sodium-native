@@ -446,6 +446,42 @@ sn_crypto_sign_ed25519_sk_to_curve25519(js_env_t *env, js_callback_info_t *info)
   SN_RETURN(crypto_sign_ed25519_sk_to_curve25519(x25519_sk_data, ed25519_sk_data), "secret key conversion failed")
 }
 
+int32_t
+sn_typed_crypto_generichash (js_value_t *receiver, js_value_t *out, js_value_t *in, js_typed_callback_info_t *info) {
+  int err;
+  js_env_t *env;
+  err = js_get_typed_callback_info(info, &env, NULL);
+  assert(err == 0);
+
+  void *out_data;
+  size_t out_size;
+  js_typedarray_view_t *out_view;
+  err = js_get_typedarray_view(env, out, NULL, &out_data, &out_size, &out_view);
+  assert(err == 0);
+
+  void *in_data;
+  size_t in_size;
+  js_typedarray_view_t *in_view;
+  err = js_get_typedarray_view(env, in, NULL, &in_data, &in_size, &in_view);
+  assert(err == 0);
+
+  void *key_data = NULL;
+  size_t key_size = 0;
+
+  int res = crypto_generichash(out_data, out_size, in_data, in_size, key_data, key_size);
+  if (res != 0) {
+    err = js_throw_error(env, NULL, "hash failed");
+    assert(err == 0);
+  }
+
+  err = js_release_typedarray_view(env, out_view);
+  assert(err == 0);
+
+  err = js_release_typedarray_view(env, in_view);
+  assert(err == 0);
+  return res;
+}
+
 js_value_t *
 sn_crypto_generichash(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV_OPTS(2, 3, crypto_generichash)
@@ -3309,8 +3345,9 @@ sn_extension_pbkdf2_sha512_async (js_env_t *env, js_callback_info_t *info) {
 
 js_value_t *
 sodium_native_exports (js_env_t *env, js_value_t *exports) {
-  SN_THROWS(sodium_init() == -1, "sodium_init() failed")
-
+  int err;
+  err = sodium_init();
+  SN_THROWS(err == -1, "sodium_init() failed")
   // memory
 
   SN_EXPORT_FUNCTION(sodium_memzero, sn_sodium_memzero)
@@ -3433,7 +3470,17 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
 
   // crypto_generichash
 
-  SN_EXPORT_FUNCTION(crypto_generichash, sn_crypto_generichash)
+  SN_EXPORT_TYPED_FUNCTION("crypto_generichash",
+    sn_crypto_generichash,
+    &((js_callback_signature_t) {
+      .version = 0,
+      .args_len = 3,
+      .args = (int[]) { js_object, js_object, js_object },
+      .result = js_int32
+    }),
+    sn_typed_crypto_generichash
+  )
+
   SN_EXPORT_FUNCTION(crypto_generichash_batch, sn_crypto_generichash_batch)
   SN_EXPORT_FUNCTION(crypto_generichash_keygen, sn_crypto_generichash_keygen)
   SN_EXPORT_FUNCTION(crypto_generichash_init, sn_crypto_generichash_init)
@@ -3689,6 +3736,7 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   SN_EXPORT_UINT32(extension_pbkdf2_sha512_ITERATIONS_MIN, sn__extension_pbkdf2_sha512_ITERATIONS_MIN)
   SN_EXPORT_UINT64(extension_pbkdf2_sha512_BYTES_MAX, sn__extension_pbkdf2_sha512_BYTES_MAX)
 
+#undef VF
   return exports;
 }
 

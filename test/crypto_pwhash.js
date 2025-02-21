@@ -202,7 +202,6 @@ test('crypto_pwhash_async uncaughtException', function (t) {
   const memlimit = sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE
   const algo = sodium.crypto_pwhash_ALG_DEFAULT
 
-  // TODO: replace with uncaught()
   uncaught(listener)
 
   sodium.crypto_pwhash_async(output, passwd, salt, opslimit, memlimit, algo, exception)

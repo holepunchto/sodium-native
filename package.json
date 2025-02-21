@@ -25,7 +25,9 @@
     "standard": "^17.1.0"
   },
   "scripts": {
-    "test": "standard && brittle test/*.js"
+    "test": "standard && npm run test:node && npm run test:bare",
+    "test:node": "node test/all.js",
+    "test:bare": "bare test/all.js"
   },
   "standard": {
     "ignore": [

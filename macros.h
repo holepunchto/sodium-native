@@ -1,24 +1,5 @@
 #define SN_LIGHT_ASSERT 0
 
-#if xx_SN_LIGHT_ASSERT
-// can't clobber all throws with asserts as there are tests
-// that rely on exceptions being thrown.
-// TODO: separate public errors (throw) & internal errors (assert)
-
-#define SN_STATUS_THROWS(call, message) \
-  { \
-    int err = (call); \
-    assert(err == 0 && message); \
-  }
-
-#define SN_STATUS_THROWS_VOID(call, message) SN_STATUS_THROWS(call, message)
-
-#define SN_THROWS(condition, message) \
-  { \
-    int err = (condition); \
-    assert(err == 0 && #condition && message); \
-  }
-#else
 #define SN_STATUS_THROWS(call, message) \
   if ((call) != 0) { \
     js_throw_error(env, NULL, message); \
@@ -36,14 +17,12 @@
     js_throw_error(env, NULL, message); \
     return NULL; \
   }
-#endif
 
 #define SN_BUFFER_CAST(type, name, val) \
   type name; \
   size_t name##_size; \
   SN_STATUS_THROWS(js_get_typedarray_info(env, val, NULL, (void **) &name, &name##_size, NULL, NULL), "")
 
-// TODO: wrap in empty
 #define SN_TYPE_ASSERT(name, var, type, message) \
   js_value_type_t name##_valuetype; \
   SN_STATUS_THROWS(js_typeof(env, var, &name##_valuetype), ""); \
@@ -52,7 +31,6 @@
     return NULL; \
   }
 
-// TODO: wrap in empty
 #define SN_TYPEDARRAY_ASSERT(name, var, message) \
   bool name##_is_typedarray; \
   SN_STATUS_THROWS(js_is_typedarray(env, var, &name##_is_typedarray), ""); \
@@ -105,6 +83,20 @@
     js_value_t *name##_fn; \
     SN_STATUS_THROWS(js_create_function(env, #name, SN_LIT_LENGTH(name), cb, NULL, &name##_fn), "") \
     SN_STATUS_THROWS(js_set_named_property(env, exports, #name, name##_fn), "") \
+  }
+
+#define SN_EXPORT_TYPED_FUNCTION(name, untyped, signature, typed) \
+  { \
+    js_value_t *val; \
+    if (signature) { \
+      err = js_create_typed_function(env, name, -1, untyped, signature, typed, NULL, &val); \
+      assert(err == 0); \
+    } else { \
+      err = js_create_function(env, name, -1, untyped, NULL, &val); \
+      assert(err == 0); \
+    } \
+    err = js_set_named_property(env, exports, name, val); \
+    assert(err == 0); \
   }
 
 #define SN_EXPORT_UINT32(name, num) \
@@ -255,12 +247,22 @@
   int success = call; \
   SN_THROWS(success != 0, message)
 
-// TODO: (trace callstacks / checkpoints)
+
+// TODO: Help! Return status is never -1 / pending_exception; Remove If-block?
+// but it is -2 when an exception occured that was later caught (res is unusable)
 #define SN_CALL_FUNCTION(env, ctx, cb, n, argv, res) \
   { \
     int err = js_call_function_with_checkpoint(env, ctx, cb, n, argv, res); \
     /* assert(err == 0 && "call fn w/ checkpoint"); */ \
+    if (err == js_pending_exception) { \
+      js_value_t *fatal_exception; \
+      err = js_get_and_clear_last_exception(env, &fatal_exception); \
+      assert(err == 0); \
+      err = js_fatal_exception(env, fatal_exception); \
+      assert(err == 0); \
+    } \
   }
+// Original instructions:
 //   if (napi_make_callback(env, NULL, ctx, cb, n, argv, res) == napi_pending_exception) { \
 //   js_value_t *fatal_exception; \
 //   napi_get_and_clear_last_exception(env, &fatal_exception); \
