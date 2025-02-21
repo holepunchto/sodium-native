@@ -1,4 +1,4 @@
-#define SN_LIGHT_ASSERT 1
+#define SN_LIGHT_ASSERT 0
 
 #if xx_SN_LIGHT_ASSERT
 // can't clobber all throws with asserts as there are tests
@@ -204,7 +204,7 @@
   } \
   uint64_t name = (uint64_t) name##_i64;
 
-#ifdef SN_LIGHT_ASSERT
+#if SN_LIGHT_ASSERT
 #define SN_ARGV_TYPEDARRAY(name, index) \
   size_t name##_size; \
   void *name##_data; \
@@ -259,7 +259,7 @@
 #define SN_CALL_FUNCTION(env, ctx, cb, n, argv, res) \
   { \
     int err = js_call_function_with_checkpoint(env, ctx, cb, n, argv, res); \
-    assert(err == 0 && "call fn w/ checkpoint"); \
+    /* assert(err == 0 && "call fn w/ checkpoint"); */ \
   }
 //   if (napi_make_callback(env, NULL, ctx, cb, n, argv, res) == napi_pending_exception) { \
 //   js_value_t *fatal_exception; \

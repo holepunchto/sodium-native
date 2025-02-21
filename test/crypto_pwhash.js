@@ -220,7 +220,7 @@ test('crypto_pwhash_async uncaughtException', function (t) {
   }
 })
 
-test.solo('crypto_pwhash_str_async uncaughtException', function (t) {
+test('crypto_pwhash_str_async uncaughtException', function (t) {
   t.plan(1)
 
   const output = Buffer.alloc(sodium.crypto_pwhash_STRBYTES) // can be any size

@@ -1,8 +1,10 @@
 const test = require('brittle')
 const sodium = require('..')
-const fork = require('child_process').fork
+const { isBare, isNode } = require('which-runtime')
 
-test('sodium_mprotect_noaccess', function (t) {
+const fork = isBare ? null : require('child_process').fork // TODO: no fork() in bare (want to be able to run tests for now)
+
+test('sodium_mprotect_noaccess', { skip: isBare }, function (t) {
   t.plan(1)
   const p = fork(require.resolve('./fixtures/mprotect_noaccess'))
 
@@ -14,7 +16,7 @@ test('sodium_mprotect_noaccess', function (t) {
   })
 })
 
-test('sodium_mprotect_readonly', function (t) {
+test('sodium_mprotect_readonly', { skip: isBare }, function (t) {
   t.plan(2)
   const p = fork(require.resolve('./fixtures/mprotect_readonly'))
 
@@ -26,7 +28,7 @@ test('sodium_mprotect_readonly', function (t) {
   })
 })
 
-test('sodium_mprotect_readwrite', function (t) {
+test('sodium_mprotect_readwrite', { skip: isBare }, function (t) {
   t.plan(4)
   const p = fork(require.resolve('./fixtures/mprotect_readwrite'))
 
@@ -102,8 +104,18 @@ test('sodium_malloc', function (t) {
   t.ok(large.length === 1e8, 'retained correct size')
 })
 
+test('sodium_free, double free', function (t) {
+  const buf = sodium.sodium_malloc(1)
+  t.comment('exiting dummy test')
+  t.ok(buf.byteLength === 1)
+  sodium.sodium_free(buf)
+  t.ok(buf.byteLength === 0)
+  sodium.sodium_free(buf)
+  t.ok(buf.byteLength === 0)
+})
+
 test('sodium_free', function (t) {
-  if (process.version.startsWith('v10')) {
+  if (isNode && process.version.startsWith('v10')) {
     t.comment('Skipping free test on v10')
     return
   }

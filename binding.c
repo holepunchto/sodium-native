@@ -8,6 +8,9 @@
 #include "extensions/tweak/tweak.h"
 #include "extensions/pbkdf2/pbkdf2.h"
 
+// TODO: decreasing external memory segfaults on bare
+#define SN_BUG0_MEMTRACK 0
+
 /** TODO: unused / exported by libjs */
 static uint8_t typedarray_width (js_typedarray_type_t type) {
   switch (type) {
@@ -24,11 +27,6 @@ static uint8_t typedarray_width (js_typedarray_type_t type) {
     case js_biguint64array: return 8;
     default: return 0;
   }
-}
-
-static void sn_sodium_free_finalise (js_env_t *env, void *finalise_data, void *finalise_hint) {
-  js_adjust_external_memory(env, -4 * 4096, NULL);
-  sodium_free(finalise_data);
 }
 
 js_value_t *
@@ -60,22 +58,41 @@ sn_sodium_munlock (js_env_t *env, js_callback_info_t *info) {
   SN_RETURN(sodium_munlock(buf_data, buf_size), "memory unlock failed")
 }
 
+static void sn_sodium_free_finalise (js_env_t *env, void *finalise_data, void *finalise_hint) {
+  /* uint8_t hint = *((uint8_t *) finalise_data - 1); if (hint != 0xff) return; */
+  sodium_free(finalise_data);
+
+#if SN_BUG0_MEMTRACK
+  int64_t ext_mem;
+  int err = js_adjust_external_memory(env, -4 * 4096, &ext_mem);
+  printf("decr ext mem: %zi, err=%i\n", ext_mem, err);
+  assert(err == 0);
+#endif
+}
+
 js_value_t *
 sn_sodium_free (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(1, sodium_free)
 
   SN_ARGV_TYPEDARRAY_PTR(buf, 0)
-
   if (buf_data == NULL) return NULL;
 
   js_value_t *array_buf;
-
   SN_STATUS_THROWS(js_get_named_property(env, argv[0], "buffer", &array_buf), "failed to get arraybuffer");
-  SN_STATUS_THROWS(js_remove_wrap(env, array_buf, NULL), "failed to remove wrap"); // remove the finalizer
-  SN_STATUS_THROWS(js_detach_arraybuffer(env, array_buf), "failed to detach array buffer");
-  js_adjust_external_memory(env, -4 * 4096, NULL);
-  sodium_free(buf_data);
 
+  memset(buf_data, 0, buf_length); // poorman's immediate sodium_free() due to node bug below
+
+  SN_STATUS_THROWS(js_detach_arraybuffer(env, array_buf), "failed to detach array buffer");
+  // TODO: bug! bare invokes finalize_cb immediately during detach(); (no extra sodium_free() needed)
+  // node invokes finalize_cb in some arbitrary future. (requires sodium_free() + prevent finalizate_cb from running)
+  /* sodium_free(buf_data); */
+
+#if SN_BUG0_MEMTRACK
+  int64_t ext_mem;
+  int err = js_adjust_external_memory(env, -4 * 4096, &ext_mem);
+  printf("decr ext mem: %zi, err=%i\n", ext_mem, err);
+  assert(err == 0);
+#endif
   return NULL;
 }
 
@@ -88,15 +105,18 @@ sn_sodium_malloc (js_env_t *env, js_callback_info_t *info) {
   void *ptr = sodium_malloc(size);
   SN_THROWS(ptr == NULL, "ENOMEM")
 
-  int64_t ext_mem;
-  err = js_adjust_external_memory(env, 4 * 4096, &ext_mem);
-  assert(err == 0);
-
   SN_THROWS(ptr == NULL, "sodium_malloc failed");
 
   js_value_t *buffer;
 
   SN_STATUS_THROWS(js_create_external_arraybuffer(env, ptr, size, sn_sodium_free_finalise, NULL, &buffer), "failed to create a native arraybuffer")
+
+#if SN_BUG0_MEMTRACK
+  int64_t ext_mem;
+  err = js_adjust_external_memory(env, 4 * 4096, &ext_mem);
+  assert(err == 0);
+  printf("incr ext mem: %zi\n", ext_mem);
+#endif
 
   js_value_t *value;
   SN_STATUS_THROWS(js_get_boolean(env, true, &value), "failed to create boolean")

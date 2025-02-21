@@ -14,7 +14,8 @@
   "addon": true,
   "dependencies": {
     "bare-compat-napi": "^1.2.4",
-    "require-addon": "^1.0.10"
+    "require-addon": "^1.0.10",
+    "which-runtime": "^1.2.1"
   },
   "devDependencies": {
     "brittle": "^3.5.0",
