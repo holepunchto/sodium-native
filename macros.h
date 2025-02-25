@@ -1,4 +1,4 @@
-#define SN_LIGHT_ASSERT 0
+#define SN_ENABLE_FASTCALL 1
 
 #define SN_STATUS_THROWS(call, message) \
   if ((call) != 0) { \
@@ -88,7 +88,7 @@
 #define SN_EXPORT_TYPED_FUNCTION(name, untyped, signature, typed) \
   { \
     js_value_t *val; \
-    if (signature) { \
+    if (signature && SN_ENABLE_FASTCALL) { \
       err = js_create_typed_function(env, name, -1, untyped, signature, typed, NULL, &val); \
       assert(err == 0); \
     } else { \
@@ -196,18 +196,10 @@
   } \
   uint64_t name = (uint64_t) name##_i64;
 
-#if SN_LIGHT_ASSERT
-#define SN_ARGV_TYPEDARRAY(name, index) \
-  size_t name##_size; \
-  void *name##_data; \
-  err = js_get_typedarray_info(env, argv[index], NULL, (void **) &name##_data, &name##_size, NULL, NULL); \
-  assert(err == 0);
-#else
 #define SN_ARGV_TYPEDARRAY(name, index) \
   js_value_t *name##_argv = argv[index]; \
   SN_TYPEDARRAY_ASSERT(name, name##_argv, #name " must be an instance of TypedArray") \
   SN_TYPEDARRAY(name, name##_argv)
-#endif
 
 #define SN_ARGV_TYPEDARRAY_PTR(name, index) \
   js_value_t *name##_argv = argv[index]; \
@@ -249,7 +241,8 @@
 
 
 // TODO: Help! Return status is never -1 / pending_exception; Remove If-block?
-// but it is -2 when an exception occured that was later caught (res is unusable)
+// but it is -2 when an exception occured that was later caught
+// (res is unusable, not a problem, callback-results not used at all)
 #define SN_CALL_FUNCTION(env, ctx, cb, n, argv, res) \
   { \
     int err = js_call_function_with_checkpoint(env, ctx, cb, n, argv, res); \
@@ -333,8 +326,7 @@
     js_create_promise(env, &task->deferred, &promise); \
   }
 
-// TODO: some asserts here would be nice
-// and SN_CALL_WITH_CHECKPOINT required
+// TODO: some asserts here would be nice (actually everywhere)
 #define SN_ASYNC_COMPLETE(message) \
   js_value_t *argv[1]; \
   switch (task->type) { \

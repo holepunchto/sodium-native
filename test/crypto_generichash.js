@@ -130,14 +130,3 @@ test('crypto_generichash_batch with key', function (t) {
 
   t.alike(out.toString('hex'), '405f14acbeeb30396b8030f78e6a84bab0acf08cb1376aa200a500f669f675dc', 'batch keyed hash')
 })
-
-test.skip('crypto_generichash bench', t => {
-  const buf = Buffer.from('Hello, World!')
-  const out = Buffer.alloc(sodium.crypto_generichash_BYTES)
-  const start = Date.now()
-  for (let i = 0; i < 1200000; i++) {
-    sodium.crypto_generichash(out, buf)
-  }
-  const ms = Date.now() - start
-  t.comment('ms', ms)
-})

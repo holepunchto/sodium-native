@@ -393,6 +393,43 @@ sn_crypto_sign_detached(js_env_t *env, js_callback_info_t *info) {
   SN_RETURN(crypto_sign_detached(sig_data, NULL, m_data, m_size, sk_data), "signature failed")
 }
 
+bool
+sn_typed_crypto_sign_verify_detached (js_value_t *receiver, js_value_t *sig, js_value_t *m, js_value_t *pk, js_typed_callback_info_t *info) {
+  int err;
+  js_env_t *env;
+  err = js_get_typed_callback_info(info, &env, NULL);
+  assert(err == 0);
+
+  void *sig_data;
+  size_t sig_size;
+  js_typedarray_view_t *sig_view;
+  err = js_get_typedarray_view(env, sig, NULL, &sig_data, &sig_size, &sig_view);
+  assert(err == 0);
+
+  void *m_data;
+  size_t m_size;
+  js_typedarray_view_t *m_view;
+  err = js_get_typedarray_view(env, m, NULL, &m_data, &m_size, &m_view);
+  assert(err == 0);
+
+  void *pk_data;
+  size_t pk_size;
+  js_typedarray_view_t *pk_view;
+  err = js_get_typedarray_view(env, pk, NULL, &pk_data, &pk_size, &pk_view);
+  assert(err == 0);
+
+  bool success = crypto_sign_verify_detached(sig_data, m_data, m_size, pk_data);
+
+  err = js_release_typedarray_view(env, sig_view);
+  assert(err == 0);
+  err = js_release_typedarray_view(env, m_view);
+  assert(err == 0);
+  err = js_release_typedarray_view(env, pk_view);
+  assert(err == 0);
+
+  return success == 0;
+}
+
 js_value_t *
 sn_crypto_sign_verify_detached(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_sign_verify_detached)
@@ -447,7 +484,7 @@ sn_crypto_sign_ed25519_sk_to_curve25519(js_env_t *env, js_callback_info_t *info)
 }
 
 int32_t
-sn_typed_crypto_generichash (js_value_t *receiver, js_value_t *out, js_value_t *in, js_typed_callback_info_t *info) {
+sn_typed_crypto_generichash (js_value_t *receiver, js_value_t *out, js_value_t *in, bool use_key, js_value_t *key, js_typed_callback_info_t *info) {
   int err;
   js_env_t *env;
   err = js_get_typed_callback_info(info, &env, NULL);
@@ -467,6 +504,14 @@ sn_typed_crypto_generichash (js_value_t *receiver, js_value_t *out, js_value_t *
 
   void *key_data = NULL;
   size_t key_size = 0;
+  js_typedarray_view_t *key_view;
+
+  if (use_key) {
+    err = js_get_typedarray_view(env, in, NULL, &key_data, &key_size, &key_view);
+    assert(err == 0);
+    assert(key_size >= crypto_generichash_KEYBYTES_MIN);
+    assert(key_size <= crypto_generichash_KEYBYTES_MAX);
+  }
 
   int res = crypto_generichash(out_data, out_size, in_data, in_size, key_data, key_size);
   if (res != 0) {
@@ -479,12 +524,19 @@ sn_typed_crypto_generichash (js_value_t *receiver, js_value_t *out, js_value_t *
 
   err = js_release_typedarray_view(env, in_view);
   assert(err == 0);
+
+  if (use_key) {
+    err = js_release_typedarray_view(env, key_view);
+    assert(err == 0);
+  }
+
   return res;
 }
 
 js_value_t *
 sn_crypto_generichash(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV_OPTS(2, 3, crypto_generichash)
+  // SN_ARGV_OPTS(2, 3, crypto_generichash)
+  SN_ARGV(4, crypto_generichash)
 
   SN_ARGV_TYPEDARRAY(out, 0)
   SN_ARGV_TYPEDARRAY(in, 1)
@@ -495,8 +547,12 @@ sn_crypto_generichash(js_env_t *env, js_callback_info_t *info) {
   void *key_data = NULL;
   size_t key_size = 0;
 
-  if (argc == 3) {
-    SN_OPT_ARGV_TYPEDARRAY(key, 2)
+  bool use_key;
+  err = js_get_value_bool(env, argv[2], &use_key);
+  assert(err == 0);
+
+  if (use_key) {
+    SN_OPT_ARGV_TYPEDARRAY(key, 3)
     SN_THROWS(key_size < crypto_generichash_KEYBYTES_MIN, "key")
     SN_ASSERT_MIN_LENGTH(key_size, crypto_generichash_KEYBYTES_MIN, "key")
     SN_ASSERT_MAX_LENGTH(key_size, crypto_generichash_KEYBYTES_MAX, "key")
@@ -3348,6 +3404,7 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   int err;
   err = sodium_init();
   SN_THROWS(err == -1, "sodium_init() failed")
+
   // memory
 
   SN_EXPORT_FUNCTION(sodium_memzero, sn_sodium_memzero)
@@ -3470,12 +3527,12 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
 
   // crypto_generichash
 
-  SN_EXPORT_TYPED_FUNCTION("crypto_generichash",
+  SN_EXPORT_TYPED_FUNCTION("_crypto_generichash",
     sn_crypto_generichash,
     &((js_callback_signature_t) {
       .version = 0,
-      .args_len = 3,
-      .args = (int[]) { js_object, js_object, js_object },
+      .args_len = 5,
+      .args = (int[]) { js_object, js_object, js_object, js_boolean, js_object },
       .result = js_int32
     }),
     sn_typed_crypto_generichash
@@ -3640,7 +3697,16 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   SN_EXPORT_FUNCTION(crypto_sign, sn_crypto_sign)
   SN_EXPORT_FUNCTION(crypto_sign_open, sn_crypto_sign_open)
   SN_EXPORT_FUNCTION(crypto_sign_detached, sn_crypto_sign_detached)
-  SN_EXPORT_FUNCTION(crypto_sign_verify_detached, sn_crypto_sign_verify_detached)
+  SN_EXPORT_TYPED_FUNCTION("crypto_sign_verify_detached",
+    sn_crypto_sign_verify_detached,
+    &((js_callback_signature_t) {
+      .version = 0,
+      .args_len = 4,
+      .args = (int[]) { js_object, js_object, js_object, js_object },
+      .result = js_boolean
+    }),
+    sn_typed_crypto_sign_verify_detached
+  )
   SN_EXPORT_FUNCTION(crypto_sign_ed25519_sk_to_pk, sn_crypto_sign_ed25519_sk_to_pk)
   SN_EXPORT_FUNCTION(crypto_sign_ed25519_pk_to_curve25519, sn_crypto_sign_ed25519_pk_to_curve25519)
   SN_EXPORT_FUNCTION(crypto_sign_ed25519_sk_to_curve25519, sn_crypto_sign_ed25519_sk_to_curve25519)
@@ -3736,7 +3802,6 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   SN_EXPORT_UINT32(extension_pbkdf2_sha512_ITERATIONS_MIN, sn__extension_pbkdf2_sha512_ITERATIONS_MIN)
   SN_EXPORT_UINT64(extension_pbkdf2_sha512_BYTES_MAX, sn__extension_pbkdf2_sha512_BYTES_MAX)
 
-#undef VF
   return exports;
 }
 
