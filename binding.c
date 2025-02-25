@@ -418,6 +418,8 @@ sn_typed_crypto_sign_verify_detached (js_value_t *receiver, js_value_t *sig, js_
   err = js_get_typedarray_view(env, pk, NULL, &pk_data, &pk_size, &pk_view);
   assert(err == 0);
 
+  // SN_ASSERT_MIN_LENGTH(sig_size, crypto_sign_BYTES, "sig")
+  // SN_ASSERT_LENGTH(pk_size, crypto_sign_PUBLICKEYBYTES, "pk")
   bool success = crypto_sign_verify_detached(sig_data, m_data, m_size, pk_data);
 
   err = js_release_typedarray_view(env, sig_view);
@@ -771,6 +773,54 @@ sn_crypto_box_seal(js_env_t *env, js_callback_info_t *info) {
   SN_ASSERT_LENGTH(pk_size, crypto_box_PUBLICKEYBYTES, "pk")
 
   SN_RETURN(crypto_box_seal(c_data, m_data, m_size, pk_data), "failed to create seal")
+}
+
+bool sn_typed_crypto_box_seal_open (js_value_t *receiver, js_value_t *m, js_value_t *c, js_value_t *pk, js_value_t *sk, js_typed_callback_info_t *info) {
+  int err;
+  js_env_t *env;
+  err = js_get_typed_callback_info(info, &env, NULL);
+  assert(err == 0);
+
+  void *m_data;
+  size_t m_size;
+  js_typedarray_view_t *m_view;
+  err = js_get_typedarray_view(env, m, NULL, &m_data, &m_size, &m_view);
+  assert(err == 0);
+
+  void *c_data;
+  size_t c_size;
+  js_typedarray_view_t *c_view;
+  err = js_get_typedarray_view(env, c, NULL, &c_data, &c_size, &c_view);
+  assert(err == 0);
+
+  void *pk_data;
+  size_t pk_size;
+  js_typedarray_view_t *pk_view;
+  err = js_get_typedarray_view(env, pk, NULL, &pk_data, &pk_size, &pk_view);
+  assert(err == 0);
+
+  void *sk_data;
+  size_t sk_size;
+  js_typedarray_view_t *sk_view;
+  err = js_get_typedarray_view(env, sk, NULL, &sk_data, &sk_size, &sk_view);
+  assert(err == 0);
+
+  // TODO: rewrite branch
+  // SN_THROWS(c_size != m_size + crypto_box_SEALBYTES, "c must be 'm.byteLength + crypto_box_SEALBYTES' bytes")
+  // SN_ASSERT_LENGTH(pk_size, crypto_box_PUBLICKEYBYTES, "pk")
+
+  int res = crypto_box_seal_open(m_data, c_data, c_size, pk_data, sk_data);
+
+  err = js_release_typedarray_view(env, m_view);
+  assert(err == 0);
+  err = js_release_typedarray_view(env, c_view);
+  assert(err == 0);
+  err = js_release_typedarray_view(env, pk_view);
+  assert(err == 0);
+  err = js_release_typedarray_view(env, sk_view);
+  assert(err == 0);
+
+  return res == 0;
 }
 
 js_value_t *
@@ -3476,7 +3526,16 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   SN_EXPORT_FUNCTION(crypto_box_detached, sn_crypto_box_detached)
   SN_EXPORT_FUNCTION(crypto_box_open_detached, sn_crypto_box_open_detached)
   SN_EXPORT_FUNCTION(crypto_box_seal, sn_crypto_box_seal)
-  SN_EXPORT_FUNCTION(crypto_box_seal_open, sn_crypto_box_seal_open)
+  SN_EXPORT_TYPED_FUNCTION("crypto_box_seal_open",
+    sn_crypto_box_seal_open,
+    &((js_callback_signature_t) {
+      .version = 0,
+      .args_len = 5,
+      .args = (int[]) { js_object, js_object, js_object, js_object, js_object },
+      .result = js_boolean
+    }),
+    sn_typed_crypto_box_seal_open
+  )
   SN_EXPORT_UINT32(crypto_box_SEEDBYTES, crypto_box_SEEDBYTES)
   SN_EXPORT_UINT32(crypto_box_PUBLICKEYBYTES, crypto_box_PUBLICKEYBYTES)
   SN_EXPORT_UINT32(crypto_box_SECRETKEYBYTES, crypto_box_SECRETKEYBYTES)
