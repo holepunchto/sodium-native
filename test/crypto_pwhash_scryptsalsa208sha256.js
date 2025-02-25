@@ -150,7 +150,7 @@ test('crypto_pwhash_scryptsalsa208sha256_async uncaughtException', function (t) 
   const opslimit = sodium.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE
   const memlimit = sodium.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE
 
-  process.once('uncaughtException', listener)
+  uncaught(listener)
 
   sodium.crypto_pwhash_scryptsalsa208sha256_async(output, passwd, salt, opslimit, memlimit, exception)
 
@@ -175,7 +175,7 @@ test('crypto_pwhash_scryptsalsa208sha256_str_async uncaughtException', function 
   const opslimit = sodium.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE
   const memlimit = sodium.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE
 
-  process.once('uncaughtException', listener)
+  uncaught(listener)
 
   sodium.crypto_pwhash_scryptsalsa208sha256_str_async(output, passwd, opslimit, memlimit, exception)
 
@@ -198,7 +198,7 @@ test('crypto_pwhash_scryptsalsa208sha256_str_verify_async uncaughtException', fu
   const output = Buffer.alloc(sodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES) // can be any size
   const passwd = Buffer.from('Hej, Verden!')
 
-  process.once('uncaughtException', listener)
+  uncaught(listener)
 
   sodium.crypto_pwhash_scryptsalsa208sha256_str_verify_async(output, passwd, exception)
 
@@ -255,3 +255,11 @@ test('crypto_pwhash_scryptsalsa208sha256_str_async promise', async function (t) 
   await t.execution(p)
   t.ok(p === true, 'verifies')
 })
+
+function uncaught (fn) {
+  if (global.Bare) {
+    global.Bare.once('uncaughtException', fn)
+  } else {
+    process.once('uncaughtException', fn)
+  }
+}

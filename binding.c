@@ -1,4 +1,6 @@
-#include <node_api.h>
+#include <assert.h>
+#include <bare.h>
+#include <js.h>
 #include <uv.h>
 #include <string.h>
 #include <sodium.h>
@@ -6,29 +8,29 @@
 #include "extensions/tweak/tweak.h"
 #include "extensions/pbkdf2/pbkdf2.h"
 
-static uint8_t typedarray_width (napi_typedarray_type type) {
+// TODO: decreasing external memory segfaults on bare
+#define SN_BUG0_MEMTRACK 0
+
+/** TODO: unused / exported by libjs */
+static uint8_t typedarray_width (js_typedarray_type_t type) {
   switch (type) {
-    case napi_int8_array: return 1;
-    case napi_uint8_array: return 1;
-    case napi_uint8_clamped_array: return 1;
-    case napi_int16_array: return 2;
-    case napi_uint16_array: return 2;
-    case napi_int32_array: return 4;
-    case napi_uint32_array: return 4;
-    case napi_float32_array: return 4;
-    case napi_float64_array: return 8;
-    case napi_bigint64_array: return 8;
-    case napi_biguint64_array: return 8;
+    case js_int8array: return 1;
+    case js_uint8array: return 1;
+    case js_uint8clampedarray: return 1;
+    case js_int16array: return 2;
+    case js_uint16array: return 2;
+    case js_int32array: return 4;
+    case js_uint32array: return 4;
+    case js_float32array: return 4;
+    case js_float64array: return 8;
+    case js_bigint64array: return 8;
+    case js_biguint64array: return 8;
     default: return 0;
   }
 }
 
-static void sn_sodium_free_finalise (napi_env env, void *finalise_data, void *finalise_hint) {
-  napi_adjust_external_memory(env, -4 * 4096, NULL);
-  sodium_free(finalise_data);
-}
-
-napi_value sn_sodium_memzero (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_sodium_memzero (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(1, sodium_memzero)
 
   SN_ARGV_TYPEDARRAY(buf, 0)
@@ -38,7 +40,8 @@ napi_value sn_sodium_memzero (napi_env env, napi_callback_info info) {
   return NULL;
 }
 
-napi_value sn_sodium_mlock (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_sodium_mlock (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(1, sodium_mlock)
 
   SN_ARGV_TYPEDARRAY(buf, 0)
@@ -46,7 +49,8 @@ napi_value sn_sodium_mlock (napi_env env, napi_callback_info info) {
   SN_RETURN(sodium_mlock(buf_data, buf_size), "memory lock failed")
 }
 
-napi_value sn_sodium_munlock (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_sodium_munlock (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(1, sodium_munlock)
 
   SN_ARGV_TYPEDARRAY(buf, 0)
@@ -54,50 +58,75 @@ napi_value sn_sodium_munlock (napi_env env, napi_callback_info info) {
   SN_RETURN(sodium_munlock(buf_data, buf_size), "memory unlock failed")
 }
 
-napi_value sn_sodium_free (napi_env env, napi_callback_info info) {
+static void sn_sodium_free_finalise (js_env_t *env, void *finalise_data, void *finalise_hint) {
+  /* uint8_t hint = *((uint8_t *) finalise_data - 1); if (hint != 0xff) return; */
+  sodium_free(finalise_data);
+
+#if SN_BUG0_MEMTRACK
+  int64_t ext_mem;
+  int err = js_adjust_external_memory(env, -4 * 4096, &ext_mem);
+  printf("decr ext mem: %zi, err=%i\n", ext_mem, err);
+  assert(err == 0);
+#endif
+}
+
+js_value_t *
+sn_sodium_free (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(1, sodium_free)
 
   SN_ARGV_TYPEDARRAY_PTR(buf, 0)
-
   if (buf_data == NULL) return NULL;
 
-  napi_value array_buf;
+  js_value_t *array_buf;
+  SN_STATUS_THROWS(js_get_named_property(env, argv[0], "buffer", &array_buf), "failed to get arraybuffer");
 
-  SN_STATUS_THROWS(napi_get_named_property(env, argv[0], "buffer", &array_buf), "failed to get arraybuffer");
-  SN_STATUS_THROWS(napi_remove_wrap(env, array_buf, NULL), "failed to remove wrap"); // remove the finalizer
-  SN_STATUS_THROWS(napi_detach_arraybuffer(env, array_buf), "failed to detach array buffer");
-  napi_adjust_external_memory(env, -4 * 4096, NULL);
-  sodium_free(buf_data);
+  memset(buf_data, 0, buf_length); // poorman's immediate sodium_free() due to node bug below
 
+  SN_STATUS_THROWS(js_detach_arraybuffer(env, array_buf), "failed to detach array buffer");
+  // TODO: bug! bare invokes finalize_cb immediately during detach(); (no extra sodium_free() needed)
+  // node invokes finalize_cb in some arbitrary future. (requires sodium_free() + prevent finalizate_cb from running)
+  /* sodium_free(buf_data); */
+
+#if SN_BUG0_MEMTRACK
+  int64_t ext_mem;
+  int err = js_adjust_external_memory(env, -4 * 4096, &ext_mem);
+  printf("decr ext mem: %zi, err=%i\n", ext_mem, err);
+  assert(err == 0);
+#endif
   return NULL;
 }
 
-napi_value sn_sodium_malloc (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_sodium_malloc (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(1, sodium_malloc);
 
   SN_ARGV_UINT32(size, 0)
 
   void *ptr = sodium_malloc(size);
-
   SN_THROWS(ptr == NULL, "ENOMEM")
-  napi_adjust_external_memory(env, 4 * 4096, NULL);
 
   SN_THROWS(ptr == NULL, "sodium_malloc failed");
 
-  napi_value buf, value, array_buf;
+  js_value_t *buffer;
 
-  SN_STATUS_THROWS(napi_create_external_buffer(env, size, ptr, NULL, NULL, &buf), "failed to create a n-api buffer")
-  SN_STATUS_THROWS(napi_get_boolean(env, true, &value), "failed to create boolean")
+  SN_STATUS_THROWS(js_create_external_arraybuffer(env, ptr, size, sn_sodium_free_finalise, NULL, &buffer), "failed to create a native arraybuffer")
 
-  SN_STATUS_THROWS(napi_get_named_property(env, buf, "buffer", &array_buf), "failed to get arraybuffer")
-  SN_STATUS_THROWS(napi_set_named_property(env, buf, "secure", value), "failed to set secure property")
+#if SN_BUG0_MEMTRACK
+  int64_t ext_mem;
+  err = js_adjust_external_memory(env, 4 * 4096, &ext_mem);
+  assert(err == 0);
+  printf("incr ext mem: %zi\n", ext_mem);
+#endif
 
-  SN_STATUS_THROWS(napi_wrap(env, array_buf, ptr, sn_sodium_free_finalise, NULL, NULL), "failed to wrap")
+  js_value_t *value;
+  SN_STATUS_THROWS(js_get_boolean(env, true, &value), "failed to create boolean")
+  SN_STATUS_THROWS(js_set_named_property(env, buffer, "secure", value), "failed to set secure property")
 
-  return buf;
+  return buffer;
 }
 
-napi_value sn_sodium_mprotect_noaccess (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_sodium_mprotect_noaccess (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(1, sodium_mprotect_noaccess);
 
   SN_ARGV_TYPEDARRAY_PTR(buf, 0)
@@ -106,7 +135,8 @@ napi_value sn_sodium_mprotect_noaccess (napi_env env, napi_callback_info info) {
 }
 
 
-napi_value sn_sodium_mprotect_readonly (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_sodium_mprotect_readonly (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(1, sodium_readonly);
 
   SN_ARGV_TYPEDARRAY_PTR(buf, 0)
@@ -115,7 +145,8 @@ napi_value sn_sodium_mprotect_readonly (napi_env env, napi_callback_info info) {
 }
 
 
-napi_value sn_sodium_mprotect_readwrite (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_sodium_mprotect_readwrite (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(1, sodium_readwrite);
 
   SN_ARGV_TYPEDARRAY_PTR(buf, 0)
@@ -123,24 +154,29 @@ napi_value sn_sodium_mprotect_readwrite (napi_env env, napi_callback_info info) 
   SN_RETURN(sodium_mprotect_readwrite(buf_data), "failed to unlock buffer")
 }
 
-napi_value sn_randombytes_random (napi_env env, napi_callback_info info) {
-  napi_value result;
-
-  napi_create_uint32(env, randombytes_random(), &result);
+js_value_t *
+sn_randombytes_random (js_env_t *env, js_callback_info_t *info) {
+  js_value_t *result;
+  int err = js_create_uint32(env, randombytes_random(), &result);
+  assert(err == 0);
   return result;
 }
 
-napi_value sn_randombytes_uniform (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_randombytes_uniform (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(1, randombytes_uniform);
 
   SN_ARGV_UINT32(upper_bound, 0)
 
-  napi_value result;
-  napi_create_uint32(env, randombytes_uniform(upper_bound), &result);
+  js_value_t *result;
+  err = js_create_uint32(env, randombytes_uniform(upper_bound), &result);
+  assert(err == 0);
+
   return result;
 }
 
-napi_value sn_randombytes_buf (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_randombytes_buf (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(1, randombytes_buf)
 
   SN_ARGV_TYPEDARRAY(buf, 0)
@@ -150,7 +186,8 @@ napi_value sn_randombytes_buf (napi_env env, napi_callback_info info) {
   return NULL;
 }
 
-napi_value sn_randombytes_buf_deterministic (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_randombytes_buf_deterministic (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, randombytes_buf)
 
   SN_ARGV_TYPEDARRAY(buf, 0)
@@ -163,7 +200,8 @@ napi_value sn_randombytes_buf_deterministic (napi_env env, napi_callback_info in
   return NULL;
 }
 
-napi_value sn_sodium_memcmp(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_sodium_memcmp(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, sodium_memcmp);
 
   SN_ARGV_TYPEDARRAY(b1, 0)
@@ -174,7 +212,8 @@ napi_value sn_sodium_memcmp(napi_env env, napi_callback_info info) {
   SN_RETURN_BOOLEAN(sodium_memcmp(b1_data, b2_data, b1_size))
 }
 
-napi_value sn_sodium_increment(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_sodium_increment(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(1, sodium_increment);
   SN_ARGV_TYPEDARRAY(n, 0)
 
@@ -183,7 +222,8 @@ napi_value sn_sodium_increment(napi_env env, napi_callback_info info) {
   return NULL;
 }
 
-napi_value sn_sodium_add(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_sodium_add(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, sodium_add);
 
   SN_ARGV_TYPEDARRAY(a, 0)
@@ -195,7 +235,8 @@ napi_value sn_sodium_add(napi_env env, napi_callback_info info) {
   return NULL;
 }
 
-napi_value sn_sodium_sub(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_sodium_sub(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, sodium_sub);
 
   SN_ARGV_TYPEDARRAY(a, 0)
@@ -207,7 +248,8 @@ napi_value sn_sodium_sub(napi_env env, napi_callback_info info) {
   return NULL;
 }
 
-napi_value sn_sodium_compare(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_sodium_compare(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, sodium_compare);
 
   SN_ARGV_TYPEDARRAY(a, 0)
@@ -216,13 +258,15 @@ napi_value sn_sodium_compare(napi_env env, napi_callback_info info) {
   SN_THROWS(a_size != b_size, "buffers must be of same length")
   int cmp = sodium_compare(a_data, b_data, a_size);
 
-  napi_value result;
-  napi_create_int32(env, cmp, &result);
+  js_value_t *result;
+  err = js_create_int32(env, cmp, &result);
+  assert(err == 0);
 
   return result;
 }
 
-napi_value sn_sodium_is_zero(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_sodium_is_zero(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV_OPTS(1, 2, sodium_is_zero);
 
   SN_ARGV_TYPEDARRAY(a, 0)
@@ -237,7 +281,8 @@ napi_value sn_sodium_is_zero(napi_env env, napi_callback_info info) {
   SN_RETURN_BOOLEAN_FROM_1(sodium_is_zero(a_data, a_size))
 }
 
-napi_value sn_sodium_pad(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_sodium_pad(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, sodium_pad);
 
   SN_ARGV_TYPEDARRAY(buf, 0)
@@ -249,14 +294,16 @@ napi_value sn_sodium_pad(napi_env env, napi_callback_info info) {
   SN_THROWS(blocksize < 1, "block sizemust be at least 1 byte")
   SN_THROWS(buf_size < unpadded_buflen + (blocksize - (unpadded_buflen % blocksize)), "buf not long enough")
 
-  napi_value result;
+  js_value_t *result;
   size_t padded_buflen;
   sodium_pad(&padded_buflen, buf_data, unpadded_buflen, blocksize, buf_size);
-  napi_create_uint32(env, padded_buflen, &result);
+  err = js_create_uint32(env, padded_buflen, &result);
+  assert(err == 0);
   return result;
 }
 
-napi_value sn_sodium_unpad(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_sodium_unpad(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, sodium_unpad);
 
   SN_ARGV_TYPEDARRAY(buf, 0)
@@ -267,14 +314,16 @@ napi_value sn_sodium_unpad(napi_env env, napi_callback_info info) {
   SN_THROWS(blocksize > buf_size, "block size cannot exceed buffer length")
   SN_THROWS(blocksize < 1, "block size must be at least 1 byte")
 
-  napi_value result;
+  js_value_t *result;
   size_t unpadded_buflen;
   sodium_unpad(&unpadded_buflen, buf_data, padded_buflen, blocksize);
-  napi_create_uint32(env, unpadded_buflen, &result);
+  err = js_create_uint32(env, unpadded_buflen, &result);
+  assert(err == 0);
   return result;
 }
 
-napi_value sn_crypto_sign_keypair(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_sign_keypair(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, crypto_sign_keypair)
 
   SN_ARGV_TYPEDARRAY(pk, 0)
@@ -286,7 +335,8 @@ napi_value sn_crypto_sign_keypair(napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_sign_keypair(pk_data, sk_data), "keypair generation failed")
 }
 
-napi_value sn_crypto_sign_seed_keypair(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_sign_seed_keypair(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_sign_seed_keypair)
 
   SN_ARGV_TYPEDARRAY(pk, 0)
@@ -300,7 +350,8 @@ napi_value sn_crypto_sign_seed_keypair(napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_sign_seed_keypair(pk_data, sk_data, seed_data), "keypair generation failed")
 }
 
-napi_value sn_crypto_sign(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_sign(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_sign)
 
   SN_ARGV_TYPEDARRAY(sm, 0)
@@ -313,7 +364,8 @@ napi_value sn_crypto_sign(napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_sign(sm_data, NULL, m_data, m_size, sk_data), "signature failed")
 }
 
-napi_value sn_crypto_sign_open(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_sign_open(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_sign_open)
 
   SN_ARGV_TYPEDARRAY(m, 0)
@@ -327,7 +379,8 @@ napi_value sn_crypto_sign_open(napi_env env, napi_callback_info info) {
   SN_RETURN_BOOLEAN(crypto_sign_open(m_data, NULL, sm_data, sm_size, pk_data))
 }
 
-napi_value sn_crypto_sign_detached(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_sign_detached(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_sign_detached)
 
   SN_ARGV_TYPEDARRAY(sig, 0)
@@ -340,7 +393,47 @@ napi_value sn_crypto_sign_detached(napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_sign_detached(sig_data, NULL, m_data, m_size, sk_data), "signature failed")
 }
 
-napi_value sn_crypto_sign_verify_detached(napi_env env, napi_callback_info info) {
+bool
+sn_typed_crypto_sign_verify_detached (js_value_t *receiver, js_value_t *sig, js_value_t *m, js_value_t *pk, js_typed_callback_info_t *info) {
+  int err;
+  js_env_t *env;
+  err = js_get_typed_callback_info(info, &env, NULL);
+  assert(err == 0);
+
+  void *sig_data;
+  size_t sig_size;
+  js_typedarray_view_t *sig_view;
+  err = js_get_typedarray_view(env, sig, NULL, &sig_data, &sig_size, &sig_view);
+  assert(err == 0);
+
+  void *m_data;
+  size_t m_size;
+  js_typedarray_view_t *m_view;
+  err = js_get_typedarray_view(env, m, NULL, &m_data, &m_size, &m_view);
+  assert(err == 0);
+
+  void *pk_data;
+  size_t pk_size;
+  js_typedarray_view_t *pk_view;
+  err = js_get_typedarray_view(env, pk, NULL, &pk_data, &pk_size, &pk_view);
+  assert(err == 0);
+
+  // SN_ASSERT_MIN_LENGTH(sig_size, crypto_sign_BYTES, "sig")
+  // SN_ASSERT_LENGTH(pk_size, crypto_sign_PUBLICKEYBYTES, "pk")
+  bool success = crypto_sign_verify_detached(sig_data, m_data, m_size, pk_data);
+
+  err = js_release_typedarray_view(env, sig_view);
+  assert(err == 0);
+  err = js_release_typedarray_view(env, m_view);
+  assert(err == 0);
+  err = js_release_typedarray_view(env, pk_view);
+  assert(err == 0);
+
+  return success == 0;
+}
+
+js_value_t *
+sn_crypto_sign_verify_detached(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_sign_verify_detached)
 
   SN_ARGV_TYPEDARRAY(sig, 0)
@@ -353,7 +446,8 @@ napi_value sn_crypto_sign_verify_detached(napi_env env, napi_callback_info info)
   SN_RETURN_BOOLEAN(crypto_sign_verify_detached(sig_data, m_data, m_size, pk_data))
 }
 
-napi_value sn_crypto_sign_ed25519_sk_to_pk(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_sign_ed25519_sk_to_pk(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, crypto_sign_ed25519_sk_to_pk)
 
   SN_ARGV_TYPEDARRAY(pk, 0)
@@ -365,7 +459,8 @@ napi_value sn_crypto_sign_ed25519_sk_to_pk(napi_env env, napi_callback_info info
   SN_RETURN(crypto_sign_ed25519_sk_to_pk(pk_data, sk_data), "public key generation failed")
 }
 
-napi_value sn_crypto_sign_ed25519_pk_to_curve25519(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_sign_ed25519_pk_to_curve25519(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, crypto_sign_ed25519_sk_to_pk)
 
   SN_ARGV_TYPEDARRAY(x25519_pk, 0)
@@ -377,7 +472,8 @@ napi_value sn_crypto_sign_ed25519_pk_to_curve25519(napi_env env, napi_callback_i
   SN_RETURN(crypto_sign_ed25519_pk_to_curve25519(x25519_pk_data, ed25519_pk_data), "public key conversion failed")
 }
 
-napi_value sn_crypto_sign_ed25519_sk_to_curve25519(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_sign_ed25519_sk_to_curve25519(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, crypto_sign_ed25519_sk_to_pk)
 
   SN_ARGV_TYPEDARRAY(x25519_sk, 0)
@@ -389,8 +485,60 @@ napi_value sn_crypto_sign_ed25519_sk_to_curve25519(napi_env env, napi_callback_i
   SN_RETURN(crypto_sign_ed25519_sk_to_curve25519(x25519_sk_data, ed25519_sk_data), "secret key conversion failed")
 }
 
-napi_value sn_crypto_generichash(napi_env env, napi_callback_info info) {
-  SN_ARGV_OPTS(2, 3, crypto_generichash)
+int32_t
+sn_typed_crypto_generichash (js_value_t *receiver, js_value_t *out, js_value_t *in, bool use_key, js_value_t *key, js_typed_callback_info_t *info) {
+  int err;
+  js_env_t *env;
+  err = js_get_typed_callback_info(info, &env, NULL);
+  assert(err == 0);
+
+  void *out_data;
+  size_t out_size;
+  js_typedarray_view_t *out_view;
+  err = js_get_typedarray_view(env, out, NULL, &out_data, &out_size, &out_view);
+  assert(err == 0);
+
+  void *in_data;
+  size_t in_size;
+  js_typedarray_view_t *in_view;
+  err = js_get_typedarray_view(env, in, NULL, &in_data, &in_size, &in_view);
+  assert(err == 0);
+
+  void *key_data = NULL;
+  size_t key_size = 0;
+  js_typedarray_view_t *key_view;
+
+  if (use_key) {
+    err = js_get_typedarray_view(env, in, NULL, &key_data, &key_size, &key_view);
+    assert(err == 0);
+    assert(key_size >= crypto_generichash_KEYBYTES_MIN);
+    assert(key_size <= crypto_generichash_KEYBYTES_MAX);
+  }
+
+  int res = crypto_generichash(out_data, out_size, in_data, in_size, key_data, key_size);
+  if (res != 0) {
+    err = js_throw_error(env, NULL, "hash failed");
+    assert(err == 0);
+  }
+
+  err = js_release_typedarray_view(env, out_view);
+  assert(err == 0);
+
+  err = js_release_typedarray_view(env, in_view);
+  assert(err == 0);
+
+  if (use_key) {
+    err = js_release_typedarray_view(env, key_view);
+    assert(err == 0);
+  }
+
+  return res;
+}
+
+js_value_t *
+sn_crypto_generichash(js_env_t *env, js_callback_info_t *info) {
+  // SN_ARGV_OPTS(2, 3, crypto_generichash)
+  SN_ARGV(4, crypto_generichash)
 
   SN_ARGV_TYPEDARRAY(out, 0)
   SN_ARGV_TYPEDARRAY(in, 1)
@@ -401,8 +549,12 @@ napi_value sn_crypto_generichash(napi_env env, napi_callback_info info) {
   void *key_data = NULL;
   size_t key_size = 0;
 
-  if (argc == 3) {
-    SN_OPT_ARGV_TYPEDARRAY(key, 2)
+  bool use_key;
+  err = js_get_value_bool(env, argv[2], &use_key);
+  assert(err == 0);
+
+  if (use_key) {
+    SN_OPT_ARGV_TYPEDARRAY(key, 3)
     SN_THROWS(key_size < crypto_generichash_KEYBYTES_MIN, "key")
     SN_ASSERT_MIN_LENGTH(key_size, crypto_generichash_KEYBYTES_MIN, "key")
     SN_ASSERT_MAX_LENGTH(key_size, crypto_generichash_KEYBYTES_MAX, "key")
@@ -411,13 +563,15 @@ napi_value sn_crypto_generichash(napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_generichash(out_data, out_size, in_data, in_size, key_data, key_size), "hash failed")
 }
 
-napi_value sn_crypto_generichash_batch(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_generichash_batch(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV_OPTS(2, 3, crypto_generichash)
 
   SN_ARGV_TYPEDARRAY(out, 0)
 
   uint32_t batch_length;
-  napi_get_array_length(env, argv[1], &batch_length);
+  err = js_get_array_length(env, argv[1], &batch_length);
+  assert(err == 0);
 
   SN_ASSERT_MIN_LENGTH(out_size, crypto_generichash_BYTES_MIN, "out")
   SN_ASSERT_MAX_LENGTH(out_size, crypto_generichash_BYTES_MAX, "out")
@@ -434,8 +588,10 @@ napi_value sn_crypto_generichash_batch(napi_env env, napi_callback_info info) {
   crypto_generichash_state state;
   crypto_generichash_init(&state, key_data, key_size, out_size);
   for (uint32_t i = 0; i < batch_length; i++) {
-    napi_value element;
-    napi_get_element(env, argv[1], i, &element);
+    js_value_t *element;
+    err = js_get_element(env, argv[1], i, &element);
+    assert(err == 0);
+
     SN_TYPEDARRAY_ASSERT(buf, element, "batch element should be passed as a TypedArray")
     SN_TYPEDARRAY(buf, element)
     crypto_generichash_update(&state, buf_data, buf_size);
@@ -444,7 +600,8 @@ napi_value sn_crypto_generichash_batch(napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_generichash_final(&state, out_data, out_size), "batch failed")
 }
 
-napi_value sn_crypto_generichash_keygen(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_generichash_keygen(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(1, crypto_generichash_keygen)
 
   SN_ARGV_TYPEDARRAY(key, 0)
@@ -456,13 +613,15 @@ napi_value sn_crypto_generichash_keygen(napi_env env, napi_callback_info info) {
   return NULL;
 }
 
-napi_value sn_crypto_generichash_init(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_generichash_init(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_generichash_init)
 
   SN_ARGV_BUFFER_CAST(crypto_generichash_state *, state, 0)
   SN_ARGV_OPTS_TYPEDARRAY(key, 1)
   SN_ARGV_UINT32(outlen, 2)
 
+  // assert(state_size == sizeof(crypto_generichash_state));
   SN_THROWS(state_size != sizeof(crypto_generichash_state), "state must be 'crypto_generichash_STATEBYTES' bytes")
 
   if (key_data != NULL) {
@@ -473,7 +632,8 @@ napi_value sn_crypto_generichash_init(napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_generichash_init(state, key_data, key_size, outlen), "hash failed to initialise")
 }
 
-napi_value sn_crypto_generichash_update(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_generichash_update(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, crypto_generichash_update)
 
   SN_ARGV_BUFFER_CAST(crypto_generichash_state *, state, 0)
@@ -484,7 +644,8 @@ napi_value sn_crypto_generichash_update(napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_generichash_update(state, in_data, in_size), "update failed")
 }
 
-napi_value sn_crypto_generichash_final(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_generichash_final(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, crypto_generichash_final)
 
   SN_ARGV_BUFFER_CAST(crypto_generichash_state *, state, 0)
@@ -495,7 +656,8 @@ napi_value sn_crypto_generichash_final(napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_generichash_final(state, out_data, out_size), "digest failed")
 }
 
-napi_value sn_crypto_box_keypair(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_box_keypair(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, crypto_box_keypair)
 
   SN_ARGV_TYPEDARRAY(pk, 0)
@@ -507,7 +669,8 @@ napi_value sn_crypto_box_keypair(napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_box_keypair(pk_data, sk_data), "keypair generation failed")
 }
 
-napi_value sn_crypto_box_seed_keypair(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_box_seed_keypair(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_box_seed_keypair)
 
   SN_ARGV_TYPEDARRAY(pk, 0)
@@ -521,7 +684,8 @@ napi_value sn_crypto_box_seed_keypair(napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_box_seed_keypair(pk_data, sk_data, seed_data), "keypair generation failed")
 }
 
-napi_value sn_crypto_box_easy(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_box_easy(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(5, crypto_box_easy)
 
   SN_ARGV_TYPEDARRAY(c, 0)
@@ -538,7 +702,8 @@ napi_value sn_crypto_box_easy(napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_box_easy(c_data, m_data, m_size, n_data, pk_data, sk_data), "crypto box failed")
 }
 
-napi_value sn_crypto_box_open_easy(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_box_open_easy(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(5, crypto_box_open_easy)
 
   SN_ARGV_TYPEDARRAY(m, 0)
@@ -556,7 +721,8 @@ napi_value sn_crypto_box_open_easy(napi_env env, napi_callback_info info) {
   SN_RETURN_BOOLEAN(crypto_box_open_easy(m_data, c_data, c_size, n_data, pk_data, sk_data))
 }
 
-napi_value sn_crypto_box_detached(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_box_detached(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(6, crypto_box_detached)
 
   SN_ARGV_TYPEDARRAY(c, 0)
@@ -575,7 +741,8 @@ napi_value sn_crypto_box_detached(napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_box_detached(c_data, mac_data, m_data, m_size, n_data, pk_data, sk_data), "signature failed")
 }
 
-napi_value sn_crypto_box_open_detached(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_box_open_detached(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(6, crypto_box_open_detached)
 
   SN_ARGV_TYPEDARRAY(m, 0)
@@ -594,7 +761,8 @@ napi_value sn_crypto_box_open_detached(napi_env env, napi_callback_info info) {
   SN_RETURN_BOOLEAN(crypto_box_open_detached(m_data, c_data, mac_data, c_size, n_data, pk_data, sk_data))
 }
 
-napi_value sn_crypto_box_seal(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_box_seal(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_box_seal)
 
   SN_ARGV_TYPEDARRAY(c, 0)
@@ -607,7 +775,56 @@ napi_value sn_crypto_box_seal(napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_box_seal(c_data, m_data, m_size, pk_data), "failed to create seal")
 }
 
-napi_value sn_crypto_box_seal_open(napi_env env, napi_callback_info info) {
+bool sn_typed_crypto_box_seal_open (js_value_t *receiver, js_value_t *m, js_value_t *c, js_value_t *pk, js_value_t *sk, js_typed_callback_info_t *info) {
+  int err;
+  js_env_t *env;
+  err = js_get_typed_callback_info(info, &env, NULL);
+  assert(err == 0);
+
+  void *m_data;
+  size_t m_size;
+  js_typedarray_view_t *m_view;
+  err = js_get_typedarray_view(env, m, NULL, &m_data, &m_size, &m_view);
+  assert(err == 0);
+
+  void *c_data;
+  size_t c_size;
+  js_typedarray_view_t *c_view;
+  err = js_get_typedarray_view(env, c, NULL, &c_data, &c_size, &c_view);
+  assert(err == 0);
+
+  void *pk_data;
+  size_t pk_size;
+  js_typedarray_view_t *pk_view;
+  err = js_get_typedarray_view(env, pk, NULL, &pk_data, &pk_size, &pk_view);
+  assert(err == 0);
+
+  void *sk_data;
+  size_t sk_size;
+  js_typedarray_view_t *sk_view;
+  err = js_get_typedarray_view(env, sk, NULL, &sk_data, &sk_size, &sk_view);
+  assert(err == 0);
+
+  // TODO: rewrite branch
+  // SN_THROWS(c_size != m_size + crypto_box_SEALBYTES, "c must be 'm.byteLength + crypto_box_SEALBYTES' bytes")
+  // SN_ASSERT_LENGTH(pk_size, crypto_box_PUBLICKEYBYTES, "pk")
+
+  int res = crypto_box_seal_open(m_data, c_data, c_size, pk_data, sk_data);
+
+  err = js_release_typedarray_view(env, m_view);
+  assert(err == 0);
+  err = js_release_typedarray_view(env, c_view);
+  assert(err == 0);
+  err = js_release_typedarray_view(env, pk_view);
+  assert(err == 0);
+  err = js_release_typedarray_view(env, sk_view);
+  assert(err == 0);
+
+  return res == 0;
+}
+
+js_value_t *
+sn_crypto_box_seal_open(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(4, crypto_box_seal_open)
 
   SN_ARGV_TYPEDARRAY(m, 0)
@@ -623,7 +840,8 @@ napi_value sn_crypto_box_seal_open(napi_env env, napi_callback_info info) {
   SN_RETURN_BOOLEAN(crypto_box_seal_open(m_data, c_data, c_size, pk_data, sk_data))
 }
 
-napi_value sn_crypto_secretbox_easy(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_secretbox_easy(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(4, crypto_secretbox_easy)
 
   SN_ARGV_TYPEDARRAY(c, 0)
@@ -638,7 +856,8 @@ napi_value sn_crypto_secretbox_easy(napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_secretbox_easy(c_data, m_data, m_size, n_data, k_data), "crypto secretbox failed")
 }
 
-napi_value sn_crypto_secretbox_open_easy(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_secretbox_open_easy(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(4, crypto_secretbox_open_easy)
 
   SN_ARGV_TYPEDARRAY(m, 0)
@@ -654,7 +873,8 @@ napi_value sn_crypto_secretbox_open_easy(napi_env env, napi_callback_info info) 
   SN_RETURN_BOOLEAN(crypto_secretbox_open_easy(m_data, c_data, c_size, n_data, k_data))
 }
 
-napi_value sn_crypto_secretbox_detached(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_secretbox_detached(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(5, crypto_secretbox_detached)
 
   SN_ARGV_TYPEDARRAY(c, 0)
@@ -671,7 +891,8 @@ napi_value sn_crypto_secretbox_detached(napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_secretbox_detached(c_data, mac_data, m_data, m_size, n_data, k_data), "failed to open box")
 }
 
-napi_value sn_crypto_secretbox_open_detached(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_secretbox_open_detached(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(5, crypto_secretbox_open_detached)
 
   SN_ARGV_TYPEDARRAY(m, 0)
@@ -688,7 +909,8 @@ napi_value sn_crypto_secretbox_open_detached(napi_env env, napi_callback_info in
   SN_RETURN_BOOLEAN(crypto_secretbox_open_detached(m_data, c_data, mac_data, c_size, n_data, k_data))
 }
 
-napi_value sn_crypto_stream(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_stream(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_stream)
 
   SN_ARGV_TYPEDARRAY(c, 0)
@@ -701,7 +923,8 @@ napi_value sn_crypto_stream(napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_stream(c_data, c_size, n_data, k_data), "stream encryption failed")
 }
 
-napi_value sn_crypto_stream_xor(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_stream_xor(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(4, crypto_stream_xor)
 
   SN_ARGV_TYPEDARRAY(c, 0)
@@ -716,7 +939,8 @@ napi_value sn_crypto_stream_xor(napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_stream_xor(c_data, m_data, m_size, n_data, k_data), "stream encryption failed")
 }
 
-napi_value sn_crypto_stream_chacha20(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_stream_chacha20(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_stream_chacha20)
 
   SN_ARGV_TYPEDARRAY(c, 0)
@@ -729,7 +953,8 @@ napi_value sn_crypto_stream_chacha20(napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_stream_chacha20(c_data, c_size, n_data, k_data), "stream encryption failed")
 }
 
-napi_value sn_crypto_stream_chacha20_xor (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_stream_chacha20_xor (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(4, crypto_stream_chacha20_xor)
 
   SN_ARGV_TYPEDARRAY(c, 0)
@@ -744,7 +969,8 @@ napi_value sn_crypto_stream_chacha20_xor (napi_env env, napi_callback_info info)
   SN_RETURN(crypto_stream_chacha20_xor(c_data, m_data, m_size, n_data, k_data), "stream encryption failed")
 }
 
-napi_value sn_crypto_stream_chacha20_xor_ic(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_stream_chacha20_xor_ic(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(5, crypto_stream_chacha20_xor_ic)
 
   SN_ARGV_TYPEDARRAY(c, 0)
@@ -760,7 +986,8 @@ napi_value sn_crypto_stream_chacha20_xor_ic(napi_env env, napi_callback_info inf
   SN_RETURN(crypto_stream_chacha20_xor_ic(c_data, m_data, m_size, n_data, ic, k_data), "stream encryption failed")
 }
 
-napi_value sn_crypto_stream_chacha20_ietf(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_stream_chacha20_ietf(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_stream_chacha20_ietf)
 
   SN_ARGV_TYPEDARRAY(c, 0)
@@ -773,7 +1000,8 @@ napi_value sn_crypto_stream_chacha20_ietf(napi_env env, napi_callback_info info)
   SN_RETURN(crypto_stream_chacha20_ietf(c_data, c_size, n_data, k_data), "stream encryption failed")
 }
 
-napi_value sn_crypto_stream_chacha20_ietf_xor(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_stream_chacha20_ietf_xor(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(4, crypto_stream_chacha20_ietf_xor)
 
   SN_ARGV_TYPEDARRAY(c, 0)
@@ -788,7 +1016,8 @@ napi_value sn_crypto_stream_chacha20_ietf_xor(napi_env env, napi_callback_info i
   SN_RETURN(crypto_stream_chacha20_ietf_xor(c_data, m_data, m_size, n_data, k_data), "stream encryption failed")
 }
 
-napi_value sn_crypto_stream_chacha20_ietf_xor_ic(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_stream_chacha20_ietf_xor_ic(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(5, crypto_stream_chacha20_ietf_xor_ic)
 
   SN_ARGV_TYPEDARRAY(c, 0)
@@ -804,7 +1033,8 @@ napi_value sn_crypto_stream_chacha20_ietf_xor_ic(napi_env env, napi_callback_inf
   SN_RETURN(crypto_stream_chacha20_ietf_xor_ic(c_data, m_data, m_size, n_data, ic, k_data), "stream encryption failed")
 }
 
-napi_value sn_crypto_stream_xchacha20(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_stream_xchacha20(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_stream_xchacha20)
 
   SN_ARGV_TYPEDARRAY(c, 0)
@@ -817,7 +1047,8 @@ napi_value sn_crypto_stream_xchacha20(napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_stream_xchacha20(c_data, c_size, n_data, k_data), "stream encryption failed")
 }
 
-napi_value sn_crypto_stream_xchacha20_xor (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_stream_xchacha20_xor (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(4, crypto_stream_xchacha20_xor)
 
   SN_ARGV_TYPEDARRAY(c, 0)
@@ -832,7 +1063,8 @@ napi_value sn_crypto_stream_xchacha20_xor (napi_env env, napi_callback_info info
   SN_RETURN(crypto_stream_xchacha20_xor(c_data, m_data, m_size, n_data, k_data), "stream encryption failed")
 }
 
-napi_value sn_crypto_stream_xchacha20_xor_ic(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_stream_xchacha20_xor_ic(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(5, crypto_stream_xchacha20_xor_ic)
 
   SN_ARGV_TYPEDARRAY(c, 0)
@@ -848,7 +1080,8 @@ napi_value sn_crypto_stream_xchacha20_xor_ic(napi_env env, napi_callback_info in
   SN_RETURN(crypto_stream_xchacha20_xor_ic(c_data, m_data, m_size, n_data, ic, k_data), "stream encryption failed")
 }
 
-napi_value sn_crypto_stream_salsa20(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_stream_salsa20(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_stream_salsa20)
 
   SN_ARGV_TYPEDARRAY(c, 0)
@@ -861,7 +1094,8 @@ napi_value sn_crypto_stream_salsa20(napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_stream_salsa20(c_data, c_size, n_data, k_data), "stream encryption failed")
 }
 
-napi_value sn_crypto_stream_salsa20_xor (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_stream_salsa20_xor (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(4, crypto_stream_salsa20_xor)
 
   SN_ARGV_TYPEDARRAY(c, 0)
@@ -876,7 +1110,8 @@ napi_value sn_crypto_stream_salsa20_xor (napi_env env, napi_callback_info info) 
   SN_RETURN(crypto_stream_salsa20_xor(c_data, m_data, m_size, n_data, k_data), "stream encryption failed")
 }
 
-napi_value sn_crypto_stream_salsa20_xor_ic(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_stream_salsa20_xor_ic(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(5, crypto_stream_salsa20_xor_ic)
 
   SN_ARGV_TYPEDARRAY(c, 0)
@@ -892,7 +1127,8 @@ napi_value sn_crypto_stream_salsa20_xor_ic(napi_env env, napi_callback_info info
   SN_RETURN(crypto_stream_salsa20_xor_ic(c_data, m_data, m_size, n_data, ic, k_data), "stream encryption failed")
 }
 
-napi_value sn_crypto_auth (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_auth (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_auth)
 
   SN_ARGV_TYPEDARRAY(out, 0)
@@ -905,7 +1141,8 @@ napi_value sn_crypto_auth (napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_auth(out_data, in_data, in_size, k_data), "failed to generate authentication tag")
 }
 
-napi_value sn_crypto_auth_verify (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_auth_verify (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_auth_verify)
 
   SN_ARGV_TYPEDARRAY(h, 0)
@@ -918,7 +1155,8 @@ napi_value sn_crypto_auth_verify (napi_env env, napi_callback_info info) {
   SN_RETURN_BOOLEAN(crypto_auth_verify(h_data, in_data, in_size, k_data))
 }
 
-napi_value sn_crypto_onetimeauth (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_onetimeauth (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_onetimeauth)
 
   SN_ARGV_TYPEDARRAY(out, 0)
@@ -931,7 +1169,8 @@ napi_value sn_crypto_onetimeauth (napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_onetimeauth(out_data, in_data, in_size, k_data), "failed to generate onetime authentication tag")
 }
 
-napi_value sn_crypto_onetimeauth_init (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_onetimeauth_init (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, crypto_onetimeauth_init)
 
   SN_ARGV_BUFFER_CAST(crypto_onetimeauth_state *, state, 0)
@@ -943,7 +1182,8 @@ napi_value sn_crypto_onetimeauth_init (napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_onetimeauth_init(state, k_data), "failed to initialise onetime authentication")
 }
 
-napi_value sn_crypto_onetimeauth_update(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_onetimeauth_update(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, crypto_onetimeauth_update)
 
   SN_ARGV_BUFFER_CAST(crypto_onetimeauth_state *, state, 0)
@@ -954,7 +1194,8 @@ napi_value sn_crypto_onetimeauth_update(napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_onetimeauth_update(state, in_data, in_size), "update failed")
 }
 
-napi_value sn_crypto_onetimeauth_final(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_onetimeauth_final(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, crypto_onetimeauth_final)
 
   SN_ARGV_BUFFER_CAST(crypto_onetimeauth_state *, state, 0)
@@ -966,7 +1207,8 @@ napi_value sn_crypto_onetimeauth_final(napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_onetimeauth_final(state, out_data), "failed to generate authentication tag")
 }
 
-napi_value sn_crypto_onetimeauth_verify (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_onetimeauth_verify (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_onetimeauth_verify)
 
   SN_ARGV_TYPEDARRAY(h, 0)
@@ -980,7 +1222,8 @@ napi_value sn_crypto_onetimeauth_verify (napi_env env, napi_callback_info info) 
 }
 
 // CHECK: memlimit can be >32bit
-napi_value sn_crypto_pwhash (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_pwhash (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(6, crypto_pwhash)
 
   SN_ARGV_TYPEDARRAY(out, 0)
@@ -1002,7 +1245,8 @@ napi_value sn_crypto_pwhash (napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_pwhash(out_data, out_size, passwd_data, passwd_size, salt_data, opslimit, memlimit, alg), "password hashing failed, check memory requirements.")
 }
 
-napi_value sn_crypto_pwhash_str (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_pwhash_str (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(4, crypto_pwhash_str)
 
   SN_ARGV_TYPEDARRAY(out, 0)
@@ -1019,7 +1263,8 @@ napi_value sn_crypto_pwhash_str (napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_pwhash_str(out_data, passwd_data, passwd_size, opslimit, memlimit), "password hashing failed, check memory requirements.")
 }
 
-napi_value sn_crypto_pwhash_str_verify (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_pwhash_str_verify (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, crypto_pwhash_str_verify)
 
   SN_ARGV_TYPEDARRAY(str, 0)
@@ -1031,7 +1276,8 @@ napi_value sn_crypto_pwhash_str_verify (napi_env env, napi_callback_info info) {
 }
 
 // CHECK: returns 1, 0, -1
-napi_value sn_crypto_pwhash_str_needs_rehash (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_pwhash_str_needs_rehash (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_pwhash_str_needs_rehash)
 
   SN_ARGV_TYPEDARRAY(str, 0)
@@ -1048,7 +1294,8 @@ napi_value sn_crypto_pwhash_str_needs_rehash (napi_env env, napi_callback_info i
 }
 
 // CHECK: memlimit can be >32bit
-napi_value sn_crypto_pwhash_scryptsalsa208sha256 (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_pwhash_scryptsalsa208sha256 (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(5, crypto_pwhash_scryptsalsa208sha256)
 
   SN_ARGV_TYPEDARRAY(out, 0)
@@ -1068,7 +1315,8 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256 (napi_env env, napi_callback_in
   SN_RETURN(crypto_pwhash_scryptsalsa208sha256(out_data, out_size, passwd_data, passwd_size, salt_data, opslimit, memlimit), "password hashing failed, check memory requirements.")
 }
 
-napi_value sn_crypto_pwhash_scryptsalsa208sha256_str (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_pwhash_scryptsalsa208sha256_str (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(4, crypto_pwhash_scryptsalsa208sha256_str)
 
   SN_ARGV_TYPEDARRAY(out, 0)
@@ -1085,7 +1333,8 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_str (napi_env env, napi_callbac
   SN_RETURN(crypto_pwhash_scryptsalsa208sha256_str(out_data, passwd_data, passwd_size, opslimit, memlimit), "password hashing failed, check memory requirements.")
 }
 
-napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_verify (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_pwhash_scryptsalsa208sha256_str_verify (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, crypto_pwhash_scryptsalsa208sha256_str_verify)
 
   SN_ARGV_TYPEDARRAY(str, 0)
@@ -1096,7 +1345,8 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_verify (napi_env env, napi_
   SN_RETURN_BOOLEAN(crypto_pwhash_scryptsalsa208sha256_str_verify(str_data, passwd_data, passwd_size))
 }
 
-napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_needs_rehash (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_pwhash_scryptsalsa208sha256_str_needs_rehash (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_pwhash_scryptsalsa208sha256_str_needs_rehash)
 
   SN_ARGV_TYPEDARRAY(str, 0)
@@ -1112,7 +1362,8 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_needs_rehash (napi_env env,
   SN_RETURN_BOOLEAN_FROM_1(crypto_pwhash_scryptsalsa208sha256_str_needs_rehash(str_data, opslimit, memlimit))
 }
 
-napi_value sn_crypto_kx_keypair (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_kx_keypair (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, crypto_kx_keypair)
 
   SN_ARGV_TYPEDARRAY(pk, 0)
@@ -1124,7 +1375,8 @@ napi_value sn_crypto_kx_keypair (napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_kx_keypair(pk_data, sk_data), "failed to generate keypair")
 }
 
-napi_value sn_crypto_kx_seed_keypair (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_kx_seed_keypair (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_kx_seed_keypair)
 
   SN_ARGV_TYPEDARRAY(pk, 0)
@@ -1138,7 +1390,8 @@ napi_value sn_crypto_kx_seed_keypair (napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_kx_seed_keypair(pk_data, sk_data, seed_data), "failed to derive keypair from seed")
 }
 
-napi_value sn_crypto_kx_client_session_keys (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_kx_client_session_keys (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(5, crypto_kx_client_session_keys)
 
   SN_ARGV_OPTS_TYPEDARRAY(rx, 0)
@@ -1160,7 +1413,8 @@ napi_value sn_crypto_kx_client_session_keys (napi_env env, napi_callback_info in
   SN_RETURN(crypto_kx_client_session_keys(rx_data, tx_data, client_pk_data, client_sk_data, server_pk_data), "failed to derive session keys")
 }
 
-napi_value sn_crypto_kx_server_session_keys (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_kx_server_session_keys (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(5, crypto_kx_server_session_keys)
 
   SN_ARGV_OPTS_TYPEDARRAY(rx, 0)
@@ -1182,7 +1436,8 @@ napi_value sn_crypto_kx_server_session_keys (napi_env env, napi_callback_info in
   SN_RETURN(crypto_kx_server_session_keys(rx_data, tx_data, server_pk_data, server_sk_data, client_pk_data), "failed to derive session keys")
 }
 
-napi_value sn_crypto_scalarmult_base (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_scalarmult_base (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, crypto_scalarmult_base)
 
   SN_ARGV_TYPEDARRAY(q, 0)
@@ -1194,7 +1449,8 @@ napi_value sn_crypto_scalarmult_base (napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_scalarmult_base(q_data, n_data), "failed to derive public key")
 }
 
-napi_value sn_crypto_scalarmult (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_scalarmult (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_scalarmult)
 
   SN_ARGV_TYPEDARRAY(q, 0)
@@ -1208,7 +1464,8 @@ napi_value sn_crypto_scalarmult (napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_scalarmult(q_data, n_data, p_data), "failed to derive shared secret")
 }
 
-napi_value sn_crypto_scalarmult_ed25519_base (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_scalarmult_ed25519_base (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, crypto_scalarmult_ed25519_base)
 
   SN_ARGV_TYPEDARRAY(q, 0)
@@ -1220,7 +1477,8 @@ napi_value sn_crypto_scalarmult_ed25519_base (napi_env env, napi_callback_info i
   SN_RETURN(crypto_scalarmult_ed25519_base(q_data, n_data), "failed to derive public key")
 }
 
-napi_value sn_crypto_scalarmult_ed25519 (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_scalarmult_ed25519 (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_scalarmult_ed25519)
 
   SN_ARGV_TYPEDARRAY(q, 0)
@@ -1234,7 +1492,8 @@ napi_value sn_crypto_scalarmult_ed25519 (napi_env env, napi_callback_info info) 
   SN_RETURN(crypto_scalarmult_ed25519(q_data, n_data, p_data), "failed to derive shared secret")
 }
 
-napi_value sn_crypto_core_ed25519_is_valid_point (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_core_ed25519_is_valid_point (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(1, crypto_core_ed25519_is_valid_point)
 
   SN_ARGV_TYPEDARRAY(p, 0)
@@ -1244,7 +1503,8 @@ napi_value sn_crypto_core_ed25519_is_valid_point (napi_env env, napi_callback_in
   SN_RETURN_BOOLEAN_FROM_1(crypto_core_ed25519_is_valid_point(p_data))
 }
 
-napi_value sn_crypto_core_ed25519_from_uniform (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_core_ed25519_from_uniform (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, crypto_core_ed25519_from_uniform)
 
   SN_ARGV_TYPEDARRAY(p, 0)
@@ -1256,7 +1516,8 @@ napi_value sn_crypto_core_ed25519_from_uniform (napi_env env, napi_callback_info
   SN_RETURN(crypto_core_ed25519_from_uniform(p_data, r_data), "could not generate curve point from input")
 }
 
-napi_value sn_crypto_scalarmult_ed25519_base_noclamp (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_scalarmult_ed25519_base_noclamp (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, crypto_scalarmult_ed25519_base_noclamp)
 
   SN_ARGV_TYPEDARRAY(q, 0)
@@ -1268,7 +1529,8 @@ napi_value sn_crypto_scalarmult_ed25519_base_noclamp (napi_env env, napi_callbac
   SN_RETURN(crypto_scalarmult_ed25519_base_noclamp(q_data, n_data), "failed to derive public key")
 }
 
-napi_value sn_crypto_scalarmult_ed25519_noclamp (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_scalarmult_ed25519_noclamp (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_scalarmult_ed25519_noclamp)
 
   SN_ARGV_TYPEDARRAY(q, 0)
@@ -1282,7 +1544,8 @@ napi_value sn_crypto_scalarmult_ed25519_noclamp (napi_env env, napi_callback_inf
   SN_RETURN(crypto_scalarmult_ed25519_noclamp(q_data, n_data, p_data), "failed to derive shared secret")
 }
 
-napi_value sn_crypto_core_ed25519_add (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_core_ed25519_add (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_core_ed25519_add)
 
   SN_ARGV_TYPEDARRAY(r, 0)
@@ -1292,11 +1555,11 @@ napi_value sn_crypto_core_ed25519_add (napi_env env, napi_callback_info info) {
   SN_ASSERT_LENGTH(r_size, crypto_core_ed25519_BYTES, "r")
   SN_ASSERT_LENGTH(p_size, crypto_core_ed25519_BYTES, "p")
   SN_ASSERT_LENGTH(q_size, crypto_core_ed25519_BYTES, "q")
-
   SN_RETURN(crypto_core_ed25519_add(r_data, p_data, q_data), "could not add curve points")
 }
 
-napi_value sn_crypto_core_ed25519_sub (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_core_ed25519_sub (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_core_ed25519_sub)
 
   SN_ARGV_TYPEDARRAY(r, 0)
@@ -1310,7 +1573,8 @@ napi_value sn_crypto_core_ed25519_sub (napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_core_ed25519_sub(r_data, p_data, q_data), "could not add curve points")
 }
 
-napi_value sn_crypto_core_ed25519_scalar_random (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_core_ed25519_scalar_random (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(1, crypto_core_ed25519_scalar_random)
 
   SN_ARGV_TYPEDARRAY(r, 0)
@@ -1322,7 +1586,8 @@ napi_value sn_crypto_core_ed25519_scalar_random (napi_env env, napi_callback_inf
   return NULL;
 }
 
-napi_value sn_crypto_core_ed25519_scalar_reduce (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_core_ed25519_scalar_reduce (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, crypto_core_ed25519_scalar_reduce)
 
   SN_ARGV_TYPEDARRAY(r, 0)
@@ -1336,7 +1601,8 @@ napi_value sn_crypto_core_ed25519_scalar_reduce (napi_env env, napi_callback_inf
   return NULL;
 }
 
-napi_value sn_crypto_core_ed25519_scalar_invert (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_core_ed25519_scalar_invert (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, crypto_core_ed25519_scalar_invert)
 
   SN_ARGV_TYPEDARRAY(recip, 0)
@@ -1350,7 +1616,8 @@ napi_value sn_crypto_core_ed25519_scalar_invert (napi_env env, napi_callback_inf
   return NULL;
 }
 
-napi_value sn_crypto_core_ed25519_scalar_negate (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_core_ed25519_scalar_negate (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, crypto_core_ed25519_scalar_negate)
 
   SN_ARGV_TYPEDARRAY(neg, 0)
@@ -1364,7 +1631,8 @@ napi_value sn_crypto_core_ed25519_scalar_negate (napi_env env, napi_callback_inf
   return NULL;
 }
 
-napi_value sn_crypto_core_ed25519_scalar_complement (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_core_ed25519_scalar_complement (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, crypto_core_ed25519_scalar_complement)
 
   SN_ARGV_TYPEDARRAY(comp, 0)
@@ -1378,7 +1646,8 @@ napi_value sn_crypto_core_ed25519_scalar_complement (napi_env env, napi_callback
   return NULL;
 }
 
-napi_value sn_crypto_core_ed25519_scalar_add (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_core_ed25519_scalar_add (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_core_ed25519_scalar_add)
 
   SN_ARGV_TYPEDARRAY(z, 0)
@@ -1394,7 +1663,8 @@ napi_value sn_crypto_core_ed25519_scalar_add (napi_env env, napi_callback_info i
   return NULL;
 }
 
-napi_value sn_crypto_core_ed25519_scalar_sub (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_core_ed25519_scalar_sub (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_core_ed25519_scalar_sub)
 
   SN_ARGV_TYPEDARRAY(z, 0)
@@ -1410,7 +1680,8 @@ napi_value sn_crypto_core_ed25519_scalar_sub (napi_env env, napi_callback_info i
   return NULL;
 }
 
-napi_value sn_crypto_shorthash (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_shorthash (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_shorthash)
 
   SN_ARGV_TYPEDARRAY(out, 0)
@@ -1423,7 +1694,8 @@ napi_value sn_crypto_shorthash (napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_shorthash(out_data, in_data, in_size, k_data), "could not compute hash")
 }
 
-napi_value sn_crypto_kdf_keygen (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_kdf_keygen (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(1, crypto_kdf_keygen)
 
   SN_ARGV_TYPEDARRAY(key, 0)
@@ -1435,7 +1707,8 @@ napi_value sn_crypto_kdf_keygen (napi_env env, napi_callback_info info) {
   return NULL;
 }
 
-napi_value sn_crypto_kdf_derive_from_key (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_kdf_derive_from_key (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(4, crypto_kdf_derive_from_key)
 
   SN_ARGV_TYPEDARRAY(subkey, 0)
@@ -1451,7 +1724,8 @@ napi_value sn_crypto_kdf_derive_from_key (napi_env env, napi_callback_info info)
   SN_RETURN(crypto_kdf_derive_from_key(subkey_data, subkey_size, subkey_id, ctx_data, key_data), "could not generate key")
 }
 
-napi_value sn_crypto_hash (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_hash (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, crypto_hash_sha256)
 
   SN_ARGV_TYPEDARRAY(out, 0)
@@ -1462,7 +1736,8 @@ napi_value sn_crypto_hash (napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_hash(out_data, in_data, in_size), "could not compute hash")
 }
 
-napi_value sn_crypto_hash_sha256 (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_hash_sha256 (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, crypto_hash_sha256)
 
   SN_ARGV_TYPEDARRAY(out, 0)
@@ -1473,7 +1748,8 @@ napi_value sn_crypto_hash_sha256 (napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_hash_sha256(out_data, in_data, in_size), "could not compute hash")
 }
 
-napi_value sn_crypto_hash_sha256_init (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_hash_sha256_init (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(1, crypto_hash_sha256_init)
 
   SN_ARGV_BUFFER_CAST(crypto_hash_sha256_state *, state, 0)
@@ -1483,7 +1759,8 @@ napi_value sn_crypto_hash_sha256_init (napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_hash_sha256_init(state), "failed to initialise sha256")
 }
 
-napi_value sn_crypto_hash_sha256_update(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_hash_sha256_update(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, crypto_hash_sha256_update)
 
   SN_ARGV_BUFFER_CAST(crypto_hash_sha256_state *, state, 0)
@@ -1494,7 +1771,8 @@ napi_value sn_crypto_hash_sha256_update(napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_hash_sha256_update(state, in_data, in_size), "update failed")
 }
 
-napi_value sn_crypto_hash_sha256_final(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_hash_sha256_final(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, crypto_hash_sha256_final)
 
   SN_ARGV_BUFFER_CAST(crypto_hash_sha256_state *, state, 0)
@@ -1506,7 +1784,8 @@ napi_value sn_crypto_hash_sha256_final(napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_hash_sha256_final(state, out_data), "failed to finalise")
 }
 
-napi_value sn_crypto_hash_sha512 (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_hash_sha512 (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, crypto_hash_sha512)
 
   SN_ARGV_TYPEDARRAY(out, 0)
@@ -1517,7 +1796,8 @@ napi_value sn_crypto_hash_sha512 (napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_hash_sha512(out_data, in_data, in_size), "could not compute hash")
 }
 
-napi_value sn_crypto_hash_sha512_init (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_hash_sha512_init (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(1, crypto_hash_sha512_init)
 
   SN_ARGV_BUFFER_CAST(crypto_hash_sha512_state *, state, 0)
@@ -1527,7 +1807,8 @@ napi_value sn_crypto_hash_sha512_init (napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_hash_sha512_init(state), "failed to initialise sha512")
 }
 
-napi_value sn_crypto_hash_sha512_update(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_hash_sha512_update(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, crypto_hash_sha512_update)
 
   SN_ARGV_BUFFER_CAST(crypto_hash_sha512_state *, state, 0)
@@ -1538,7 +1819,8 @@ napi_value sn_crypto_hash_sha512_update(napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_hash_sha512_update(state, in_data, in_size), "update failed")
 }
 
-napi_value sn_crypto_hash_sha512_final(napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_hash_sha512_final(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, crypto_hash_sha512_final)
 
   SN_ARGV_BUFFER_CAST(crypto_hash_sha512_state *, state, 0)
@@ -1550,7 +1832,8 @@ napi_value sn_crypto_hash_sha512_final(napi_env env, napi_callback_info info) {
   SN_RETURN(crypto_hash_sha512_final(state, out_data), "failed to finalise hash")
 }
 
-napi_value sn_crypto_aead_xchacha20poly1305_ietf_keygen (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_aead_xchacha20poly1305_ietf_keygen (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(1, crypto_aead_xchacha20poly1305_ietf_keygen)
 
   SN_ARGV_TYPEDARRAY(k, 0)
@@ -1561,7 +1844,8 @@ napi_value sn_crypto_aead_xchacha20poly1305_ietf_keygen (napi_env env, napi_call
   return NULL;
 }
 
-napi_value sn_crypto_aead_xchacha20poly1305_ietf_encrypt (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_aead_xchacha20poly1305_ietf_encrypt (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(6, crypto_aead_xchacha20poly1305_ietf_encrypt)
 
   SN_ARGV_TYPEDARRAY(c, 0)
@@ -1581,12 +1865,13 @@ napi_value sn_crypto_aead_xchacha20poly1305_ietf_encrypt (napi_env env, napi_cal
   unsigned long long clen;
   SN_CALL(crypto_aead_xchacha20poly1305_ietf_encrypt(c_data, &clen, m_data, m_size, ad_data, ad_size, NULL, npub_data, k_data), "could not encrypt data")
 
-  napi_value result;
-  SN_STATUS_THROWS(napi_create_uint32(env, (uint32_t) clen, &result), "")
+  js_value_t *result;
+  SN_STATUS_THROWS(js_create_uint32(env, (uint32_t) clen, &result), "")
   return result;
 }
 
-napi_value sn_crypto_aead_xchacha20poly1305_ietf_decrypt (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_aead_xchacha20poly1305_ietf_decrypt (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(6, crypto_aead_xchacha20poly1305_ietf_decrypt)
 
   SN_ARGV_TYPEDARRAY(m, 0)
@@ -1606,12 +1891,13 @@ napi_value sn_crypto_aead_xchacha20poly1305_ietf_decrypt (napi_env env, napi_cal
   unsigned long long mlen;
   SN_CALL(crypto_aead_xchacha20poly1305_ietf_decrypt(m_data, &mlen, NULL, c_data, c_size, ad_data, ad_size, npub_data, k_data), "could not verify data")
 
-  napi_value result;
-  SN_STATUS_THROWS(napi_create_uint32(env, (uint32_t) mlen, &result), "")
+  js_value_t *result;
+  SN_STATUS_THROWS(js_create_uint32(env, (uint32_t) mlen, &result), "")
   return result;
 }
 
-napi_value sn_crypto_aead_xchacha20poly1305_ietf_encrypt_detached (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_aead_xchacha20poly1305_ietf_encrypt_detached (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(7, crypto_aead_xchacha20poly1305_ietf_encrypt_detached)
 
   SN_ARGV_TYPEDARRAY(c, 0)
@@ -1632,12 +1918,13 @@ napi_value sn_crypto_aead_xchacha20poly1305_ietf_encrypt_detached (napi_env env,
   unsigned long long maclen;
   SN_CALL(crypto_aead_xchacha20poly1305_ietf_encrypt_detached(c_data, mac_data, &maclen, m_data, m_size, ad_data, ad_size, NULL, npub_data, k_data), "could not encrypt data")
 
-  napi_value result;
-  SN_STATUS_THROWS(napi_create_uint32(env, (uint32_t) maclen, &result), "")
+  js_value_t *result;
+  SN_STATUS_THROWS(js_create_uint32(env, (uint32_t) maclen, &result), "")
   return result;
 }
 
-napi_value sn_crypto_aead_xchacha20poly1305_ietf_decrypt_detached (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_aead_xchacha20poly1305_ietf_decrypt_detached (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(7, crypto_aead_xchacha20poly1305_ietf_decrypt_detached)
 
   SN_ARGV_TYPEDARRAY(m, 0)
@@ -1658,7 +1945,8 @@ napi_value sn_crypto_aead_xchacha20poly1305_ietf_decrypt_detached (napi_env env,
   SN_RETURN(crypto_aead_xchacha20poly1305_ietf_decrypt_detached(m_data, NULL, c_data, c_size, mac_data, ad_data, ad_size, npub_data, k_data), "could not verify data")
 }
 
-napi_value sn_crypto_aead_chacha20poly1305_ietf_keygen (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_aead_chacha20poly1305_ietf_keygen (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(1, crypto_aead_chacha20poly1305_ietf_keygen)
 
   SN_ARGV_TYPEDARRAY(k, 0)
@@ -1669,7 +1957,8 @@ napi_value sn_crypto_aead_chacha20poly1305_ietf_keygen (napi_env env, napi_callb
   return NULL;
 }
 
-napi_value sn_crypto_aead_chacha20poly1305_ietf_encrypt (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_aead_chacha20poly1305_ietf_encrypt (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(6, crypto_aead_chacha20poly1305_ietf_encrypt)
 
   SN_ARGV_TYPEDARRAY(c, 0)
@@ -1689,12 +1978,13 @@ napi_value sn_crypto_aead_chacha20poly1305_ietf_encrypt (napi_env env, napi_call
   unsigned long long clen;
   SN_CALL(crypto_aead_chacha20poly1305_ietf_encrypt(c_data, &clen, m_data, m_size, ad_data, ad_size, NULL, npub_data, k_data), "could not encrypt data")
 
-  napi_value result;
-  SN_STATUS_THROWS(napi_create_uint32(env, (uint32_t) clen, &result), "")
+  js_value_t *result;
+  SN_STATUS_THROWS(js_create_uint32(env, (uint32_t) clen, &result), "")
   return result;
 }
 
-napi_value sn_crypto_aead_chacha20poly1305_ietf_decrypt (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_aead_chacha20poly1305_ietf_decrypt (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(6, crypto_aead_chacha20poly1305_ietf_decrypt)
 
   SN_ARGV_TYPEDARRAY(m, 0)
@@ -1714,12 +2004,13 @@ napi_value sn_crypto_aead_chacha20poly1305_ietf_decrypt (napi_env env, napi_call
   unsigned long long mlen;
   SN_CALL(crypto_aead_chacha20poly1305_ietf_decrypt(m_data, &mlen, NULL, c_data, c_size, ad_data, ad_size, npub_data, k_data), "could not verify data")
 
-  napi_value result;
-  SN_STATUS_THROWS(napi_create_uint32(env, (uint32_t) mlen, &result), "")
+  js_value_t *result;
+  SN_STATUS_THROWS(js_create_uint32(env, (uint32_t) mlen, &result), "")
   return result;
 }
 
-napi_value sn_crypto_aead_chacha20poly1305_ietf_encrypt_detached (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_aead_chacha20poly1305_ietf_encrypt_detached (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(7, crypto_aead_chacha20poly1305_ietf_encrypt_detached)
 
   SN_ARGV_TYPEDARRAY(c, 0)
@@ -1740,12 +2031,13 @@ napi_value sn_crypto_aead_chacha20poly1305_ietf_encrypt_detached (napi_env env, 
   unsigned long long maclen;
   SN_CALL(crypto_aead_chacha20poly1305_ietf_encrypt_detached(c_data, mac_data, &maclen, m_data, m_size, ad_data, ad_size, NULL, npub_data, k_data), "could not encrypt data")
 
-  napi_value result;
-  SN_STATUS_THROWS(napi_create_uint32(env, (uint32_t) maclen, &result), "")
+  js_value_t *result;
+  SN_STATUS_THROWS(js_create_uint32(env, (uint32_t) maclen, &result), "")
   return result;
 }
 
-napi_value sn_crypto_aead_chacha20poly1305_ietf_decrypt_detached (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_aead_chacha20poly1305_ietf_decrypt_detached (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(7, crypto_aead_chacha20poly1305_ietf_decrypt_detached)
 
   SN_ARGV_TYPEDARRAY(m, 0)
@@ -1766,7 +2058,8 @@ napi_value sn_crypto_aead_chacha20poly1305_ietf_decrypt_detached (napi_env env, 
   SN_RETURN(crypto_aead_chacha20poly1305_ietf_decrypt_detached(m_data, NULL, c_data, c_size, mac_data, ad_data, ad_size, npub_data, k_data), "could not verify data")
 }
 
-napi_value sn_crypto_secretstream_xchacha20poly1305_keygen (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_secretstream_xchacha20poly1305_keygen (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(1, crypto_secretstream_xchacha20poly1305_keygen)
 
   SN_ARGV_TYPEDARRAY(k, 0)
@@ -1778,7 +2071,8 @@ napi_value sn_crypto_secretstream_xchacha20poly1305_keygen (napi_env env, napi_c
   return NULL;
 }
 
-napi_value sn_crypto_secretstream_xchacha20poly1305_init_push (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_secretstream_xchacha20poly1305_init_push (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_secretstream_xchacha20poly1305_init_push)
 
   SN_ARGV_BUFFER_CAST(crypto_secretstream_xchacha20poly1305_state *, state, 0)
@@ -1792,7 +2086,8 @@ napi_value sn_crypto_secretstream_xchacha20poly1305_init_push (napi_env env, nap
   SN_RETURN(crypto_secretstream_xchacha20poly1305_init_push(state, header_data, k_data), "initial push failed")
 }
 
-napi_value sn_crypto_secretstream_xchacha20poly1305_push (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_secretstream_xchacha20poly1305_push (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(5, crypto_secretstream_xchacha20poly1305_push)
 
   SN_ARGV_BUFFER_CAST(crypto_secretstream_xchacha20poly1305_state *, state, 0)
@@ -1809,12 +2104,13 @@ napi_value sn_crypto_secretstream_xchacha20poly1305_push (napi_env env, napi_cal
   unsigned long long clen;
   SN_CALL(crypto_secretstream_xchacha20poly1305_push(state, c_data, &clen, m_data, m_size, ad_data, ad_size, tag), "push failed")
 
-  napi_value result;
-  SN_STATUS_THROWS(napi_create_uint32(env, (uint32_t) clen, &result), "")
+  js_value_t *result;
+  SN_STATUS_THROWS(js_create_uint32(env, (uint32_t) clen, &result), "")
   return result;
 }
 
-napi_value sn_crypto_secretstream_xchacha20poly1305_init_pull (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_secretstream_xchacha20poly1305_init_pull (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_secretstream_xchacha20poly1305_init_pull)
 
   SN_ARGV_BUFFER_CAST(crypto_secretstream_xchacha20poly1305_state *, state, 0)
@@ -1828,7 +2124,8 @@ napi_value sn_crypto_secretstream_xchacha20poly1305_init_pull (napi_env env, nap
   SN_RETURN(crypto_secretstream_xchacha20poly1305_init_pull(state, header_data, k_data), "initial pull failed")
 }
 
-napi_value sn_crypto_secretstream_xchacha20poly1305_pull (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_secretstream_xchacha20poly1305_pull (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(5, crypto_secretstream_xchacha20poly1305_pull)
 
   SN_ARGV_BUFFER_CAST(crypto_secretstream_xchacha20poly1305_state *, state, 0)
@@ -1846,12 +2143,13 @@ napi_value sn_crypto_secretstream_xchacha20poly1305_pull (napi_env env, napi_cal
   unsigned long long mlen;
   SN_CALL(crypto_secretstream_xchacha20poly1305_pull(state, m_data, &mlen, tag_data, c_data, c_size, ad_data, ad_size), "pull failed")
 
-  napi_value result;
-  SN_STATUS_THROWS(napi_create_uint32(env, (uint32_t) mlen, &result), "")
+  js_value_t *result;
+  SN_STATUS_THROWS(js_create_uint32(env, (uint32_t) mlen, &result), "")
   return result;
 }
 
-napi_value sn_crypto_secretstream_xchacha20poly1305_rekey (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_secretstream_xchacha20poly1305_rekey (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(1, crypto_secretstream_xchacha20poly1305_rekey)
 
   SN_ARGV_BUFFER_CAST(crypto_secretstream_xchacha20poly1305_state *, state, 0)
@@ -1874,19 +2172,19 @@ typedef struct sn_async_task_t {
   void *req;
   int code;
 
-  napi_deferred deferred;
-  napi_ref cb;
+  js_deferred_t *deferred;
+  js_ref_t *cb;
 } sn_async_task_t;
 
 typedef struct sn_async_pwhash_request {
-  napi_env env;
-  napi_ref out_ref;
+  js_env_t *env;
+  js_ref_t *out_ref;
   unsigned char *out_data;
   size_t out_size;
-  napi_ref pwd_ref;
+  js_ref_t *pwd_ref;
   const char *pwd_data;
   size_t pwd_size;
-  napi_ref salt_ref;
+  js_ref_t *salt_ref;
   unsigned char *salt;
   uint32_t opslimit;
   uint32_t memlimit;
@@ -1907,28 +2205,37 @@ static void async_pwhash_execute (uv_work_t *uv_req) {
 }
 
 static void async_pwhash_complete (uv_work_t *uv_req, int status) {
+  int err;
   sn_async_task_t *task = (sn_async_task_t *) uv_req;
   sn_async_pwhash_request *req = (sn_async_pwhash_request *) task->req;
 
-  napi_handle_scope scope;
-  napi_open_handle_scope(req->env, &scope);
+  js_handle_scope_t *scope;
+  err = js_open_handle_scope(req->env, &scope);
+  assert(err == 0);
 
-  napi_value global;
-  napi_get_global(req->env, &global);
+  js_value_t *global;
+  err = js_get_global(req->env, &global);
+  assert(err == 0);
 
+  // TODO: consider remove the following macro as it's capable of causing double close of scope
   SN_ASYNC_COMPLETE("failed to compute password hash")
 
-  napi_close_handle_scope(req->env, scope);
+  err = js_close_handle_scope(req->env, scope);
+  assert(err == 0);
 
-  napi_delete_reference(req->env, req->out_ref);
-  napi_delete_reference(req->env, req->pwd_ref);
-  napi_delete_reference(req->env, req->salt_ref);
+  err = js_delete_reference(req->env, req->out_ref);
+  assert(err == 0);
+  err = js_delete_reference(req->env, req->pwd_ref);
+  assert(err == 0);
+  err = js_delete_reference(req->env, req->salt_ref);
+  assert(err == 0);
 
   free(req);
   free(task);
 }
 
-napi_value sn_crypto_pwhash_async (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_pwhash_async (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV_OPTS(6, 7, crypto_pwhash_async)
 
   SN_ARGV_BUFFER_CAST(unsigned char *, out, 0)
@@ -1962,9 +2269,9 @@ napi_value sn_crypto_pwhash_async (napi_env env, napi_callback_info info) {
   sn_async_task_t *task = (sn_async_task_t *) malloc(sizeof(sn_async_task_t));
   SN_ASYNC_TASK(6)
 
-  SN_STATUS_THROWS(napi_create_reference(env, out_argv, 1, &req->out_ref), "")
-  SN_STATUS_THROWS(napi_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
-  SN_STATUS_THROWS(napi_create_reference(env, salt_argv, 1, &req->salt_ref), "")
+  SN_STATUS_THROWS(js_create_reference(env, out_argv, 1, &req->out_ref), "")
+  SN_STATUS_THROWS(js_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
+  SN_STATUS_THROWS(js_create_reference(env, salt_argv, 1, &req->salt_ref), "")
 
   SN_QUEUE_TASK(task, async_pwhash_execute, async_pwhash_complete)
 
@@ -1973,10 +2280,10 @@ napi_value sn_crypto_pwhash_async (napi_env env, napi_callback_info info) {
 
 typedef struct sn_async_pwhash_str_request {
   uv_work_t task;
-  napi_env env;
-  napi_ref out_ref;
+  js_env_t *env;
+  js_ref_t *out_ref;
   char *out_data;
-  napi_ref pwd_ref;
+  js_ref_t *pwd_ref;
   const char *pwd_data;
   size_t pwd_size;
   uint32_t opslimit;
@@ -1996,25 +2303,31 @@ static void async_pwhash_str_execute (uv_work_t *uv_req) {
 static void async_pwhash_str_complete (uv_work_t *uv_req, int status) {
   sn_async_task_t *task = (sn_async_task_t *) uv_req;
   sn_async_pwhash_str_request *req = (sn_async_pwhash_str_request *) task->req;
+  int err;
+  js_handle_scope_t *scope;
+  err = js_open_handle_scope(req->env, &scope);
+  assert(err == 0);
 
-  napi_handle_scope scope;
-  napi_open_handle_scope(req->env, &scope);
-
-  napi_value global;
-  napi_get_global(req->env, &global);
+  js_value_t *global;
+  err = js_get_global(req->env, &global);
+  assert(err == 0);
 
   SN_ASYNC_COMPLETE("failed to compute password hash")
 
-  napi_close_handle_scope(req->env, scope);
+  err = js_close_handle_scope(req->env, scope);
+  assert(err == 0);
 
-  napi_delete_reference(req->env, req->out_ref);
-  napi_delete_reference(req->env, req->pwd_ref);
+  err = js_delete_reference(req->env, req->out_ref);
+  assert(err == 0);
+  err = js_delete_reference(req->env, req->pwd_ref);
+  assert(err == 0);
 
   free(req);
   free(task);
 }
 
-napi_value sn_crypto_pwhash_str_async (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_pwhash_str_async (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV_OPTS(4, 5, crypto_pwhash_str_async)
 
   SN_ARGV_BUFFER_CAST(char *, out, 0)
@@ -2039,8 +2352,8 @@ napi_value sn_crypto_pwhash_str_async (napi_env env, napi_callback_info info) {
   sn_async_task_t *task = (sn_async_task_t *) malloc(sizeof(sn_async_task_t));
   SN_ASYNC_TASK(4)
 
-  SN_STATUS_THROWS(napi_create_reference(env, out_argv, 1, &req->out_ref), "")
-  SN_STATUS_THROWS(napi_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
+  SN_STATUS_THROWS(js_create_reference(env, out_argv, 1, &req->out_ref), "")
+  SN_STATUS_THROWS(js_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
 
   SN_QUEUE_TASK(task, async_pwhash_str_execute, async_pwhash_str_complete)
 
@@ -2049,10 +2362,10 @@ napi_value sn_crypto_pwhash_str_async (napi_env env, napi_callback_info info) {
 
 typedef struct sn_async_pwhash_str_verify_request {
   uv_work_t task;
-  napi_env env;
-  napi_ref str_ref;
+  js_env_t *env;
+  js_ref_t *str_ref;
   char *str_data;
-  napi_ref pwd_ref;
+  js_ref_t *pwd_ref;
   const char *pwd_data;
   size_t pwd_size;
 } sn_async_pwhash_str_verify_request;
@@ -2064,51 +2377,61 @@ static void async_pwhash_str_verify_execute (uv_work_t *uv_req) {
 }
 
 static void async_pwhash_str_verify_complete (uv_work_t *uv_req, int status) {
+  int err;
   sn_async_task_t *task = (sn_async_task_t *) uv_req;
   sn_async_pwhash_str_verify_request *req = (sn_async_pwhash_str_verify_request *) task->req;
 
-  napi_handle_scope scope;
-  napi_open_handle_scope(req->env, &scope);
+  js_handle_scope_t *scope;
+  err = js_open_handle_scope(req->env, &scope);
+  assert(err == 0);
+  js_value_t *global;
+  err = js_get_global(req->env, &global);
+  assert(err == 0);
 
-  napi_value global;
-  napi_get_global(req->env, &global);
-
-  napi_value argv[2];
+  js_value_t *argv[2];
 
   // Due to the way that crypto_pwhash_str_verify signals error different
   // from a verification mismatch, we will count all errors as mismatch.
   // The other possible error is wrong argument sizes, which is protected
   // by macros above
-  napi_get_null(req->env, &argv[0]);
-  napi_get_boolean(req->env, task->code == 0, &argv[1]);
+  err = js_get_null(req->env, &argv[0]);
+  assert(err == 0);
+  err = js_get_boolean(req->env, task->code == 0, &argv[1]);
+  assert(err == 0);
 
   switch (task->type) {
   case sn_async_task_promise: {
-    napi_resolve_deferred(req->env, task->deferred, argv[1]);
+    err = js_resolve_deferred(req->env, task->deferred, argv[1]);
+    assert(err == 0);
     task->deferred = NULL;
     break;
   }
 
   case sn_async_task_callback: {
-    napi_value callback;
-    napi_get_reference_value(req->env, task->cb, &callback);
+    js_value_t *callback;
+    err = js_get_reference_value(req->env, task->cb, &callback);
+    assert(err == 0);
 
-    napi_value return_val;
+    js_value_t *return_val;
     SN_CALL_FUNCTION(req->env, global, callback, 2, argv, &return_val)
     break;
   }
   }
 
-  napi_close_handle_scope(req->env, scope);
+  err = js_close_handle_scope(req->env, scope);
+  assert(err == 0);
 
-  napi_delete_reference(req->env, req->str_ref);
-  napi_delete_reference(req->env, req->pwd_ref);
+  err = js_delete_reference(req->env, req->str_ref);
+  assert(err == 0);
+  err = js_delete_reference(req->env, req->pwd_ref);
+  assert(err == 0);
 
   free(req);
   free(task);
 }
 
-napi_value sn_crypto_pwhash_str_verify_async (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_pwhash_str_verify_async (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV_OPTS(2, 3, crypto_pwhash_str_async)
 
   SN_ARGV_BUFFER_CAST(char *, str, 0)
@@ -2125,8 +2448,8 @@ napi_value sn_crypto_pwhash_str_verify_async (napi_env env, napi_callback_info i
   sn_async_task_t *task = (sn_async_task_t *) malloc(sizeof(sn_async_task_t));
   SN_ASYNC_TASK(2)
 
-  SN_STATUS_THROWS(napi_create_reference(env, str_argv, 1, &req->str_ref), "")
-  SN_STATUS_THROWS(napi_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
+  SN_STATUS_THROWS(js_create_reference(env, str_argv, 1, &req->str_ref), "")
+  SN_STATUS_THROWS(js_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
 
   SN_QUEUE_TASK(task, async_pwhash_str_verify_execute, async_pwhash_str_verify_complete)
 
@@ -2135,14 +2458,14 @@ napi_value sn_crypto_pwhash_str_verify_async (napi_env env, napi_callback_info i
 
 typedef struct sn_async_pwhash_scryptsalsa208sha256_request {
   uv_work_t task;
-  napi_env env;
-  napi_ref out_ref;
+  js_env_t *env;
+  js_ref_t *out_ref;
   unsigned char *out_data;
   size_t out_size;
-  napi_ref pwd_ref;
+  js_ref_t *pwd_ref;
   const char *pwd_data;
   size_t pwd_size;
-  napi_ref salt_ref;
+  js_ref_t *salt_ref;
   unsigned char *salt;
   uint32_t opslimit;
   uint32_t memlimit;
@@ -2161,28 +2484,36 @@ static void async_pwhash_scryptsalsa208sha256_execute (uv_work_t *uv_req) {
 }
 
 static void async_pwhash_scryptsalsa208sha256_complete (uv_work_t *uv_req, int status) {
+  int err;
   sn_async_task_t *task = (sn_async_task_t *) uv_req;
   sn_async_pwhash_scryptsalsa208sha256_request *req = (sn_async_pwhash_scryptsalsa208sha256_request *) task->req;
 
-  napi_handle_scope scope;
-  napi_open_handle_scope(req->env, &scope);
+  js_handle_scope_t *scope;
+  err = js_open_handle_scope(req->env, &scope);
+  assert(err == 0);
 
-  napi_value global;
-  napi_get_global(req->env, &global);
+  js_value_t *global;
+  err = js_get_global(req->env, &global);
+  assert(err == 0);
 
   SN_ASYNC_COMPLETE("failed to compute password hash")
 
-  napi_close_handle_scope(req->env, scope);
+  err = js_close_handle_scope(req->env, scope);
+  assert(err == 0);
 
-  napi_delete_reference(req->env, req->out_ref);
-  napi_delete_reference(req->env, req->pwd_ref);
-  napi_delete_reference(req->env, req->salt_ref);
+  err = js_delete_reference(req->env, req->out_ref);
+  assert(err == 0);
+  err = js_delete_reference(req->env, req->pwd_ref);
+  assert(err == 0);
+  err = js_delete_reference(req->env, req->salt_ref);
+  assert(err == 0);
 
   free(req);
   free(task);
 }
 
-napi_value sn_crypto_pwhash_scryptsalsa208sha256_async (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_pwhash_scryptsalsa208sha256_async (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV_OPTS(5, 6, crypto_pwhash_scryptsalsa208sha256_async)
 
   SN_ARGV_BUFFER_CAST(unsigned char *, out, 0)
@@ -2212,9 +2543,9 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_async (napi_env env, napi_callb
   sn_async_task_t *task = (sn_async_task_t *) malloc(sizeof(sn_async_task_t));
   SN_ASYNC_TASK(5)
 
-  SN_STATUS_THROWS(napi_create_reference(env, out_argv, 1, &req->out_ref), "")
-  SN_STATUS_THROWS(napi_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
-  SN_STATUS_THROWS(napi_create_reference(env, salt_argv, 1, &req->salt_ref), "")
+  SN_STATUS_THROWS(js_create_reference(env, out_argv, 1, &req->out_ref), "")
+  SN_STATUS_THROWS(js_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
+  SN_STATUS_THROWS(js_create_reference(env, salt_argv, 1, &req->salt_ref), "")
 
   SN_QUEUE_TASK(task, async_pwhash_scryptsalsa208sha256_execute, async_pwhash_scryptsalsa208sha256_complete)
 
@@ -2223,10 +2554,10 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_async (napi_env env, napi_callb
 
 typedef struct sn_async_pwhash_scryptsalsa208sha256_str_request {
   uv_work_t task;
-  napi_env env;
-  napi_ref out_ref;
+  js_env_t *env;
+  js_ref_t *out_ref;
   char *out_data;
-  napi_ref pwd_ref;
+  js_ref_t *pwd_ref;
   const char *pwd_data;
   size_t pwd_size;
   uint32_t opslimit;
@@ -2244,27 +2575,34 @@ static void async_pwhash_scryptsalsa208sha256_str_execute (uv_work_t *uv_req) {
 }
 
 static void async_pwhash_scryptsalsa208sha256_str_complete (uv_work_t *uv_req, int status) {
+  int err;
   sn_async_task_t *task = (sn_async_task_t *) uv_req;
   sn_async_pwhash_scryptsalsa208sha256_str_request *req = (sn_async_pwhash_scryptsalsa208sha256_str_request *) task->req;
 
-  napi_handle_scope scope;
-  napi_open_handle_scope(req->env, &scope);
+  js_handle_scope_t *scope;
+  err = js_open_handle_scope(req->env, &scope);
+  assert(err == 0);
 
-  napi_value global;
-  napi_get_global(req->env, &global);
+  js_value_t *global;
+  err = js_get_global(req->env, &global);
+  assert(err == 0);
 
   SN_ASYNC_COMPLETE("failed to compute password hash")
 
-  napi_close_handle_scope(req->env, scope);
+  err = js_close_handle_scope(req->env, scope);
+  assert(err == 0);
 
-  napi_delete_reference(req->env, req->out_ref);
-  napi_delete_reference(req->env, req->pwd_ref);
+  err = js_delete_reference(req->env, req->out_ref);
+  assert(err == 0);
+  err = js_delete_reference(req->env, req->pwd_ref);
+  assert(err == 0);
 
   free(req);
   free(task);
 }
 
-napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_async (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_pwhash_scryptsalsa208sha256_str_async (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV_OPTS(4, 5, crypto_pwhash_scryptsalsa208sha256_str_async)
 
   SN_ARGV_BUFFER_CAST(char *, out, 0)
@@ -2289,8 +2627,8 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_async (napi_env env, napi_c
   sn_async_task_t *task = (sn_async_task_t *) malloc(sizeof(sn_async_task_t));
   SN_ASYNC_TASK(4)
 
-  SN_STATUS_THROWS(napi_create_reference(env, out_argv, 1, &req->out_ref), "")
-  SN_STATUS_THROWS(napi_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
+  SN_STATUS_THROWS(js_create_reference(env, out_argv, 1, &req->out_ref), "")
+  SN_STATUS_THROWS(js_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
 
   SN_QUEUE_TASK(task, async_pwhash_scryptsalsa208sha256_str_execute, async_pwhash_scryptsalsa208sha256_str_complete)
 
@@ -2299,10 +2637,10 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_async (napi_env env, napi_c
 
 typedef struct sn_async_pwhash_scryptsalsa208sha256_str_verify_request {
   uv_work_t task;
-  napi_env env;
-  napi_ref str_ref;
+  js_env_t *env;
+  js_ref_t *str_ref;
   char *str_data;
-  napi_ref pwd_ref;
+  js_ref_t *pwd_ref;
   const char *pwd_data;
   size_t pwd_size;
 } sn_async_pwhash_scryptsalsa208sha256_str_verify_request;
@@ -2314,51 +2652,53 @@ static void async_pwhash_scryptsalsa208sha256_str_verify_execute (uv_work_t *uv_
 }
 
 static void async_pwhash_scryptsalsa208sha256_str_verify_complete (uv_work_t *uv_req, int status) {
+  int err;
   sn_async_task_t *task = (sn_async_task_t *) uv_req;
   sn_async_pwhash_scryptsalsa208sha256_str_verify_request *req = (sn_async_pwhash_scryptsalsa208sha256_str_verify_request *) task->req;
 
-  napi_handle_scope scope;
-  napi_open_handle_scope(req->env, &scope);
+  js_handle_scope_t *scope;
+  js_open_handle_scope(req->env, &scope);
 
-  napi_value global;
-  napi_get_global(req->env, &global);
+  js_value_t *global;
+  js_get_global(req->env, &global);
 
-  napi_value argv[2];
+  js_value_t *argv[2];
 
   // Due to the way that crypto_pwhash_scryptsalsa208sha256_str_verify
   // signal serror different from a verification mismatch, we will count
   // all errors as mismatch. The other possible error is wrong argument
   // sizes, which is protected by macros above
-  napi_get_null(req->env, &argv[0]);
-  napi_get_boolean(req->env, task->code == 0, &argv[1]);
+  js_get_null(req->env, &argv[0]);
+  js_get_boolean(req->env, task->code == 0, &argv[1]);
 
   switch (task->type) {
   case sn_async_task_promise: {
-    napi_resolve_deferred(req->env, task->deferred, argv[1]);
+    js_resolve_deferred(req->env, task->deferred, argv[1]);
     task->deferred = NULL;
     break;
   }
 
   case sn_async_task_callback: {
-    napi_value callback;
-    napi_get_reference_value(req->env, task->cb, &callback);
+    js_value_t *callback;
+    js_get_reference_value(req->env, task->cb, &callback);
 
-    napi_value return_val;
+    js_value_t *return_val;
     SN_CALL_FUNCTION(req->env, global, callback, 2, argv, &return_val)
     break;
   }
   }
 
-  napi_close_handle_scope(req->env, scope);
+  js_close_handle_scope(req->env, scope);
 
-  napi_delete_reference(req->env, req->str_ref);
-  napi_delete_reference(req->env, req->pwd_ref);
+  js_delete_reference(req->env, req->str_ref);
+  js_delete_reference(req->env, req->pwd_ref);
 
   free(req);
   free(task);
 }
 
-napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_verify_async (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_pwhash_scryptsalsa208sha256_str_verify_async (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV_OPTS(2, 3, crypto_pwhash_scryptsalsa208sha256_str_async)
 
   SN_ARGV_BUFFER_CAST(char *, str, 0)
@@ -2375,8 +2715,8 @@ napi_value sn_crypto_pwhash_scryptsalsa208sha256_str_verify_async (napi_env env,
   sn_async_task_t *task = (sn_async_task_t *) malloc(sizeof(sn_async_task_t));
   SN_ASYNC_TASK(2)
 
-  SN_STATUS_THROWS(napi_create_reference(env, str_argv, 1, &req->str_ref), "")
-  SN_STATUS_THROWS(napi_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
+  SN_STATUS_THROWS(js_create_reference(env, str_argv, 1, &req->str_ref), "")
+  SN_STATUS_THROWS(js_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
 
   SN_QUEUE_TASK(task, async_pwhash_scryptsalsa208sha256_str_verify_execute, async_pwhash_scryptsalsa208sha256_str_verify_complete)
 
@@ -2391,7 +2731,8 @@ typedef struct sn_crypto_stream_xor_state {
   uint64_t block_counter;
 } sn_crypto_stream_xor_state;
 
-napi_value sn_crypto_stream_xor_wrap_init (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_stream_xor_wrap_init (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_stream_xor_instance_init)
 
   SN_ARGV_BUFFER_CAST(sn_crypto_stream_xor_state *, state, 0)
@@ -2410,7 +2751,8 @@ napi_value sn_crypto_stream_xor_wrap_init (napi_env env, napi_callback_info info
   return NULL;
 }
 
-napi_value sn_crypto_stream_xor_wrap_update (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_stream_xor_wrap_update (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_stream_xor_instance_init)
 
   SN_ARGV_BUFFER_CAST(sn_crypto_stream_xor_state *, state, 0)
@@ -2458,7 +2800,8 @@ napi_value sn_crypto_stream_xor_wrap_update (napi_env env, napi_callback_info in
   return NULL;
 }
 
-napi_value sn_crypto_stream_xor_wrap_final (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_stream_xor_wrap_final (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(1, crypto_stream_xor_instance_init)
 
   SN_ARGV_BUFFER_CAST(sn_crypto_stream_xor_state *, state, 0)
@@ -2481,7 +2824,8 @@ typedef struct sn_crypto_stream_chacha20_xor_state {
   uint64_t block_counter;
 } sn_crypto_stream_chacha20_xor_state;
 
-napi_value sn_crypto_stream_chacha20_xor_wrap_init (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_stream_chacha20_xor_wrap_init (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_stream_chacha20_xor_instance_init)
 
   SN_ARGV_BUFFER_CAST(sn_crypto_stream_chacha20_xor_state *, state, 0)
@@ -2500,7 +2844,8 @@ napi_value sn_crypto_stream_chacha20_xor_wrap_init (napi_env env, napi_callback_
   return NULL;
 }
 
-napi_value sn_crypto_stream_chacha20_xor_wrap_update (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_stream_chacha20_xor_wrap_update (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_stream_chacha20_xor_instance_init)
 
   SN_ARGV_BUFFER_CAST(sn_crypto_stream_chacha20_xor_state *, state, 0)
@@ -2548,7 +2893,8 @@ napi_value sn_crypto_stream_chacha20_xor_wrap_update (napi_env env, napi_callbac
   return NULL;
 }
 
-napi_value sn_crypto_stream_chacha20_xor_wrap_final (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_stream_chacha20_xor_wrap_final (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(1, crypto_stream_chacha20_xor_instance_init)
 
   SN_ARGV_BUFFER_CAST(sn_crypto_stream_chacha20_xor_state *, state, 0)
@@ -2571,7 +2917,8 @@ typedef struct sn_crypto_stream_chacha20_ietf_xor_state {
   uint64_t block_counter;
 } sn_crypto_stream_chacha20_ietf_xor_state;
 
-napi_value sn_crypto_stream_chacha20_ietf_xor_wrap_init (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_stream_chacha20_ietf_xor_wrap_init (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_stream_chacha20_ietf_xor_wrap_init)
 
   SN_ARGV_BUFFER_CAST(sn_crypto_stream_chacha20_ietf_xor_state *, state, 0)
@@ -2590,7 +2937,8 @@ napi_value sn_crypto_stream_chacha20_ietf_xor_wrap_init (napi_env env, napi_call
   return NULL;
 }
 
-napi_value sn_crypto_stream_chacha20_ietf_xor_wrap_update (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_stream_chacha20_ietf_xor_wrap_update (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_stream_chacha20_ietf_xor_wrap_update)
 
   SN_ARGV_BUFFER_CAST(sn_crypto_stream_chacha20_ietf_xor_state *, state, 0)
@@ -2638,7 +2986,8 @@ napi_value sn_crypto_stream_chacha20_ietf_xor_wrap_update (napi_env env, napi_ca
   return NULL;
 }
 
-napi_value sn_crypto_stream_chacha20_ietf_xor_wrap_final (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_stream_chacha20_ietf_xor_wrap_final (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(1, crypto_stream_chacha20_ietf_xor_wrap_final)
 
   SN_ARGV_BUFFER_CAST(sn_crypto_stream_chacha20_ietf_xor_state *, state, 0)
@@ -2661,7 +3010,8 @@ typedef struct sn_crypto_stream_xchacha20_xor_state {
   uint64_t block_counter;
 } sn_crypto_stream_xchacha20_xor_state;
 
-napi_value sn_crypto_stream_xchacha20_xor_wrap_init (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_stream_xchacha20_xor_wrap_init (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_stream_xchacha20_xor_wrap_init)
 
   SN_ARGV_BUFFER_CAST(sn_crypto_stream_xchacha20_xor_state *, state, 0)
@@ -2680,7 +3030,8 @@ napi_value sn_crypto_stream_xchacha20_xor_wrap_init (napi_env env, napi_callback
   return NULL;
 }
 
-napi_value sn_crypto_stream_xchacha20_xor_wrap_update (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_stream_xchacha20_xor_wrap_update (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_stream_xchacha20_xor_wrap_update)
 
   SN_ARGV_BUFFER_CAST(sn_crypto_stream_xchacha20_xor_state *, state, 0)
@@ -2728,7 +3079,8 @@ napi_value sn_crypto_stream_xchacha20_xor_wrap_update (napi_env env, napi_callba
   return NULL;
 }
 
-napi_value sn_crypto_stream_xchacha20_xor_wrap_final (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_stream_xchacha20_xor_wrap_final (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(1, crypto_stream_xchacha20_xor_wrap_final)
 
   SN_ARGV_BUFFER_CAST(sn_crypto_stream_xchacha20_xor_state *, state, 0)
@@ -2751,7 +3103,8 @@ typedef struct sn_crypto_stream_salsa20_xor_state {
   uint64_t block_counter;
 } sn_crypto_stream_salsa20_xor_state;
 
-napi_value sn_crypto_stream_salsa20_xor_wrap_init (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_stream_salsa20_xor_wrap_init (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_stream_salsa20_xor_wrap_init)
 
   SN_ARGV_BUFFER_CAST(sn_crypto_stream_salsa20_xor_state *, state, 0)
@@ -2770,7 +3123,8 @@ napi_value sn_crypto_stream_salsa20_xor_wrap_init (napi_env env, napi_callback_i
   return NULL;
 }
 
-napi_value sn_crypto_stream_salsa20_xor_wrap_update (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_stream_salsa20_xor_wrap_update (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, crypto_stream_salsa20_xor_wrap_update)
 
   SN_ARGV_BUFFER_CAST(sn_crypto_stream_salsa20_xor_state *, state, 0)
@@ -2818,7 +3172,8 @@ napi_value sn_crypto_stream_salsa20_xor_wrap_update (napi_env env, napi_callback
   return NULL;
 }
 
-napi_value sn_crypto_stream_salsa20_xor_wrap_final (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_crypto_stream_salsa20_xor_wrap_final (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(1, crypto_stream_salsa20_xor_wrap_final)
 
   SN_ARGV_BUFFER_CAST(sn_crypto_stream_salsa20_xor_state *, state, 0)
@@ -2835,7 +3190,8 @@ napi_value sn_crypto_stream_salsa20_xor_wrap_final (napi_env env, napi_callback_
 
 // Experimental API
 
-napi_value sn_extension_tweak_ed25519_base (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_extension_tweak_ed25519_base (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, extension_tweak_ed25519_base)
 
   SN_ARGV_TYPEDARRAY(n, 0)
@@ -2850,7 +3206,8 @@ napi_value sn_extension_tweak_ed25519_base (napi_env env, napi_callback_info inf
   return NULL;
 }
 
-napi_value sn_extension_tweak_ed25519_sign_detached (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_extension_tweak_ed25519_sign_detached (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV_OPTS(3, 4, extension_tweak_ed25519_sign_detached)
 
   SN_ARGV_TYPEDARRAY(sig, 0)
@@ -2868,7 +3225,8 @@ napi_value sn_extension_tweak_ed25519_sign_detached (napi_env env, napi_callback
   SN_RETURN(sn__extension_tweak_ed25519_sign_detached(sig_data, NULL, m_data, m_size, scalar_data, pk_data), "failed to compute signature")
 }
 
-napi_value sn_extension_tweak_ed25519_sk_to_scalar (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_extension_tweak_ed25519_sk_to_scalar (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, extension_tweak_ed25519_sk_to_scalar)
 
   SN_ARGV_TYPEDARRAY(n, 0)
@@ -2882,7 +3240,8 @@ napi_value sn_extension_tweak_ed25519_sk_to_scalar (napi_env env, napi_callback_
   return NULL;
 }
 
-napi_value sn_extension_tweak_ed25519_scalar (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_extension_tweak_ed25519_scalar (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, extension_tweak_ed25519_scalar)
 
   SN_ARGV_TYPEDARRAY(scalar_out, 0)
@@ -2897,7 +3256,8 @@ napi_value sn_extension_tweak_ed25519_scalar (napi_env env, napi_callback_info i
   return NULL;
 }
 
-napi_value sn_extension_tweak_ed25519_pk (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_extension_tweak_ed25519_pk (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, extension_tweak_ed25519_pk)
 
   SN_ARGV_TYPEDARRAY(tpk, 0)
@@ -2910,7 +3270,8 @@ napi_value sn_extension_tweak_ed25519_pk (napi_env env, napi_callback_info info)
   SN_RETURN(sn__extension_tweak_ed25519_pk(tpk_data, pk_data, ns_data, ns_size), "failed to tweak public key")
 }
 
-napi_value sn_extension_tweak_ed25519_keypair (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_extension_tweak_ed25519_keypair (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(4, extension_tweak_ed25519_keypair)
 
   SN_ARGV_TYPEDARRAY(pk, 0)
@@ -2927,7 +3288,8 @@ napi_value sn_extension_tweak_ed25519_keypair (napi_env env, napi_callback_info 
   return NULL;
 }
 
-napi_value sn_extension_tweak_ed25519_scalar_add (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_extension_tweak_ed25519_scalar_add (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, extension_tweak_ed25519_scalar_add)
 
   SN_ARGV_TYPEDARRAY(scalar_out, 0)
@@ -2943,7 +3305,8 @@ napi_value sn_extension_tweak_ed25519_scalar_add (napi_env env, napi_callback_in
   return NULL;
 }
 
-napi_value sn_extension_tweak_ed25519_pk_add (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_extension_tweak_ed25519_pk_add (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(3, extension_tweak_ed25519_pk)
 
   SN_ARGV_TYPEDARRAY(tpk, 0)
@@ -2957,7 +3320,8 @@ napi_value sn_extension_tweak_ed25519_pk_add (napi_env env, napi_callback_info i
   SN_RETURN(sn__extension_tweak_ed25519_pk_add(tpk_data, pk_data, p_data), "failed to add tweak to public key")
 }
 
-napi_value sn_extension_tweak_ed25519_keypair_add (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_extension_tweak_ed25519_keypair_add (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(4, extension_tweak_ed25519_keypair_add)
 
   SN_ARGV_TYPEDARRAY(pk, 0)
@@ -2973,7 +3337,8 @@ napi_value sn_extension_tweak_ed25519_keypair_add (napi_env env, napi_callback_i
   SN_RETURN(sn__extension_tweak_ed25519_keypair_add(pk_data, scalar_out_data, scalar_in_data, tweak_data), "failed to add tweak to keypair")
 }
 
-napi_value sn_extension_pbkdf2_sha512 (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_extension_pbkdf2_sha512 (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(5, extension_pbkdf2_sha512)
 
   SN_ARGV_BUFFER_CAST(unsigned char *, out, 0)
@@ -2991,15 +3356,15 @@ napi_value sn_extension_pbkdf2_sha512 (napi_env env, napi_callback_info info) {
 }
 
 typedef struct sn_async_pbkdf2_sha512_request {
-  napi_env env;
+  js_env_t *env;
   unsigned char *out_data;
   size_t out_size;
-  napi_ref out_ref;
+  js_ref_t *out_ref;
   size_t outlen;
-  napi_ref pwd_ref;
+  js_ref_t *pwd_ref;
   const unsigned char *pwd_data;
   size_t pwd_size;
-  napi_ref salt_ref;
+  js_ref_t *salt_ref;
   unsigned char *salt_data;
   size_t salt_size;
   uint64_t iter;
@@ -3018,28 +3383,36 @@ static void async_pbkdf2_sha512_execute (uv_work_t *uv_req) {
 }
 
 static void async_pbkdf2_sha512_complete (uv_work_t *uv_req, int status) {
+  int err;
   sn_async_task_t *task = (sn_async_task_t *) uv_req;
   sn_async_pbkdf2_sha512_request *req = (sn_async_pbkdf2_sha512_request *) task->req;
 
-  napi_handle_scope scope;
-  napi_open_handle_scope(req->env, &scope);
+  js_handle_scope_t *scope;
+  err = js_open_handle_scope(req->env, &scope);
+  assert(err == 0);
 
-  napi_value global;
-  napi_get_global(req->env, &global);
+  js_value_t *global;
+  err = js_get_global(req->env, &global);
+  assert(err == 0);
 
   SN_ASYNC_COMPLETE("failed to compute kdf")
 
-  napi_close_handle_scope(req->env, scope);
+  err = js_close_handle_scope(req->env, scope);
+  assert(err == 0);
 
-  napi_delete_reference(req->env, req->out_ref);
-  napi_delete_reference(req->env, req->pwd_ref);
-  napi_delete_reference(req->env, req->salt_ref);
+  err = js_delete_reference(req->env, req->out_ref);
+  assert(err == 0);
+  err = js_delete_reference(req->env, req->pwd_ref);
+  assert(err == 0);
+  err = js_delete_reference(req->env, req->salt_ref);
+  assert(err == 0);
 
   free(req);
   free(task);
 }
 
-napi_value sn_extension_pbkdf2_sha512_async (napi_env env, napi_callback_info info) {
+js_value_t *
+sn_extension_pbkdf2_sha512_async (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV_OPTS(5, 6, extension_pbkdf2_sha512_async)
 
   SN_ARGV_BUFFER_CAST(unsigned char *, out, 0)
@@ -3067,27 +3440,27 @@ napi_value sn_extension_pbkdf2_sha512_async (napi_env env, napi_callback_info in
   sn_async_task_t *task = (sn_async_task_t *) malloc(sizeof(sn_async_task_t));
   SN_ASYNC_TASK(5);
 
-  SN_STATUS_THROWS(napi_create_reference(env, out_argv, 1, &req->out_ref), "")
-  SN_STATUS_THROWS(napi_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
-  SN_STATUS_THROWS(napi_create_reference(env, salt_argv, 1, &req->salt_ref), "")
+  SN_STATUS_THROWS(js_create_reference(env, out_argv, 1, &req->out_ref), "")
+  SN_STATUS_THROWS(js_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
+  SN_STATUS_THROWS(js_create_reference(env, salt_argv, 1, &req->salt_ref), "")
 
   SN_QUEUE_TASK(task, async_pbkdf2_sha512_execute, async_pbkdf2_sha512_complete)
 
   return promise;
 }
 
-static napi_value create_sodium_native (napi_env env) {
-  SN_THROWS(sodium_init() == -1, "sodium_init() failed")
-
-  napi_value exports;
-  napi_create_object(env, &exports);
+js_value_t *
+sodium_native_exports (js_env_t *env, js_value_t *exports) {
+  int err;
+  err = sodium_init();
+  SN_THROWS(err == -1, "sodium_init() failed")
 
   // memory
 
   SN_EXPORT_FUNCTION(sodium_memzero, sn_sodium_memzero)
   SN_EXPORT_FUNCTION(sodium_mlock, sn_sodium_mlock)
   SN_EXPORT_FUNCTION(sodium_munlock, sn_sodium_munlock)
-  SN_EXPORT_FUNCTION(sodium_malloc, sn_sodium_malloc)
+  SN_EXPORT_FUNCTION(_sodium_malloc, sn_sodium_malloc) // TODO: something a bit more elegant
   SN_EXPORT_FUNCTION(sodium_free, sn_sodium_free)
   SN_EXPORT_FUNCTION(sodium_mprotect_noaccess, sn_sodium_mprotect_noaccess)
   SN_EXPORT_FUNCTION(sodium_mprotect_readonly, sn_sodium_mprotect_readonly)
@@ -3153,7 +3526,16 @@ static napi_value create_sodium_native (napi_env env) {
   SN_EXPORT_FUNCTION(crypto_box_detached, sn_crypto_box_detached)
   SN_EXPORT_FUNCTION(crypto_box_open_detached, sn_crypto_box_open_detached)
   SN_EXPORT_FUNCTION(crypto_box_seal, sn_crypto_box_seal)
-  SN_EXPORT_FUNCTION(crypto_box_seal_open, sn_crypto_box_seal_open)
+  SN_EXPORT_TYPED_FUNCTION("crypto_box_seal_open",
+    sn_crypto_box_seal_open,
+    &((js_callback_signature_t) {
+      .version = 0,
+      .args_len = 5,
+      .args = (int[]) { js_object, js_object, js_object, js_object, js_object },
+      .result = js_boolean
+    }),
+    sn_typed_crypto_box_seal_open
+  )
   SN_EXPORT_UINT32(crypto_box_SEEDBYTES, crypto_box_SEEDBYTES)
   SN_EXPORT_UINT32(crypto_box_PUBLICKEYBYTES, crypto_box_PUBLICKEYBYTES)
   SN_EXPORT_UINT32(crypto_box_SECRETKEYBYTES, crypto_box_SECRETKEYBYTES)
@@ -3204,7 +3586,17 @@ static napi_value create_sodium_native (napi_env env) {
 
   // crypto_generichash
 
-  SN_EXPORT_FUNCTION(crypto_generichash, sn_crypto_generichash)
+  SN_EXPORT_TYPED_FUNCTION("_crypto_generichash",
+    sn_crypto_generichash,
+    &((js_callback_signature_t) {
+      .version = 0,
+      .args_len = 5,
+      .args = (int[]) { js_object, js_object, js_object, js_boolean, js_object },
+      .result = js_int32
+    }),
+    sn_typed_crypto_generichash
+  )
+
   SN_EXPORT_FUNCTION(crypto_generichash_batch, sn_crypto_generichash_batch)
   SN_EXPORT_FUNCTION(crypto_generichash_keygen, sn_crypto_generichash_keygen)
   SN_EXPORT_FUNCTION(crypto_generichash_init, sn_crypto_generichash_init)
@@ -3364,7 +3756,16 @@ static napi_value create_sodium_native (napi_env env) {
   SN_EXPORT_FUNCTION(crypto_sign, sn_crypto_sign)
   SN_EXPORT_FUNCTION(crypto_sign_open, sn_crypto_sign_open)
   SN_EXPORT_FUNCTION(crypto_sign_detached, sn_crypto_sign_detached)
-  SN_EXPORT_FUNCTION(crypto_sign_verify_detached, sn_crypto_sign_verify_detached)
+  SN_EXPORT_TYPED_FUNCTION("crypto_sign_verify_detached",
+    sn_crypto_sign_verify_detached,
+    &((js_callback_signature_t) {
+      .version = 0,
+      .args_len = 4,
+      .args = (int[]) { js_object, js_object, js_object, js_object },
+      .result = js_boolean
+    }),
+    sn_typed_crypto_sign_verify_detached
+  )
   SN_EXPORT_FUNCTION(crypto_sign_ed25519_sk_to_pk, sn_crypto_sign_ed25519_sk_to_pk)
   SN_EXPORT_FUNCTION(crypto_sign_ed25519_pk_to_curve25519, sn_crypto_sign_ed25519_pk_to_curve25519)
   SN_EXPORT_FUNCTION(crypto_sign_ed25519_sk_to_curve25519, sn_crypto_sign_ed25519_sk_to_curve25519)
@@ -3463,8 +3864,4 @@ static napi_value create_sodium_native (napi_env env) {
   return exports;
 }
 
-static napi_value Init(napi_env env, napi_value exports) {
-  return create_sodium_native(env);
-}
-
-NAPI_MODULE(NODE_GYP_MODULE_NAME, Init)
+BARE_MODULE(sodium_native, sodium_native_exports)

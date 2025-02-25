@@ -202,7 +202,7 @@ test('crypto_pwhash_async uncaughtException', function (t) {
   const memlimit = sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE
   const algo = sodium.crypto_pwhash_ALG_DEFAULT
 
-  process.once('uncaughtException', listener)
+  uncaught(listener)
 
   sodium.crypto_pwhash_async(output, passwd, salt, opslimit, memlimit, algo, exception)
 
@@ -227,7 +227,7 @@ test('crypto_pwhash_str_async uncaughtException', function (t) {
   const opslimit = sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE
   const memlimit = sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE
 
-  process.once('uncaughtException', listener)
+  uncaught(listener)
 
   sodium.crypto_pwhash_str_async(output, passwd, opslimit, memlimit, exception)
 
@@ -250,7 +250,7 @@ test('crypto_pwhash_str_verify_async uncaughtException', function (t) {
   const output = Buffer.alloc(sodium.crypto_pwhash_STRBYTES) // can be any size
   const passwd = Buffer.from('Hej, Verden!')
 
-  process.once('uncaughtException', listener)
+  uncaught(listener)
 
   sodium.crypto_pwhash_str_verify_async(output, passwd, exception)
 
@@ -266,3 +266,11 @@ test('crypto_pwhash_str_verify_async uncaughtException', function (t) {
     }
   }
 })
+
+function uncaught (fn) {
+  if (global.Bare) {
+    global.Bare.once('uncaughtException', fn)
+  } else {
+    process.once('uncaughtException', fn)
+  }
+}
