@@ -13,7 +13,7 @@
   ],
   "addon": true,
   "dependencies": {
-    "node-gyp-build": "^4.8.0"
+    "require-addon": "^1.1.0"
   },
   "devDependencies": {
     "brittle": "^3.5.0",
