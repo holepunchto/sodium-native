@@ -198,6 +198,14 @@ else()
   )
 endif()
 
+if(target MATCHES "linux|android")
+  target_link_options(
+    sodium
+    PUBLIC
+      -Wl,-z,noexecstack
+  )
+endif()
+
 add_bare_module(sodium_native_bare)
 
 target_sources(
