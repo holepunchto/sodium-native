@@ -140,7 +140,7 @@
 #define SN_TYPEDARRAY(name, var) \
   js_typedarray_type_t name##_type; \
   size_t name##_length; \
-  void *name##_data; \
+  void *name##_data = NULL; \
   js_get_typedarray_info(env, (var), &name##_type, &name##_data, &name##_length, NULL, NULL); \
   uint8_t name##_width = typedarray_width(name##_type); \
   SN_THROWS(name##_width == 0, "Unexpected TypedArray type") \

@@ -11,7 +11,7 @@
 // TODO: decreasing external memory segfaults on bare
 #define SN_BUG0_MEMTRACK 0
 
-/** TODO: unused / exported by libjs */
+/** TODO: unsure why sizes are checked */
 static uint8_t typedarray_width (js_typedarray_type_t type) {
   switch (type) {
     case js_int8array: return 1;
@@ -59,7 +59,6 @@ sn_sodium_munlock (js_env_t *env, js_callback_info_t *info) {
 }
 
 static void sn_sodium_free_finalise (js_env_t *env, void *finalise_data, void *finalise_hint) {
-  /* uint8_t hint = *((uint8_t *) finalise_data - 1); if (hint != 0xff) return; */
   sodium_free(finalise_data);
 
 #if SN_BUG0_MEMTRACK
@@ -80,12 +79,14 @@ sn_sodium_free (js_env_t *env, js_callback_info_t *info) {
   js_value_t *array_buf;
   SN_STATUS_THROWS(js_get_named_property(env, argv[0], "buffer", &array_buf), "failed to get arraybuffer");
 
-  memset(buf_data, 0, buf_length); // poorman's immediate sodium_free() due to node bug below
-
   SN_STATUS_THROWS(js_detach_arraybuffer(env, array_buf), "failed to detach array buffer");
-  // TODO: bug! bare invokes finalize_cb immediately during detach(); (no extra sodium_free() needed)
-  // node invokes finalize_cb in some arbitrary future. (requires sodium_free() + prevent finalizate_cb from running)
-  /* sodium_free(buf_data); */
+
+  void *ptr;
+  err = js_remove_wrap(env, array_buf, &ptr);
+  assert(err == 0);
+  assert(ptr == buf_data);
+
+  sodium_free(buf_data);
 
 #if SN_BUG0_MEMTRACK
   int64_t ext_mem;
@@ -109,7 +110,15 @@ sn_sodium_malloc (js_env_t *env, js_callback_info_t *info) {
 
   js_value_t *buffer;
 
-  SN_STATUS_THROWS(js_create_external_arraybuffer(env, ptr, size, sn_sodium_free_finalise, NULL, &buffer), "failed to create a native arraybuffer")
+  SN_STATUS_THROWS(js_create_external_arraybuffer(env, ptr, size, NULL, NULL, &buffer), "failed to create a native arraybuffer")
+
+
+  js_value_t *value;
+  SN_STATUS_THROWS(js_get_boolean(env, true, &value), "failed to create boolean")
+  SN_STATUS_THROWS(js_set_named_property(env, buffer, "secure", value), "failed to set secure property")
+
+  err = js_wrap(env, buffer, ptr, sn_sodium_free_finalise, NULL, NULL);
+  assert(err == 0);
 
 #if SN_BUG0_MEMTRACK
   int64_t ext_mem;
@@ -117,11 +126,6 @@ sn_sodium_malloc (js_env_t *env, js_callback_info_t *info) {
   assert(err == 0);
   printf("incr ext mem: %zi\n", ext_mem);
 #endif
-
-  js_value_t *value;
-  SN_STATUS_THROWS(js_get_boolean(env, true, &value), "failed to create boolean")
-  SN_STATUS_THROWS(js_set_named_property(env, buffer, "secure", value), "failed to set secure property")
-
   return buffer;
 }
 

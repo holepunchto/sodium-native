@@ -122,6 +122,7 @@ test('sodium_free', function (t) {
   const buf = sodium.sodium_malloc(1)
   t.ok(buf.byteLength === 1)
   sodium.sodium_free(buf)
+
   t.ok(buf.byteLength === 0)
 })
 
