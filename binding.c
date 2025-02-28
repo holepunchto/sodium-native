@@ -1,6 +1,7 @@
 #include <assert.h>
 #include <bare.h>
 #include <js.h>
+#include <stdint.h>
 #include <uv.h>
 #include <string.h>
 #include <sodium.h>
@@ -513,7 +514,7 @@ sn_typed_crypto_generichash (js_value_t *receiver, js_value_t *out, js_value_t *
   js_typedarray_view_t *key_view;
 
   if (use_key) {
-    err = js_get_typedarray_view(env, in, NULL, &key_data, &key_size, &key_view);
+    err = js_get_typedarray_view(env, key, NULL, &key_data, &key_size, &key_view);
     assert(err == 0);
     assert(key_size >= crypto_generichash_KEYBYTES_MIN);
     assert(key_size <= crypto_generichash_KEYBYTES_MAX);
@@ -541,7 +542,6 @@ sn_typed_crypto_generichash (js_value_t *receiver, js_value_t *out, js_value_t *
 
 js_value_t *
 sn_crypto_generichash(js_env_t *env, js_callback_info_t *info) {
-  // SN_ARGV_OPTS(2, 3, crypto_generichash)
   SN_ARGV(4, crypto_generichash)
 
   SN_ARGV_TYPEDARRAY(out, 0)
@@ -570,7 +570,6 @@ sn_crypto_generichash(js_env_t *env, js_callback_info_t *info) {
 js_value_t *
 sn_crypto_generichash_batch(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV_OPTS(2, 3, crypto_generichash)
-
   SN_ARGV_TYPEDARRAY(out, 0)
 
   uint32_t batch_length;
@@ -617,14 +616,59 @@ sn_crypto_generichash_keygen(js_env_t *env, js_callback_info_t *info) {
   return NULL;
 }
 
+void
+sn_typed_crypto_generichash_init (js_value_t *receiver, js_value_t *state_buf, bool use_key, js_value_t *key, uint32_t out_size, js_typed_callback_info_t *info) {
+  int err;
+  js_env_t *env;
+
+  err = js_get_typed_callback_info(info, &env, NULL);
+  assert(err == 0);
+
+  crypto_generichash_state *state;
+  size_t state_size;
+  js_typedarray_view_t *state_view;
+  err = js_get_typedarray_view(env, state_buf, NULL, (void **) &state, &state_size, &state_view);
+  assert(err == 0);
+  assert(state_size == sizeof(crypto_generichash_state));
+
+  void *key_data = NULL;
+  size_t key_size = 0;
+  js_typedarray_view_t *key_view;
+
+  if (use_key) {
+    err = js_get_typedarray_view(env, key, NULL, &key_data, &key_size, &key_view);
+    assert(err == 0);
+    // TODO: move boundary check to js
+    assert(key_size >= crypto_generichash_KEYBYTES_MIN);
+    assert(key_size <= crypto_generichash_KEYBYTES_MAX);
+  }
+
+  int res = crypto_generichash_init(state, key_data, key_size, out_size);
+
+  err = js_release_typedarray_view(env, state_view);
+  assert(err == 0);
+
+  if (use_key) {
+    err = js_release_typedarray_view(env, key_view);
+    assert(err == 0);
+  }
+
+  if (res != 0) {
+    err = js_throw_error(env, NULL, "generichash_init failed");
+    assert(err == 0);
+  }
+}
+
 js_value_t *
 sn_crypto_generichash_init(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(3, crypto_generichash_init)
+  SN_ARGV(4, crypto_generichash_init)
 
   SN_ARGV_BUFFER_CAST(crypto_generichash_state *, state, 0)
-  SN_ARGV_OPTS_TYPEDARRAY(key, 1)
-  SN_ARGV_UINT32(outlen, 2)
+  // argv[1] = use_key: boolean; is not used used here
+  SN_ARGV_TYPEDARRAY(key, 2)
+  SN_ARGV_UINT32(outlen, 3)
 
+  /* TODO: remove; Boundary checks have been moved to JS
   // assert(state_size == sizeof(crypto_generichash_state));
   SN_THROWS(state_size != sizeof(crypto_generichash_state), "state must be 'crypto_generichash_STATEBYTES' bytes")
 
@@ -632,8 +676,44 @@ sn_crypto_generichash_init(js_env_t *env, js_callback_info_t *info) {
     SN_ASSERT_MIN_LENGTH(key_size, crypto_generichash_KEYBYTES_MIN, "key")
     SN_ASSERT_MAX_LENGTH(key_size, crypto_generichash_KEYBYTES_MAX, "key")
   }
+  */
 
   SN_RETURN(crypto_generichash_init(state, key_data, key_size, outlen), "hash failed to initialise")
+}
+
+void
+sn_typed_crypto_generichash_update (js_value_t *receiver, js_value_t *state_buf, js_value_t *buf, js_typed_callback_info_t *info) {
+  int err;
+  js_env_t *env;
+
+  err = js_get_typed_callback_info(info, &env, NULL);
+  assert(err == 0);
+
+  crypto_generichash_state *state;
+  size_t state_size;
+  js_typedarray_view_t *state_view;
+  err = js_get_typedarray_view(env, state_buf, NULL, (void **) &state, &state_size, &state_view);
+  assert(err == 0);
+  assert(state_size == sizeof(crypto_generichash_state));
+
+  js_typedarray_view_t *buf_view;
+  void *buf_data;
+  size_t buf_size;
+  err = js_get_typedarray_view(env, buf, NULL, &buf_data, &buf_size, &buf_view);
+  assert(err == 0);
+
+  int res = crypto_generichash_update(state, buf_data, buf_size);
+
+  err = js_release_typedarray_view(env, state_view);
+  assert(err == 0);
+
+  err = js_release_typedarray_view(env, buf_view);
+  assert(err == 0);
+
+  if (res != 0) {
+    err = js_throw_error(env, NULL, "generichash_update failed");
+    assert(err == 0);
+  }
 }
 
 js_value_t *
@@ -648,6 +728,41 @@ sn_crypto_generichash_update(js_env_t *env, js_callback_info_t *info) {
   SN_RETURN(crypto_generichash_update(state, in_data, in_size), "update failed")
 }
 
+void
+sn_typed_crypto_generichash_final (js_value_t *receiver, js_value_t *state_buf, js_value_t *out, js_typed_callback_info_t *info) {
+  int err;
+  js_env_t *env;
+
+  err = js_get_typed_callback_info(info, &env, NULL);
+  assert(err == 0);
+
+  crypto_generichash_state *state;
+  size_t state_size;
+  js_typedarray_view_t *state_view;
+  err = js_get_typedarray_view(env, state_buf, NULL, (void **) &state, &state_size, &state_view);
+  assert(err == 0);
+  assert(state_size == sizeof(crypto_generichash_state));
+
+  void *out_data;
+  size_t out_size;
+  js_typedarray_view_t *out_view;
+  err = js_get_typedarray_view(env, out, NULL, &out_data, &out_size, &out_view);
+  assert(err == 0);
+
+  int res = crypto_generichash_final(state, out_data, out_size);
+
+  err = js_release_typedarray_view(env, out_view);
+  assert(err == 0);
+
+  err = js_release_typedarray_view(env, state_view);
+  assert(err == 0);
+
+  if (res != 0) {
+    err = js_throw_error(env, NULL, "digest failed");
+    assert(err == 0);
+  }
+}
+
 js_value_t *
 sn_crypto_generichash_final(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(2, crypto_generichash_final)
@@ -656,8 +771,9 @@ sn_crypto_generichash_final(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV_TYPEDARRAY(out, 1)
 
   SN_THROWS(state_size != sizeof(crypto_generichash_state), "state must be 'crypto_generichash_STATEBYTES' bytes")
-
-  SN_RETURN(crypto_generichash_final(state, out_data, out_size), "digest failed")
+  int res = crypto_generichash_final(state, out_data, out_size);
+  // assert(res == 0);
+  SN_RETURN(res, "digest failed")
 }
 
 js_value_t *
@@ -3601,11 +3717,38 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
     sn_typed_crypto_generichash
   )
 
-  SN_EXPORT_FUNCTION(crypto_generichash_batch, sn_crypto_generichash_batch)
+  SN_EXPORT_FUNCTION(_crypto_generichash_batch, sn_crypto_generichash_batch)
   SN_EXPORT_FUNCTION(crypto_generichash_keygen, sn_crypto_generichash_keygen)
-  SN_EXPORT_FUNCTION(crypto_generichash_init, sn_crypto_generichash_init)
-  SN_EXPORT_FUNCTION(crypto_generichash_update, sn_crypto_generichash_update)
-  SN_EXPORT_FUNCTION(crypto_generichash_final, sn_crypto_generichash_final)
+  SN_EXPORT_TYPED_FUNCTION("_crypto_generichash_init",
+    sn_crypto_generichash_init,
+    &((js_callback_signature_t) {
+      .version = 0,
+      .args_len = 5,
+      .args = (int[]) { js_object, js_object, js_boolean, js_object, js_uint32 },
+      .result = js_undefined
+    }),
+    sn_typed_crypto_generichash_init
+  );
+  SN_EXPORT_TYPED_FUNCTION("crypto_generichash_update",
+    sn_crypto_generichash_update,
+    &((js_callback_signature_t) {
+      .version = 0,
+      .args_len = 3,
+      .args = (int[]) { js_object, js_object, js_object },
+      .result = js_undefined
+    }),
+    sn_typed_crypto_generichash_update
+  );
+  SN_EXPORT_TYPED_FUNCTION("crypto_generichash_final",
+    sn_crypto_generichash_final,
+    &((js_callback_signature_t) {
+      .version = 0,
+      .args_len = 3,
+      .args = (int[]) { js_object, js_object, js_object },
+      .result = js_undefined
+    }),
+    sn_typed_crypto_generichash_final
+  );
   SN_EXPORT_UINT32(crypto_generichash_STATEBYTES, sizeof(crypto_generichash_state))
   SN_EXPORT_STRING(crypto_generichash_PRIMITIVE, crypto_generichash_PRIMITIVE)
   SN_EXPORT_UINT32(crypto_generichash_BYTES_MIN, crypto_generichash_BYTES_MIN)
@@ -3614,6 +3757,7 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   SN_EXPORT_UINT32(crypto_generichash_KEYBYTES_MIN, crypto_generichash_KEYBYTES_MIN)
   SN_EXPORT_UINT32(crypto_generichash_KEYBYTES_MAX, crypto_generichash_KEYBYTES_MAX)
   SN_EXPORT_UINT32(crypto_generichash_KEYBYTES, crypto_generichash_KEYBYTES)
+
 
   // crypto_hash
 

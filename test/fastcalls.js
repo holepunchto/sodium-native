@@ -65,18 +65,17 @@ test('bench: crypto_box_unseal', function (t) {
   t.comment('ms', ms)
 })
 
-/* TODO: verify if used; 
-test.skip('crypto_generichash bench', t => {
+// YES; https://github.com/search?q=org%3Aholepunchto+crypto_generichash_batch&type=code
+test.solo('bench: crypto_generichash_batch', t => {
   const buf = Buffer.from('Hej, Verden')
   const batch = []
-  for (let i = 0; i < 10; i++) batch.push(buf)
+  for (let i = 0; i < 4096; i++) batch.push(buf)
 
   const out = Buffer.alloc(sodium.crypto_generichash_BYTES)
   const start = Date.now()
-  for (let i = 0; i < 1000; i++) {
+  for (let i = 0; i < 1e6; i++) {
     sodium.crypto_generichash_batch(out, batch)
   }
   const ms = Date.now() - start
   t.comment('ms', ms)
 })
-*/
