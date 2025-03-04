@@ -11,11 +11,12 @@
 
 // TODO: decreasing external memory segfaults on bare
 #define SN_BUG0_MEMTRACK 0
-
+/*
 int
 js_set_array_elements(js_env_t *env, js_value_t *array, const js_value_t *elements[], size_t len, size_t offset);
 int
 js_get_array_elements(js_env_t *env, js_value_t *array, js_value_t **elements, size_t len, size_t offset, uint32_t *result);
+*/  
 
 /** TODO: unsure why sizes are checked */
 static uint8_t typedarray_width (js_typedarray_type_t type) {
@@ -595,7 +596,7 @@ sn_crypto_generichash_batch(js_env_t *env, js_callback_info_t *info) {
 
   crypto_generichash_state state;
   crypto_generichash_init(&state, key_data, key_size, out_size);
-#if 0
+#if 1
   for (uint32_t i = 0; i < batch_length; i++) {
     js_value_t *element;
     err = js_get_element(env, argv[1], i, &element);
@@ -661,9 +662,6 @@ sn_typed_crypto_generichash_init (js_value_t *receiver, js_value_t *state_buf, b
   if (use_key) {
     err = js_get_typedarray_view(env, key, NULL, &key_data, &key_size, &key_view);
     assert(err == 0);
-    // TODO: move boundary check to js
-    assert(key_size >= crypto_generichash_KEYBYTES_MIN);
-    assert(key_size <= crypto_generichash_KEYBYTES_MAX);
   }
 
   int res = crypto_generichash_init(state, key_data, key_size, out_size);
@@ -687,19 +685,9 @@ sn_crypto_generichash_init(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(4, crypto_generichash_init)
 
   SN_ARGV_BUFFER_CAST(crypto_generichash_state *, state, 0)
-  // argv[1] = use_key: boolean; is not used used here
+  // boolean argv[1] is only used by typed variant
   SN_ARGV_TYPEDARRAY(key, 2)
   SN_ARGV_UINT32(outlen, 3)
-
-  /* TODO: remove; Boundary checks have been moved to JS
-  // assert(state_size == sizeof(crypto_generichash_state));
-  SN_THROWS(state_size != sizeof(crypto_generichash_state), "state must be 'crypto_generichash_STATEBYTES' bytes")
-
-  if (key_data != NULL) {
-    SN_ASSERT_MIN_LENGTH(key_size, crypto_generichash_KEYBYTES_MIN, "key")
-    SN_ASSERT_MAX_LENGTH(key_size, crypto_generichash_KEYBYTES_MAX, "key")
-  }
-  */
 
   SN_RETURN(crypto_generichash_init(state, key_data, key_size, outlen), "hash failed to initialise")
 }

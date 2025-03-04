@@ -1,10 +1,8 @@
-// TODO: move to binding.js
-require.addon = require('require-addon')
-module.exports = require.addon('.', __filename)
-
+const binding = require('./binding')
 const { isNode } = require('which-runtime')
 
-const binding = module.exports
+module.exports = binding
+
 const _dummy = Buffer.allocUnsafeSlow(0)
 
 module.exports.sodium_malloc = size => {
@@ -23,14 +21,16 @@ module.exports.crypto_generichash_init = function (state, key, outputLength) {
   if (state.byteLength !== binding.crypto_generichash_STATEBYTES) throw new Error("state must be 'crypto_generichash_STATEBYTES' bytes")
 
   const useKey = !!key
-  if (useKey && key.byteLength < binding.crypto_generichash_KEYBYTES_MIN) throw new Error("key must be atleast 'crypto_generichash_KEYBYTES_MIN' bytes")
-  if (useKey && key.byteLength > binding.crypto_generichash_KEYBYTES_MAX) throw new Error("key must be at most 'crypto_generichash_KEYBYTES_MAX' bytes")
+  if (useKey) {
+    if (key.byteLength < binding.crypto_generichash_KEYBYTES_MIN) throw new Error("key must be atleast 'crypto_generichash_KEYBYTES_MIN' bytes")
+    if (key.byteLength > binding.crypto_generichash_KEYBYTES_MAX) throw new Error("key must be at most 'crypto_generichash_KEYBYTES_MAX' bytes")
+  }
 
   return module.exports._crypto_generichash_init(state, useKey, key || _dummy, outputLength)
 }
 
 module.exports.crypto_generichash_batch = function (output, batch, key) {
-  if (true) { // isNode || batch.length < 12) {
+  if (isNode || batch.length < 12) {
     if (key) binding._crypto_generichash_batch(output, batch, key)
     else binding._crypto_generichash_batch(output, batch)
     return
