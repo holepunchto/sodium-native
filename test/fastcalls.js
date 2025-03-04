@@ -73,7 +73,7 @@ test.solo('bench: crypto_generichash_batch', t => {
 
   const out = Buffer.alloc(sodium.crypto_generichash_BYTES)
   const start = Date.now()
-  for (let i = 0; i < 1e6; i++) {
+  for (let i = 0; i < 1e5; i++) {
     sodium.crypto_generichash_batch(out, batch)
   }
   const ms = Date.now() - start

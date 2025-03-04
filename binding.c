@@ -12,6 +12,11 @@
 // TODO: decreasing external memory segfaults on bare
 #define SN_BUG0_MEMTRACK 0
 
+int
+js_set_array_elements(js_env_t *env, js_value_t *array, const js_value_t *elements[], size_t len, size_t offset);
+int
+js_get_array_elements(js_env_t *env, js_value_t *array, js_value_t **elements, size_t len, size_t offset, uint32_t *result);
+
 /** TODO: unsure why sizes are checked */
 static uint8_t typedarray_width (js_typedarray_type_t type) {
   switch (type) {
@@ -590,6 +595,7 @@ sn_crypto_generichash_batch(js_env_t *env, js_callback_info_t *info) {
 
   crypto_generichash_state state;
   crypto_generichash_init(&state, key_data, key_size, out_size);
+#if 0
   for (uint32_t i = 0; i < batch_length; i++) {
     js_value_t *element;
     err = js_get_element(env, argv[1], i, &element);
@@ -599,6 +605,23 @@ sn_crypto_generichash_batch(js_env_t *env, js_callback_info_t *info) {
     SN_TYPEDARRAY(buf, element)
     crypto_generichash_update(&state, buf_data, buf_size);
   }
+#else
+  js_value_t **elements = malloc(batch_length * sizeof(js_value_t *));
+  uint32_t fetched;
+
+  err = js_get_array_elements(env, argv[1], elements, batch_length, 0, &fetched);
+  assert(err == 0);
+  assert(fetched == batch_length);
+
+  for (uint32_t i = 0; i < batch_length; i++) {
+    js_value_t *element = elements[i];
+    SN_TYPEDARRAY_ASSERT(buf, element, "batch element should be passed as a TypedArray")
+    SN_TYPEDARRAY(buf, element)
+    crypto_generichash_update(&state, buf_data, buf_size);
+  }
+
+  free(elements);
+#endif
 
   SN_RETURN(crypto_generichash_final(&state, out_data, out_size), "batch failed")
 }

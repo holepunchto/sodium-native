@@ -30,12 +30,13 @@ module.exports.crypto_generichash_init = function (state, key, outputLength) {
 }
 
 module.exports.crypto_generichash_batch = function (output, batch, key) {
-  if (isNode || batch.length < 12) {
-    if (key) return binding._crypto_generichash_batch(output, batch, key)
-    else return binding._crypto_generichash_batch(output, batch)
+  if (true) { // isNode || batch.length < 12) {
+    if (key) binding._crypto_generichash_batch(output, batch, key)
+    else binding._crypto_generichash_batch(output, batch)
+    return
   }
 
-  // Levarage 0-overhead native calls on bare
+  // Levarage low-overhead native calls on bare
   const state = Buffer.alloc(binding.crypto_generichash_STATEBYTES)
   binding.crypto_generichash_init(state, key, output.byteLength)
 
