@@ -1,5 +1,6 @@
 const test = require('brittle')
 const sodium = require('..')
+const { isBare } = require('which-runtime')
 
 test('crypto_stream', function (t) {
   const buf = Buffer.alloc(50)
@@ -174,7 +175,7 @@ test('crypto_stream_xor state long stream (random chunks) with empty buffers', f
   t.alike(Buffer.concat(decrypted), Buffer.concat(plain), 'decrypts')
 })
 
-test('crypto_stream_xor state after GC', function (t) {
+test('crypto_stream_xor state after GC', { skip: isBare }, function (t) {
   const message = Buffer.from('Hello, world!')
   let nonce = random(sodium.crypto_stream_NONCEBYTES)
   let key = random(sodium.crypto_stream_KEYBYTES)

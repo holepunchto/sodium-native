@@ -9,14 +9,12 @@
 #include "extensions/tweak/tweak.h"
 #include "extensions/pbkdf2/pbkdf2.h"
 
-// TODO: decreasing external memory segfaults on bare
-#define SN_BUG0_MEMTRACK 0
-/*
+#define HAVE_ARRAY_GET_ELEMENTS 1
+
 int
 js_set_array_elements(js_env_t *env, js_value_t *array, const js_value_t *elements[], size_t len, size_t offset);
 int
 js_get_array_elements(js_env_t *env, js_value_t *array, js_value_t **elements, size_t len, size_t offset, uint32_t *result);
-*/  
 
 /** TODO: unsure why sizes are checked */
 static uint8_t typedarray_width (js_typedarray_type_t type) {
@@ -68,12 +66,9 @@ sn_sodium_munlock (js_env_t *env, js_callback_info_t *info) {
 static void sn_sodium_free_finalise (js_env_t *env, void *finalise_data, void *finalise_hint) {
   sodium_free(finalise_data);
 
-#if SN_BUG0_MEMTRACK
   int64_t ext_mem;
   int err = js_adjust_external_memory(env, -4 * 4096, &ext_mem);
-  printf("decr ext mem: %zi, err=%i\n", ext_mem, err);
   assert(err == 0);
-#endif
 }
 
 js_value_t *
@@ -95,12 +90,9 @@ sn_sodium_free (js_env_t *env, js_callback_info_t *info) {
 
   sodium_free(buf_data);
 
-#if SN_BUG0_MEMTRACK
   int64_t ext_mem;
-  int err = js_adjust_external_memory(env, -4 * 4096, &ext_mem);
-  printf("decr ext mem: %zi, err=%i\n", ext_mem, err);
+  err = js_adjust_external_memory(env, -4 * 4096, &ext_mem);
   assert(err == 0);
-#endif
   return NULL;
 }
 
@@ -127,12 +119,10 @@ sn_sodium_malloc (js_env_t *env, js_callback_info_t *info) {
   err = js_wrap(env, buffer, ptr, sn_sodium_free_finalise, NULL, NULL);
   assert(err == 0);
 
-#if SN_BUG0_MEMTRACK
   int64_t ext_mem;
   err = js_adjust_external_memory(env, 4 * 4096, &ext_mem);
   assert(err == 0);
-  printf("incr ext mem: %zi\n", ext_mem);
-#endif
+
   return buffer;
 }
 
@@ -596,7 +586,7 @@ sn_crypto_generichash_batch(js_env_t *env, js_callback_info_t *info) {
 
   crypto_generichash_state state;
   crypto_generichash_init(&state, key_data, key_size, out_size);
-#if 1
+#if !HAVE_ARRAY_GET_ELEMENTS
   for (uint32_t i = 0; i < batch_length; i++) {
     js_value_t *element;
     err = js_get_element(env, argv[1], i, &element);

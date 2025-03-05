@@ -1,5 +1,6 @@
 const test = require('brittle')
 const sodium = require('..')
+const { isBare } = require('which-runtime')
 
 const tests = [
   ['0000000000000000000000000000000000000000000000000000000000000000', '000000000000000000000000', 0, '76b8e0ada0f13d90405d6ae55386bd28bdd219b8a08ded1aa836efcc8b770dc7da41597c5157488d7724e03fb8d84a376a43b8f41518a11cc387b669b2ee65869f07e7be5551387a98ba977c732d080dcb0f29a048e3656912c6533e32ee7aed29b721769ce64e43d57133b074d839d531ed1f28510afb45ace10a1f4b794d6f2d09a0e663266ce1ae7ed1081968a0758e718e997bd362c6b0c34634a9a0b35d'],
@@ -264,7 +265,7 @@ test('crypto_stream_chacha20_ietf_xor state long stream (random chunks) with emp
   t.alike(Buffer.concat(decrypted), Buffer.concat(plain), 'decrypts')
 })
 
-test('crypto_stream_chacha20_xor state after GC', function (t) {
+test('crypto_stream_chacha20_xor state after GC', { skip: isBare }, function (t) {
   const message = Buffer.from('Hello, world!')
   let nonce = random(sodium.crypto_stream_chacha20_ietf_NONCEBYTES)
   let key = random(sodium.crypto_stream_chacha20_ietf_KEYBYTES)

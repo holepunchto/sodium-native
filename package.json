@@ -13,11 +13,11 @@
   ],
   "addon": true,
   "dependencies": {
-    "bare-compat-napi": "^1.2.4",
     "require-addon": "^1.0.10",
     "which-runtime": "^1.2.1"
   },
   "devDependencies": {
+    "bare-compat-napi": "^1.2.4",
     "brittle": "^3.5.0",
     "cmake-bare": "^1.1.10",
     "cmake-fetch": "^1.0.1",
