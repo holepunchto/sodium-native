@@ -27,7 +27,8 @@
   js_value_type_t name##_valuetype; \
   SN_STATUS_THROWS(js_typeof(env, var, &name##_valuetype), ""); \
   if (name##_valuetype != type) { \
-    js_throw_type_error(env, NULL, message); \
+    err = js_throw_type_error(env, NULL, message); \
+    assert(err == 0); \
     return NULL; \
   }
 
@@ -35,7 +36,8 @@
   bool name##_is_typedarray; \
   SN_STATUS_THROWS(js_is_typedarray(env, var, &name##_is_typedarray), ""); \
   if (name##_is_typedarray != true) { \
-    js_throw_type_error(env, NULL, message); \
+    err = js_throw_type_error(env, NULL, message); \
+    assert(err == 0); \
     return NULL; \
   }
 
@@ -52,7 +54,8 @@
 
 #define SN_RANGE_THROWS(condition, message) \
   if (condition) { \
-    js_throw_range_error(env, NULL, message); \
+    err = js_throw_range_error(env, NULL, message); \
+    assert(err == 0); \
     return NULL; \
   }
 
@@ -62,7 +65,8 @@
   size_t argc = n; \
   SN_STATUS_THROWS(js_get_callback_info(env, info, &argc, argv, NULL, NULL), ""); \
   if (argc != n) { \
-    js_throw_type_error(env, NULL, #method_name " requires " #n " argument(s)"); \
+    err = js_throw_type_error(env, NULL, #method_name " requires " #n " argument(s)"); \
+    assert(err == 0); \
     return NULL; \
   }
 
@@ -72,7 +76,8 @@
   size_t argc = total; \
   SN_STATUS_THROWS(js_get_callback_info(env, info, &argc, argv, NULL, NULL), ""); \
   if (argc < required) { \
-    js_throw_type_error(env, NULL, #method_name " requires at least " #required " argument(s)"); \
+    err = js_throw_type_error(env, NULL, #method_name " requires at least " #required " argument(s)"); \
+    assert(err == 0); \
     return NULL; \
   }
 
@@ -141,7 +146,8 @@
   js_typedarray_type_t name##_type; \
   size_t name##_length; \
   void *name##_data = NULL; \
-  js_get_typedarray_info(env, (var), &name##_type, &name##_data, &name##_length, NULL, NULL); \
+  err = js_get_typedarray_info(env, (var), &name##_type, &name##_data, &name##_length, NULL, NULL); \
+  assert(err == 0); \
   uint8_t name##_width = typedarray_width(name##_type); \
   SN_THROWS(name##_width == 0, "Unexpected TypedArray type") \
   size_t name##_size = name##_length * name##_width;
@@ -150,14 +156,16 @@
   js_typedarray_type_t name##_type; \
   size_t name##_length; \
   void *name##_data; \
-  js_get_typedarray_info(env, (var), &name##_type, &name##_data, &name##_length, NULL, NULL); \
+  err = js_get_typedarray_info(env, (var), &name##_type, &name##_data, &name##_length, NULL, NULL); \
+  assert(err == 0); \
   uint8_t name##_width = typedarray_width(name##_type); \
   SN_THROWS(name##_width == 0, "Unexpected TypedArray type") \
 
 #define SN_OPT_TYPEDARRAY(name, var) \
   js_typedarray_type_t name##_type; \
   size_t name##_length; \
-  js_get_typedarray_info(env, (var), &name##_type, &name##_data, &name##_length, NULL, NULL); \
+  err = js_get_typedarray_info(env, (var), &name##_type, &name##_data, &name##_length, NULL, NULL); \
+  assert(err == 0); \
   uint8_t name##_width = typedarray_width(name##_type); \
   SN_THROWS(name##_width == 0, "Unexpected TypedArray type") \
   name##_size = name##_length * name##_width;
@@ -165,7 +173,8 @@
 #define SN_UINT8(name, val) \
   uint32_t name##_int32; \
   if (js_get_value_uint32(env, val, &name##_int32) != 0) { \
-    js_throw_error(env, "EINVAL", "Expected number"); \
+    err = js_throw_error(env, "EINVAL", "Expected number"); \
+    assert(err == 0); \
     return NULL; \
   } \
   SN_THROWS(name##_int32 > 255, "expect uint8") \
@@ -174,20 +183,23 @@
 #define SN_UINT32(name, val) \
   uint32_t name; \
   if (js_get_value_uint32(env, val, &name) != 0) { \
-    js_throw_error(env, "EINVAL", "Expected number"); \
+    err = js_throw_error(env, "EINVAL", "Expected number"); \
+    assert(err == 0); \
     return NULL; \
   }
 
 #define SN_OPT_UINT32(name, val) \
   if (js_get_value_uint32(env, val, (uint32_t *) &name) != 0) { \
-    js_throw_error(env, "EINVAL", "Expected number"); \
+    err = js_throw_error(env, "EINVAL", "Expected number"); \
+    assert(err == 0); \
     return NULL; \
   }
 
 #define SN_UINT64(name, val) \
   int64_t name##_i64; \
   if (js_get_value_int64(env, val, &name##_i64) != 0) { \
-    js_throw_error(env, "EINVAL", "Expected number"); \
+    err = js_throw_error(env, "EINVAL", "Expected number"); \
+    assert(err == 0); \
     return NULL; \
   } \
   if (name##_i64 < 0) { \
@@ -239,14 +251,9 @@
   int success = call; \
   SN_THROWS(success != 0, message)
 
-
-// TODO: Help! Return status is never -1 / pending_exception; Remove If-block?
-// but it is -2 when an exception occured that was later caught
-// (res is unusable, not a problem, callback-results not used at all)
 #define SN_CALL_FUNCTION(env, ctx, cb, n, argv, res) \
   { \
     int err = js_call_function_with_checkpoint(env, ctx, cb, n, argv, res); \
-    /* assert(err == 0 && "call fn w/ checkpoint"); */ \
     if (err == js_pending_exception) { \
       js_value_t *fatal_exception; \
       err = js_get_and_clear_last_exception(env, &fatal_exception); \
@@ -255,12 +262,6 @@
       assert(err == 0); \
     } \
   }
-// Original instructions:
-//   if (napi_make_callback(env, NULL, ctx, cb, n, argv, res) == napi_pending_exception) { \
-//   js_value_t *fatal_exception; \
-//   napi_get_and_clear_last_exception(env, &fatal_exception); \
-//   napi_fatal_exception(env, fatal_exception); \
-//  }
 
 #define SN_RETURN(call, message) \
   int success = (call); \
@@ -284,8 +285,10 @@
     js_get_null(req->env, &argv[0]); \
   } else { \
     js_value_t *err_msg; \
-    js_create_string_utf8(req->env, (const utf8_t *) #message, SN_LIT_LENGTH(message), &err_msg); \
-    js_create_error(req->env, NULL, err_msg, &argv[0]); \
+    err = js_create_string_utf8(req->env, (const utf8_t *) #message, SN_LIT_LENGTH(message), &err_msg); \
+    assert(err == 0); \
+    err = js_create_error(req->env, NULL, err_msg, &argv[0]); \
+    assert(err == 0); \
   }
 
 #define SN_CALLBACK_CHECK_FOR_ERROR(message) \
@@ -293,19 +296,25 @@
     js_get_null(req->env, &argv[0]); \
   } else { \
     js_value_t *err_msg; \
-    js_create_string_utf8(req->env, (const utf8_t *) #message, SN_LIT_LENGTH(message), &err_msg); \
-    js_create_error(req->env, NULL, err_msg, &argv[0]); \
+    err = js_create_string_utf8(req->env, (const utf8_t *) #message, SN_LIT_LENGTH(message), &err_msg); \
+    assert(err == 0); \
+    err = js_create_error(req->env, NULL, err_msg, &argv[0]); \
+    assert(err == 0); \
   }
 
 #define SN_QUEUE_WORK(req, execute, complete) \
   uv_loop_t *loop; \
-  js_get_env_loop(env, &loop); \
-  uv_queue_work(loop, (uv_work_t *) req, execute, complete);
+  err = js_get_env_loop(env, &loop); \
+  assert(err == 0); \
+  err = uv_queue_work(loop, (uv_work_t *) req, execute, complete); \
+  assert(err == 0);
 
 #define SN_QUEUE_TASK(task, execute, complete) \
   uv_loop_t *loop; \
-  js_get_env_loop(env, &loop); \
-  uv_queue_work(loop, (uv_work_t *) task, execute, complete);
+  err = js_get_env_loop(env, &loop); \
+  assert(err == 0); \
+  err = uv_queue_work(loop, (uv_work_t *) task, execute, complete); \
+  assert(err == 0); \
 
 #define SN_ASYNC_TASK(cb_pos) \
   task->req = (void *) req; \
@@ -317,28 +326,35 @@
     js_value_type_t type; \
     SN_STATUS_THROWS(js_typeof(env, cb, &type), "") \
     if (type != js_function) { \
-      js_throw_error(env, "EINVAL", "Callback must be a function"); \
+      err = js_throw_error(env, "EINVAL", "Callback must be a function"); \
+      assert(err == 0); \
       return NULL; \
     } \
     SN_STATUS_THROWS(js_create_reference(env, cb, 1, &task->cb), "") \
   } else { \
     task->type = sn_async_task_promise; \
-    js_create_promise(env, &task->deferred, &promise); \
+    err = js_create_promise(env, &task->deferred, &promise); \
+    assert(err == 0); \
   }
 
-// TODO: some asserts here would be nice (actually everywhere)
 #define SN_ASYNC_COMPLETE(message) \
   js_value_t *argv[1]; \
   switch (task->type) { \
   case sn_async_task_promise: { \
     if (task->code == 0) { \
-      js_get_null(req->env, &argv[0]); \
-      js_resolve_deferred(req->env, task->deferred, argv[0]); \
+      err = js_get_null(req->env, &argv[0]); \
+      assert(err == 0); \
+      err = js_resolve_deferred(req->env, task->deferred, argv[0]); \
+      assert(err == 0); \
     } else { \
       js_value_t *err_msg; \
-      js_create_string_utf8(req->env, (const utf8_t *) #message, SN_LIT_LENGTH(message), &err_msg); \
-      js_create_error(req->env, NULL, err_msg, &argv[0]); \
-      js_reject_deferred(req->env, task->deferred, argv[0]); \
+      assert(err == 0); \
+      err = js_create_string_utf8(req->env, (const utf8_t *) #message, SN_LIT_LENGTH(message), &err_msg); \
+      assert(err == 0); \
+      err = js_create_error(req->env, NULL, err_msg, &argv[0]); \
+      assert(err == 0); \
+      err = js_reject_deferred(req->env, task->deferred, argv[0]); \
+      assert(err == 0); \
     } \
     task->deferred = NULL; \
     break; \
@@ -346,10 +362,12 @@
   case sn_async_task_callback: { \
     SN_CALLBACK_CHECK_FOR_ERROR(#message) \
     js_value_t *callback; \
-    js_get_reference_value(req->env, task->cb, &callback); \
+    err = js_get_reference_value(req->env, task->cb, &callback); \
+    assert(err == 0); \
     js_value_t *return_val; \
     SN_CALL_FUNCTION(req->env, global, callback, 1, argv, &return_val) \
-    js_delete_reference(req->env, task->cb); \
+    err = js_delete_reference(req->env, task->cb); \
+    assert(err == 0); \
     break; \
   } \
   }
