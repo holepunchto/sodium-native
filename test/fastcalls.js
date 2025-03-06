@@ -12,7 +12,7 @@ test('bench: crypto_generichash', t => {
   t.comment('ms', ms)
 })
 
-test('bench: crypto_sign_verify_detached', function (t) {
+test.solo('bench: crypto_sign_verify_detached', function (t) {
   const fixtures = require('./fixtures/crypto_sign.json')
 
   const publicKey = new Uint8Array(fixtures[0][1])
@@ -21,7 +21,7 @@ test('bench: crypto_sign_verify_detached', function (t) {
 
   const start = Date.now()
 
-  for (let i = 0; i < 2e5; i++) {
+  for (let i = 0; i < 2e6; i++) {
     const valid = sodium.crypto_sign_verify_detached(signature, message, publicKey)
     if (!valid) throw new Error('Unexpected verification failure')
   }
@@ -53,7 +53,7 @@ test('bench: crypto_box_unseal', function (t) {
 
   const start = Date.now()
 
-  for (let i = 0; i < 80000 / 2; i++) {
+  for (let i = 0; i < 80e4 / 2; i++) {
     let success = sodium.crypto_box_seal_open(plain, cipher, pk2, sk2)
     if (success) throw new Error('Unexpected decryption occured')
 
@@ -66,7 +66,7 @@ test('bench: crypto_box_unseal', function (t) {
 })
 
 // YES; https://github.com/search?q=org%3Aholepunchto+crypto_generichash_batch&type=code
-test.solo('bench: crypto_generichash_batch', t => {
+test('bench: crypto_generichash_batch', t => {
   const buf = Buffer.from('Hej, Verden')
   const batch = []
   for (let i = 0; i < 4096; i++) batch.push(buf)
