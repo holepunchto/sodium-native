@@ -907,7 +907,7 @@ bool sn_typed_crypto_box_seal_open (js_value_t *receiver, js_value_t *m, js_valu
   err = js_get_typedarray_view(env, sk, NULL, &sk_data, &sk_size, &sk_view);
   assert(err == 0);
 
-  // TODO: rewrite branch
+  // TODO: throw error and release views; (SN_THROWS returns without release)
   // SN_THROWS(c_size != m_size + crypto_box_SEALBYTES, "c must be 'm.byteLength + crypto_box_SEALBYTES' bytes")
   // SN_ASSERT_LENGTH(pk_size, crypto_box_PUBLICKEYBYTES, "pk")
 
@@ -2319,7 +2319,6 @@ static void async_pwhash_complete (uv_work_t *uv_req, int status) {
   err = js_get_global(req->env, &global);
   assert(err == 0);
 
-  // TODO: consider remove the following macro as it's capable of causing double close of scope
   SN_ASYNC_COMPLETE("failed to compute password hash")
 
   err = js_close_handle_scope(req->env, scope);
@@ -2759,10 +2758,12 @@ static void async_pwhash_scryptsalsa208sha256_str_verify_complete (uv_work_t *uv
   sn_async_pwhash_scryptsalsa208sha256_str_verify_request *req = (sn_async_pwhash_scryptsalsa208sha256_str_verify_request *) task->req;
 
   js_handle_scope_t *scope;
-  js_open_handle_scope(req->env, &scope);
+  err = js_open_handle_scope(req->env, &scope);
+  assert(err == 0);
 
   js_value_t *global;
-  js_get_global(req->env, &global);
+  err = js_get_global(req->env, &global);
+  assert(err == 0);
 
   js_value_t *argv[2];
 
@@ -2770,19 +2771,23 @@ static void async_pwhash_scryptsalsa208sha256_str_verify_complete (uv_work_t *uv
   // signal serror different from a verification mismatch, we will count
   // all errors as mismatch. The other possible error is wrong argument
   // sizes, which is protected by macros above
-  js_get_null(req->env, &argv[0]);
-  js_get_boolean(req->env, task->code == 0, &argv[1]);
+  err = js_get_null(req->env, &argv[0]);
+  assert(err == 0);
+  err = js_get_boolean(req->env, task->code == 0, &argv[1]);
+  assert(err == 0);
 
   switch (task->type) {
   case sn_async_task_promise: {
-    js_resolve_deferred(req->env, task->deferred, argv[1]);
+    err = js_resolve_deferred(req->env, task->deferred, argv[1]);
+    assert(err == 0);
     task->deferred = NULL;
     break;
   }
 
   case sn_async_task_callback: {
     js_value_t *callback;
-    js_get_reference_value(req->env, task->cb, &callback);
+    err = js_get_reference_value(req->env, task->cb, &callback);
+    assert(err == 0);
 
     js_value_t *return_val;
     SN_CALL_FUNCTION(req->env, global, callback, 2, argv, &return_val)
@@ -2790,10 +2795,13 @@ static void async_pwhash_scryptsalsa208sha256_str_verify_complete (uv_work_t *uv
   }
   }
 
-  js_close_handle_scope(req->env, scope);
+  err = js_close_handle_scope(req->env, scope);
+  assert(err == 0);
 
-  js_delete_reference(req->env, req->str_ref);
-  js_delete_reference(req->env, req->pwd_ref);
+  err = js_delete_reference(req->env, req->str_ref);
+  assert(err == 0);
+  err = js_delete_reference(req->env, req->pwd_ref);
+  assert(err == 0);
 
   free(req);
   free(task);
@@ -3562,7 +3570,7 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   SN_EXPORT_FUNCTION(sodium_memzero, sn_sodium_memzero)
   SN_EXPORT_FUNCTION(sodium_mlock, sn_sodium_mlock)
   SN_EXPORT_FUNCTION(sodium_munlock, sn_sodium_munlock)
-  SN_EXPORT_FUNCTION(_sodium_malloc, sn_sodium_malloc) // TODO: something a bit more elegant
+  SN_EXPORT_FUNCTION(_sodium_malloc, sn_sodium_malloc)
   SN_EXPORT_FUNCTION(sodium_free, sn_sodium_free)
   SN_EXPORT_FUNCTION(sodium_mprotect_noaccess, sn_sodium_mprotect_noaccess)
   SN_EXPORT_FUNCTION(sodium_mprotect_readonly, sn_sodium_mprotect_readonly)

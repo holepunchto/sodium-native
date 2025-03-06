@@ -36,7 +36,7 @@ module.exports.crypto_generichash_batch = function (output, batch, key) {
     return
   }
 
-  // Levarage low-overhead native calls on bare
+  // use low-overhead calls on bare
   const state = Buffer.alloc(binding.crypto_generichash_STATEBYTES)
   binding.crypto_generichash_init(state, key, output.byteLength)
 
