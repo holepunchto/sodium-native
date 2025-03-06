@@ -1,8 +1,7 @@
 const test = require('brittle')
 const sodium = require('..')
+const fork = require('child_process').fork
 const { isBare, isNode } = require('which-runtime')
-
-const fork = isBare ? null : require('child_process').fork // TODO: no fork() in bare (want to be able to run tests for now)
 
 test('sodium_mprotect_noaccess', { skip: isBare }, function (t) {
   t.plan(1)
@@ -122,7 +121,6 @@ test('sodium_free', function (t) {
   const buf = sodium.sodium_malloc(1)
   t.ok(buf.byteLength === 1)
   sodium.sodium_free(buf)
-
   t.ok(buf.byteLength === 0)
 })
 

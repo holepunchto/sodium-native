@@ -9,14 +9,6 @@
 #include "extensions/tweak/tweak.h"
 #include "extensions/pbkdf2/pbkdf2.h"
 
-#define HAVE_ARRAY_GET_ELEMENTS 1
-
-int
-js_set_array_elements(js_env_t *env, js_value_t *array, const js_value_t *elements[], size_t len, size_t offset);
-int
-js_get_array_elements(js_env_t *env, js_value_t *array, js_value_t **elements, size_t len, size_t offset, uint32_t *result);
-
-/** TODO: unsure why sizes are checked */
 static uint8_t typedarray_width (js_typedarray_type_t type) {
   switch (type) {
     case js_int8array: return 1;
@@ -586,17 +578,7 @@ sn_crypto_generichash_batch(js_env_t *env, js_callback_info_t *info) {
 
   crypto_generichash_state state;
   crypto_generichash_init(&state, key_data, key_size, out_size);
-#if !HAVE_ARRAY_GET_ELEMENTS
-  for (uint32_t i = 0; i < batch_length; i++) {
-    js_value_t *element;
-    err = js_get_element(env, argv[1], i, &element);
-    assert(err == 0);
 
-    SN_TYPEDARRAY_ASSERT(buf, element, "batch element should be passed as a TypedArray")
-    SN_TYPEDARRAY(buf, element)
-    crypto_generichash_update(&state, buf_data, buf_size);
-  }
-#else
   js_value_t **elements = malloc(batch_length * sizeof(js_value_t *));
   uint32_t fetched;
 
@@ -612,7 +594,6 @@ sn_crypto_generichash_batch(js_env_t *env, js_callback_info_t *info) {
   }
 
   free(elements);
-#endif
 
   SN_RETURN(crypto_generichash_final(&state, out_data, out_size), "batch failed")
 }
@@ -773,7 +754,7 @@ sn_crypto_generichash_final(js_env_t *env, js_callback_info_t *info) {
 
   SN_THROWS(state_size != sizeof(crypto_generichash_state), "state must be 'crypto_generichash_STATEBYTES' bytes")
   int res = crypto_generichash_final(state, out_data, out_size);
-  // assert(res == 0);
+
   SN_RETURN(res, "digest failed")
 }
 
@@ -3758,7 +3739,6 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   SN_EXPORT_UINT32(crypto_generichash_KEYBYTES_MIN, crypto_generichash_KEYBYTES_MIN)
   SN_EXPORT_UINT32(crypto_generichash_KEYBYTES_MAX, crypto_generichash_KEYBYTES_MAX)
   SN_EXPORT_UINT32(crypto_generichash_KEYBYTES, crypto_generichash_KEYBYTES)
-
 
   // crypto_hash
 

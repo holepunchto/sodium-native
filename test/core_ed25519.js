@@ -42,7 +42,7 @@ function addL64 (S) {
 test('ported libsodium test', function (t) {
   let i
 
-  const h = Buffer.from(sodium.sodium_malloc(sodium.crypto_core_ed25519_UNIFORMBYTES))
+  const h = sodium.sodium_malloc(sodium.crypto_core_ed25519_UNIFORMBYTES)
   const p = sodium.sodium_malloc(sodium.crypto_core_ed25519_BYTES)
   for (i = 0; i < 1000; i++) {
     sodium.randombytes_buf(h.subarray(0, sodium.crypto_core_ed25519_UNIFORMBYTES))

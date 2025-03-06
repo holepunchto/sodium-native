@@ -12,7 +12,7 @@ test('bench: crypto_generichash', t => {
   t.comment('ms', ms)
 })
 
-test.solo('bench: crypto_sign_verify_detached', function (t) {
+test('bench: crypto_sign_verify_detached', function (t) {
   const fixtures = require('./fixtures/crypto_sign.json')
 
   const publicKey = new Uint8Array(fixtures[0][1])
@@ -65,7 +65,6 @@ test('bench: crypto_box_unseal', function (t) {
   t.comment('ms', ms)
 })
 
-// YES; https://github.com/search?q=org%3Aholepunchto+crypto_generichash_batch&type=code
 test('bench: crypto_generichash_batch', t => {
   const buf = Buffer.from('Hej, Verden')
   const batch = []

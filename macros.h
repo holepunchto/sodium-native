@@ -1,20 +1,21 @@
-#define SN_ENABLE_FASTCALL 1
-
 #define SN_STATUS_THROWS(call, message) \
   if ((call) != 0) { \
-    js_throw_error(env, NULL, message); \
+    err = js_throw_error(env, NULL, message); \
+    assert(err == 0); \
     return NULL; \
   }
 
 #define SN_STATUS_THROWS_VOID(call, message) \
   if ((call) != 0) { \
-    js_throw_error(env, NULL, message); \
+    err = js_throw_error(env, NULL, message); \
+    assert(err == 0); \
     return; \
   }
 
 #define SN_THROWS(condition, message) \
   if ((condition)) { \
-    js_throw_error(env, NULL, message); \
+    err = js_throw_error(env, NULL, message); \
+    assert(err == 0); \
     return NULL; \
   }
 
@@ -93,7 +94,7 @@
 #define SN_EXPORT_TYPED_FUNCTION(name, untyped, signature, typed) \
   { \
     js_value_t *val; \
-    if (signature && SN_ENABLE_FASTCALL) { \
+    if (signature) { \
       err = js_create_typed_function(env, name, -1, untyped, signature, typed, NULL, &val); \
       assert(err == 0); \
     } else { \
