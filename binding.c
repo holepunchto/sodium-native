@@ -9,13 +9,6 @@
 #include "extensions/tweak/tweak.h"
 #include "extensions/pbkdf2/pbkdf2.h"
 
-/*
-int
-js_set_array_elements(js_env_t *env, js_value_t *array, const js_value_t *elements[], size_t len, size_t offset);
-int
-js_get_array_elements(js_env_t *env, js_value_t *array, js_value_t **elements, size_t len, size_t offset, uint32_t *result);
-*/
-
 static uint8_t typedarray_width (js_typedarray_type_t type) {
   switch (type) {
     case js_int8array: return 1;

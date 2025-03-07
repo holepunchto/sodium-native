@@ -77,7 +77,7 @@ test('ported from libsodium', function (t) {
   foundmaclen = sodium.crypto_aead_chacha20poly1305_ietf_encrypt_detached(detachedc, mac, m, ad, null, nonce, firstkey)
 
   t.is(foundmaclen, sodium.crypto_aead_chacha20poly1305_ietf_ABYTES)
-  const exp0 = c.slice(0, mlen)
+  const exp0 = c.subarray(0, mlen)
   exp0.secure = true
   t.alike(detachedc, exp0)
 
@@ -87,7 +87,7 @@ test('ported from libsodium', function (t) {
   t.alike(m, m2)
 
   m2.fill(0)
-  sodium.crypto_aead_chacha20poly1305_ietf_decrypt_detached(m2, null, c.slice(0, mlen), mac, ad, nonce, firstkey)
+  sodium.crypto_aead_chacha20poly1305_ietf_decrypt_detached(m2, null, c.subarray(0, mlen), mac, ad, nonce, firstkey)
 
   t.alike(m, m2)
 
@@ -125,7 +125,7 @@ test('ported from libsodium', function (t) {
 
   m.copy(c)
 
-  foundclen = sodium.crypto_aead_chacha20poly1305_ietf_encrypt(c, c.slice(0, mlen), null, null, nonce, firstkey)
+  foundclen = sodium.crypto_aead_chacha20poly1305_ietf_encrypt(c, c.subarray(0, mlen), null, null, nonce, firstkey)
 
   t.is(foundclen, clen, 'clen is properly set (adlen=0)')
 
