@@ -1,7 +1,7 @@
 const test = require('brittle')
 const sodium = require('..')
-const fork = require('child_process').fork
 const { isBare, isNode } = require('which-runtime')
+const fork = isNode ? require('child_process').fork : () => { throw new Error('fork() not supported on runtime') }
 
 test('sodium_mprotect_noaccess', { skip: isBare }, function (t) {
   t.plan(1)

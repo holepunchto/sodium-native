@@ -101,7 +101,7 @@ test('crypto_stream_chacha20', function (t) {
   t.end()
 })
 
-test('crypto_stream_chacha20_xor state', function (t) {
+test.solo('crypto_stream_chacha20_xor state', function (t) {
   const message = Buffer.from('Hello, world!')
   const nonce = random(sodium.crypto_stream_chacha20_NONCEBYTES)
   const key = random(sodium.crypto_stream_chacha20_KEYBYTES)

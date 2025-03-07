@@ -9,6 +9,13 @@
 #include "extensions/tweak/tweak.h"
 #include "extensions/pbkdf2/pbkdf2.h"
 
+/*
+int
+js_set_array_elements(js_env_t *env, js_value_t *array, const js_value_t *elements[], size_t len, size_t offset);
+int
+js_get_array_elements(js_env_t *env, js_value_t *array, js_value_t **elements, size_t len, size_t offset, uint32_t *result);
+*/
+
 static uint8_t typedarray_width (js_typedarray_type_t type) {
   switch (type) {
     case js_int8array: return 1;
@@ -411,10 +418,15 @@ sn_typed_crypto_sign_verify_detached (js_value_t *receiver, js_value_t *sig, js_
   err = js_get_typedarray_view(env, pk, NULL, &pk_data, &pk_size, &pk_view);
   assert(err == 0);
 
-  // SN_ASSERT_MIN_LENGTH(sig_size, crypto_sign_BYTES, "sig")
-  // SN_ASSERT_LENGTH(pk_size, crypto_sign_PUBLICKEYBYTES, "pk")
-  bool success = crypto_sign_verify_detached(sig_data, m_data, m_size, pk_data);
+  int res = -1;
 
+  SN_ASSERT_MIN_LENGTH_GOTO(sig_size, crypto_sign_BYTES, "sig")
+
+  SN_ASSERT_LENGTH_GOTO(pk_size, crypto_sign_PUBLICKEYBYTES, "pk")
+
+  res = crypto_sign_verify_detached(sig_data, m_data, m_size, pk_data);
+
+error:
   err = js_release_typedarray_view(env, sig_view);
   assert(err == 0);
   err = js_release_typedarray_view(env, m_view);
@@ -422,7 +434,7 @@ sn_typed_crypto_sign_verify_detached (js_value_t *receiver, js_value_t *sig, js_
   err = js_release_typedarray_view(env, pk_view);
   assert(err == 0);
 
-  return success == 0;
+  return res == 0;
 }
 
 js_value_t *
@@ -501,19 +513,22 @@ sn_typed_crypto_generichash (js_value_t *receiver, js_value_t *out, js_value_t *
   size_t key_size = 0;
   js_typedarray_view_t *key_view;
 
+  int res = -1;
+
+  SN_ASSERT_MIN_LENGTH_GOTO(out_size, crypto_generichash_BYTES_MIN, "out")
+  SN_ASSERT_MAX_LENGTH_GOTO(out_size, crypto_generichash_BYTES_MAX, "out")
+
   if (use_key) {
     err = js_get_typedarray_view(env, key, NULL, &key_data, &key_size, &key_view);
     assert(err == 0);
-    assert(key_size >= crypto_generichash_KEYBYTES_MIN);
-    assert(key_size <= crypto_generichash_KEYBYTES_MAX);
+    SN_ASSERT_MIN_LENGTH_GOTO(key_size, crypto_generichash_KEYBYTES_MIN, "key")
+    SN_ASSERT_MAX_LENGTH_GOTO(key_size, crypto_generichash_KEYBYTES_MAX, "key")
   }
 
-  int res = crypto_generichash(out_data, out_size, in_data, in_size, key_data, key_size);
-  if (res != 0) {
-    err = js_throw_error(env, NULL, "hash failed");
-    assert(err == 0);
-  }
+  res = crypto_generichash(out_data, out_size, in_data, in_size, key_data, key_size);
+  SN_THROWS_GOTO_ERROR(res != 0, "hash failed");
 
+error:
   err = js_release_typedarray_view(env, out_view);
   assert(err == 0);
 
@@ -547,7 +562,6 @@ sn_crypto_generichash(js_env_t *env, js_callback_info_t *info) {
 
   if (use_key) {
     SN_OPT_ARGV_TYPEDARRAY(key, 3)
-    SN_THROWS(key_size < crypto_generichash_KEYBYTES_MIN, "key")
     SN_ASSERT_MIN_LENGTH(key_size, crypto_generichash_KEYBYTES_MIN, "key")
     SN_ASSERT_MAX_LENGTH(key_size, crypto_generichash_KEYBYTES_MAX, "key")
   }
@@ -676,7 +690,6 @@ sn_typed_crypto_generichash_update (js_value_t *receiver, js_value_t *state_buf,
   js_typedarray_view_t *state_view;
   err = js_get_typedarray_view(env, state_buf, NULL, (void **) &state, &state_size, &state_view);
   assert(err == 0);
-  assert(state_size == sizeof(crypto_generichash_state));
 
   js_typedarray_view_t *buf_view;
   void *buf_data;
@@ -684,18 +697,19 @@ sn_typed_crypto_generichash_update (js_value_t *receiver, js_value_t *state_buf,
   err = js_get_typedarray_view(env, buf, NULL, &buf_data, &buf_size, &buf_view);
   assert(err == 0);
 
-  int res = crypto_generichash_update(state, buf_data, buf_size);
+  int res = -1;
 
+  SN_THROWS_GOTO_ERROR(state_size != sizeof(crypto_generichash_state), "state must be 'crypto_generichash_STATEBYTES' bytes")
+
+  res = crypto_generichash_update(state, buf_data, buf_size);
+  SN_THROWS_GOTO_ERROR(res != 0, "update failed")
+
+error:
   err = js_release_typedarray_view(env, state_view);
   assert(err == 0);
 
   err = js_release_typedarray_view(env, buf_view);
   assert(err == 0);
-
-  if (res != 0) {
-    err = js_throw_error(env, NULL, "generichash_update failed");
-    assert(err == 0);
-  }
 }
 
 js_value_t *
@@ -723,7 +737,6 @@ sn_typed_crypto_generichash_final (js_value_t *receiver, js_value_t *state_buf, 
   js_typedarray_view_t *state_view;
   err = js_get_typedarray_view(env, state_buf, NULL, (void **) &state, &state_size, &state_view);
   assert(err == 0);
-  assert(state_size == sizeof(crypto_generichash_state));
 
   void *out_data;
   size_t out_size;
@@ -731,7 +744,12 @@ sn_typed_crypto_generichash_final (js_value_t *receiver, js_value_t *state_buf, 
   err = js_get_typedarray_view(env, out, NULL, &out_data, &out_size, &out_view);
   assert(err == 0);
 
+  SN_THROWS_GOTO_ERROR(state_size != sizeof(crypto_generichash_state), "state must be 'crypto_generichash_STATEBYTES' bytes")
+
   int res = crypto_generichash_final(state, out_data, out_size);
+  SN_THROWS_GOTO_ERROR(res != 0, "digest failed")
+
+error:
 
   err = js_release_typedarray_view(env, out_view);
   assert(err == 0);
@@ -739,10 +757,6 @@ sn_typed_crypto_generichash_final (js_value_t *receiver, js_value_t *state_buf, 
   err = js_release_typedarray_view(env, state_view);
   assert(err == 0);
 
-  if (res != 0) {
-    err = js_throw_error(env, NULL, "digest failed");
-    assert(err == 0);
-  }
 }
 
 js_value_t *
@@ -907,12 +921,17 @@ bool sn_typed_crypto_box_seal_open (js_value_t *receiver, js_value_t *m, js_valu
   err = js_get_typedarray_view(env, sk, NULL, &sk_data, &sk_size, &sk_view);
   assert(err == 0);
 
-  // TODO: throw error and release views; (SN_THROWS returns without release)
-  // SN_THROWS(c_size != m_size + crypto_box_SEALBYTES, "c must be 'm.byteLength + crypto_box_SEALBYTES' bytes")
-  // SN_ASSERT_LENGTH(pk_size, crypto_box_PUBLICKEYBYTES, "pk")
+  int res = -1;
 
-  int res = crypto_box_seal_open(m_data, c_data, c_size, pk_data, sk_data);
+  SN_THROWS_GOTO_ERROR(m_size != c_size - crypto_box_SEALBYTES, "m must be 'c.byteLength - crypto_box_SEALBYTES' bytes")
+  SN_THROWS_GOTO_ERROR(c_size < crypto_box_SEALBYTES, "c" " must be at least crypto_box_SEALBYTES bytes long")
+  SN_THROWS_GOTO_ERROR(sk_size != crypto_box_SECRETKEYBYTES, "sk" " must be crypto_box_SECRETKEYBYTES bytes long")
+  SN_THROWS_GOTO_ERROR(pk_size != crypto_box_PUBLICKEYBYTES, "pk" " must be crypto_box_PUBLICKEYBYTES bytes long")
 
+  res = crypto_box_seal_open(m_data, c_data, c_size, pk_data, sk_data);
+  SN_THROWS_GOTO_ERROR(res != 0, "digest failed")
+
+error:
   err = js_release_typedarray_view(env, m_view);
   assert(err == 0);
   err = js_release_typedarray_view(env, c_view);
@@ -2354,6 +2373,7 @@ sn_crypto_pwhash_async (js_env_t *env, js_callback_info_t *info) {
   SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_MEMLIMIT_MIN, "memlimit")
   SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_MEMLIMIT_MAX, "memlimit")
   SN_THROWS(alg < 1 || alg > 2, "alg must be either Argon2i 1.3 or Argon2id 1.3")
+  SN_ASSERT_OPT_CALLBACK(6)
 
   sn_async_pwhash_request *req = (sn_async_pwhash_request *) malloc(sizeof(sn_async_pwhash_request));
 
@@ -2370,9 +2390,12 @@ sn_crypto_pwhash_async (js_env_t *env, js_callback_info_t *info) {
   sn_async_task_t *task = (sn_async_task_t *) malloc(sizeof(sn_async_task_t));
   SN_ASYNC_TASK(6)
 
-  SN_STATUS_THROWS(js_create_reference(env, out_argv, 1, &req->out_ref), "")
-  SN_STATUS_THROWS(js_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
-  SN_STATUS_THROWS(js_create_reference(env, salt_argv, 1, &req->salt_ref), "")
+  err = js_create_reference(env, out_argv, 1, &req->out_ref);
+  assert(err == 0);
+  err = js_create_reference(env, pwd_argv, 1, &req->pwd_ref);
+  assert(err == 0);
+  err = js_create_reference(env, salt_argv, 1, &req->salt_ref);
+  assert(err == 0);
 
   SN_QUEUE_TASK(task, async_pwhash_execute, async_pwhash_complete)
 
@@ -2441,6 +2464,7 @@ sn_crypto_pwhash_str_async (js_env_t *env, js_callback_info_t *info) {
   SN_ASSERT_MAX_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MAX, "opslimit")
   SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_MEMLIMIT_MIN, "memlimit")
   SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_MEMLIMIT_MAX, "memlimit")
+  SN_ASSERT_OPT_CALLBACK(4)
 
   sn_async_pwhash_str_request *req = (sn_async_pwhash_str_request *) malloc(sizeof(sn_async_pwhash_str_request));
   req->env = env;
@@ -2453,8 +2477,10 @@ sn_crypto_pwhash_str_async (js_env_t *env, js_callback_info_t *info) {
   sn_async_task_t *task = (sn_async_task_t *) malloc(sizeof(sn_async_task_t));
   SN_ASYNC_TASK(4)
 
-  SN_STATUS_THROWS(js_create_reference(env, out_argv, 1, &req->out_ref), "")
-  SN_STATUS_THROWS(js_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
+  err = js_create_reference(env, out_argv, 1, &req->out_ref);
+  assert(err == 0);
+  err = js_create_reference(env, pwd_argv, 1, &req->pwd_ref);
+  assert(err == 0);
 
   SN_QUEUE_TASK(task, async_pwhash_str_execute, async_pwhash_str_complete)
 
@@ -2539,6 +2565,7 @@ sn_crypto_pwhash_str_verify_async (js_env_t *env, js_callback_info_t *info) {
   SN_ARGV_BUFFER_CAST(char *, pwd, 1)
 
   SN_ASSERT_LENGTH(str_size, crypto_pwhash_STRBYTES, "str")
+  SN_ASSERT_OPT_CALLBACK(2)
 
   sn_async_pwhash_str_verify_request *req = (sn_async_pwhash_str_verify_request *) malloc(sizeof(sn_async_pwhash_str_verify_request));
   req->env = env;
@@ -2549,8 +2576,10 @@ sn_crypto_pwhash_str_verify_async (js_env_t *env, js_callback_info_t *info) {
   sn_async_task_t *task = (sn_async_task_t *) malloc(sizeof(sn_async_task_t));
   SN_ASYNC_TASK(2)
 
-  SN_STATUS_THROWS(js_create_reference(env, str_argv, 1, &req->str_ref), "")
-  SN_STATUS_THROWS(js_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
+  err = js_create_reference(env, str_argv, 1, &req->str_ref);
+  assert(err == 0);
+  err = js_create_reference(env, pwd_argv, 1, &req->pwd_ref);
+  assert(err == 0);
 
   SN_QUEUE_TASK(task, async_pwhash_str_verify_execute, async_pwhash_str_verify_complete)
 
@@ -2630,6 +2659,7 @@ sn_crypto_pwhash_scryptsalsa208sha256_async (js_env_t *env, js_callback_info_t *
   SN_ASSERT_MAX_LENGTH(opslimit, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, "opslimit")
   SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, "memlimit")
   SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, "memlimit")
+  SN_ASSERT_OPT_CALLBACK(5)
 
   sn_async_pwhash_scryptsalsa208sha256_request *req = (sn_async_pwhash_scryptsalsa208sha256_request *) malloc(sizeof(sn_async_pwhash_scryptsalsa208sha256_request));
   req->env = env;
@@ -2644,9 +2674,12 @@ sn_crypto_pwhash_scryptsalsa208sha256_async (js_env_t *env, js_callback_info_t *
   sn_async_task_t *task = (sn_async_task_t *) malloc(sizeof(sn_async_task_t));
   SN_ASYNC_TASK(5)
 
-  SN_STATUS_THROWS(js_create_reference(env, out_argv, 1, &req->out_ref), "")
-  SN_STATUS_THROWS(js_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
-  SN_STATUS_THROWS(js_create_reference(env, salt_argv, 1, &req->salt_ref), "")
+  err = js_create_reference(env, out_argv, 1, &req->out_ref);
+  assert(err == 0);
+  err = js_create_reference(env, pwd_argv, 1, &req->pwd_ref);
+  assert(err == 0);
+  err = js_create_reference(env, salt_argv, 1, &req->salt_ref);
+  assert(err == 0);
 
   SN_QUEUE_TASK(task, async_pwhash_scryptsalsa208sha256_execute, async_pwhash_scryptsalsa208sha256_complete)
 
@@ -2716,6 +2749,7 @@ sn_crypto_pwhash_scryptsalsa208sha256_str_async (js_env_t *env, js_callback_info
   SN_ASSERT_MAX_LENGTH(opslimit, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, "opslimit")
   SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, "memlimit")
   SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, "memlimit")
+  SN_ASSERT_OPT_CALLBACK(4)
 
   sn_async_pwhash_scryptsalsa208sha256_str_request *req = (sn_async_pwhash_scryptsalsa208sha256_str_request *) malloc(sizeof(sn_async_pwhash_scryptsalsa208sha256_str_request));
   req->env = env;
@@ -2726,10 +2760,13 @@ sn_crypto_pwhash_scryptsalsa208sha256_str_async (js_env_t *env, js_callback_info
   req->memlimit = memlimit;
 
   sn_async_task_t *task = (sn_async_task_t *) malloc(sizeof(sn_async_task_t));
+
   SN_ASYNC_TASK(4)
 
-  SN_STATUS_THROWS(js_create_reference(env, out_argv, 1, &req->out_ref), "")
-  SN_STATUS_THROWS(js_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
+  err = js_create_reference(env, out_argv, 1, &req->out_ref);
+  assert(err == 0);
+  err = js_create_reference(env, pwd_argv, 1, &req->pwd_ref);
+  assert(err == 0);
 
   SN_QUEUE_TASK(task, async_pwhash_scryptsalsa208sha256_str_execute, async_pwhash_scryptsalsa208sha256_str_complete)
 
@@ -2815,6 +2852,7 @@ sn_crypto_pwhash_scryptsalsa208sha256_str_verify_async (js_env_t *env, js_callba
   SN_ARGV_BUFFER_CAST(char *, pwd, 1)
 
   SN_ASSERT_LENGTH(str_size, crypto_pwhash_scryptsalsa208sha256_STRBYTES, "str")
+  SN_ASSERT_OPT_CALLBACK(2)
 
   sn_async_pwhash_scryptsalsa208sha256_str_verify_request *req = (sn_async_pwhash_scryptsalsa208sha256_str_verify_request *) malloc(sizeof(sn_async_pwhash_scryptsalsa208sha256_str_verify_request));
   req->env = env;
@@ -2825,8 +2863,10 @@ sn_crypto_pwhash_scryptsalsa208sha256_str_verify_async (js_env_t *env, js_callba
   sn_async_task_t *task = (sn_async_task_t *) malloc(sizeof(sn_async_task_t));
   SN_ASYNC_TASK(2)
 
-  SN_STATUS_THROWS(js_create_reference(env, str_argv, 1, &req->str_ref), "")
-  SN_STATUS_THROWS(js_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
+  err = js_create_reference(env, str_argv, 1, &req->str_ref);
+  assert(err == 0);
+  err = js_create_reference(env, pwd_argv, 1, &req->pwd_ref);
+  assert(err == 0);
 
   SN_QUEUE_TASK(task, async_pwhash_scryptsalsa208sha256_str_verify_execute, async_pwhash_scryptsalsa208sha256_str_verify_complete)
 
@@ -3534,6 +3574,7 @@ sn_extension_pbkdf2_sha512_async (js_env_t *env, js_callback_info_t *info) {
   SN_ASSERT_MIN_LENGTH(iter, sn__extension_pbkdf2_sha512_ITERATIONS_MIN, "iterations")
   SN_ASSERT_MAX_LENGTH(outlen, sn__extension_pbkdf2_sha512_BYTES_MAX, "outlen")
   SN_ASSERT_MIN_LENGTH(out_size, outlen, "output")
+  SN_ASSERT_OPT_CALLBACK(5)
 
   sn_async_pbkdf2_sha512_request *req = (sn_async_pbkdf2_sha512_request *) malloc(sizeof(sn_async_pbkdf2_sha512_request));
 
@@ -3550,9 +3591,12 @@ sn_extension_pbkdf2_sha512_async (js_env_t *env, js_callback_info_t *info) {
   sn_async_task_t *task = (sn_async_task_t *) malloc(sizeof(sn_async_task_t));
   SN_ASYNC_TASK(5);
 
-  SN_STATUS_THROWS(js_create_reference(env, out_argv, 1, &req->out_ref), "")
-  SN_STATUS_THROWS(js_create_reference(env, pwd_argv, 1, &req->pwd_ref), "")
-  SN_STATUS_THROWS(js_create_reference(env, salt_argv, 1, &req->salt_ref), "")
+  err = js_create_reference(env, out_argv, 1, &req->out_ref);
+  assert(err == 0);
+  err = js_create_reference(env, pwd_argv, 1, &req->pwd_ref);
+  assert(err == 0);
+  err = js_create_reference(env, salt_argv, 1, &req->salt_ref);
+  assert(err == 0);
 
   SN_QUEUE_TASK(task, async_pbkdf2_sha512_execute, async_pbkdf2_sha512_complete)
 

@@ -19,6 +19,13 @@
     return NULL; \
   }
 
+#define SN_THROWS_GOTO_ERROR(condition, message) \
+  if ((condition)) { \
+    err = js_throw_error(env, NULL, message); \
+    assert(err == 0); \
+    goto error; \
+  }
+
 #define SN_BUFFER_CAST(type, name, val) \
   type name; \
   size_t name##_size; \
@@ -45,13 +52,20 @@
 #define SN_ASSERT_MIN_LENGTH(length, constant, name) \
   SN_THROWS(length < constant, #name " must be at least " #constant " bytes long")
 
+#define SN_ASSERT_MIN_LENGTH_GOTO(length, constant, name) \
+  SN_THROWS_GOTO_ERROR(length < constant, #name " must be at least " #constant " bytes long")
 
 #define SN_ASSERT_MAX_LENGTH(length, constant, name) \
   SN_THROWS(length > constant, #name " must be at most " #constant " bytes long")
 
+#define SN_ASSERT_MAX_LENGTH_GOTO(length, constant, name) \
+  SN_THROWS_GOTO_ERROR(length > constant, #name " must be at most " #constant " bytes long")
 
 #define SN_ASSERT_LENGTH(length, constant, name) \
   SN_THROWS(length != constant, #name " must be " #constant " bytes long")
+
+#define SN_ASSERT_LENGTH_GOTO(length, constant, name) \
+  SN_THROWS_GOTO_ERROR(length != constant, #name " must be " #constant " bytes long")
 
 #define SN_RANGE_THROWS(condition, message) \
   if (condition) { \
@@ -59,6 +73,19 @@
     assert(err == 0); \
     return NULL; \
   }
+
+#define SN_ASSERT_OPT_CALLBACK(argn) \
+  if (argc > argn) { \
+    js_value_type_t type; \
+    err = js_typeof(env, argv[argn], &type); \
+    assert(err == 0); \
+    if (type != js_function) { \
+      err = js_throw_error(env, "EINVAL", "Callback must be a function"); \
+      assert(err == 0); \
+      return NULL; \
+    } \
+  }
+
 
 #define SN_ARGV(n, method_name) \
   int err; \
@@ -204,7 +231,8 @@
     return NULL; \
   } \
   if (name##_i64 < 0) { \
-    js_throw_error(env, "EINVAL", "Expected positive number"); \
+    err = js_throw_error(env, "EINVAL", "Expected positive number"); \
+    assert(err == 0); \
     return NULL; \
   } \
   uint64_t name = (uint64_t) name##_i64;
@@ -283,7 +311,8 @@
 
 #define SN_ASYNC_CHECK_FOR_ERROR(message) \
   if (req->n == 0) { \
-    js_get_null(req->env, &argv[0]); \
+    err = js_get_null(req->env, &argv[0]); \
+    assert(err == 0); \
   } else { \
     js_value_t *err_msg; \
     err = js_create_string_utf8(req->env, (const utf8_t *) #message, SN_LIT_LENGTH(message), &err_msg); \
@@ -294,7 +323,8 @@
 
 #define SN_CALLBACK_CHECK_FOR_ERROR(message) \
   if (task->code == 0) { \
-    js_get_null(req->env, &argv[0]); \
+    err = js_get_null(req->env, &argv[0]); \
+    assert(err == 0); \
   } else { \
     js_value_t *err_msg; \
     err = js_create_string_utf8(req->env, (const utf8_t *) #message, SN_LIT_LENGTH(message), &err_msg); \
@@ -318,25 +348,18 @@
   assert(err == 0); \
 
 #define SN_ASYNC_TASK(cb_pos) \
-  task->req = (void *) req; \
-  js_value_t *promise; \
-  if (argc > cb_pos) { \
-    task->type = sn_async_task_callback; \
-    promise = NULL; \
-    js_value_t *cb = argv[cb_pos]; \
-    js_value_type_t type; \
-    SN_STATUS_THROWS(js_typeof(env, cb, &type), "") \
-    if (type != js_function) { \
-      err = js_throw_error(env, "EINVAL", "Callback must be a function"); \
+    task->req = (void *) req; \
+    js_value_t *promise; \
+    if (argc > cb_pos) { \
+      task->type = sn_async_task_callback; \
+      promise = NULL; \
+      err = js_create_reference(env, argv[cb_pos], 1, &task->cb); \
       assert(err == 0); \
-      return NULL; \
-    } \
-    SN_STATUS_THROWS(js_create_reference(env, cb, 1, &task->cb), "") \
-  } else { \
-    task->type = sn_async_task_promise; \
-    err = js_create_promise(env, &task->deferred, &promise); \
-    assert(err == 0); \
-  }
+    } else { \
+      task->type = sn_async_task_promise; \
+      err = js_create_promise(env, &task->deferred, &promise); \
+      assert(err == 0); \
+    }
 
 #define SN_ASYNC_COMPLETE(message) \
   js_value_t *argv[1]; \
