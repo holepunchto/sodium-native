@@ -2,6 +2,9 @@
 
 ## Current
 
+## v4.3.2
+* Update builds to fix msvc dependency.
+
 ## v4.3.1
 * Use cmake-fetch for fetching source on demand
 
