@@ -34,6 +34,9 @@
       "/test/fixtures/*.js"
     ]
   },
+  "engines": {
+    "bare": ">=1.14.0"
+  },
   "repository": {
     "type": "git",
     "url": "https://github.com/holepunchto/sodium-native.git"
