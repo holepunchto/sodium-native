@@ -35,7 +35,7 @@
     ]
   },
   "engines": {
-    "bare": ">=1.14.0"
+    "bare": ">=1.16.0"
   },
   "repository": {
     "type": "git",
