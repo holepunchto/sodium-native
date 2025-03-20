@@ -922,7 +922,6 @@ bool sn_typed_crypto_box_seal_open (js_value_t *receiver, js_value_t *m, js_valu
   SN_THROWS_GOTO_ERROR(pk_size != crypto_box_PUBLICKEYBYTES, "pk" " must be crypto_box_PUBLICKEYBYTES bytes long")
 
   res = crypto_box_seal_open(m_data, c_data, c_size, pk_data, sk_data);
-  SN_THROWS_GOTO_ERROR(res != 0, "digest failed")
 
 error:
   err = js_release_typedarray_view(env, m_view);

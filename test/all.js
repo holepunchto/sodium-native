@@ -36,6 +36,7 @@ async function runTests () {
   await import('./padding.js')
   await import('./randombytes.js')
   await import('./vectors.js')
+  await import('./fastcalls.js')
 
   test.resume()
 }
