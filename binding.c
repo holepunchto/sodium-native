@@ -1036,6 +1036,72 @@ sn_crypto_stream(js_env_t *env, js_callback_info_t *info) {
   SN_RETURN(crypto_stream(c_data, c_size, n_data, k_data), "stream encryption failed")
 }
 
+void
+sn_typed_crypto_stream_xor (js_value_t *receiver, js_value_t *c, js_value_t *m, js_value_t *n, js_value_t *k, js_typed_callback_info_t *info) {
+  int err;
+  js_env_t *env;
+  err = js_get_typed_callback_info(info, &env, NULL);
+  assert(err == 0);
+
+  void *c_data;
+  size_t c_size;
+  js_typedarray_view_t *c_view;
+  err = js_get_typedarray_view(env, c, NULL, &c_data, &c_size, &c_view);
+  assert(err == 0);
+
+  bool inplace_encryption;
+  err = js_strict_equals(env, c, m, &inplace_encryption);
+  assert(err == 0);
+
+  void *m_data;
+  size_t m_size;
+  js_typedarray_view_t *m_view = NULL;
+
+  if (inplace_encryption) {
+    m_data = c_data;
+    m_size = c_size;
+  } else {
+    err = js_get_typedarray_view(env, m, NULL, &m_data, &m_size, &m_view);
+    assert(err == 0);
+  }
+
+  void *n_data;
+  size_t n_size;
+  js_typedarray_view_t *n_view;
+  err = js_get_typedarray_view(env, n, NULL, &n_data, &n_size, &n_view);
+  assert(err == 0);
+
+  void *k_data;
+  size_t k_size;
+  js_typedarray_view_t *k_view;
+  err = js_get_typedarray_view(env, k, NULL, &k_data, &k_size, &k_view);
+  assert(err == 0);
+
+  SN_THROWS_GOTO_ERROR(c_size != m_size, "m must be 'c.byteLength' bytes")
+  SN_THROWS_GOTO_ERROR(n_size != crypto_stream_NONCEBYTES, "n must be crypto_stream_chacha20_NONCEBYTES bytes long")
+  SN_THROWS_GOTO_ERROR(k_size != crypto_stream_KEYBYTES, "k must be crypto_stream_chacha20_KEYBYTES bytes long")
+
+  int success = crypto_stream_chacha20_xor(c_data, m_data, m_size, n_data, k_data);
+
+  SN_THROWS_GOTO_ERROR(success != 0, "stream encryption failed")
+
+error:
+
+  err = js_release_typedarray_view(env, c_view);
+  assert(err == 0);
+
+  if (!inplace_encryption) {
+    err = js_release_typedarray_view(env, m_view);
+    assert(err == 0);
+  }
+
+  err = js_release_typedarray_view(env, n_view);
+  assert(err == 0);
+
+  err = js_release_typedarray_view(env, k_view);
+  assert(err == 0);
+}
+
 js_value_t *
 sn_crypto_stream_xor(js_env_t *env, js_callback_info_t *info) {
   SN_ARGV(4, crypto_stream_xor)
@@ -3954,7 +4020,16 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   SN_EXPORT_UINT32(crypto_stream_NONCEBYTES, crypto_stream_NONCEBYTES)
   SN_EXPORT_STRING(crypto_stream_PRIMITIVE, crypto_stream_PRIMITIVE)
 
-  SN_EXPORT_FUNCTION(crypto_stream_xor, sn_crypto_stream_xor)
+  SN_EXPORT_TYPED_FUNCTION("crypto_stream_xor",
+    sn_crypto_stream_xor,
+    &((js_callback_signature_t) {
+      .version = 0,
+      .args_len = 5,
+      .args = (int[]) { js_object, js_object, js_object, js_object, js_object },
+      .result = js_undefined
+    }),
+    sn_typed_crypto_stream_xor
+  )
   SN_EXPORT_FUNCTION(crypto_stream_xor_init, sn_crypto_stream_xor_wrap_init)
   SN_EXPORT_FUNCTION(crypto_stream_xor_update, sn_crypto_stream_xor_wrap_update)
   SN_EXPORT_FUNCTION(crypto_stream_xor_final, sn_crypto_stream_xor_wrap_final)

@@ -8,7 +8,8 @@ let N = {
   verify_calls: 2e6,
   unseal_calls: 4e5,
   hash_batch_len: 4096,
-  hash_batch_calls: 1e5
+  hash_batch_calls: 1e5,
+  stream_xor_calls: 2e6
 }
 
 /* CI call counts */
@@ -96,4 +97,29 @@ test('bench: crypto_generichash_batch', { skip: !isBare }, t => {
 
   const ms = Date.now() - start
   t.comment('ms', ms)
+})
+
+test.solo('bench: crypto_stream_xor', { skip: !isBare }, t => {
+  const message = Buffer.alloc(4096).fill(0xaa)
+  const nonce = random(sodium.crypto_stream_NONCEBYTES)
+  const key = random(sodium.crypto_stream_KEYBYTES)
+
+  const start = Date.now()
+
+  for (let i = 0; i < N.stream_xor_calls; i++) {
+    sodium.crypto_stream_xor(message, message, nonce, key)
+    if (message[0] === 0xaa) throw new Error('encryption failed')
+
+    sodium.crypto_stream_xor(message, message, nonce, key)
+    if (message[0] !== 0xaa) throw new Error('decryption failed')
+  }
+
+  const ms = Date.now() - start
+  t.comment('ms', ms)
+
+  function random (n) {
+    const buf = Buffer.alloc(n)
+    sodium.randombytes_buf(buf)
+    return buf
+  }
 })
