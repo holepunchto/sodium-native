@@ -1,3 +1,5 @@
+#define SN__FASTCALLS_ENABLED 1
+
 #define SN_STATUS_THROWS(call, message) \
   if ((call) != 0) { \
     err = js_throw_error(env, NULL, message); \
@@ -121,7 +123,7 @@
 #define SN_EXPORT_TYPED_FUNCTION(name, untyped, signature, typed) \
   { \
     js_value_t *val; \
-    if (signature) { \
+    if (signature && SN__FASTCALLS_ENABLED) { \
       err = js_create_typed_function(env, name, -1, untyped, signature, typed, NULL, &val); \
       assert(err == 0); \
     } else { \
@@ -395,3 +397,10 @@
     break; \
   } \
   }
+
+#define SN_TYPEDARRAY_VIEW(var) \
+  void *var##_data; \
+  size_t var##_size; \
+  js_typedarray_view_t *var##_view; \
+  err = js_get_typedarray_view(env, var, NULL, &var##_data, &var##_size, &var##_view); \
+  assert(err == 0);

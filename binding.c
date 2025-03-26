@@ -393,23 +393,9 @@ sn_typed_crypto_sign_verify_detached (js_value_t *receiver, js_value_t *sig, js_
   err = js_get_typed_callback_info(info, &env, NULL);
   assert(err == 0);
 
-  void *sig_data;
-  size_t sig_size;
-  js_typedarray_view_t *sig_view;
-  err = js_get_typedarray_view(env, sig, NULL, &sig_data, &sig_size, &sig_view);
-  assert(err == 0);
-
-  void *m_data;
-  size_t m_size;
-  js_typedarray_view_t *m_view;
-  err = js_get_typedarray_view(env, m, NULL, &m_data, &m_size, &m_view);
-  assert(err == 0);
-
-  void *pk_data;
-  size_t pk_size;
-  js_typedarray_view_t *pk_view;
-  err = js_get_typedarray_view(env, pk, NULL, &pk_data, &pk_size, &pk_view);
-  assert(err == 0);
+  SN_TYPEDARRAY_VIEW(sig)
+  SN_TYPEDARRAY_VIEW(m)
+  SN_TYPEDARRAY_VIEW(pk)
 
   int res = -1;
 
@@ -490,26 +476,15 @@ sn_typed_crypto_generichash (js_value_t *receiver, js_value_t *out, js_value_t *
   err = js_get_typed_callback_info(info, &env, NULL);
   assert(err == 0);
 
-  void *out_data;
-  size_t out_size;
-  js_typedarray_view_t *out_view;
-  err = js_get_typedarray_view(env, out, NULL, &out_data, &out_size, &out_view);
-  assert(err == 0);
-
-  void *in_data;
-  size_t in_size;
-  js_typedarray_view_t *in_view;
-  err = js_get_typedarray_view(env, in, NULL, &in_data, &in_size, &in_view);
-  assert(err == 0);
-
-  void *key_data = NULL;
-  size_t key_size = 0;
-  js_typedarray_view_t *key_view;
-
-  int res = -1;
+  SN_TYPEDARRAY_VIEW(out);
+  SN_TYPEDARRAY_VIEW(in);
 
   SN_ASSERT_MIN_LENGTH_GOTO(out_size, crypto_generichash_BYTES_MIN, "out")
   SN_ASSERT_MAX_LENGTH_GOTO(out_size, crypto_generichash_BYTES_MAX, "out")
+
+  void *key_data = NULL;
+  size_t key_size = 0;
+  js_typedarray_view_t *key_view = NULL;
 
   if (use_key) {
     err = js_get_typedarray_view(env, key, NULL, &key_data, &key_size, &key_view);
@@ -518,7 +493,7 @@ sn_typed_crypto_generichash (js_value_t *receiver, js_value_t *out, js_value_t *
     SN_ASSERT_MAX_LENGTH_GOTO(key_size, crypto_generichash_KEYBYTES_MAX, "key")
   }
 
-  res = crypto_generichash(out_data, out_size, in_data, in_size, key_data, key_size);
+  int res = crypto_generichash(out_data, out_size, in_data, in_size, key_data, key_size);
   SN_THROWS_GOTO_ERROR(res != 0, "hash failed");
 
 error:
@@ -642,18 +617,16 @@ sn_typed_crypto_generichash_init (js_value_t *receiver, js_value_t *state_buf, b
     assert(err == 0);
   }
 
-  int res = crypto_generichash_init(state, key_data, key_size, out_size);
+  int success = crypto_generichash_init(state, key_data, key_size, out_size);
 
+  SN_THROWS_GOTO_ERROR(success != 0, "generichash_init failed")
+
+error:
   err = js_release_typedarray_view(env, state_view);
   assert(err == 0);
 
   if (use_key) {
     err = js_release_typedarray_view(env, key_view);
-    assert(err == 0);
-  }
-
-  if (res != 0) {
-    err = js_throw_error(env, NULL, "generichash_init failed");
     assert(err == 0);
   }
 }
@@ -684,18 +657,12 @@ sn_typed_crypto_generichash_update (js_value_t *receiver, js_value_t *state_buf,
   err = js_get_typedarray_view(env, state_buf, NULL, (void **) &state, &state_size, &state_view);
   assert(err == 0);
 
-  js_typedarray_view_t *buf_view;
-  void *buf_data;
-  size_t buf_size;
-  err = js_get_typedarray_view(env, buf, NULL, &buf_data, &buf_size, &buf_view);
-  assert(err == 0);
-
-  int res = -1;
+  SN_TYPEDARRAY_VIEW(buf);
 
   SN_THROWS_GOTO_ERROR(state_size != sizeof(crypto_generichash_state), "state must be 'crypto_generichash_STATEBYTES' bytes")
 
-  res = crypto_generichash_update(state, buf_data, buf_size);
-  SN_THROWS_GOTO_ERROR(res != 0, "update failed")
+  int success = crypto_generichash_update(state, buf_data, buf_size);
+  SN_THROWS_GOTO_ERROR(success != 0, "update failed")
 
 error:
   err = js_release_typedarray_view(env, state_view);
@@ -731,16 +698,12 @@ sn_typed_crypto_generichash_final (js_value_t *receiver, js_value_t *state_buf, 
   err = js_get_typedarray_view(env, state_buf, NULL, (void **) &state, &state_size, &state_view);
   assert(err == 0);
 
-  void *out_data;
-  size_t out_size;
-  js_typedarray_view_t *out_view;
-  err = js_get_typedarray_view(env, out, NULL, &out_data, &out_size, &out_view);
-  assert(err == 0);
+  SN_TYPEDARRAY_VIEW(out);
 
   SN_THROWS_GOTO_ERROR(state_size != sizeof(crypto_generichash_state), "state must be 'crypto_generichash_STATEBYTES' bytes")
 
-  int res = crypto_generichash_final(state, out_data, out_size);
-  SN_THROWS_GOTO_ERROR(res != 0, "digest failed")
+  int success = crypto_generichash_final(state, out_data, out_size);
+  SN_THROWS_GOTO_ERROR(success != 0, "digest failed")
 
 error:
 
@@ -749,7 +712,6 @@ error:
 
   err = js_release_typedarray_view(env, state_view);
   assert(err == 0);
-
 }
 
 js_value_t *
@@ -890,38 +852,19 @@ bool sn_typed_crypto_box_seal_open (js_value_t *receiver, js_value_t *m, js_valu
   err = js_get_typed_callback_info(info, &env, NULL);
   assert(err == 0);
 
-  void *m_data;
-  size_t m_size;
-  js_typedarray_view_t *m_view;
-  err = js_get_typedarray_view(env, m, NULL, &m_data, &m_size, &m_view);
-  assert(err == 0);
+  SN_TYPEDARRAY_VIEW(m)
+  SN_TYPEDARRAY_VIEW(c)
+  SN_TYPEDARRAY_VIEW(pk)
+  SN_TYPEDARRAY_VIEW(sk)
 
-  void *c_data;
-  size_t c_size;
-  js_typedarray_view_t *c_view;
-  err = js_get_typedarray_view(env, c, NULL, &c_data, &c_size, &c_view);
-  assert(err == 0);
-
-  void *pk_data;
-  size_t pk_size;
-  js_typedarray_view_t *pk_view;
-  err = js_get_typedarray_view(env, pk, NULL, &pk_data, &pk_size, &pk_view);
-  assert(err == 0);
-
-  void *sk_data;
-  size_t sk_size;
-  js_typedarray_view_t *sk_view;
-  err = js_get_typedarray_view(env, sk, NULL, &sk_data, &sk_size, &sk_view);
-  assert(err == 0);
-
-  int res = -1;
+  int success = -1;
 
   SN_THROWS_GOTO_ERROR(m_size != c_size - crypto_box_SEALBYTES, "m must be 'c.byteLength - crypto_box_SEALBYTES' bytes")
   SN_THROWS_GOTO_ERROR(c_size < crypto_box_SEALBYTES, "c" " must be at least crypto_box_SEALBYTES bytes long")
   SN_THROWS_GOTO_ERROR(sk_size != crypto_box_SECRETKEYBYTES, "sk" " must be crypto_box_SECRETKEYBYTES bytes long")
   SN_THROWS_GOTO_ERROR(pk_size != crypto_box_PUBLICKEYBYTES, "pk" " must be crypto_box_PUBLICKEYBYTES bytes long")
 
-  res = crypto_box_seal_open(m_data, c_data, c_size, pk_data, sk_data);
+  success = crypto_box_seal_open(m_data, c_data, c_size, pk_data, sk_data);
 
 error:
   err = js_release_typedarray_view(env, m_view);
@@ -933,7 +876,7 @@ error:
   err = js_release_typedarray_view(env, sk_view);
   assert(err == 0);
 
-  return res == 0;
+  return success == 0;
 }
 
 js_value_t *
@@ -1043,11 +986,7 @@ sn_typed_crypto_stream_xor (js_value_t *receiver, js_value_t *c, js_value_t *m, 
   err = js_get_typed_callback_info(info, &env, NULL);
   assert(err == 0);
 
-  void *c_data;
-  size_t c_size;
-  js_typedarray_view_t *c_view;
-  err = js_get_typedarray_view(env, c, NULL, &c_data, &c_size, &c_view);
-  assert(err == 0);
+  SN_TYPEDARRAY_VIEW(c)
 
   bool inplace_encryption;
   err = js_strict_equals(env, c, m, &inplace_encryption);
@@ -1065,23 +1004,14 @@ sn_typed_crypto_stream_xor (js_value_t *receiver, js_value_t *c, js_value_t *m, 
     assert(err == 0);
   }
 
-  void *n_data;
-  size_t n_size;
-  js_typedarray_view_t *n_view;
-  err = js_get_typedarray_view(env, n, NULL, &n_data, &n_size, &n_view);
-  assert(err == 0);
-
-  void *k_data;
-  size_t k_size;
-  js_typedarray_view_t *k_view;
-  err = js_get_typedarray_view(env, k, NULL, &k_data, &k_size, &k_view);
-  assert(err == 0);
+  SN_TYPEDARRAY_VIEW(n)
+  SN_TYPEDARRAY_VIEW(k)
 
   SN_THROWS_GOTO_ERROR(c_size != m_size, "m must be 'c.byteLength' bytes")
   SN_THROWS_GOTO_ERROR(n_size != crypto_stream_NONCEBYTES, "n must be crypto_stream_chacha20_NONCEBYTES bytes long")
   SN_THROWS_GOTO_ERROR(k_size != crypto_stream_KEYBYTES, "k must be crypto_stream_chacha20_KEYBYTES bytes long")
 
-  int success = crypto_stream_chacha20_xor(c_data, m_data, m_size, n_data, k_data);
+  int success = crypto_stream_xor(c_data, m_data, m_size, n_data, k_data);
 
   SN_THROWS_GOTO_ERROR(success != 0, "stream encryption failed")
 
