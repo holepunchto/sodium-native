@@ -166,7 +166,8 @@
   void *name##_data = NULL; \
   size_t name##_size = 0; \
   SN_STATUS_THROWS(js_typeof(env, argv[index], &name##_valuetype), "") \
-  if (name##_valuetype != js_null && name##_valuetype != js_undefined) { \
+  bool use_##name = (name##_valuetype != js_null && name##_valuetype != js_undefined); \
+  if (use_##name) { \
     js_value_t *name##_argv = argv[index]; \
     SN_TYPEDARRAY_ASSERT(name, name##_argv, #name " must be an instance of TypedArray") \
     SN_OPT_TYPEDARRAY(name, name##_argv) \
@@ -404,3 +405,34 @@
   js_typedarray_view_t *var##_view; \
   err = js_get_typedarray_view(env, var, NULL, &var##_data, &var##_size, &var##_view); \
   assert(err == 0);
+
+#define SN_TYPEDARRAY_VIEW_OPT(var) \
+  void *var##_data = NULL; \
+  size_t var##_size = 0; \
+  js_typedarray_view_t *var##_view = NULL; \
+  \
+  bool use_##var = 0; \
+  { \
+    js_value_type_t var##_valuetype; \
+    err = js_typeof(env, var, &var##_valuetype); \
+    assert(err == 0); \
+    use_##var = (var##_valuetype != js_null && var##_valuetype != js_undefined); \
+  } \
+  \
+  if (use_##var) { \
+    err = js_get_typedarray_view(env, var, NULL, &var##_data, &var##_size, &var##_view); \
+    assert(err == 0); \
+  }
+
+#define SN_BUFFER_CAST(type, name, val) \
+  type name; \
+  size_t name##_size; \
+  SN_STATUS_THROWS(js_get_typedarray_info(env, val, NULL, (void **) &name, &name##_size, NULL, NULL), "")
+
+#define SN_TYPEDARRAY_VIEW_CAST(type, name, var) \
+  type *name; \
+  size_t name##_size; \
+  js_typedarray_view_t *name##_view; \
+  err = js_get_typedarray_view(env, var, NULL, (void **) &name, &name##_size, &name##_view); \
+  assert(err == 0); \
+  assert(name##_size == sizeof(type));
