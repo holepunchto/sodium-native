@@ -415,7 +415,7 @@
 
 #define SN_TYPEDARRAY_VIEW_OPT(var) \
   void *var##_data = NULL; \
-  size_t var##_size; \
+  size_t var##_size = 0; \
   size_t var##_length; \
   js_typedarray_type_t var##_type; \
   js_typedarray_view_t *var##_view = NULL; \
