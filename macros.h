@@ -401,14 +401,23 @@
 
 #define SN_TYPEDARRAY_VIEW(var) \
   void *var##_data; \
-  size_t var##_size; \
+  size_t var##_length; \
+  js_typedarray_type_t var##_type; \
   js_typedarray_view_t *var##_view; \
-  err = js_get_typedarray_view(env, var, NULL, &var##_data, &var##_size, &var##_view); \
-  assert(err == 0);
+  \
+  err = js_get_typedarray_view(env, var, &var##_type, &var##_data, &var##_length, &var##_view); \
+  assert(err == 0); \
+  \
+  uint8_t var##_width = typedarray_width(var##_type); \
+  assert(var##_width != 0 && "Unexpected TypedArray type"); \
+  \
+  size_t var##_size = var##_length * var##_width;
 
 #define SN_TYPEDARRAY_VIEW_OPT(var) \
   void *var##_data = NULL; \
-  size_t var##_size = 0; \
+  size_t var##_size; \
+  size_t var##_length; \
+  js_typedarray_type_t var##_type; \
   js_typedarray_view_t *var##_view = NULL; \
   \
   bool use_##var = 0; \
@@ -420,8 +429,13 @@
   } \
   \
   if (use_##var) { \
-    err = js_get_typedarray_view(env, var, NULL, &var##_data, &var##_size, &var##_view); \
+    err = js_get_typedarray_view(env, var, &var##_type, &var##_data, &var##_length, &var##_view); \
     assert(err == 0); \
+    \
+    uint8_t var##_width = typedarray_width(var##_type); \
+    assert(var##_width != 0 && "Unexpected TypedArray type"); \
+    \
+    var##_size = var##_length * var##_width; \
   }
 
 #define SN_BUFFER_CAST(type, name, val) \
@@ -431,8 +445,15 @@
 
 #define SN_TYPEDARRAY_VIEW_CAST(type, name, var) \
   type *name; \
-  size_t name##_size; \
+  size_t name##_length; \
+  js_typedarray_type_t name##_type; \
   js_typedarray_view_t *name##_view; \
-  err = js_get_typedarray_view(env, var, NULL, (void **) &name, &name##_size, &name##_view); \
+  \
+  err = js_get_typedarray_view(env, var, &name##_type, (void **) &name, &name##_length, &name##_view); \
   assert(err == 0); \
+  \
+  uint8_t name##_width = typedarray_width(name##_type); \
+  assert(name##_width != 0 && "Unexpected TypedArray type"); \
+  \
+  size_t name##_size = name##_length * name##_width; \
   assert(name##_size == sizeof(type));

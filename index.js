@@ -3,7 +3,7 @@ const { isNode } = require('which-runtime')
 
 module.exports = binding
 
-module.exports.sodium_malloc = size => {
+module.exports.sodium_malloc = function (size) {
   const buf = Buffer.from(binding._sodium_malloc(size))
   buf.secure = true
   return buf
