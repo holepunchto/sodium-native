@@ -39,11 +39,11 @@ test('crypto_secretbox_easy overwrite buffer', function (t) {
   const nonce = Buffer.alloc(sodium.crypto_secretbox_NONCEBYTES)
   sodium.randombytes_buf(nonce)
 
-  sodium.crypto_secretbox_easy(output, output.slice(sodium.crypto_secretbox_MACBYTES), nonce, key)
+  sodium.crypto_secretbox_easy(output, output.subarray(sodium.crypto_secretbox_MACBYTES), nonce, key)
   t.not(output, Buffer.alloc(output.length))
 
-  t.ok(sodium.crypto_secretbox_open_easy(output.slice(sodium.crypto_secretbox_MACBYTES), output, nonce, key), 'could decrypt')
-  t.alike(output.slice(sodium.crypto_secretbox_MACBYTES), Buffer.from('Hej, Verden!'), 'decrypted message is correct')
+  t.ok(sodium.crypto_secretbox_open_easy(output.subarray(sodium.crypto_secretbox_MACBYTES), output, nonce, key), 'could decrypt')
+  t.alike(output.subarray(sodium.crypto_secretbox_MACBYTES), Buffer.from('Hej, Verden!'), 'decrypted message is correct')
 })
 
 test('crypto_secretbox_detached', function (t) {

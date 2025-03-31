@@ -7,11 +7,11 @@ test('sodium_pad / sodium_unpad', function (t) {
     const blocksize = 1 + sodium.randombytes_uniform(100)
     const binPaddedMaxlen = binLen + (blocksize - (binLen % blocksize))
     const bingPaddedLong = Buffer.alloc(binPaddedMaxlen + 1)
-    const binPaddedLen = bingPaddedLong.slice(0, binPaddedMaxlen)
+    const binPaddedLen = bingPaddedLong.subarray(0, binPaddedMaxlen)
     sodium.randombytes_buf(binPaddedLen)
 
     const smallThrow = didThrow(function () {
-      sodium.sodium_pad(binPaddedLen.slice(0, binPaddedMaxlen - 1), binLen, blocksize)
+      sodium.sodium_pad(binPaddedLen.subarray(0, binPaddedMaxlen - 1), binLen, blocksize)
     })
     if (smallThrow === false) t.fail('did not throw')
 

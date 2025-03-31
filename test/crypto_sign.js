@@ -64,7 +64,7 @@ test('crypto_sign', function (t) {
 
   sodium.crypto_sign(signedMessage, message, sk)
 
-  t.alike(signedMessage.slice(-message.length), message, 'contains message')
+  t.alike(signedMessage.subarray(-message.length), message, 'contains message')
 
   const output = Buffer.alloc(message.length)
 

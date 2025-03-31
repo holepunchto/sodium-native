@@ -7,7 +7,7 @@ test('sodium_memcmp', function (t) {
 
   t.exception.all(_ => sodium.sodium_memcmp(), 'no args')
   t.exception.all(_ => sodium.sodium_memcmp(b1), 'arg mismatch')
-  t.exception.all(_ => sodium.sodium_memcmp(b1, b2.slice(1)), 'length mismatch')
+  t.exception.all(_ => sodium.sodium_memcmp(b1, b2.subarray(1)), 'length mismatch')
   t.ok(sodium.sodium_memcmp(Buffer.alloc(0), Buffer.alloc(0)))
   t.ok(sodium.sodium_memcmp(Buffer.alloc(5), Buffer.alloc(5)))
   t.ok(sodium.sodium_memcmp(b1, b1))

@@ -52,7 +52,7 @@ test('crypto_secretstream', function (t) {
   t.unlike(header.toString('hex'), '000000000000000000000000000000000000000000000000')
   ret = sodium.crypto_secretstream_xchacha20poly1305_push(state, c1, m1, null, sodium.crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
   t.alike(ret, m1.length + sodium.crypto_secretstream_xchacha20poly1305_ABYTES)
-  ret = sodium.crypto_secretstream_xchacha20poly1305_push(state, c2, m2, ad.slice(0, 0), sodium.crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
+  ret = sodium.crypto_secretstream_xchacha20poly1305_push(state, c2, m2, ad.subarray(0, 0), sodium.crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
   t.alike(ret, m2.length + sodium.crypto_secretstream_xchacha20poly1305_ABYTES)
   ret = sodium.crypto_secretstream_xchacha20poly1305_push(state, c3, m3, ad, sodium.crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
   t.alike(ret, m3.length + sodium.crypto_secretstream_xchacha20poly1305_ABYTES)
@@ -103,11 +103,11 @@ test('crypto_secretstream', function (t) {
   }, 'previous with without tag')
 
   t.exception.all(function () {
-    sodium.crypto_secretstream_xchacha20poly1305_pull(state, m2, tag, c2.slice(0, Math.random() * sodium.crypto_secretstream_xchacha20poly1305_ABYTES | 0), null) // fixme
+    sodium.crypto_secretstream_xchacha20poly1305_pull(state, m2, tag, c2.subarray(0, Math.random() * sodium.crypto_secretstream_xchacha20poly1305_ABYTES | 0), null) // fixme
   }, 'short ciphertext')
 
   t.exception.all(function () {
-    sodium.crypto_secretstream_xchacha20poly1305_pull(state, m2, tag, c2.slice(0, sodium.crypto_secretstream_xchacha20poly1305_ABYTES), null)
+    sodium.crypto_secretstream_xchacha20poly1305_pull(state, m2, tag, c2.subarray(0, sodium.crypto_secretstream_xchacha20poly1305_ABYTES), null)
   }, 'empty ciphertext')
 
   /* without explicit rekeying */

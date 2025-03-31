@@ -2,6 +2,15 @@
 
 ## Current
 
+## V5.0.0
+
+* Changed native from `napi` to `libjs`
+* Fixed bug: no more double `close_handle_scope()`
+* Add asserts to all returns codes
+* Fix `SN_ASYNC_TASK` memleak
+* Moved deprecated `Buffer.slice()` calls to `Buffer.subarray()` in `test/*`
+* Optimized performance of most common calls
+
 ## v4.3.2
 * Update builds to fix msvc dependency.
 

@@ -13,9 +13,11 @@
   ],
   "addon": true,
   "dependencies": {
-    "require-addon": "^1.1.0"
+    "require-addon": "^1.1.0",
+    "which-runtime": "^1.2.1"
   },
   "devDependencies": {
+    "bare-compat-napi": "^1.3.0",
     "brittle": "^3.5.0",
     "cmake-bare": "^1.1.10",
     "cmake-fetch": "^1.0.1",
@@ -23,12 +25,17 @@
     "standard": "^17.1.0"
   },
   "scripts": {
-    "test": "standard && brittle test/*.js"
+    "test": "standard && npm run test:node && npm run test:bare",
+    "test:node": "node test/all.js",
+    "test:bare": "bare test/all.js"
   },
   "standard": {
     "ignore": [
       "/test/fixtures/*.js"
     ]
+  },
+  "engines": {
+    "bare": ">=1.16.0"
   },
   "repository": {
     "type": "git",
