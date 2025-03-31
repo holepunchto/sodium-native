@@ -490,7 +490,7 @@ sn_typed_crypto_generichash (
 
   SN_TYPEDARRAY_VIEW(out);
   SN_TYPEDARRAY_VIEW(in);
-  SN_TYPEDARRAY_VIEW_OPT(key);
+  SN_OPT_TYPEDARRAY_VIEW(key);
 
   int success = -1;
 
@@ -610,7 +610,7 @@ sn_typed_crypto_generichash_init (
   assert(err == 0);
 
   SN_TYPEDARRAY_VIEW_CAST(crypto_generichash_state, state, state_buf);
-  SN_TYPEDARRAY_VIEW_OPT(key);
+  SN_OPT_TYPEDARRAY_VIEW(key);
 
   int success = crypto_generichash_init(state, key_data, key_size, out_size);
 
@@ -2226,7 +2226,7 @@ sn_typed_crypto_secretstream_xchacha20poly1305_push (
   SN_TYPEDARRAY_VIEW_CAST(crypto_secretstream_xchacha20poly1305_state, state, state_buf);
   SN_TYPEDARRAY_VIEW(c)
   SN_TYPEDARRAY_VIEW(m)
-  SN_TYPEDARRAY_VIEW_OPT(ad);
+  SN_OPT_TYPEDARRAY_VIEW(ad);
 
   unsigned long long clen = 0;
 
@@ -2312,7 +2312,7 @@ sn_typed_crypto_secretstream_xchacha20poly1305_pull (
   SN_TYPEDARRAY_VIEW(m)
   SN_TYPEDARRAY_VIEW(tag)
   SN_TYPEDARRAY_VIEW(c)
-  SN_TYPEDARRAY_VIEW_OPT(ad)
+  SN_OPT_TYPEDARRAY_VIEW(ad)
 
   unsigned long long mlen = 0;
 

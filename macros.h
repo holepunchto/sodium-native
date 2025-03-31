@@ -413,7 +413,7 @@
   \
   size_t var##_size = var##_length * var##_width;
 
-#define SN_TYPEDARRAY_VIEW_OPT(var) \
+#define SN_OPT_TYPEDARRAY_VIEW(var) \
   void *var##_data = NULL; \
   size_t var##_size = 0; \
   size_t var##_length; \
