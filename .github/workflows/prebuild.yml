@@ -6,10 +6,10 @@ jobs:
     strategy:
       matrix:
         include:
-        - os: ubuntu-20.04
+        - os: ubuntu-22.04
           platform: linux
           arch: x64
-        - os: ubuntu-22.04-arm64
+        - os: ubuntu-22.04-arm
           platform: linux
           arch: arm64
         - os: ubuntu-22.04
