@@ -6,6 +6,7 @@
   "files": [
     "index.js",
     "binding.c",
+    "binding.js",
     "macros.h",
     "extensions",
     "prebuilds",
