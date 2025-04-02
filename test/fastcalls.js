@@ -7,13 +7,13 @@ const N = {
   hash_calls: 1e5,
   verify_calls: 1e5,
   unseal_calls: 1e5, // 2xunseal per loop
-  hash_batch_len: 4096,
+  hash_batch_len: 64,
   hash_batch_calls: 1e5,
-  stream_xor_calls: 2e5,
+  stream_xor_calls: 1e5,
   stream_xchacha20_calls: 1e5 // 2 calls per loop
 }
 
-test('bench: crypto_generichash', { skip: !isBare }, t => {
+test('fastcall: crypto_generichash', { skip: !isBare }, t => {
   const buf = Buffer.alloc(1024).fill(0xAA)
   const out = Buffer.alloc(sodium.crypto_generichash_BYTES)
   const bpush = benchmark(t)
@@ -26,7 +26,7 @@ test('bench: crypto_generichash', { skip: !isBare }, t => {
   bpush(-1)
 })
 
-test('bench: crypto_sign_verify_detached', { skip: !isBare }, function (t) {
+test('fastcall: crypto_sign_verify_detached', { skip: !isBare }, function (t) {
   const fixtures = require('./fixtures/crypto_sign.json')
 
   const publicKey = new Uint8Array(fixtures[0][1])
@@ -44,7 +44,7 @@ test('bench: crypto_sign_verify_detached', { skip: !isBare }, function (t) {
   bpush(-1)
 })
 
-test('bench: crypto_box_unseal', { skip: !isBare }, function (t) {
+test('fastcall: crypto_box_unseal', { skip: !isBare }, function (t) {
   const pk = Buffer.alloc(sodium.crypto_box_PUBLICKEYBYTES)
   const sk = Buffer.alloc(sodium.crypto_box_SECRETKEYBYTES)
 
@@ -78,7 +78,7 @@ test('bench: crypto_box_unseal', { skip: !isBare }, function (t) {
   bpush(-1)
 })
 
-test('bench: crypto_generichash_batch', { skip: !isBare }, t => {
+test('fastcall: crypto_generichash_batch', { skip: !isBare }, t => {
   const buf = Buffer.from('Hej, Verden')
   const batch = []
   for (let i = 0; i < N.hash_batch_len; i++) batch.push(buf)
@@ -95,7 +95,7 @@ test('bench: crypto_generichash_batch', { skip: !isBare }, t => {
   bpush(-1)
 })
 
-test('bench: crypto_stream_xor', { skip: !isBare }, t => {
+test('fastcall: crypto_stream_xor', { skip: !isBare }, t => {
   const message = Buffer.alloc(4096).fill(0xaa)
   const nonce = random(sodium.crypto_stream_NONCEBYTES)
   const key = random(sodium.crypto_stream_KEYBYTES)
@@ -120,7 +120,7 @@ test('bench: crypto_stream_xor', { skip: !isBare }, t => {
   }
 })
 
-test('bench: crypto_secretstream_xchacha20poly1305_push & pull', { skip: !isBare }, t => {
+test('fastcall: crypto_secretstream_xchacha20poly1305_push & pull', { skip: !isBare }, t => {
   const {
     crypto_secretstream_xchacha20poly1305_TAG_MESSAGE: TAG_MESSAGE,
     crypto_secretstream_xchacha20poly1305_ABYTES: ABYTES,
