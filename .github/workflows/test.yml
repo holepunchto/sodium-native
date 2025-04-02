@@ -27,7 +27,7 @@ jobs:
     - uses: actions/setup-node@v4
       with:
         node-version: lts/*
-    - run: snap install zig --classic --beta
+    - run: sudo snap install zig --classic --beta
       if: ${{ matrix.platform == 'linux' }}
     - run: brew install zig
       if: ${{ matrix.platform == 'darwin' }}
