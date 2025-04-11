@@ -1,5 +1,3 @@
-#define SN__FASTCALLS_ENABLED 1
-
 #define SN_STATUS_THROWS(call, message) \
   if ((call) != 0) { \
     err = js_throw_error(env, NULL, message); \
@@ -19,13 +17,6 @@
     err = js_throw_error(env, NULL, message); \
     assert(err == 0); \
     return NULL; \
-  }
-
-#define SN_THROWS_GOTO_ERROR(condition, message) \
-  if ((condition)) { \
-    err = js_throw_error(env, NULL, message); \
-    assert(err == 0); \
-    goto error; \
   }
 
 #define SN_BUFFER_CAST(type, name, val) \
@@ -54,20 +45,11 @@
 #define SN_ASSERT_MIN_LENGTH(length, constant, name) \
   SN_THROWS(length < constant, #name " must be at least " #constant " bytes long")
 
-#define SN_ASSERT_MIN_LENGTH_GOTO(length, constant, name) \
-  SN_THROWS_GOTO_ERROR(length < constant, #name " must be at least " #constant " bytes long")
-
 #define SN_ASSERT_MAX_LENGTH(length, constant, name) \
   SN_THROWS(length > constant, #name " must be at most " #constant " bytes long")
 
-#define SN_ASSERT_MAX_LENGTH_GOTO(length, constant, name) \
-  SN_THROWS_GOTO_ERROR(length > constant, #name " must be at most " #constant " bytes long")
-
 #define SN_ASSERT_LENGTH(length, constant, name) \
   SN_THROWS(length != constant, #name " must be " #constant " bytes long")
-
-#define SN_ASSERT_LENGTH_GOTO(length, constant, name) \
-  SN_THROWS_GOTO_ERROR(length != constant, #name " must be " #constant " bytes long")
 
 #define SN_RANGE_THROWS(condition, message) \
   if (condition) { \
@@ -120,20 +102,6 @@
     SN_STATUS_THROWS(js_set_named_property(env, exports, #name, name##_fn), "") \
   }
 
-#define SN_EXPORT_TYPED_FUNCTION(name, untyped, signature, typed) \
-  { \
-    js_value_t *val; \
-    if (signature && SN__FASTCALLS_ENABLED) { \
-      err = js_create_typed_function(env, name, -1, untyped, signature, typed, NULL, &val); \
-      assert(err == 0); \
-    } else { \
-      err = js_create_function(env, name, -1, untyped, NULL, &val); \
-      assert(err == 0); \
-    } \
-    err = js_set_named_property(env, exports, name, val); \
-    assert(err == 0); \
-  }
-
 #define SN_EXPORT_UINT32(name, num) \
   { \
     js_value_t *name##_num; \
@@ -163,7 +131,7 @@
 
 #define SN_ARGV_OPTS_TYPEDARRAY(name, index) \
   js_value_type_t name##_valuetype; \
-  void *name##_data = NULL; \
+  uint8_t *name##_data = NULL; \
   size_t name##_size = 0; \
   SN_STATUS_THROWS(js_typeof(env, argv[index], &name##_valuetype), "") \
   bool use_##name = (name##_valuetype != js_null && name##_valuetype != js_undefined); \
@@ -176,8 +144,8 @@
 #define SN_TYPEDARRAY(name, var) \
   js_typedarray_type_t name##_type; \
   size_t name##_length; \
-  void *name##_data = NULL; \
-  err = js_get_typedarray_info(env, (var), &name##_type, &name##_data, &name##_length, NULL, NULL); \
+  uint8_t *name##_data = NULL; \
+  err = js_get_typedarray_info(env, (var), &name##_type, (void **) &name##_data, &name##_length, NULL, NULL); \
   assert(err == 0); \
   uint8_t name##_width = typedarray_width(name##_type); \
   SN_THROWS(name##_width == 0, "Unexpected TypedArray type") \
@@ -195,7 +163,7 @@
 #define SN_OPT_TYPEDARRAY(name, var) \
   js_typedarray_type_t name##_type; \
   size_t name##_length; \
-  err = js_get_typedarray_info(env, (var), &name##_type, &name##_data, &name##_length, NULL, NULL); \
+  err = js_get_typedarray_info(env, (var), &name##_type, (void **) &name##_data, &name##_length, NULL, NULL); \
   assert(err == 0); \
   uint8_t name##_width = typedarray_width(name##_type); \
   SN_THROWS(name##_width == 0, "Unexpected TypedArray type") \
@@ -354,12 +322,12 @@
     task->req = (void *) req; \
     js_value_t *promise; \
     if (argc > cb_pos) { \
-      task->type = sn_async_task_callback; \
+      task->type = sn_async_task_t::sn_async_task_callback; \
       promise = NULL; \
       err = js_create_reference(env, argv[cb_pos], 1, &task->cb); \
       assert(err == 0); \
     } else { \
-      task->type = sn_async_task_promise; \
+      task->type = sn_async_task_t::sn_async_task_promise; \
       err = js_create_promise(env, &task->deferred, &promise); \
       assert(err == 0); \
     }
@@ -367,7 +335,7 @@
 #define SN_ASYNC_COMPLETE(message) \
   js_value_t *argv[1]; \
   switch (task->type) { \
-  case sn_async_task_promise: { \
+    case sn_async_task_t::sn_async_task_promise: { \
     if (task->code == 0) { \
       err = js_get_null(req->env, &argv[0]); \
       assert(err == 0); \
@@ -386,7 +354,7 @@
     task->deferred = NULL; \
     break; \
   } \
-  case sn_async_task_callback: { \
+  case sn_async_task_t::sn_async_task_callback: { \
     SN_CALLBACK_CHECK_FOR_ERROR(#message) \
     js_value_t *callback; \
     err = js_get_reference_value(req->env, task->cb, &callback); \
@@ -399,61 +367,60 @@
   } \
   }
 
-#define SN_TYPEDARRAY_VIEW(var) \
-  void *var##_data; \
-  size_t var##_length; \
-  js_typedarray_type_t var##_type; \
-  js_typedarray_view_t *var##_view; \
-  \
-  err = js_get_typedarray_view(env, var, &var##_type, &var##_data, &var##_length, &var##_view); \
-  assert(err == 0); \
-  \
-  uint8_t var##_width = typedarray_width(var##_type); \
-  assert(var##_width != 0 && "Unexpected TypedArray type"); \
-  \
-  size_t var##_size = var##_length * var##_width;
-
-#define SN_OPT_TYPEDARRAY_VIEW(var) \
-  void *var##_data = NULL; \
-  size_t var##_size = 0; \
-  size_t var##_length; \
-  js_typedarray_type_t var##_type; \
-  js_typedarray_view_t *var##_view = NULL; \
-  \
-  bool use_##var = 0; \
-  { \
-    js_value_type_t var##_valuetype; \
-    err = js_typeof(env, var, &var##_valuetype); \
-    assert(err == 0); \
-    use_##var = (var##_valuetype != js_null && var##_valuetype != js_undefined); \
-  } \
-  \
-  if (use_##var) { \
-    err = js_get_typedarray_view(env, var, &var##_type, &var##_data, &var##_length, &var##_view); \
-    assert(err == 0); \
-    \
-    uint8_t var##_width = typedarray_width(var##_type); \
-    assert(var##_width != 0 && "Unexpected TypedArray type"); \
-    \
-    var##_size = var##_length * var##_width; \
-  }
-
 #define SN_BUFFER_CAST(type, name, val) \
   type name; \
   size_t name##_size; \
   SN_STATUS_THROWS(js_get_typedarray_info(env, val, NULL, (void **) &name, &name##_size, NULL, NULL), "")
 
-#define SN_TYPEDARRAY_VIEW_CAST(type, name, var) \
-  type *name; \
-  size_t name##_length; \
-  js_typedarray_type_t name##_type; \
-  js_typedarray_view_t *name##_view; \
-  \
-  err = js_get_typedarray_view(env, var, &name##_type, (void **) &name, &name##_length, &name##_view); \
-  assert(err == 0); \
-  \
-  uint8_t name##_width = typedarray_width(name##_type); \
-  assert(name##_width != 0 && "Unexpected TypedArray type"); \
-  \
-  size_t name##_size = name##_length * name##_width; \
-  assert(name##_size == sizeof(type));
+// fastcall macros
+
+#define SN_THROW_IF(condition, message, ...) \
+  if (condition) { \
+    int err = js_throw_error(env, NULL, message); \
+    assert(err == 0); \
+    return __VA_ARGS__; \
+  }
+
+#define SN_THROW_LENGTH_MIN(typedarray, constant, ...) \
+  SN_THROW_IF(typedarray##_len < constant, #typedarray " must be at least " #constant " bytes long" __VA_OPT__(,) __VA_ARGS__)
+
+#define SN_THROW_LENGTH_MAX(typedarray, constant, ...) \
+  SN_THROW_IF(typedarray##_len > constant, #typedarray " must be at most " #constant " bytes long" __VA_OPT__(,) __VA_ARGS__)
+
+#define SN_THROW_LENGTH(typedarray, constant, ...) \
+  SN_THROW_IF(typedarray##_len != constant, #typedarray " byteLength must equal " #constant  __VA_OPT__(,) __VA_ARGS__)
+
+#define SN_THROW_BOUNDS(typedarray, prefix, ...) \
+  SN_THROW_LENGTH_MIN(typedarray, prefix##_MIN __VA_OPT__(,) __VA_ARGS__) \
+  SN_THROW_LENGTH_MAX(typedarray, prefix##_MAX __VA_OPT__(,) __VA_ARGS__)
+
+#define SN_UINT8ARRAY(name) \
+  uint8_t *name##_data = NULL; \
+  size_t name##_len = 0; \
+  { \
+    int err = js_get_typedarray_info(env, name, name##_data, name##_len); \
+    assert(err == 0); \
+  }
+#define SN_UINT8ARRAY_OPT(name) \
+  /* bool have_##name = false; */ \
+  uint8_t *name##_data = NULL; \
+  size_t name##_len = 0; \
+  { \
+    bool undefined = true; \
+    int err = js_is_undefined(env, name, &undefined); \
+    assert(err == 0); \
+    if (!undefined) { \
+      err = js_get_typedarray_info(env, name, name##_data, name##_len); \
+      assert(err == 0); \
+      /* have_##name = true; */ \
+    } \
+  }
+
+#define SN_UINT8ARRAY_CAST(type, name, typedarray, ...) \
+  type *name = NULL; \
+  size_t name##_len = 0; \
+  { \
+    int err = js_get_typedarray_info(env, typedarray, reinterpret_cast<uint8_t *&>(name), name##_len); \
+    assert(err == 0); \
+    SN_THROW_LENGTH(name, sizeof(type) __VA_OPT__(,) __VA_ARGS__); \
+  }

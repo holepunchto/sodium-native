@@ -2,15 +2,16 @@ const test = require('brittle')
 const sodium = require('..')
 const { isBare } = require('which-runtime')
 
+const _e = 1e2
 /* call counts */
 const N = {
-  hash_calls: 1e5,
-  verify_calls: 1e5,
-  unseal_calls: 1e5, // 2xunseal per loop
+  hash_calls: 1 * _e,
+  verify_calls: 1 * _e,
+  unseal_calls: 1 * _e, // 2xunseal per loop
   hash_batch_len: 64,
-  hash_batch_calls: 1e5,
-  stream_xor_calls: 1e5,
-  stream_xchacha20_calls: 1e5 // 2 calls per loop
+  hash_batch_calls: 1 * _e,
+  stream_xor_calls: 1 * _e,
+  stream_xchacha20_calls: 1 * _e // 2 calls per loop
 }
 
 test('fastcall: crypto_generichash', { skip: !isBare }, t => {

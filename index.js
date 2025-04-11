@@ -14,15 +14,7 @@ module.exports.crypto_generichash = function (output, input, key = undefined) {
 }
 
 module.exports.crypto_generichash_init = function (state, key, outputLength) {
-  if (state.byteLength !== binding.crypto_generichash_STATEBYTES) throw new Error("state must be 'crypto_generichash_STATEBYTES' bytes")
-
   key ||= undefined
-
-  if (key) {
-    if (key.byteLength < binding.crypto_generichash_KEYBYTES_MIN) throw new Error("key must be atleast 'crypto_generichash_KEYBYTES_MIN' bytes")
-    if (key.byteLength > binding.crypto_generichash_KEYBYTES_MAX) throw new Error("key must be at most 'crypto_generichash_KEYBYTES_MAX' bytes")
-  }
-
   return module.exports._crypto_generichash_init(state, key, outputLength)
 }
 
