@@ -7,9 +7,10 @@ find_package(cmake-npm REQUIRED PATHS node_modules/cmake-npm)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-project(sodium_native C ASM)
+project(sodium_native C ASM CXX)
 
 fetch_package("github:jedisct1/libsodium#stable" SOURCE_DIR sodium)
+fetch_package("github:holepunchto/libjstl")
 
 bare_target(target)
 
@@ -207,6 +208,38 @@ if(target MATCHES "linux|android")
   )
 endif()
 
+add_library(typedcalls OBJECT)
+target_sources(
+  typedcalls
+  PRIVATE
+    typedcalls.cc
+    typedcalls.h
+    ${CMAKE_BUILD_DIR}
+)
+
+target_link_libraries(
+  typedcalls
+  PRIVATE
+  # js_shared
+    jstl
+    $<TARGET_OBJECTS:sodium>
+  PUBLIC
+    sodium
+)
+
+target_include_directories(
+  typedcalls
+  PRIVATE
+  "${CMAKE_BINARY_DIR}/_bare/node_modules/bare-headers/include/" # FIXME
+)
+
+set_target_properties(
+  typedcalls
+  PROPERTIES
+  C_STANDARD 11
+  CXX_STANDARD 20
+)
+
 add_bare_module(sodium_native_bare)
 
 target_sources(
@@ -214,6 +247,7 @@ target_sources(
   PRIVATE
     binding.c
     macros.h
+    typedcalls.h
     extensions/tweak/tweak.c
     extensions/tweak/tweak.h
     extensions/pbkdf2/pbkdf2.c
@@ -223,6 +257,7 @@ target_sources(
 target_link_libraries(
   ${sodium_native_bare}
   PRIVATE
+    typedcalls
     $<TARGET_OBJECTS:sodium>
   PUBLIC
     sodium
@@ -235,6 +270,7 @@ target_sources(
   PRIVATE
     binding.c
     macros.h
+    typedcalls.h
     extensions/tweak/tweak.c
     extensions/tweak/tweak.h
     extensions/pbkdf2/pbkdf2.c
@@ -244,6 +280,7 @@ target_sources(
 target_link_libraries(
   ${sodium_native_node}
   PRIVATE
+    typedcalls
     $<TARGET_OBJECTS:sodium>
   PUBLIC
     sodium

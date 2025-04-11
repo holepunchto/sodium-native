@@ -9,6 +9,7 @@
 #include "macros.h"
 #include "extensions/tweak/tweak.h"
 #include "extensions/pbkdf2/pbkdf2.h"
+#include "typedcalls.h"
 
 static uint8_t typedarray_width (js_typedarray_type_t type) {
   switch (type) {
@@ -4167,6 +4168,8 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   SN_EXPORT_UINT32(extension_pbkdf2_sha512_HASHBYTES, sn__extension_pbkdf2_sha512_HASHBYTES)
   SN_EXPORT_UINT32(extension_pbkdf2_sha512_ITERATIONS_MIN, sn__extension_pbkdf2_sha512_ITERATIONS_MIN)
   SN_EXPORT_UINT64(extension_pbkdf2_sha512_BYTES_MAX, sn__extension_pbkdf2_sha512_BYTES_MAX)
+
+  register_typed_callbacks(env, exports);
 
   return exports;
 }
