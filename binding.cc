@@ -8,6 +8,7 @@
 #include <string.h>
 #include <sodium.h>
 #include "macros.h"
+#include "helpers.h"
 #include "extensions/tweak/tweak.h"
 #include "extensions/pbkdf2/pbkdf2.h"
 
@@ -530,8 +531,9 @@ sn_crypto_generichash_init (
   js_typedarray_t<uint8_t> key,
   uint32_t out_len
 ) {
-  SN_UINT8ARRAY_CAST(crypto_generichash_state, state, state_buf);
-  SN_UINT8ARRAY_OPT(key);
+  auto state = SN_U8(state_buf, 0).cast<crypto_generichash_state>();
+  auto [ key_data, key_len ] = SN_U8(key, 0).unwrap();
+  // SN_UINT8ARRAY_OPT(key);
 
   if (key_len) {
     SN_THROW_LENGTH_MIN(key, crypto_generichash_KEYBYTES_MIN)
@@ -3530,26 +3532,12 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   SN_EXPORT_STRING(crypto_kx_PRIMITIVE, crypto_kx_PRIMITIVE)
 
   // crypto_generichash
-  js_typedarray_t<uint8_t> e;
-  SN_EXPORT_TYPED_FUNCTION2("_crypto_generichash",
-    sn_crypto_generichash,
-    void,
-    js_receiver_t,
-    js_typedarray_t<uint8_t>,
-    js_typedarray_t<uint8_t>,
-    js_typedarray_t<uint8_t>
-  )
+  sn_function_t<sn_crypto_generichash>().export_named(env, exports, "_crypto_generichash");
 
   SN_EXPORT_FUNCTION(_crypto_generichash_batch, sn_crypto_generichash_batch)
   SN_EXPORT_FUNCTION(crypto_generichash_keygen, sn_crypto_generichash_keygen)
-  SN_EXPORT_TYPED_FUNCTION2("_crypto_generichash_init",
-    sn_crypto_generichash_init,
-    void,
-    js_receiver_t,
-    js_typedarray_t<uint8_t>,
-    js_typedarray_t<uint8_t>,
-    uint32_t
-  )
+
+  sn_function_t<sn_crypto_generichash_init>().export_named(env, exports, "_crypto_generichash_init");
 
   SN_EXPORT_TYPED_FUNCTION2("crypto_generichash_update",
     sn_crypto_generichash_update,

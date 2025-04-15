@@ -10,7 +10,8 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 project(sodium_native C ASM CXX)
 
 fetch_package("github:jedisct1/libsodium#stable" SOURCE_DIR sodium)
-fetch_package("github:holepunchto/libjstl")
+# fetch_package("github:holepunchto/libjstl")
+fetch_package("github:telamon/libjstl")
 
 bare_target(target)
 
@@ -214,6 +215,7 @@ target_sources(
   ${sodium_native_bare}
   PRIVATE
     binding.cc
+    helpers.h
     macros.h
     extensions/tweak/tweak.c
     extensions/tweak/tweak.h
@@ -243,6 +245,7 @@ target_sources(
   ${sodium_native_node}
   PRIVATE
     binding.cc
+    helpers.h
     macros.h
     extensions/tweak/tweak.c
     extensions/tweak/tweak.h
