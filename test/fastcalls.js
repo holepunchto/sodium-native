@@ -1,6 +1,5 @@
 const test = require('brittle')
 const sodium = require('..')
-const { isBare } = require('which-runtime')
 
 const _e = 1e2
 /* call counts */
@@ -14,7 +13,7 @@ const N = {
   stream_xchacha20_calls: 1 * _e // 2 calls per loop
 }
 
-test('fastcall: crypto_generichash', { skip: !isBare }, t => {
+test('fastcall: crypto_generichash', t => {
   const buf = Buffer.alloc(1024).fill(0xAA)
   const out = Buffer.alloc(sodium.crypto_generichash_BYTES)
   const bpush = benchmark(t)
@@ -27,7 +26,7 @@ test('fastcall: crypto_generichash', { skip: !isBare }, t => {
   bpush(-1)
 })
 
-test('fastcall: crypto_sign_verify_detached', { skip: !isBare }, function (t) {
+test('fastcall: crypto_sign_verify_detached', function (t) {
   const fixtures = require('./fixtures/crypto_sign.json')
 
   const publicKey = new Uint8Array(fixtures[0][1])
@@ -45,7 +44,7 @@ test('fastcall: crypto_sign_verify_detached', { skip: !isBare }, function (t) {
   bpush(-1)
 })
 
-test('fastcall: crypto_box_unseal', { skip: !isBare }, function (t) {
+test('fastcall: crypto_box_unseal', function (t) {
   const pk = Buffer.alloc(sodium.crypto_box_PUBLICKEYBYTES)
   const sk = Buffer.alloc(sodium.crypto_box_SECRETKEYBYTES)
 
@@ -79,7 +78,7 @@ test('fastcall: crypto_box_unseal', { skip: !isBare }, function (t) {
   bpush(-1)
 })
 
-test('fastcall: crypto_generichash_batch', { skip: !isBare }, t => {
+test('fastcall: crypto_generichash_batch', t => {
   const buf = Buffer.from('Hej, Verden')
   const batch = []
   for (let i = 0; i < N.hash_batch_len; i++) batch.push(buf)
@@ -96,7 +95,7 @@ test('fastcall: crypto_generichash_batch', { skip: !isBare }, t => {
   bpush(-1)
 })
 
-test('fastcall: crypto_stream_xor', { skip: !isBare }, t => {
+test('fastcall: crypto_stream_xor', t => {
   const message = Buffer.alloc(4096).fill(0xaa)
   const nonce = random(sodium.crypto_stream_NONCEBYTES)
   const key = random(sodium.crypto_stream_KEYBYTES)
@@ -121,7 +120,7 @@ test('fastcall: crypto_stream_xor', { skip: !isBare }, t => {
   }
 })
 
-test('fastcall: crypto_secretstream_xchacha20poly1305_push & pull', { skip: !isBare }, t => {
+test('fastcall: crypto_secretstream_xchacha20poly1305_push & pull', t => {
   const {
     crypto_secretstream_xchacha20poly1305_TAG_MESSAGE: TAG_MESSAGE,
     crypto_secretstream_xchacha20poly1305_ABYTES: ABYTES,
