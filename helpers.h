@@ -24,7 +24,9 @@ struct sn_function_t<impl> {
 
 struct sn_error_t {
   std::string message;
-  explicit sn_error_t (const std::string &msg);
+
+  inline sn_error_t (const std::string &msg)
+    : message(msg) { };
 
   inline void
   rethrow_js (js_env_t *env) const {
@@ -47,7 +49,7 @@ struct sn_argument_t {
 
   bool present = false;
 
-  sn_argument_t
+  inline sn_argument_t
   (js_env_t *e, js_typedarray_t<E> &b, const char *n, bool o)
   : env(e), buffer(b), name(n), optional(o) { }
 
