@@ -1997,7 +1997,7 @@ sn_crypto_secretstream_xchacha20poly1305_push (
   js_typedarray_t<uint8_t> c,
   js_typedarray_t<uint8_t> m,
   js_typedarray_t<uint8_t> ad,
-  uint32_t tag // js_number won't match uint8_t
+  uint32_t tag // V8-BUG? js_number won't match uint8_t
 ) {
   unsigned long long clen = 0;
 #if 0 // FIXME
@@ -3546,8 +3546,8 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   SN_EXPORT_STRING(crypto_kx_PRIMITIVE, crypto_kx_PRIMITIVE)
 
   // crypto_generichash
-  sn_function_t<sn_crypto_generichash>().export_named(env, exports, "_crypto_generichash");
 
+  SN_EXPORT_TYPED_FUNCTION("_crypto_generichash", sn_crypto_generichash);
   SN_EXPORT_FUNCTION(_crypto_generichash_batch, sn_crypto_generichash_batch)
   SN_EXPORT_FUNCTION(crypto_generichash_keygen, sn_crypto_generichash_keygen)
 

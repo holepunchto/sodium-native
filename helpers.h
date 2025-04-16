@@ -5,23 +5,6 @@
 #include <js.h>
 #include <jstl.h>
 
-template <auto fn>
-struct sn_function_t;
-
-template <typename R, typename... A, R(*impl)(js_env_t *, js_receiver_t, A...)>
-struct sn_function_t<impl> {
-  inline auto
-  export_named (js_env_t *env, js_value_t *exports, const std::string &name) {
-    js_function_t<R, js_receiver_t, A...> js_fn;
-
-    int err = js_create_function<impl>(env, name, js_fn);
-    assert(err == 0);
-
-    err = js_set_named_property(env, exports, name.c_str(), js_fn.value);
-    assert(err == 0);
-  }
-};
-
 struct sn_error_t {
   std::string message;
 
@@ -151,6 +134,12 @@ sn_arg(js_env_t *env, js_typedarray_t<E> &typedarray, const char *name, bool opt
   return sn_argument_t<E>(env, typedarray, name, optional);
 }
 
+#define SN_EXPORT_TYPED_FUNCTION(name, fn) \
+  { \
+    int err = js_set_property<fn>(env, exports, name); \
+    assert(err == 0); \
+  }
+
 #define SN_ARG(name, ...) \
   auto [name##_data, name##_size] = sn_arg(env, name, #name, false) \
   .info() \
@@ -168,6 +157,7 @@ sn_arg(js_env_t *env, js_typedarray_t<E> &typedarray, const char *name, bool opt
   .info() \
   .cast<type>();
 
+/* to be deleted */
 #define SN_ARG_MIN(constant) \
   .min(constant, #constant)
 
@@ -188,6 +178,3 @@ sn_arg(js_env_t *env, js_typedarray_t<E> &typedarray, const char *name, bool opt
   catch (const sn_error_t &err) { \
     err.rethrow_js(env); \
   }
-
-#define SN_EXPORT_TYPED_FUNCTION(name, fn) \
-  sn_function_t<fn>().export_named(env, exports, name);
