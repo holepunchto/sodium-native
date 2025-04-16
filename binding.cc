@@ -9,6 +9,7 @@
 #include <sodium.h>
 #include "macros.h"
 #include "helpers.h"
+
 #include "extensions/tweak/tweak.h"
 #include "extensions/pbkdf2/pbkdf2.h"
 #include "sodium/crypto_generichash.h"
@@ -1999,7 +2000,28 @@ sn_crypto_secretstream_xchacha20poly1305_push (
   uint32_t tag // js_number won't match uint8_t
 ) {
   unsigned long long clen = 0;
+#if 0
+  crypto_secretstream_xchacha20poly1305_state *state;
 
+  int err = js_get_typedarray_info<crypto_secretstream_xchacha20poly1305_state>(env, state_buf, state);
+  assert(err == 0);
+
+  std::span<uint8_t> vc, vm, vad;
+  err = js_get_typedarray_info(env, c, vc);
+  assert(err == 0);
+
+  err = js_get_typedarray_info(env, m, vm);
+  assert(err == 0);
+
+  err = js_get_typedarray_info(env, ad, vad);
+  assert(err == 0);
+
+  err = crypto_secretstream_xchacha20poly1305_push(state, vc.data(), &clen, vm.data(), vm.size_bytes(), vad.data(), vad.size_bytes(), tag);
+  if (err != 0) {
+    err = js_throw_error(env, NULL, "push failed");
+    assert(err == 0);
+  }
+#else
   try {
     SN_ARG_CAST(crypto_secretstream_xchacha20poly1305_state, state, state_buf)
     SN_ARG(c)
@@ -2011,8 +2033,10 @@ sn_crypto_secretstream_xchacha20poly1305_push (
     SN_THROW(c_size > 0xffffffff, "c.byteLength must be a 32bit integer")
 
     int res = crypto_secretstream_xchacha20poly1305_push(state, c_data, &clen, m_data, m_size, ad_data, ad_size, tag);
+
     SN_THROW(res != 0, "push failed");
   } SN_CATCH
+#endif
 
   return clen;
 }

@@ -57,19 +57,31 @@ struct sn_argument_t {
   info () {
     int err;
 
-    bool undefined = false;
-
     if (optional) {
-      err = js_is_undefined(env, buffer, &undefined);
-      assert(err == 0);
-    }
+      /* FIXME: bad include/defition
+      js_value_type_t type;
 
-    if (!optional || (optional && !undefined)) {
-      err = js_get_typedarray_info(env, buffer, view);
+      err = js_typeof(env, buffer.value, &type)
       assert(err == 0);
 
-      present = true;
+      present = type != js_undefined && type != js_null;
+      */
+      bool x;
+      err = js_is_undefined(env, buffer, &x);
+      assert(err == 0);
+
+      if (!x) {
+        err = js_is_null(env, buffer, &x);
+        assert(err == 0);
+      }
+
+      present = !x;
+
+      if (!present) return *this; // abort loading
     }
+
+    err = js_get_typedarray_info(env, buffer, view);
+    assert(err == 0);
 
     return *this;
   }
