@@ -2000,7 +2000,7 @@ sn_crypto_secretstream_xchacha20poly1305_push (
   uint32_t tag // js_number won't match uint8_t
 ) {
   unsigned long long clen = 0;
-#if 0
+#if 0 // FIXME
   crypto_secretstream_xchacha20poly1305_state *state;
 
   int err = js_get_typedarray_info<crypto_secretstream_xchacha20poly1305_state>(env, state_buf, state);
