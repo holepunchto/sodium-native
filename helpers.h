@@ -80,8 +80,6 @@ struct sn_argument_t {
 
     bool invalid = view.size_bytes() < n;
 
-    assert(!invalid);
-
     if (invalid) {
       throw sn_error_t(std::string(name) + " must be at least " + constant + " bytes");
     }
@@ -94,8 +92,6 @@ struct sn_argument_t {
     if (optional && !present) return *this;
 
     bool invalid = view.size_bytes() > n;
-
-    assert(!invalid);
 
     if (invalid) {
       throw sn_error_t(std::string(name) + " must be at most \"" + constant + "\" bytes");
@@ -110,8 +106,6 @@ struct sn_argument_t {
 
     bool valid = view.size_bytes() == n;
 
-    assert(valid);
-
     if (!valid) {
       throw sn_error_t(std::string(name) + " must equal  \"" + constant + "\" bytes");
     }
@@ -123,8 +117,6 @@ struct sn_argument_t {
   inline T *
   cast() {
     bool valid = view.size_bytes() == sizeof(T);
-
-    assert(valid);
 
     if (!valid) {
       throw sn_error_t(std::string(name) + " must equal \"" + std::to_string(sizeof(T)) + "\" bytes");
