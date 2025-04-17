@@ -521,7 +521,7 @@ sn_crypto_generichash_init (
   }
 
   int res = crypto_generichash_init(state, key_data, key_size, out_len);
-
+  assert(res == 0);
   SN_THROW_STATUS(res, crypto_generichash_init);
 }
 

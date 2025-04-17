@@ -25,7 +25,7 @@ module.exports.crypto_generichash_batch = function (output, batch, key) {
     // fastcall batch
     const state = Buffer.alloc(binding.crypto_generichash_STATEBYTES)
 
-    binding.crypto_generichash_init(state, useKey, key, output.byteLength)
+    module.exports.crypto_generichash_init(state, key, output.byteLength)
 
     for (const buf of batch) {
       binding.crypto_generichash_update(state, buf)
