@@ -152,50 +152,36 @@ sn_sodium_mprotect_readwrite (js_env_t *env, js_callback_info_t *info) {
   SN_RETURN(sodium_mprotect_readwrite(buf_data), "failed to unlock buffer")
 }
 
-js_value_t *
-sn_randombytes_random (js_env_t *env, js_callback_info_t *info) {
-  js_value_t *result;
-  int err = js_create_uint32(env, randombytes_random(), &result);
-  assert(err == 0);
-  return result;
+uint32_t
+sn_randombytes_random (js_env_t *env, js_receiver_t) {
+  return randombytes_random();
 }
 
-js_value_t *
-sn_randombytes_uniform (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(1, randombytes_uniform);
-
-  SN_ARGV_UINT32(upper_bound, 0)
-
-  js_value_t *result;
-  err = js_create_uint32(env, randombytes_uniform(upper_bound), &result);
-  assert(err == 0);
-
-  return result;
+uint32_t
+sn_randombytes_uniform (js_env_t *env, js_receiver_t, uint32_t upper_bound) {
+  return randombytes_uniform(upper_bound);
 }
 
-js_value_t *
-sn_randombytes_buf (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(1, randombytes_buf)
-
-  SN_ARGV_TYPEDARRAY(buf, 0)
+void
+sn_randombytes_buf (js_env_t *env, js_receiver_t, js_typedarray_t<uint8_t> buf) {
+  SN_ARG(buf)
 
   randombytes_buf(buf_data, buf_size);
-
-  return NULL;
 }
 
-js_value_t *
-sn_randombytes_buf_deterministic (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(2, randombytes_buf)
+void
+sn_randombytes_buf_deterministic (
+    js_env_t *env,
+    js_receiver_t,
+    js_typedarray_t<uint8_t> buf,
+    js_typedarray_t<uint8_t> seed
+) {
+  SN_ARG(buf)
+  SN_ARG(seed)
 
-  SN_ARGV_TYPEDARRAY(buf, 0)
-  SN_ARGV_TYPEDARRAY(seed, 1)
-
-  SN_ASSERT_LENGTH(seed_size, randombytes_SEEDBYTES, "seed")
+  SN_THROW_LEN(seed, randombytes_SEEDBYTES)
 
   randombytes_buf_deterministic(buf_data, buf_size, seed_data);
-
-  return NULL;
 }
 
 js_value_t *
@@ -3401,10 +3387,10 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
 
   // randombytes
 
-  SN_EXPORT_FUNCTION(randombytes_buf, sn_randombytes_buf)
-  SN_EXPORT_FUNCTION(randombytes_buf_deterministic, sn_randombytes_buf_deterministic)
-  SN_EXPORT_FUNCTION(randombytes_uniform, sn_randombytes_uniform)
-  SN_EXPORT_FUNCTION(randombytes_random, sn_randombytes_random)
+  SN_EXPORT_TYPED_FUNCTION("randombytes_buf", sn_randombytes_buf)
+  SN_EXPORT_TYPED_FUNCTION("randombytes_buf_deterministic", sn_randombytes_buf_deterministic)
+  SN_EXPORT_TYPED_FUNCTION("randombytes_uniform", sn_randombytes_uniform)
+  SN_EXPORT_TYPED_FUNCTION("randombytes_random", sn_randombytes_random)
   SN_EXPORT_UINT32(randombytes_SEEDBYTES, randombytes_SEEDBYTES)
 
   // sodium helpers
