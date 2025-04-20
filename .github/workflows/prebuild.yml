@@ -61,6 +61,9 @@ jobs:
           arch: arm64
     runs-on: ${{ matrix.os }}
     name: ${{ matrix.platform }}-${{ matrix.arch }}${{ matrix.tags }}
+    env:
+      MUSL_TOOLCHAIN_VERSION: v1.2.5
+      MUSL_HOST_ARCH: x86_64
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
@@ -69,17 +72,23 @@ jobs:
     - run: choco upgrade llvm
       if: ${{ matrix.platform == 'win32' }}
     - run: |
-        wget https://musl.cc/x86_64-linux-musl-cross.tgz
-        tar -xvzf x86_64-linux-musl-cross.tgz
-        ln -s "$PWD/x86_64-linux-musl-cross/bin/x86_64-linux-musl-gcc" /usr/local/bin/x86_64-linux-musl-cc
-        ln -s "$PWD/x86_64-linux-musl-cross/bin/x86_64-linux-musl-g++" /usr/local/bin/x86_64-linux-musl-c++
-      if: ${{ matrix.tags == '-musl' && matrix.platform == 'linux' && matrix.arch == 'x64' }}
-    - run: |
-        wget https://musl.cc/aarch64-linux-musl-cross.tgz
-        tar -xvzf aarch64-linux-musl-cross.tgz
-        ln -s "$PWD/aarch64-linux-musl-cross/bin/aarch64-linux-musl-gcc" /usr/local/bin/aarch64-linux-musl-cc
-        ln -s "$PWD/aarch64-linux-musl-cross/bin/aarch64-linux-musl-g++" /usr/local/bin/aarch64-linux-musl-c++
-      if: ${{ matrix.tags == '-musl' && matrix.platform == 'linux' && matrix.arch == 'arm64' }}
+        case "${{ matrix.arch }}" in
+          x64)
+            TOOLCHAIN_ARCH="x86_64"
+            ;;
+          arm64)
+            TOOLCHAIN_ARCH="aarch64"
+            ;;
+          *)
+            echo "Error: Unsupported architecture '${{ matrix.arch }}' for musl cross compliation."
+            exit 1
+            ;;
+        esac
+        TOOLCHAIN_ARCHIVE_NAME="${{ env.MUSL_HOST_ARCH }}-linux-musl-cross-${TOOLCHAIN_ARCH}-linux"
+        wget https://github.com/holepunchto/musl-toolchains/releases/download/${{ env.MUSL_TOOLCHAIN_VERSION }}/${TOOLCHAIN_ARCHIVE_NAME}.zip
+        unzip ${TOOLCHAIN_ARCHIVE_NAME}.zip
+        echo "$PWD/${TOOLCHAIN_ARCHIVE_NAME}/bin" >> $GITHUB_PATH
+      if: ${{ matrix.tags == '-musl' && matrix.platform == 'linux'}}
     - run: npm install -g bare-make
     - run: npm install
     - run: bare-make generate --platform ${{ matrix.platform }} --arch ${{ matrix.arch }} ${{ matrix.flags }}
