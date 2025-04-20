@@ -84,7 +84,7 @@ jobs:
             exit 1
             ;;
         esac
-        TOOLCHAIN_ARCHIVE_NAME="${{ env.MUSL_HOST_ARCH }}-linux-musl-cross-${TOOLCHAIN_ARCH}-linux"
+        TOOLCHAIN_ARCHIVE_NAME="${TOOLCHAIN_ARCH}-linux-musl-cross-${{ env.MUSL_HOST_ARCH }}-linux"
         wget https://github.com/holepunchto/musl-toolchains/releases/download/${{ env.MUSL_TOOLCHAIN_VERSION }}/${TOOLCHAIN_ARCHIVE_NAME}.zip
         unzip ${TOOLCHAIN_ARCHIVE_NAME}.zip
         echo "$PWD/${TOOLCHAIN_ARCHIVE_NAME}/bin" >> $GITHUB_PATH
