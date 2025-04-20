@@ -24,6 +24,16 @@ jobs:
         - os: ubuntu-22.04
           platform: android
           arch: arm
+        - os: ubuntu-22.04
+          platform: linux
+          arch: arm64
+          tags: -musl
+          flags: --environment musl
+        - os: ubuntu-22.04
+          platform: linux
+          arch: x64
+          tags: -musl
+          flags: --environment musl
         - os: macos-14
           platform: darwin
           arch: x64
@@ -58,6 +68,18 @@ jobs:
         node-version: lts/*
     - run: choco upgrade llvm
       if: ${{ matrix.platform == 'win32' }}
+    - run: |
+        wget https://musl.cc/x86_64-linux-musl-cross.tgz
+        tar -xvzf x86_64-linux-musl-cross.tgz
+        ln -s "$PWD/x86_64-linux-musl-cross/bin/x86_64-linux-musl-gcc" /usr/local/bin/x86_64-linux-musl-cc
+        ln -s "$PWD/x86_64-linux-musl-cross/bin/x86_64-linux-musl-g++" /usr/local/bin/x86_64-linux-musl-c++
+      if: ${{ matrix.tags == '-musl' && matrix.platform == 'linux' && matrix.arch == 'x64' }}
+    - run: |
+        wget https://musl.cc/aarch64-linux-musl-cross.tgz
+        tar -xvzf aarch64-linux-musl-cross.tgz
+        ln -s "$PWD/aarch64-linux-musl-cross/bin/aarch64-linux-musl-gcc" /usr/local/bin/aarch64-linux-musl-cc
+        ln -s "$PWD/aarch64-linux-musl-cross/bin/aarch64-linux-musl-g++" /usr/local/bin/aarch64-linux-musl-c++
+      if: ${{ matrix.tags == '-musl' && matrix.platform == 'linux' && matrix.arch == 'arm64' }}
     - run: npm install -g bare-make
     - run: npm install
     - run: bare-make generate --platform ${{ matrix.platform }} --arch ${{ matrix.arch }} ${{ matrix.flags }}
