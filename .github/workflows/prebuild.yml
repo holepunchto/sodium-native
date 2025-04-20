@@ -26,14 +26,16 @@ jobs:
           arch: arm
         - os: ubuntu-22.04
           platform: linux
-          arch: arm64
-          tags: -musl
-          flags: --environment musl
-        - os: ubuntu-22.04
-          platform: linux
           arch: x64
           tags: -musl
           flags: --environment musl
+          musl: x86_64-linux-musl-cross-x86_64-linux
+        - os: ubuntu-22.04
+          platform: linux
+          arch: arm64
+          tags: -musl
+          flags: --environment musl
+          musl: x86_64-linux-musl-cross-aarch64-linux
         - os: macos-14
           platform: darwin
           arch: x64
@@ -61,9 +63,6 @@ jobs:
           arch: arm64
     runs-on: ${{ matrix.os }}
     name: ${{ matrix.platform }}-${{ matrix.arch }}${{ matrix.tags }}
-    env:
-      MUSL_TOOLCHAIN_VERSION: v1.2.5
-      MUSL_HOST_ARCH: x86_64
     steps:
     - uses: actions/checkout@v4
     - uses: actions/setup-node@v4
@@ -72,23 +71,10 @@ jobs:
     - run: choco upgrade llvm
       if: ${{ matrix.platform == 'win32' }}
     - run: |
-        case "${{ matrix.arch }}" in
-          x64)
-            TOOLCHAIN_ARCH="x86_64"
-            ;;
-          arm64)
-            TOOLCHAIN_ARCH="aarch64"
-            ;;
-          *)
-            echo "Error: Unsupported architecture '${{ matrix.arch }}' for musl cross compliation."
-            exit 1
-            ;;
-        esac
-        TOOLCHAIN_ARCHIVE_NAME="${TOOLCHAIN_ARCH}-linux-musl-cross-${{ env.MUSL_HOST_ARCH }}-linux"
-        wget https://github.com/holepunchto/musl-toolchains/releases/download/${{ env.MUSL_TOOLCHAIN_VERSION }}/${TOOLCHAIN_ARCHIVE_NAME}.zip
-        unzip ${TOOLCHAIN_ARCHIVE_NAME}.zip
-        echo "$PWD/${TOOLCHAIN_ARCHIVE_NAME}/bin" >> $GITHUB_PATH
-      if: ${{ matrix.tags == '-musl' && matrix.platform == 'linux'}}
+        gh release download --repo holepunchto/musl-toolchains --pattern ${{ matrix.musl }}.zip v1.2.5
+        unzip ${{ matrix.musl }}.zip -d toolchains/
+        echo "${{ github.workspace }}/toolchains/${{ matrix.musl }}/bin" >> $GITHUB_PATH
+      if: ${{ matrix.platform == 'linux' && matrix.musl }}
     - run: npm install -g bare-make
     - run: npm install
     - run: bare-make generate --platform ${{ matrix.platform }} --arch ${{ matrix.arch }} ${{ matrix.flags }}
