@@ -124,6 +124,10 @@ api.crypto_secretstream_xchacha20poly1305_push = function (state, c, m, ad, tag)
 api.crypto_secretstream_xchacha20poly1305_pull = function (state, m, tag, c, ad) {
   ad ||= nullbuffer
 
+  // TODO: consider removing tests instead of throwing
+  if (c.byteLength < binding.crypto_secretstream_xchacha20poly1305_ABYTES) throw new Error('invalid cipher length')
+  if (m.byteLength !== c.byteLength - binding.crypto_secretstream_xchacha20poly1305_ABYTES) throw new Error('invalid message length')
+
   const res = binding.crypto_secretstream_xchacha20poly1305_pull(
     state.buffer, state.byteOffset, state.byteLength,
     m.buffer, m.byteOffset, m.byteLength,
