@@ -1,146 +1,152 @@
-const binding = {} // require('./binding')
+const binding = require('./binding')
 const { isNode } = require('which-runtime')
 
-module.exports = binding
+const api = { ...binding }
+module.exports = api
 
-module.exports.sodium_malloc = function (size) {
+api.sodium_malloc = function (size) {
   const buf = Buffer.from(binding._sodium_malloc(size))
   buf.secure = true
+
   return buf
 }
 
-module.exports.crypto_generichash = function (output, input, key) {
-  return binding._crypto_generichash(output, input, !!key, key)
+// typedcall wrappers
+const nullbuffer = Buffer.allocUnsafeSlow(0)
+
+api.randombytes_buf = function (buffer) {
+  binding.randombytes_buf(
+    buffer.buffer, buffer.byteOffset, buffer.byteLength
+  )
 }
 
-module.exports.crypto_generichash_init = function (state, key, outputLength) {
-  return module.exports._crypto_generichash_init(state, !!key, key, outputLength)
+api.randombytes_buf_deterministic = function (buffer, seed) {
+  binding.randombytes_buf_deterministic(
+    buffer.buffer, buffer.byteOffset, buffer.byteLength,
+    seed.buffer, seed.byteOffset, seed.byteLength
+  )
 }
 
-module.exports.crypto_generichash_batch = function (output, batch, key) {
-  const useKey = !!key
-  if (isNode || batch.length < 12) {
-    binding._crypto_generichash_batch(output, batch, useKey, key)
+/** @returns {bool} */
+api.crypto_box_seal_open = function (m, c, pk, sk) {
+  return binding.crypto_box_seal_open(
+    m.buffer, m.byteOffset, m.byteLength,
+    c.buffer, c.byteOffset, c.byteLength,
+    pk.buffer, pk.byteOffset, pk.byteLength,
+    sk.buffer, sk.byteOffset, sk.byteLength
+  )
+}
+
+api.crypto_generichash = function (output, input, key = nullbuffer) {
+  const res = binding.crypto_generichash(
+    output.buffer, output.byteOffset, output.byteLength,
+    input.buffer, input.byteOffset, input.byteLength,
+    key.buffer, key.byteOffset, key.byteLength
+  )
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+api.crypto_generichash_batch = function (output, batch, key) {
+  if (isNode || batch.length < 12) { // TODO: re-tune min-batch-size
+    // iterate batch from native
+    const res = binding.crypto_generichash_batch(output, batch, !!key, key || nullbuffer)
+    if (res !== 0) throw new Error('status: ' + res)
   } else {
-    // fastcall batch
+    // iterate batch through fastcalls
     const state = Buffer.alloc(binding.crypto_generichash_STATEBYTES)
 
-    module.exports.crypto_generichash_init(state, key, output.byteLength)
+    api.crypto_generichash_init(state, key, output.byteLength)
 
     for (const buf of batch) {
-      binding.crypto_generichash_update(state, buf)
+      api.crypto_generichash_update(state, buf)
     }
 
-    binding.crypto_generichash_final(state, output)
+    api.crypto_generichash_final(state, output)
   }
 }
 
-module.exports.crypto_secretstream_xchacha20poly1305_push = function (state, c, m, ad, tag) {
-  return binding._crypto_secretstream_xchacha20poly1305_push(state, c, m, !!ad, ad, tag)
+api.crypto_generichash_keygen = function (key) {
+  const res = binding.crypto_generichash_keygen(
+    key.buffer, key.byteOffset, key.byteLength
+  )
+  if (res !== 0) throw new Error('status: ' + res)
 }
 
-module.exports.crypto_secretstream_xchacha20poly1305_pull = function (state, m, tag, c, ad) {
-  return binding._crypto_secretstream_xchacha20poly1305_pull(state, m, tag, c, !!ad, ad)
+api.crypto_generichash_init = function (state, key, outputLength) {
+  key ||= nullbuffer
+
+  const res = binding.crypto_generichash_init(
+    state.buffer, state.byteOffset, state.byteLength,
+    key.buffer, key.byteOffset, key.byteLength,
+    outputLength
+  )
+
+  if (res !== 0) throw new Error('status: ' + res)
 }
 
-/**
- * Generates a JIT optimizable wrapper function that
- * spreads arraybuffer arguments and peforms bounds checks
- */
-function wrap (fn, ...spec) {
-  const names = []
-  const args = []
-  const ops = []
+api.crypto_generichash_update = function (state, input) {
+  const res = binding.crypto_generichash_update(
+    state.buffer, state.byteOffset, state.byteLength,
+    input.buffer, input.byteOffset, input.byteLength
+  )
 
-  for (const arg of spec) {
-    // passthrough
-    if (typeof arg === 'string') {
-      names.push(arg)
-      args.push(arg)
-      continue
-    }
-
-    // buffer-argument
-    const {
-      name,
-      optional,
-      min,
-      max,
-      len,
-      bounds
-    } = arg
-
-    names.push(name)
-
-    const assertLength = (constant) => `
-      if (${name}.byteLength !== binding.${constant}) {
-        throw new Error('expected "${name}" to equal "${constant}"')
-      }
-    `.trim()
-
-    const assertMinLength = (constant) => `
-      if (${name}.byteLength < binding.${constant}) {
-        throw new Error('expected "${name}" to be at least "${constant}"')
-      }
-    `.trim()
-
-    const assertMaxLength = (constant) => `
-      if (${name}.byteLength > binding.${constant}) {
-        throw new Error('expected "${name}" to be at most "${constant}"')
-      }
-    `.trim()
-
-    const assertBounds = (prefix) => `
-      ${assertMinLength(prefix + '_MIN')}
-      ${assertMaxLength(prefix + '_MAX')}
-    `.trim()
-
-    const asserts = []
-    if (len) asserts.push(assertLength(len))
-    if (min) asserts.push(assertMinLength(min))
-    if (max) asserts.push(assertMaxLength(max))
-    if (bounds) asserts.push(assertBounds(bounds))
-
-    if (optional) {
-      const conditionalAssert = `
-        if (${name}) {
-          ${asserts.join('\n')}
-        } else {
-          // ensure typed signature match
-          ${name} = { buffer: null, byteOffset: 0, byteLength: 0 }
-        }
-      `.trim()
-      ops.push(conditionalAssert)
-    } else {
-      ops.push(`if (!${name}) throw new Error('"${name}" must be an instance of TypedArray')`)
-      ops.push(asserts.join('\n'))
-    }
-
-    // spread buffer into: arraybuffer, offset, length
-    args.push(name + '.buffer')
-    args.push(name + '.byteOffset')
-    args.push(name + '.byteLength')
-  }
-
-  const body = `// Generated "${fn}" wrapper
-    ${ops.join('\n')}
-
-    const status = binding.${fn}(${args.join(', ')})
-
-    if (status !== 0) throw new Error('"${fn}" failed')
-  `.trim()
-
-  module.exports[fn] = new Function(...names, body) // eslint-disable-line no-new-func
+  if (res !== 0) throw new Error('status: ' + res)
 }
 
-// test wrapper generator
-/*
-wrap('crypto_generichash',
-  { name: 'input' },
-  { name: 'output', bounds: 'crypto_generichash_BYTES' },
-  { name: 'key', optional: true, bounds: 'crypto_generichash_KEYBYTES' }
-)
+api.crypto_generichash_final = function (state, output) {
+  const res = binding.crypto_generichash_final(
+    state.buffer, state.byteOffset, state.byteLength,
+    output.buffer, output.byteOffset, output.byteLength
+  )
 
-console.log(module.exports.crypto_generichash.toString())
+  if (res !== 0) throw new Error('status: ' + res)
+}
 
-*/
+/** /!\ no-longer throws
+  * @returns {number} */
+api.crypto_secretstream_xchacha20poly1305_push = function (state, c, m, ad, tag) {
+  ad ||= nullbuffer
+
+  return binding.crypto_secretstream_xchacha20poly1305_push(
+    state.buffer, state.byteOffset, state.byteLength,
+    c.buffer, c.byteOffset, c.byteLength,
+    m.buffer, m.byteOffset, m.byteLength,
+    ad.buffer, ad.byteOffset, ad.byteLength,
+    tag
+  )
+}
+
+/** /!\ no-longer throws
+  * @returns {number} */
+api.crypto_secretstream_xchacha20poly1305_pull = function (state, m, tag, c, ad) {
+  ad ||= nullbuffer
+
+  return binding.crypto_secretstream_xchacha20poly1305_pull(
+    state.buffer, state.byteOffset, state.byteLength,
+    m.buffer, m.byteOffset, m.byteLength,
+    tag.buffer, tag.byteOffset, tag.byteLength,
+    c.buffer, c.byteOffset, c.byteLength,
+    ad.buffer, ad.byteOffset, ad.byteLength
+  )
+}
+
+/** @returns {boolean} */
+api.crypto_sign_verify_detached = function (sig, m, pk) {
+  return binding.crypto_sign_verify_detached(
+    sig.buffer, sig.byteOffset, sig.byteLength,
+    m.buffer, m.byteOffset, m.byteLength,
+    pk.buffer, pk.byteOffset, pk.byteLength
+  )
+}
+
+api.crypto_stream_xor = function (c, m, n, k) {
+  const res = binding.crypto_stream_xor(
+    c.buffer, c.byteOffset, c.byteLength,
+    m.buffer, m.byteOffset, m.byteLength,
+    n.buffer, n.byteOffset, n.byteLength,
+    k.buffer, k.byteOffset, k.byteLength
+  )
+
+  if (res !== 0) throw new Error('status: ' + res)
+}

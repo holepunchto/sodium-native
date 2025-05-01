@@ -9,7 +9,6 @@
 #include <string.h>
 #include <sodium.h>
 #include "macros.h"
-#include "helpers.h"
 
 #include "extensions/tweak/tweak.h"
 #include "extensions/pbkdf2/pbkdf2.h"
@@ -168,10 +167,11 @@ sn_randombytes_buf (
     js_env_t *env,
     js_receiver_t,
     js_arraybuffer_span_t buf,
-    uint32_t offset,
-    uint32_t len
+    uint32_t buf_offset,
+    uint32_t buf_len
 ) {
-  randombytes_buf(&buf[offset], len);
+  assert_bounds(buf);
+  randombytes_buf(&buf[buf_offset], buf_len);
 }
 
 void
@@ -187,6 +187,11 @@ sn_randombytes_buf_deterministic (
     uint32_t seed_offset,
     uint32_t seed_len
 ) {
+  assert_bounds(buf);
+  assert_bounds(seed);
+
+  assert(seed_len == randombytes_SEEDBYTES);
+
   randombytes_buf_deterministic(&buf[buf_offset], buf_len, &seed[seed_offset]);
 }
 
@@ -400,10 +405,15 @@ sn_crypto_sign_verify_detached (
   uint32_t pk_offset,
   uint32_t pk_len
 ) {
-  int err = crypto_sign_verify_detached(&sig[sig_offset], &m[m_offset], m_len, &pk[pk_offset]);
-  assert(err == 0);
+  assert_bounds(sig);
+  assert_bounds(m);
+  assert_bounds(pk);
 
-  return err;
+  assert(sig_len >= crypto_sign_BYTES);
+  assert(pk_len == crypto_sign_PUBLICKEYBYTES);
+
+  int res = crypto_sign_verify_detached(&sig[sig_offset], &m[m_offset], m_len, &pk[pk_offset]);
+  return res == 0;
 }
 
 js_value_t *
@@ -445,11 +455,11 @@ sn_crypto_sign_ed25519_sk_to_curve25519(js_env_t *env, js_callback_info_t *info)
   SN_RETURN(crypto_sign_ed25519_sk_to_curve25519(x25519_sk_data, ed25519_sk_data), "secret key conversion failed")
 }
 
-
-int
+static inline int
 sn_crypto_generichash (
   js_env_t *env,
   js_receiver_t,
+
   js_arraybuffer_span_t out,
   uint32_t out_offset,
   uint32_t out_len,
@@ -462,34 +472,62 @@ sn_crypto_generichash (
   uint32_t key_offset,
   uint32_t key_len
 ) {
+  assert_bounds(out);
+  assert(
+    out_len >= crypto_generichash_BYTES_MIN &&
+    out_len <= crypto_generichash_BYTES_MAX
+  );
+
+  assert_bounds(in);
+
   uint8_t *key_data = NULL;
-  if (key_len) key_data = &key[key_offset];
+  if (key_len) {
+    key_data = &key[key_offset];
 
-  int err = crypto_generichash(&out[out_offset], out_len, &in[in_offset], in_len, key_data, key_len);
-  assert(err == 0);
+    assert_bounds(key);
+    assert(
+      key_len >= crypto_generichash_KEYBYTES_MIN &&
+      key_len <= crypto_generichash_KEYBYTES_MAX
+    );
+  }
 
-  return err;
+  return crypto_generichash(&out[out_offset], out_len, &in[in_offset], in_len, key_data, key_len);
 }
 
-void
+static inline int
 sn_crypto_generichash_batch(
     js_env_t *env,
     js_receiver_t,
-
     js_typedarray_t<uint8_t> out,
     std::vector<js_typedarray_t<uint8_t>> batch,
-
     bool use_key,
     js_typedarray_t<uint8_t> key
 ) {
-  SN_ARG(out)
-  SN_ARG_OPT(key, use_key);
+  int err;
 
-  SN_THROW_BOUNDS(out, crypto_generichash_BYTES)
-  if (use_key) SN_THROW_BOUNDS(key, crypto_generichash_KEYBYTES)
+  uint8_t *out_data;
+  size_t out_len;
+  err = js_get_typedarray_info(env, out, out_data, out_len);
+  assert(err == 0);
+  assert(
+    out_len >= crypto_generichash_BYTES_MIN &&
+    out_len <= crypto_generichash_BYTES_MAX
+  );
+
+  uint8_t *key_data = NULL;
+  size_t key_len = 0;
+  if (use_key) {
+    int err = js_get_typedarray_info(env, key, key_data, key_len);
+    assert(err == 0);
+    assert(
+      key_len >= crypto_generichash_KEYBYTES_MIN &&
+      key_len <= crypto_generichash_KEYBYTES_MAX
+    );
+  }
 
   crypto_generichash_state state;
-  crypto_generichash_init(&state, key_data, key_size, out_size);
+  err = crypto_generichash_init(&state, key_data, key_len, out_len);
+  if (err != 0) return err;
 
   for (auto &buf : batch) {
     bool is_typedarray = false;
@@ -497,23 +535,30 @@ sn_crypto_generichash_batch(
     int err = js_is_typedarray(env, buf, &is_typedarray);
     assert(err == 0);
 
-    SN_THROW(!is_typedarray, "batch element should be passed as a TypedArray")
-
     std::span<uint8_t> view;
     err = js_get_typedarray_info<uint8_t>(env, buf, view);
     assert(err == 0);
 
-    crypto_generichash_update(&state, view.data(), view.size_bytes());
+    err = crypto_generichash_update(&state, view.data(), view.size());
+    if (err != 0) return err;
   }
 
-  int res = crypto_generichash_final(&state, out_data, out_size);
-
-  SN_THROW(res != 0, "batch failed")
+  return crypto_generichash_final(&state, out_data, out_len);
 }
 
 static inline void
-sn_crypto_generichash_keygen(js_env_t *env, js_receiver_t, js_arraybuffer_span_t key, uint32_t offset, uint32_t len) {
-  crypto_generichash_keygen(&key[offset]);
+sn_crypto_generichash_keygen(
+    js_env_t *env,
+    js_receiver_t,
+
+    js_arraybuffer_span_t key,
+    uint32_t key_offset,
+    uint32_t key_len
+) {
+  assert_bounds(key);
+  assert(key_len == crypto_generichash_KEYBYTES);
+
+  crypto_generichash_keygen(&key[key_offset]);
 }
 
 static inline int
@@ -521,7 +566,7 @@ sn_crypto_generichash_init (
   js_env_t *env,
   js_receiver_t,
 
-  js_arraybuffer_span_t state_buf,
+  js_arraybuffer_span_t state,
   uint32_t state_offset,
   uint32_t state_len,
 
@@ -531,15 +576,23 @@ sn_crypto_generichash_init (
 
   uint32_t out_len
 ) {
+  assert_bounds(state);
+  assert(state_len == sizeof(crypto_generichash_state));
+
   uint8_t *key_data = NULL;
-  if (key_len) key_data = &key[key_offset];
+  if (key_len) {
+    assert_bounds(key);
+    key_data = &key[key_offset];
 
-  auto state = reinterpret_cast<crypto_generichash_state *>(&state_buf[state_offset]);
+    assert(
+      key_len >= crypto_generichash_KEYBYTES_MIN &&
+      key_len <= crypto_generichash_KEYBYTES_MAX
+    );
+  }
 
-  int err = crypto_generichash_init(state, key_data, key_len, out_len);
-  assert(err == 0);
+  auto state_data = reinterpret_cast<crypto_generichash_state *>(&state[state_offset]);
 
-  return err;
+  return crypto_generichash_init(state_data, key_data, key_len, out_len);
 }
 
 static inline int
@@ -547,7 +600,7 @@ sn_crypto_generichash_update (
   js_env_t *env,
   js_receiver_t,
 
-  js_arraybuffer_span_t state_buf,
+  js_arraybuffer_span_t state,
   uint32_t state_offset,
   uint32_t state_len,
 
@@ -555,20 +608,21 @@ sn_crypto_generichash_update (
   uint32_t in_offset,
   uint32_t in_len
 ) {
-  auto state = reinterpret_cast<crypto_generichash_state *>(&state_buf[state_offset]);
+  assert_bounds(state);
+  assert_bounds(in);
 
-  int err = crypto_generichash_update(state, &in[in_offset], in_len);
-  assert(err == 0);
+  assert(state_len == sizeof(crypto_generichash_state));
+  auto state_data = reinterpret_cast<crypto_generichash_state *>(&state[state_offset]);
 
-  return err;
+  return crypto_generichash_update(state_data, &in[in_offset], in_len);
 }
 
-int
+static inline int
 sn_crypto_generichash_final (
   js_env_t *env,
   js_receiver_t,
 
-  js_arraybuffer_span_t state_buf,
+  js_arraybuffer_span_t state,
   uint32_t state_offset,
   uint32_t state_len,
 
@@ -576,12 +630,13 @@ sn_crypto_generichash_final (
   uint32_t out_offset,
   uint32_t out_len
 ) {
-  auto state = reinterpret_cast<crypto_generichash_state *>(&state_buf[state_offset]);
+  assert_bounds(state);
+  assert_bounds(out);
 
-  int err = crypto_generichash_final(state, &out[out_offset], out_len);
-  assert(err == 0);
+  assert(state_len == sizeof(crypto_generichash_state));
+  auto state_data = reinterpret_cast<crypto_generichash_state *>(&state[state_offset]);
 
-  return err;
+  return crypto_generichash_final(state_data, &out[out_offset], out_len);
 }
 
 js_value_t *
@@ -724,6 +779,16 @@ sn_crypto_box_seal_open(
   uint32_t sk_offset,
   uint32_t sk_len
 ) {
+  assert_bounds(m);
+  assert_bounds(c);
+  assert_bounds(pk);
+  assert_bounds(sk);
+
+  assert(m_len == c_len - crypto_box_SEALBYTES);
+  assert(c_len >= crypto_box_SEALBYTES);
+  assert(sk_len == crypto_box_SECRETKEYBYTES);
+  assert(pk_len == crypto_box_PUBLICKEYBYTES);
+
   return crypto_box_seal_open(&m[m_offset], &c[c_offset], c_len, &pk[pk_offset], &sk[sk_offset]) == 0;
 }
 
@@ -831,13 +896,16 @@ sn_crypto_stream_xor(
   uint32_t k_offset,
   uint32_t k_len
 ) {
+  assert_bounds(c);
+  assert_bounds(m);
+  assert_bounds(n);
+  assert_bounds(k);
 
-  int err = crypto_stream_xor(&c[c_offset], &m[m_offset], m_len, &n[n_offset], &k[k_offset]);
-  assert(err == 0);
+  assert(c_len == m_len);
+  assert(n_len == crypto_stream_NONCEBYTES);
+  assert(k_len == crypto_stream_KEYBYTES);
 
-  // TODO: move to binding SN_THROW(res != 0, "stream encryption failed")
-
-  return err;
+  return crypto_stream_xor(&c[c_offset], &m[m_offset], m_len, &n[n_offset], &k[k_offset]);
 }
 
 js_value_t *
@@ -1992,7 +2060,7 @@ sn_crypto_secretstream_xchacha20poly1305_push (
   js_env_t *env,
   js_receiver_t,
 
-  js_arraybuffer_span_t state_buf,
+  js_arraybuffer_span_t state,
   uint32_t state_offset,
   uint32_t state_len,
 
@@ -2010,15 +2078,28 @@ sn_crypto_secretstream_xchacha20poly1305_push (
 
   uint32_t tag // V8-BUG? js_number won't match uint8_t
 ) {
-  auto state = reinterpret_cast<crypto_secretstream_xchacha20poly1305_state *>(&state_buf[state_offset]);
+  assert_bounds(state);
+  assert_bounds(c);
+  assert_bounds(m);
+
+  assert(state_len == sizeof(crypto_secretstream_xchacha20poly1305_state));
+  auto state_data = reinterpret_cast<crypto_secretstream_xchacha20poly1305_state *>(&state[state_offset]);
+
+  // next-line kept for future rewrites
+  // assert(m_len <= crypto_secretstream_xchacha20poly1305_MESSAGEBYTES_MAX);
+  assert(c_len == m_len + crypto_secretstream_xchacha20poly1305_ABYTES);
+  assert(c_len <= 0xffffffff && "32bit integer");
 
   uint8_t *ad_data = NULL;
-  if (ad_len) ad_data = &ad[ad_offset];
+  if (ad_len) {
+    assert_bounds(ad);
+    ad_data = &ad[ad_offset];
+  }
 
   unsigned long long clen = 0;
 
-  int res = crypto_secretstream_xchacha20poly1305_push(state, &c[c_offset], &clen, &m[m_offset], m_len, ad_data, ad_len, tag);
-  assert(res == 0 && "push failed");
+  int res = crypto_secretstream_xchacha20poly1305_push(state_data, &c[c_offset], &clen, &m[m_offset], m_len, ad_data, ad_len, tag);
+  assert(res == 0 && "push failed"); // WARNING; < v5.x used to throw!
 
   return clen;
 }
@@ -2043,7 +2124,7 @@ sn_crypto_secretstream_xchacha20poly1305_pull(
   js_env_t *env,
   js_receiver_t,
 
-  js_arraybuffer_span_t state_buf,
+  js_arraybuffer_span_t state,
   uint32_t state_offset,
   uint32_t state_len,
 
@@ -2063,16 +2144,31 @@ sn_crypto_secretstream_xchacha20poly1305_pull(
   uint32_t ad_offset,
   uint32_t ad_len
 ) {
-  auto state = reinterpret_cast<crypto_secretstream_xchacha20poly1305_state*>(&state_buf[state_offset]);
+  assert_bounds(state);
+  assert_bounds(m);
+  assert_bounds(tag);
+  assert_bounds(c);
+
+  assert(state_len == sizeof(crypto_secretstream_xchacha20poly1305_state));
+  auto state_data = reinterpret_cast<crypto_secretstream_xchacha20poly1305_state*>(&state[state_offset]);
+
+
+  assert(c_len >= crypto_secretstream_xchacha20poly1305_ABYTES);
+  assert(tag_len == 1);
+  assert(m_len == c_len - crypto_secretstream_xchacha20poly1305_ABYTES);
+  assert(m_len <= 0xffffffff);
 
   uint8_t *ad_data = NULL;
-  if (ad_len) ad_data = &ad[ad_offset];
+  if (ad_len) {
+    assert_bounds(ad);
+    ad_data = &ad[ad_offset];
+  }
 
   unsigned long long mlen = 0;
 
-  int res = crypto_secretstream_xchacha20poly1305_pull(state, &m[m_offset], &mlen, &tag[tag_offset], &c[c_offset], c_len, ad_data, ad_len);
+  int res = crypto_secretstream_xchacha20poly1305_pull(state_data, &m[m_offset], &mlen, &tag[tag_offset], &c[c_offset], c_len, ad_data, ad_len);
 
-  assert(res == 0 && "pull failed");
+  assert(res == 0 && "pull failed"); // WARNING; < v5.x used to throw!
 
   return mlen;
 }
@@ -3417,6 +3513,10 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   err = sodium_init();
   SN_THROWS(err == -1, "sodium_init() failed")
 
+#define SN_EXPORT_FUNCTION_NOSCOPE(name, fn) \
+  err = js_set_property<fn, false>(env, exports, name); \
+  assert(err == 0);
+
   // memory
 
   SN_EXPORT_FUNCTION(sodium_memzero, sn_sodium_memzero)
@@ -3430,10 +3530,10 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
 
   // randombytes
 
-  SN_EXPORT_TYPED_FUNCTION("randombytes_buf", sn_randombytes_buf)
-  SN_EXPORT_TYPED_FUNCTION("randombytes_buf_deterministic", sn_randombytes_buf_deterministic)
-  SN_EXPORT_TYPED_FUNCTION("randombytes_uniform", sn_randombytes_uniform)
-  SN_EXPORT_TYPED_FUNCTION("randombytes_random", sn_randombytes_random)
+  SN_EXPORT_FUNCTION_NOSCOPE("randombytes_buf", sn_randombytes_buf)
+  SN_EXPORT_FUNCTION_NOSCOPE("randombytes_buf_deterministic", sn_randombytes_buf_deterministic)
+  SN_EXPORT_FUNCTION_NOSCOPE("randombytes_random", sn_randombytes_random)
+  SN_EXPORT_FUNCTION_NOSCOPE("randombytes_uniform", sn_randombytes_uniform)
   SN_EXPORT_UINT32(randombytes_SEEDBYTES, randombytes_SEEDBYTES)
 
   // sodium helpers
@@ -3489,7 +3589,7 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   SN_EXPORT_FUNCTION(crypto_box_open_detached, sn_crypto_box_open_detached)
   SN_EXPORT_FUNCTION(crypto_box_seal, sn_crypto_box_seal)
 
-  SN_EXPORT_TYPED_FUNCTION("crypto_box_seal_open", sn_crypto_box_seal_open)
+  SN_EXPORT_FUNCTION_NOSCOPE("crypto_box_seal_open", sn_crypto_box_seal_open)
   SN_EXPORT_UINT32(crypto_box_SEEDBYTES, crypto_box_SEEDBYTES)
   SN_EXPORT_UINT32(crypto_box_PUBLICKEYBYTES, crypto_box_PUBLICKEYBYTES)
   SN_EXPORT_UINT32(crypto_box_SECRETKEYBYTES, crypto_box_SECRETKEYBYTES)
@@ -3540,14 +3640,16 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
 
   // crypto_generichash
 
-  SN_EXPORT_TYPED_FUNCTION("crypto_generichash", sn_crypto_generichash);
-  SN_EXPORT_TYPED_FUNCTION("crypto_generichash_batch", sn_crypto_generichash_batch)
+  SN_EXPORT_FUNCTION_NOSCOPE("crypto_generichash", sn_crypto_generichash);
+  err = js_set_property<sn_crypto_generichash_batch>(env, exports, "crypto_generichash_batch");
+  assert(err == 0);
+  SN_EXPORT_FUNCTION_NOSCOPE("crypto_generichash_batch", sn_crypto_generichash_batch)
 
-  SN_EXPORT_TYPED_FUNCTION("crypto_generichash_keygen", sn_crypto_generichash_keygen)
+  SN_EXPORT_FUNCTION_NOSCOPE("crypto_generichash_keygen", sn_crypto_generichash_keygen)
 
-  SN_EXPORT_TYPED_FUNCTION("crypto_generichash_init", sn_crypto_generichash_init)
-  SN_EXPORT_TYPED_FUNCTION("crypto_generichash_update", sn_crypto_generichash_update)
-  SN_EXPORT_TYPED_FUNCTION("crypto_generichash_final", sn_crypto_generichash_final)
+  SN_EXPORT_FUNCTION_NOSCOPE("crypto_generichash_init", sn_crypto_generichash_init)
+  SN_EXPORT_FUNCTION_NOSCOPE("crypto_generichash_update", sn_crypto_generichash_update)
+  SN_EXPORT_FUNCTION_NOSCOPE("crypto_generichash_final", sn_crypto_generichash_final)
 
   SN_EXPORT_UINT32(crypto_generichash_STATEBYTES, sizeof(crypto_generichash_state))
   SN_EXPORT_STRING(crypto_generichash_PRIMITIVE, crypto_generichash_PRIMITIVE)
@@ -3675,8 +3777,8 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   SN_EXPORT_FUNCTION(crypto_secretstream_xchacha20poly1305_keygen, sn_crypto_secretstream_xchacha20poly1305_keygen)
   SN_EXPORT_FUNCTION(crypto_secretstream_xchacha20poly1305_init_push, sn_crypto_secretstream_xchacha20poly1305_init_push)
   SN_EXPORT_FUNCTION(crypto_secretstream_xchacha20poly1305_init_pull, sn_crypto_secretstream_xchacha20poly1305_init_pull)
-  SN_EXPORT_TYPED_FUNCTION("_crypto_secretstream_xchacha20poly1305_push", sn_crypto_secretstream_xchacha20poly1305_push)
-  SN_EXPORT_TYPED_FUNCTION("_crypto_secretstream_xchacha20poly1305_pull", sn_crypto_secretstream_xchacha20poly1305_pull)
+  SN_EXPORT_FUNCTION_NOSCOPE("crypto_secretstream_xchacha20poly1305_push", sn_crypto_secretstream_xchacha20poly1305_push)
+  SN_EXPORT_FUNCTION_NOSCOPE("crypto_secretstream_xchacha20poly1305_pull", sn_crypto_secretstream_xchacha20poly1305_pull)
 
   SN_EXPORT_FUNCTION(crypto_secretstream_xchacha20poly1305_rekey, sn_crypto_secretstream_xchacha20poly1305_rekey)
   SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_STATEBYTES, sizeof(crypto_secretstream_xchacha20poly1305_state))
@@ -3704,7 +3806,7 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   SN_EXPORT_FUNCTION(crypto_sign, sn_crypto_sign)
   SN_EXPORT_FUNCTION(crypto_sign_open, sn_crypto_sign_open)
   SN_EXPORT_FUNCTION(crypto_sign_detached, sn_crypto_sign_detached)
-  SN_EXPORT_TYPED_FUNCTION("crypto_sign_verify_detached", sn_crypto_sign_verify_detached)
+  SN_EXPORT_FUNCTION_NOSCOPE("crypto_sign_verify_detached", sn_crypto_sign_verify_detached)
 
   SN_EXPORT_FUNCTION(crypto_sign_ed25519_sk_to_pk, sn_crypto_sign_ed25519_sk_to_pk)
   SN_EXPORT_FUNCTION(crypto_sign_ed25519_pk_to_curve25519, sn_crypto_sign_ed25519_pk_to_curve25519)
@@ -3721,7 +3823,7 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   SN_EXPORT_UINT32(crypto_stream_NONCEBYTES, crypto_stream_NONCEBYTES)
   SN_EXPORT_STRING(crypto_stream_PRIMITIVE, crypto_stream_PRIMITIVE)
 
-  SN_EXPORT_TYPED_FUNCTION("crypto_stream_xor", sn_crypto_stream_xor)
+  SN_EXPORT_FUNCTION_NOSCOPE("crypto_stream_xor", sn_crypto_stream_xor)
   SN_EXPORT_FUNCTION(crypto_stream_xor_init, sn_crypto_stream_xor_wrap_init)
   SN_EXPORT_FUNCTION(crypto_stream_xor_update, sn_crypto_stream_xor_wrap_update)
   SN_EXPORT_FUNCTION(crypto_stream_xor_final, sn_crypto_stream_xor_wrap_final)
@@ -3800,6 +3902,8 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   SN_EXPORT_UINT32(extension_pbkdf2_sha512_HASHBYTES, sn__extension_pbkdf2_sha512_HASHBYTES)
   SN_EXPORT_UINT32(extension_pbkdf2_sha512_ITERATIONS_MIN, sn__extension_pbkdf2_sha512_ITERATIONS_MIN)
   SN_EXPORT_UINT64(extension_pbkdf2_sha512_BYTES_MAX, sn__extension_pbkdf2_sha512_BYTES_MAX)
+
+#undef SN_EXPORT_FUNCTION_NOSCOPE
 
   return exports;
 }

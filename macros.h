@@ -1,3 +1,6 @@
+#define assert_bounds(arraybuffer) \
+  assert(arraybuffer##_offset + arraybuffer##_len <= arraybuffer.size())
+
 #define SN_STATUS_THROWS(call, message) \
   if ((call) != 0) { \
     err = js_throw_error(env, NULL, message); \
