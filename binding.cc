@@ -2055,7 +2055,7 @@ sn_crypto_secretstream_xchacha20poly1305_init_push (js_env_t *env, js_callback_i
   SN_RETURN(crypto_secretstream_xchacha20poly1305_init_push(state, header_data, k_data), "initial push failed")
 }
 
-uint32_t
+int64_t
 sn_crypto_secretstream_xchacha20poly1305_push (
   js_env_t *env,
   js_receiver_t,
@@ -2099,7 +2099,7 @@ sn_crypto_secretstream_xchacha20poly1305_push (
   unsigned long long clen = 0;
 
   int res = crypto_secretstream_xchacha20poly1305_push(state_data, &c[c_offset], &clen, &m[m_offset], m_len, ad_data, ad_len, tag);
-  assert(res == 0 && "push failed"); // WARNING; < v5.x used to throw!
+  if (res < 0) return -1;
 
   return clen;
 }
@@ -2119,7 +2119,7 @@ sn_crypto_secretstream_xchacha20poly1305_init_pull (js_env_t *env, js_callback_i
   SN_RETURN(crypto_secretstream_xchacha20poly1305_init_pull(state, header_data, k_data), "initial pull failed")
 }
 
-uint32_t
+int64_t
 sn_crypto_secretstream_xchacha20poly1305_pull(
   js_env_t *env,
   js_receiver_t,
@@ -2152,7 +2152,6 @@ sn_crypto_secretstream_xchacha20poly1305_pull(
   assert(state_len == sizeof(crypto_secretstream_xchacha20poly1305_state));
   auto state_data = reinterpret_cast<crypto_secretstream_xchacha20poly1305_state*>(&state[state_offset]);
 
-
   assert(c_len >= crypto_secretstream_xchacha20poly1305_ABYTES);
   assert(tag_len == 1);
   assert(m_len == c_len - crypto_secretstream_xchacha20poly1305_ABYTES);
@@ -2167,8 +2166,7 @@ sn_crypto_secretstream_xchacha20poly1305_pull(
   unsigned long long mlen = 0;
 
   int res = crypto_secretstream_xchacha20poly1305_pull(state_data, &m[m_offset], &mlen, &tag[tag_offset], &c[c_offset], c_len, ad_data, ad_len);
-
-  assert(res == 0 && "pull failed"); // WARNING; < v5.x used to throw!
+  if (res < 0) return -1;
 
   return mlen;
 }

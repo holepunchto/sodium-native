@@ -103,32 +103,38 @@ api.crypto_generichash_final = function (state, output) {
   if (res !== 0) throw new Error('status: ' + res)
 }
 
-/** /!\ no-longer throws
-  * @returns {number} */
+/** @returns {number} */
 api.crypto_secretstream_xchacha20poly1305_push = function (state, c, m, ad, tag) {
   ad ||= nullbuffer
 
-  return binding.crypto_secretstream_xchacha20poly1305_push(
+  const res = binding.crypto_secretstream_xchacha20poly1305_push(
     state.buffer, state.byteOffset, state.byteLength,
     c.buffer, c.byteOffset, c.byteLength,
     m.buffer, m.byteOffset, m.byteLength,
     ad.buffer, ad.byteOffset, ad.byteLength,
     tag
   )
+
+  if (res < 0) throw new Error('push failed')
+
+  return res
 }
 
-/** /!\ no-longer throws
-  * @returns {number} */
+/** @returns {number} */
 api.crypto_secretstream_xchacha20poly1305_pull = function (state, m, tag, c, ad) {
   ad ||= nullbuffer
 
-  return binding.crypto_secretstream_xchacha20poly1305_pull(
+  const res = binding.crypto_secretstream_xchacha20poly1305_pull(
     state.buffer, state.byteOffset, state.byteLength,
     m.buffer, m.byteOffset, m.byteLength,
     tag.buffer, tag.byteOffset, tag.byteLength,
     c.buffer, c.byteOffset, c.byteLength,
     ad.buffer, ad.byteOffset, ad.byteLength
   )
+
+  if (res < 0) throw new Error('pull failed')
+
+  return res
 }
 
 /** @returns {boolean} */
