@@ -12,7 +12,7 @@ api.sodium_malloc = function (size) {
 }
 
 // typedcall wrappers
-const nullbuffer = Buffer.allocUnsafeSlow(0)
+const OPTIONAL = Object.freeze({ buffer: undefined, byteOffset: 0, byteLength: 0 })
 
 api.randombytes_buf = function (buffer) {
   binding.randombytes_buf(
@@ -37,7 +37,7 @@ api.crypto_box_seal_open = function (m, c, pk, sk) {
   )
 }
 
-api.crypto_generichash = function (output, input, key = nullbuffer) {
+api.crypto_generichash = function (output, input, key = OPTIONAL) {
   const res = binding.crypto_generichash(
     output.buffer, output.byteOffset, output.byteLength,
     input.buffer, input.byteOffset, input.byteLength,
@@ -50,7 +50,7 @@ api.crypto_generichash = function (output, input, key = nullbuffer) {
 api.crypto_generichash_batch = function (output, batch, key) {
   if (isNode || batch.length < 12) { // TODO: re-tune min-batch-size
     // iterate batch from native
-    const res = binding.crypto_generichash_batch(output, batch, !!key, key || nullbuffer)
+    const res = binding.crypto_generichash_batch(output, batch, !!key, key || OPTIONAL)
     if (res !== 0) throw new Error('status: ' + res)
   } else {
     // iterate batch through fastcalls
@@ -74,7 +74,7 @@ api.crypto_generichash_keygen = function (key) {
 }
 
 api.crypto_generichash_init = function (state, key, outputLength) {
-  key ||= nullbuffer
+  key ||= OPTIONAL
 
   const res = binding.crypto_generichash_init(
     state.buffer, state.byteOffset, state.byteLength,
@@ -105,7 +105,7 @@ api.crypto_generichash_final = function (state, output) {
 
 /** @returns {number} */
 api.crypto_secretstream_xchacha20poly1305_push = function (state, c, m, ad, tag) {
-  ad ||= nullbuffer
+  ad ||= OPTIONAL
 
   const res = binding.crypto_secretstream_xchacha20poly1305_push(
     state.buffer, state.byteOffset, state.byteLength,
@@ -122,7 +122,7 @@ api.crypto_secretstream_xchacha20poly1305_push = function (state, c, m, ad, tag)
 
 /** @returns {number} */
 api.crypto_secretstream_xchacha20poly1305_pull = function (state, m, tag, c, ad) {
-  ad ||= nullbuffer
+  ad ||= OPTIONAL
 
   // TODO: consider removing tests instead of throwing
   if (c.byteLength < binding.crypto_secretstream_xchacha20poly1305_ABYTES) throw new Error('invalid cipher length')

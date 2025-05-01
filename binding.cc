@@ -162,7 +162,7 @@ sn_randombytes_uniform (js_env_t *env, js_receiver_t, uint32_t upper_bound) {
   return randombytes_uniform(upper_bound);
 }
 
-void
+static inline void
 sn_randombytes_buf (
     js_env_t *env,
     js_receiver_t,
@@ -174,7 +174,7 @@ sn_randombytes_buf (
   randombytes_buf(&buf[buf_offset], buf_len);
 }
 
-void
+static inline void
 sn_randombytes_buf_deterministic (
     js_env_t *env,
     js_receiver_t,
@@ -388,7 +388,7 @@ sn_crypto_sign_detached(js_env_t *env, js_callback_info_t *info) {
   SN_RETURN(crypto_sign_detached(sig_data, NULL, m_data, m_size, sk_data), "signature failed")
 }
 
-bool
+static inline bool
 sn_crypto_sign_verify_detached (
   js_env_t *env,
   js_receiver_t,
@@ -468,7 +468,7 @@ sn_crypto_generichash (
   uint32_t in_offset,
   uint32_t in_len,
 
-  js_arraybuffer_span_t key,
+  js_object_t key,
   uint32_t key_offset,
   uint32_t key_len
 ) {
@@ -482,9 +482,15 @@ sn_crypto_generichash (
 
   uint8_t *key_data = NULL;
   if (key_len) {
-    key_data = &key[key_offset];
+    uint8_t *slab;
+    size_t slab_len;
 
-    assert_bounds(key);
+    int err = js_get_arraybuffer_info(env, key, (void **) &slab, &slab_len);
+    assert(err == 0);
+
+    assert(key_len + key_offset <= slab_len);
+    key_data = slab + key_offset;
+
     assert(
       key_len >= crypto_generichash_KEYBYTES_MIN &&
       key_len <= crypto_generichash_KEYBYTES_MAX
@@ -570,7 +576,7 @@ sn_crypto_generichash_init (
   uint32_t state_offset,
   uint32_t state_len,
 
-  js_arraybuffer_span_t key,
+  js_object_t key,
   uint32_t key_offset,
   uint32_t key_len,
 
@@ -581,8 +587,14 @@ sn_crypto_generichash_init (
 
   uint8_t *key_data = NULL;
   if (key_len) {
-    assert_bounds(key);
-    key_data = &key[key_offset];
+    uint8_t *slab;
+    size_t slab_len;
+
+    int err = js_get_arraybuffer_info(env, key, (void **) &slab, &slab_len);
+    assert(err == 0);
+
+    assert(key_len + key_offset <= slab_len);
+    key_data = slab + key_offset;
 
     assert(
       key_len >= crypto_generichash_KEYBYTES_MIN &&
@@ -758,7 +770,7 @@ sn_crypto_box_seal(js_env_t *env, js_callback_info_t *info) {
   SN_RETURN(crypto_box_seal(c_data, m_data, m_size, pk_data), "failed to create seal")
 }
 
-bool
+static inline bool
 sn_crypto_box_seal_open(
   js_env_t *env,
   js_receiver_t,
@@ -875,7 +887,7 @@ sn_crypto_stream(js_env_t *env, js_callback_info_t *info) {
   SN_RETURN(crypto_stream(c_data, c_size, n_data, k_data), "stream encryption failed")
 }
 
-int
+static inline int
 sn_crypto_stream_xor(
   js_env_t *env,
   js_receiver_t,
@@ -2055,7 +2067,7 @@ sn_crypto_secretstream_xchacha20poly1305_init_push (js_env_t *env, js_callback_i
   SN_RETURN(crypto_secretstream_xchacha20poly1305_init_push(state, header_data, k_data), "initial push failed")
 }
 
-int64_t
+static inline int64_t
 sn_crypto_secretstream_xchacha20poly1305_push (
   js_env_t *env,
   js_receiver_t,
@@ -2072,7 +2084,7 @@ sn_crypto_secretstream_xchacha20poly1305_push (
   uint32_t m_offset,
   uint32_t m_len,
 
-  js_arraybuffer_span_t ad,
+  js_object_t ad,
   uint32_t ad_offset,
   uint32_t ad_len,
 
@@ -2092,8 +2104,14 @@ sn_crypto_secretstream_xchacha20poly1305_push (
 
   uint8_t *ad_data = NULL;
   if (ad_len) {
-    assert_bounds(ad);
-    ad_data = &ad[ad_offset];
+    uint8_t *slab;
+    size_t slab_len;
+
+    int err = js_get_arraybuffer_info(env, ad, (void **) &slab, &slab_len);
+    assert(err == 0);
+
+    assert(ad_len + ad_offset <= slab_len);
+    ad_data = slab + ad_offset;
   }
 
   unsigned long long clen = 0;
@@ -2119,7 +2137,7 @@ sn_crypto_secretstream_xchacha20poly1305_init_pull (js_env_t *env, js_callback_i
   SN_RETURN(crypto_secretstream_xchacha20poly1305_init_pull(state, header_data, k_data), "initial pull failed")
 }
 
-int64_t
+static inline int64_t
 sn_crypto_secretstream_xchacha20poly1305_pull(
   js_env_t *env,
   js_receiver_t,
@@ -2140,7 +2158,7 @@ sn_crypto_secretstream_xchacha20poly1305_pull(
   uint32_t c_offset,
   uint32_t c_len,
 
-  js_arraybuffer_span_t ad,
+  js_object_t ad,
   uint32_t ad_offset,
   uint32_t ad_len
 ) {
@@ -2159,8 +2177,14 @@ sn_crypto_secretstream_xchacha20poly1305_pull(
 
   uint8_t *ad_data = NULL;
   if (ad_len) {
-    assert_bounds(ad);
-    ad_data = &ad[ad_offset];
+    uint8_t *slab;
+    size_t slab_len;
+
+    int err = js_get_arraybuffer_info(env, ad, (void **) &slab, &slab_len);
+    assert(err == 0);
+
+    assert(ad_len + ad_offset <= slab_len);
+    ad_data = slab + ad_offset;
   }
 
   unsigned long long mlen = 0;
@@ -3512,7 +3536,7 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   SN_THROWS(err == -1, "sodium_init() failed")
 
 #define SN_EXPORT_FUNCTION_NOSCOPE(name, fn) \
-  err = js_set_property<fn, false>(env, exports, name); \
+  err = js_set_property<fn, false, false>(env, exports, name); \
   assert(err == 0);
 
   // memory
@@ -3639,7 +3663,7 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   // crypto_generichash
 
   SN_EXPORT_FUNCTION_NOSCOPE("crypto_generichash", sn_crypto_generichash);
-  err = js_set_property<sn_crypto_generichash_batch>(env, exports, "crypto_generichash_batch");
+  err = js_set_property<sn_crypto_generichash_batch, true>(env, exports, "crypto_generichash_batch"); // w/ scope
   assert(err == 0);
   SN_EXPORT_FUNCTION_NOSCOPE("crypto_generichash_batch", sn_crypto_generichash_batch)
 
