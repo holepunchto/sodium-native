@@ -2087,7 +2087,7 @@ sn_crypto_secretstream_xchacha20poly1305_push (
   uint32_t ad_offset,
   uint32_t ad_len,
 
-  uint32_t tag // V8-BUG? js_number won't match uint8_t
+  uint32_t tag
 ) {
   assert_bounds(state);
   assert_bounds(c);
