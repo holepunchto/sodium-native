@@ -12,7 +12,7 @@ api.sodium_malloc = function (size) {
 }
 
 // typedcall wrappers
-const OPTIONAL = Object.freeze({ buffer: undefined, byteOffset: 0, byteLength: 0 })
+const OPTIONAL = Buffer.from(new ArrayBuffer(0))
 
 api.randombytes_buf = function (buffer) {
   binding.randombytes_buf(
