@@ -3663,6 +3663,7 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   // crypto_generichash
 
   SN_EXPORT_FUNCTION_NOSCOPE("crypto_generichash", sn_crypto_generichash);
+  // note: the new default function-export in upcoming iteration.
   err = js_set_property<sn_crypto_generichash_batch, true>(env, exports, "crypto_generichash_batch"); // w/ scope
   assert(err == 0);
   SN_EXPORT_FUNCTION_NOSCOPE("crypto_generichash_batch", sn_crypto_generichash_batch)
