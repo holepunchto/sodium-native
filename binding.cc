@@ -2038,32 +2038,49 @@ sn_crypto_aead_chacha20poly1305_ietf_decrypt_detached (js_env_t *env, js_callbac
   SN_RETURN(crypto_aead_chacha20poly1305_ietf_decrypt_detached(m_data, NULL, c_data, c_size, mac_data, ad_data, ad_size, npub_data, k_data), "could not verify data")
 }
 
-js_value_t *
-sn_crypto_secretstream_xchacha20poly1305_keygen (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(1, crypto_secretstream_xchacha20poly1305_keygen)
+static inline void
+sn_crypto_secretstream_xchacha20poly1305_keygen (
+  js_env_t *env,
+  js_receiver_t,
 
-  SN_ARGV_TYPEDARRAY(k, 0)
+  js_arraybuffer_span_t k,
+  uint32_t k_offset,
+  uint32_t k_len
+) {
+  assert_bounds(k);
+  assert(k_len == crypto_secretstream_xchacha20poly1305_KEYBYTES);
 
-  SN_ASSERT_LENGTH(k_size, crypto_secretstream_xchacha20poly1305_KEYBYTES, "k")
-
-  crypto_secretstream_xchacha20poly1305_keygen(k_data);
-
-  return NULL;
+  crypto_secretstream_xchacha20poly1305_keygen(&k[k_offset]);
 }
 
-js_value_t *
-sn_crypto_secretstream_xchacha20poly1305_init_push (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(3, crypto_secretstream_xchacha20poly1305_init_push)
+static inline int
+sn_crypto_secretstream_xchacha20poly1305_init_push (
+  js_env_t *env,
+  js_receiver_t,
 
-  SN_ARGV_BUFFER_CAST(crypto_secretstream_xchacha20poly1305_state *, state, 0)
-  SN_ARGV_TYPEDARRAY(header, 1)
-  SN_ARGV_TYPEDARRAY(k, 2)
+  js_arraybuffer_span_t state,
+  uint32_t state_offset,
+  uint32_t state_len,
 
-  SN_THROWS(state_size != sizeof(crypto_secretstream_xchacha20poly1305_state), "state must be 'crypto_secretstream_xchacha20poly1305_STATEBYTES' bytes")
-  SN_ASSERT_LENGTH(header_size, crypto_secretstream_xchacha20poly1305_HEADERBYTES, "header")
-  SN_ASSERT_LENGTH(k_size, crypto_secretstream_xchacha20poly1305_KEYBYTES, "k")
+  js_arraybuffer_span_t header,
+  uint32_t header_offset,
+  uint32_t header_len,
 
-  SN_RETURN(crypto_secretstream_xchacha20poly1305_init_push(state, header_data, k_data), "initial push failed")
+  js_arraybuffer_span_t k,
+  uint32_t k_offset,
+  uint32_t k_len
+) {
+  assert_bounds(state);
+  assert_bounds(header);
+  assert_bounds(k);
+
+  assert(state_len == sizeof(crypto_secretstream_xchacha20poly1305_state));
+  auto state_data = reinterpret_cast<crypto_secretstream_xchacha20poly1305_state *>(&state[state_offset]);
+
+  assert(header_len == crypto_secretstream_xchacha20poly1305_HEADERBYTES);
+  assert(k_len == crypto_secretstream_xchacha20poly1305_KEYBYTES);
+
+  return crypto_secretstream_xchacha20poly1305_init_push(state_data, &header[header_offset], &k[k_offset]);
 }
 
 static inline int64_t
@@ -2121,20 +2138,36 @@ sn_crypto_secretstream_xchacha20poly1305_push (
   return clen;
 }
 
-js_value_t *
-sn_crypto_secretstream_xchacha20poly1305_init_pull (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(3, crypto_secretstream_xchacha20poly1305_init_pull)
+static inline int
+sn_crypto_secretstream_xchacha20poly1305_init_pull (
+  js_env_t *,
+  js_receiver_t,
 
-  SN_ARGV_BUFFER_CAST(crypto_secretstream_xchacha20poly1305_state *, state, 0)
-  SN_ARGV_TYPEDARRAY(header, 1)
-  SN_ARGV_TYPEDARRAY(k, 2)
+  js_arraybuffer_span_t state,
+  uint32_t state_offset,
+  uint32_t state_len,
 
-  SN_THROWS(state_size != sizeof(crypto_secretstream_xchacha20poly1305_state), "state must be 'crypto_secretstream_xchacha20poly1305_STATEBYTES' bytes")
-  SN_ASSERT_LENGTH(header_size, crypto_secretstream_xchacha20poly1305_HEADERBYTES, "header")
-  SN_ASSERT_LENGTH(k_size, crypto_secretstream_xchacha20poly1305_KEYBYTES, "k")
+  js_arraybuffer_span_t header,
+  uint32_t header_offset,
+  uint32_t header_len,
 
-  SN_RETURN(crypto_secretstream_xchacha20poly1305_init_pull(state, header_data, k_data), "initial pull failed")
+  js_arraybuffer_span_t k,
+  uint32_t k_offset,
+  uint32_t k_len
+) {
+  assert_bounds(state);
+  assert_bounds(header);
+  assert_bounds(k);
+
+  assert(state_len == sizeof(crypto_secretstream_xchacha20poly1305_state));
+  auto state_data = reinterpret_cast<crypto_secretstream_xchacha20poly1305_state *>(&state[state_offset]);
+
+  assert(header_len == crypto_secretstream_xchacha20poly1305_HEADERBYTES);
+  assert(k_len == crypto_secretstream_xchacha20poly1305_KEYBYTES);
+
+  return crypto_secretstream_xchacha20poly1305_init_pull(state_data, &header[header_offset], &k[k_offset]);
 }
+
 
 static inline int64_t
 sn_crypto_secretstream_xchacha20poly1305_pull(
@@ -2194,17 +2227,21 @@ sn_crypto_secretstream_xchacha20poly1305_pull(
   return mlen;
 }
 
-js_value_t *
-sn_crypto_secretstream_xchacha20poly1305_rekey (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(1, crypto_secretstream_xchacha20poly1305_rekey)
+static inline void
+sn_crypto_secretstream_xchacha20poly1305_rekey (
+  js_env_t *,
+  js_receiver_t,
 
-  SN_ARGV_BUFFER_CAST(crypto_secretstream_xchacha20poly1305_state *, state, 0)
+  js_arraybuffer_span_t state,
+  uint32_t state_offset,
+  uint32_t state_len
+) {
+  assert_bounds(state);
 
-  SN_THROWS(state_size != sizeof(crypto_secretstream_xchacha20poly1305_state), "state must be 'crypto_secretstream_xchacha20poly1305_STATEBYTES' bytes")
+  assert(state_len == sizeof(crypto_secretstream_xchacha20poly1305_state));
+  auto state_data = reinterpret_cast<crypto_secretstream_xchacha20poly1305_state*>(&state[state_offset]);
 
-  crypto_secretstream_xchacha20poly1305_rekey(state);
-
-  return NULL;
+  crypto_secretstream_xchacha20poly1305_rekey(state_data);
 }
 
 typedef struct sn_async_task_t {
@@ -3535,7 +3572,7 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   SN_THROWS(err == -1, "sodium_init() failed")
 
 #define SN_EXPORT_FUNCTION_NOSCOPE(name, fn) \
-  err = js_set_property<fn, false, false>(env, exports, name); \
+  err = js_set_property<fn, false>(env, exports, name); \
   assert(err == 0);
 
   // memory
@@ -3796,13 +3833,13 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
 
   // crypto_secretstream
 
-  SN_EXPORT_FUNCTION(crypto_secretstream_xchacha20poly1305_keygen, sn_crypto_secretstream_xchacha20poly1305_keygen)
-  SN_EXPORT_FUNCTION(crypto_secretstream_xchacha20poly1305_init_push, sn_crypto_secretstream_xchacha20poly1305_init_push)
-  SN_EXPORT_FUNCTION(crypto_secretstream_xchacha20poly1305_init_pull, sn_crypto_secretstream_xchacha20poly1305_init_pull)
-  SN_EXPORT_FUNCTION_NOSCOPE("crypto_secretstream_xchacha20poly1305_push", sn_crypto_secretstream_xchacha20poly1305_push)
-  SN_EXPORT_FUNCTION_NOSCOPE("crypto_secretstream_xchacha20poly1305_pull", sn_crypto_secretstream_xchacha20poly1305_pull)
+  SN_EXPORT_FUNCTION_NOSCOPE("crypto_secretstream_xchacha20poly1305_keygen", sn_crypto_secretstream_xchacha20poly1305_keygen);
+  SN_EXPORT_FUNCTION_NOSCOPE("crypto_secretstream_xchacha20poly1305_init_push", sn_crypto_secretstream_xchacha20poly1305_init_push);
+  SN_EXPORT_FUNCTION_NOSCOPE("crypto_secretstream_xchacha20poly1305_init_pull", sn_crypto_secretstream_xchacha20poly1305_init_pull);
+  SN_EXPORT_FUNCTION_NOSCOPE("crypto_secretstream_xchacha20poly1305_push", sn_crypto_secretstream_xchacha20poly1305_push);
+  SN_EXPORT_FUNCTION_NOSCOPE("crypto_secretstream_xchacha20poly1305_pull", sn_crypto_secretstream_xchacha20poly1305_pull);
+  SN_EXPORT_FUNCTION_NOSCOPE("crypto_secretstream_xchacha20poly1305_rekey", sn_crypto_secretstream_xchacha20poly1305_rekey);
 
-  SN_EXPORT_FUNCTION(crypto_secretstream_xchacha20poly1305_rekey, sn_crypto_secretstream_xchacha20poly1305_rekey)
   SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_STATEBYTES, sizeof(crypto_secretstream_xchacha20poly1305_state))
   SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_ABYTES, crypto_secretstream_xchacha20poly1305_ABYTES)
   SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_HEADERBYTES, crypto_secretstream_xchacha20poly1305_HEADERBYTES)

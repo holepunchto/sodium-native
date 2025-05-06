@@ -13,6 +13,8 @@ exports.sodium_malloc = function (size) {
 // typedcall wrappers
 const OPTIONAL = Buffer.from(new ArrayBuffer(0))
 
+// crypto_randombytes
+
 exports.randombytes_buf = function (buffer) {
   binding.randombytes_buf(
     buffer.buffer, buffer.byteOffset, buffer.byteLength
@@ -26,6 +28,8 @@ exports.randombytes_buf_deterministic = function (buffer, seed) {
   )
 }
 
+// crypto_box
+
 /** @returns {bool} */
 exports.crypto_box_seal_open = function (m, c, pk, sk) {
   return binding.crypto_box_seal_open(
@@ -35,6 +39,8 @@ exports.crypto_box_seal_open = function (m, c, pk, sk) {
     sk.buffer, sk.byteOffset, sk.byteLength
   )
 }
+
+// crypto_generichash
 
 exports.crypto_generichash = function (output, input, key = OPTIONAL) {
   const res = binding.crypto_generichash(
@@ -102,6 +108,31 @@ exports.crypto_generichash_final = function (state, output) {
   if (res !== 0) throw new Error('status: ' + res)
 }
 
+// secretstream
+exports.crypto_secretstream_xchacha20poly1305_keygen = function (k) {
+  binding.crypto_secretstream_xchacha20poly1305_keygen(k.buffer, k.byteOffset, k.byteLength)
+}
+
+exports.crypto_secretstream_xchacha20poly1305_init_push = function (state, header, k) {
+  const res = binding.crypto_secretstream_xchacha20poly1305_init_push(
+    state.buffer, state.byteOffset, state.byteLength,
+    header.buffer, header.byteOffset, header.byteLength,
+    k.buffer, k.byteOffset, k.byteLength
+  )
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_secretstream_xchacha20poly1305_init_pull = function (state, header, k) {
+  const res = binding.crypto_secretstream_xchacha20poly1305_init_pull(
+    state.buffer, state.byteOffset, state.byteLength,
+    header.buffer, header.byteOffset, header.byteLength,
+    k.buffer, k.byteOffset, k.byteLength
+  )
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
 /** @returns {number} */
 exports.crypto_secretstream_xchacha20poly1305_push = function (state, c, m, ad, tag) {
   ad ||= OPTIONAL
@@ -140,6 +171,12 @@ exports.crypto_secretstream_xchacha20poly1305_pull = function (state, m, tag, c,
   return res
 }
 
+exports.crypto_secretstream_xchacha20poly1305_rekey = function (state) {
+  binding.crypto_secretstream_xchacha20poly1305_rekey(state.buffer, state.byteOffset, state.byteLength)
+}
+
+// crypto_sign
+
 /** @returns {boolean} */
 exports.crypto_sign_verify_detached = function (sig, m, pk) {
   return binding.crypto_sign_verify_detached(
@@ -148,6 +185,8 @@ exports.crypto_sign_verify_detached = function (sig, m, pk) {
     pk.buffer, pk.byteOffset, pk.byteLength
   )
 }
+
+// crypto_stream
 
 exports.crypto_stream_xor = function (c, m, n, k) {
   const res = binding.crypto_stream_xor(
