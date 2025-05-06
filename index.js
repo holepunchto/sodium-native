@@ -1,10 +1,9 @@
 const binding = require('./binding')
 const { isNode } = require('which-runtime')
 
-const api = { ...binding }
-module.exports = api
+module.exports = exports = { ...binding }
 
-api.sodium_malloc = function (size) {
+exports.sodium_malloc = function (size) {
   const buf = Buffer.from(binding._sodium_malloc(size))
   buf.secure = true
 
@@ -14,13 +13,13 @@ api.sodium_malloc = function (size) {
 // typedcall wrappers
 const OPTIONAL = Buffer.from(new ArrayBuffer(0))
 
-api.randombytes_buf = function (buffer) {
+exports.randombytes_buf = function (buffer) {
   binding.randombytes_buf(
     buffer.buffer, buffer.byteOffset, buffer.byteLength
   )
 }
 
-api.randombytes_buf_deterministic = function (buffer, seed) {
+exports.randombytes_buf_deterministic = function (buffer, seed) {
   binding.randombytes_buf_deterministic(
     buffer.buffer, buffer.byteOffset, buffer.byteLength,
     seed.buffer, seed.byteOffset, seed.byteLength
@@ -28,7 +27,7 @@ api.randombytes_buf_deterministic = function (buffer, seed) {
 }
 
 /** @returns {bool} */
-api.crypto_box_seal_open = function (m, c, pk, sk) {
+exports.crypto_box_seal_open = function (m, c, pk, sk) {
   return binding.crypto_box_seal_open(
     m.buffer, m.byteOffset, m.byteLength,
     c.buffer, c.byteOffset, c.byteLength,
@@ -37,7 +36,7 @@ api.crypto_box_seal_open = function (m, c, pk, sk) {
   )
 }
 
-api.crypto_generichash = function (output, input, key = OPTIONAL) {
+exports.crypto_generichash = function (output, input, key = OPTIONAL) {
   const res = binding.crypto_generichash(
     output.buffer, output.byteOffset, output.byteLength,
     input.buffer, input.byteOffset, input.byteLength,
@@ -47,7 +46,7 @@ api.crypto_generichash = function (output, input, key = OPTIONAL) {
   if (res !== 0) throw new Error('status: ' + res)
 }
 
-api.crypto_generichash_batch = function (output, batch, key) {
+exports.crypto_generichash_batch = function (output, batch, key) {
   if (isNode || batch.length < 12) { // TODO: re-tune min-batch-size
     // iterate batch from native
     const res = binding.crypto_generichash_batch(output, batch, !!key, key || OPTIONAL)
@@ -56,24 +55,24 @@ api.crypto_generichash_batch = function (output, batch, key) {
     // iterate batch through fastcalls
     const state = Buffer.alloc(binding.crypto_generichash_STATEBYTES)
 
-    api.crypto_generichash_init(state, key, output.byteLength)
+    exports.crypto_generichash_init(state, key, output.byteLength)
 
     for (const buf of batch) {
-      api.crypto_generichash_update(state, buf)
+      exports.crypto_generichash_update(state, buf)
     }
 
-    api.crypto_generichash_final(state, output)
+    exports.crypto_generichash_final(state, output)
   }
 }
 
-api.crypto_generichash_keygen = function (key) {
+exports.crypto_generichash_keygen = function (key) {
   const res = binding.crypto_generichash_keygen(
     key.buffer, key.byteOffset, key.byteLength
   )
   if (res !== 0) throw new Error('status: ' + res)
 }
 
-api.crypto_generichash_init = function (state, key, outputLength) {
+exports.crypto_generichash_init = function (state, key, outputLength) {
   key ||= OPTIONAL
 
   const res = binding.crypto_generichash_init(
@@ -85,7 +84,7 @@ api.crypto_generichash_init = function (state, key, outputLength) {
   if (res !== 0) throw new Error('status: ' + res)
 }
 
-api.crypto_generichash_update = function (state, input) {
+exports.crypto_generichash_update = function (state, input) {
   const res = binding.crypto_generichash_update(
     state.buffer, state.byteOffset, state.byteLength,
     input.buffer, input.byteOffset, input.byteLength
@@ -94,7 +93,7 @@ api.crypto_generichash_update = function (state, input) {
   if (res !== 0) throw new Error('status: ' + res)
 }
 
-api.crypto_generichash_final = function (state, output) {
+exports.crypto_generichash_final = function (state, output) {
   const res = binding.crypto_generichash_final(
     state.buffer, state.byteOffset, state.byteLength,
     output.buffer, output.byteOffset, output.byteLength
@@ -104,7 +103,7 @@ api.crypto_generichash_final = function (state, output) {
 }
 
 /** @returns {number} */
-api.crypto_secretstream_xchacha20poly1305_push = function (state, c, m, ad, tag) {
+exports.crypto_secretstream_xchacha20poly1305_push = function (state, c, m, ad, tag) {
   ad ||= OPTIONAL
 
   const res = binding.crypto_secretstream_xchacha20poly1305_push(
@@ -121,7 +120,7 @@ api.crypto_secretstream_xchacha20poly1305_push = function (state, c, m, ad, tag)
 }
 
 /** @returns {number} */
-api.crypto_secretstream_xchacha20poly1305_pull = function (state, m, tag, c, ad) {
+exports.crypto_secretstream_xchacha20poly1305_pull = function (state, m, tag, c, ad) {
   ad ||= OPTIONAL
 
   // TODO: consider removing tests instead of throwing
@@ -142,7 +141,7 @@ api.crypto_secretstream_xchacha20poly1305_pull = function (state, m, tag, c, ad)
 }
 
 /** @returns {boolean} */
-api.crypto_sign_verify_detached = function (sig, m, pk) {
+exports.crypto_sign_verify_detached = function (sig, m, pk) {
   return binding.crypto_sign_verify_detached(
     sig.buffer, sig.byteOffset, sig.byteLength,
     m.buffer, m.byteOffset, m.byteLength,
@@ -150,7 +149,7 @@ api.crypto_sign_verify_detached = function (sig, m, pk) {
   )
 }
 
-api.crypto_stream_xor = function (c, m, n, k) {
+exports.crypto_stream_xor = function (c, m, n, k) {
   const res = binding.crypto_stream_xor(
     c.buffer, c.byteOffset, c.byteLength,
     m.buffer, m.byteOffset, m.byteLength,
