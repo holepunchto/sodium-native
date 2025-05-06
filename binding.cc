@@ -1,6 +1,5 @@
 #include <assert.h>
 #include <bare.h>
-#include <cstdint>
 #include <js.h>
 #include <jstl.h>
 #include <stdbool.h>
