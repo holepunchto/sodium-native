@@ -650,123 +650,118 @@ sn_crypto_generichash_final (
   return crypto_generichash_final(state_data, &out[out_offset], out_len);
 }
 
-js_value_t *
-sn_crypto_box_keypair(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(2, crypto_box_keypair)
+static inline int
+sn_crypto_box_keypair (js_env_t *, js_receiver_t, js_typedarray_span_t<> pk, js_typedarray_span_t<> sk) {
+  assert(pk.size_bytes() == crypto_box_PUBLICKEYBYTES);
+  assert(sk.size_bytes() == crypto_box_SECRETKEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(pk, 0)
-  SN_ARGV_TYPEDARRAY(sk, 1)
-
-  SN_ASSERT_LENGTH(pk_size, crypto_box_PUBLICKEYBYTES, "pk")
-  SN_ASSERT_LENGTH(sk_size, crypto_box_SECRETKEYBYTES, "sk")
-
-  SN_RETURN(crypto_box_keypair(pk_data, sk_data), "keypair generation failed")
+  return crypto_box_keypair(pk.data(), sk.data());
 }
 
-js_value_t *
-sn_crypto_box_seed_keypair(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(3, crypto_box_seed_keypair)
+static inline int
+sn_crypto_box_seed_keypair(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> pk,
+  js_typedarray_span_t<> sk,
+  js_typedarray_span_t<> seed
+) {
+  assert(pk.size_bytes() == crypto_box_PUBLICKEYBYTES);
+  assert(sk.size_bytes() == crypto_box_SECRETKEYBYTES);
+  assert(seed.size_bytes() == crypto_box_SEEDBYTES);
 
-  SN_ARGV_TYPEDARRAY(pk, 0)
-  SN_ARGV_TYPEDARRAY(sk, 1)
-  SN_ARGV_TYPEDARRAY(seed, 2)
-
-  SN_ASSERT_LENGTH(pk_size, crypto_box_PUBLICKEYBYTES, "pk")
-  SN_ASSERT_LENGTH(sk_size, crypto_box_SECRETKEYBYTES, "sk")
-  SN_ASSERT_LENGTH(seed_size, crypto_box_SEEDBYTES, "seed")
-
-  SN_RETURN(crypto_box_seed_keypair(pk_data, sk_data, seed_data), "keypair generation failed")
+  return crypto_box_seed_keypair(pk.data(), sk.data(), seed.data());
 }
 
-js_value_t *
-sn_crypto_box_easy(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(5, crypto_box_easy)
+static inline int
+sn_crypto_box_easy (
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> c,
+  js_typedarray_span_t<> m,
+  js_typedarray_span_t<> n,
+  js_typedarray_span_t<> pk,
+  js_typedarray_span_t<> sk
+) {
+  assert(c.size_bytes() == m.size_bytes() + crypto_box_MACBYTES);
+  assert(n.size_bytes() == crypto_box_NONCEBYTES);
+  assert(pk.size_bytes() == crypto_box_PUBLICKEYBYTES);
+  assert(sk.size_bytes() == crypto_box_SECRETKEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(c, 0)
-  SN_ARGV_TYPEDARRAY(m, 1)
-  SN_ARGV_TYPEDARRAY(n, 2)
-  SN_ARGV_TYPEDARRAY(pk, 3)
-  SN_ARGV_TYPEDARRAY(sk, 4)
-
-  SN_THROWS(c_size != m_size + crypto_box_MACBYTES, "c must be 'm.byteLength + crypto_box_MACBYTES' bytes")
-  SN_ASSERT_LENGTH(n_size, crypto_box_NONCEBYTES, "n")
-  SN_ASSERT_LENGTH(sk_size, crypto_box_SECRETKEYBYTES, "sk")
-  SN_ASSERT_LENGTH(pk_size, crypto_box_PUBLICKEYBYTES, "pk")
-
-  SN_RETURN(crypto_box_easy(c_data, m_data, m_size, n_data, pk_data, sk_data), "crypto box failed")
+  return crypto_box_easy(c.data(), m.data(), m.size_bytes(), n.data(), pk.data(), sk.data());
 }
 
-js_value_t *
-sn_crypto_box_open_easy(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(5, crypto_box_open_easy)
+static inline bool
+sn_crypto_box_open_easy (
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> m,
+  js_typedarray_span_t<> c,
+  js_typedarray_span_t<> n,
+  js_typedarray_span_t<> pk,
+  js_typedarray_span_t<> sk
+) {
+  assert(c.size_bytes() >= crypto_box_MACBYTES);
+  assert(m.size_bytes() == c.size_bytes() - crypto_box_MACBYTES);
+  assert(n.size_bytes() == crypto_box_NONCEBYTES);
+  assert(pk.size_bytes() == crypto_box_PUBLICKEYBYTES);
+  assert(sk.size_bytes() == crypto_box_SECRETKEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(m, 0)
-  SN_ARGV_TYPEDARRAY(c, 1)
-  SN_ARGV_TYPEDARRAY(n, 2)
-  SN_ARGV_TYPEDARRAY(pk, 3)
-  SN_ARGV_TYPEDARRAY(sk, 4)
-
-  SN_THROWS(m_size != c_size - crypto_box_MACBYTES, "m must be 'c.byteLength - crypto_box_MACBYTES' bytes")
-  SN_ASSERT_MIN_LENGTH(c_size, crypto_box_MACBYTES, "c")
-  SN_ASSERT_LENGTH(n_size, crypto_box_NONCEBYTES, "n")
-  SN_ASSERT_LENGTH(sk_size, crypto_box_SECRETKEYBYTES, "sk")
-  SN_ASSERT_LENGTH(pk_size, crypto_box_PUBLICKEYBYTES, "pk")
-
-  SN_RETURN_BOOLEAN(crypto_box_open_easy(m_data, c_data, c_size, n_data, pk_data, sk_data))
+  return crypto_box_open_easy(m.data(), c.data(), c.size_bytes(), n.data(), pk.data(), sk.data()) == 0;
 }
 
-js_value_t *
-sn_crypto_box_detached(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(6, crypto_box_detached)
+static inline int
+sn_crypto_box_detached(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> c,
+  js_typedarray_span_t<> mac,
+  js_typedarray_span_t<> m,
+  js_typedarray_span_t<> n,
+  js_typedarray_span_t<> pk,
+  js_typedarray_span_t<> sk
+) {
+  assert(c.size_bytes() == m.size_bytes());
+  assert(mac.size_bytes() == crypto_box_MACBYTES);
+  assert(n.size_bytes() == crypto_box_NONCEBYTES);
+  assert(pk.size_bytes() == crypto_box_PUBLICKEYBYTES);
+  assert(sk.size_bytes() == crypto_box_SECRETKEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(c, 0)
-  SN_ARGV_TYPEDARRAY(mac, 1)
-  SN_ARGV_TYPEDARRAY(m, 2)
-  SN_ARGV_TYPEDARRAY(n, 3)
-  SN_ARGV_TYPEDARRAY(pk, 4)
-  SN_ARGV_TYPEDARRAY(sk, 5)
-
-  SN_THROWS(c_size != m_size, "c must be 'm.byteLength' bytes")
-  SN_ASSERT_LENGTH(mac_size, crypto_box_MACBYTES, "mac")
-  SN_ASSERT_LENGTH(n_size, crypto_box_NONCEBYTES, "n")
-  SN_ASSERT_LENGTH(sk_size, crypto_box_SECRETKEYBYTES, "sk")
-  SN_ASSERT_LENGTH(pk_size, crypto_box_PUBLICKEYBYTES, "pk")
-
-  SN_RETURN(crypto_box_detached(c_data, mac_data, m_data, m_size, n_data, pk_data, sk_data), "signature failed")
+  return crypto_box_detached(c.data(), mac.data(), m.data(), m.size_bytes(), n.data(), pk.data(), sk.data());
 }
 
-js_value_t *
-sn_crypto_box_open_detached(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(6, crypto_box_open_detached)
+static inline bool
+sn_crypto_box_open_detached(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> m,
+  js_typedarray_span_t<> c,
+  js_typedarray_span_t<> mac,
+  js_typedarray_span_t<> n,
+  js_typedarray_span_t<> pk,
+  js_typedarray_span_t<> sk
+) {
+  assert(m.size_bytes() == c.size_bytes());
+  assert(mac.size_bytes() == crypto_box_MACBYTES);
+  assert(n.size_bytes() == crypto_box_NONCEBYTES);
+  assert(pk.size_bytes() == crypto_box_PUBLICKEYBYTES);
+  assert(sk.size_bytes() == crypto_box_SECRETKEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(m, 0)
-  SN_ARGV_TYPEDARRAY(c, 1)
-  SN_ARGV_TYPEDARRAY(mac, 2)
-  SN_ARGV_TYPEDARRAY(n, 3)
-  SN_ARGV_TYPEDARRAY(pk, 4)
-  SN_ARGV_TYPEDARRAY(sk, 5)
-
-  SN_THROWS(m_size != c_size, "m must be 'c.byteLength' bytes")
-  SN_ASSERT_LENGTH(mac_size, crypto_box_MACBYTES, "mac")
-  SN_ASSERT_LENGTH(n_size, crypto_box_NONCEBYTES, "n")
-  SN_ASSERT_LENGTH(sk_size, crypto_box_SECRETKEYBYTES, "sk")
-  SN_ASSERT_LENGTH(pk_size, crypto_box_PUBLICKEYBYTES, "pk")
-
-  SN_RETURN_BOOLEAN(crypto_box_open_detached(m_data, c_data, mac_data, c_size, n_data, pk_data, sk_data))
+  return crypto_box_open_detached(m.data(), c.data(), mac.data(), c.size_bytes(), n.data(), pk.data(), sk.data()) == 0;
 }
 
-js_value_t *
-sn_crypto_box_seal(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(3, crypto_box_seal)
+static inline int
+sn_crypto_box_seal(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> c,
+  js_typedarray_span_t<> m,
+  js_typedarray_span_t<> pk
+) {
+  assert(c.size_bytes() == m.size_bytes() + crypto_box_SEALBYTES);
+  assert(pk.size_bytes() == crypto_box_PUBLICKEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(c, 0)
-  SN_ARGV_TYPEDARRAY(m, 1)
-  SN_ARGV_TYPEDARRAY(pk, 2)
-
-  SN_THROWS(c_size != m_size + crypto_box_SEALBYTES, "c must be 'm.byteLength + crypto_box_SEALBYTES' bytes")
-  SN_ASSERT_LENGTH(pk_size, crypto_box_PUBLICKEYBYTES, "pk")
-
-  SN_RETURN(crypto_box_seal(c_data, m_data, m_size, pk_data), "failed to create seal")
+  return crypto_box_seal(c.data(), m.data(), m.size_bytes(), pk.data());
 }
 
 static inline bool
@@ -3571,6 +3566,13 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   err = sodium_init();
   SN_THROWS(err == -1, "sodium_init() failed")
 
+  // js_object_t _exports(exports); // TODO: remove
+
+  // TODO: rename => SN_EXPORT_FUNCTION
+#define SN_EXPORT_FUNCTION_SCOPED(name, fn) \
+  err = js_set_property<fn>(env, exports, name); \
+  assert(err == 0);
+
 #define SN_EXPORT_FUNCTION_NOSCOPE(name, fn) \
   err = js_set_property<fn, false>(env, exports, name); \
   assert(err == 0);
@@ -3639,15 +3641,15 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
 
   // crypto_box
 
-  SN_EXPORT_FUNCTION(crypto_box_keypair, sn_crypto_box_keypair)
-  SN_EXPORT_FUNCTION(crypto_box_seed_keypair, sn_crypto_box_seed_keypair)
-  SN_EXPORT_FUNCTION(crypto_box_easy, sn_crypto_box_easy)
-  SN_EXPORT_FUNCTION(crypto_box_open_easy, sn_crypto_box_open_easy)
-  SN_EXPORT_FUNCTION(crypto_box_detached, sn_crypto_box_detached)
-  SN_EXPORT_FUNCTION(crypto_box_open_detached, sn_crypto_box_open_detached)
-  SN_EXPORT_FUNCTION(crypto_box_seal, sn_crypto_box_seal)
-
+  SN_EXPORT_FUNCTION_SCOPED("crypto_box_keypair", sn_crypto_box_keypair);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_box_seed_keypair", sn_crypto_box_seed_keypair)
+  SN_EXPORT_FUNCTION_SCOPED("crypto_box_easy", sn_crypto_box_easy)
+  SN_EXPORT_FUNCTION_SCOPED("crypto_box_open_easy", sn_crypto_box_open_easy)
+  SN_EXPORT_FUNCTION_SCOPED("crypto_box_detached", sn_crypto_box_detached)
+  SN_EXPORT_FUNCTION_SCOPED("crypto_box_open_detached", sn_crypto_box_open_detached)
+  SN_EXPORT_FUNCTION_SCOPED("crypto_box_seal", sn_crypto_box_seal)
   SN_EXPORT_FUNCTION_NOSCOPE("crypto_box_seal_open", sn_crypto_box_seal_open)
+
   SN_EXPORT_UINT32(crypto_box_SEEDBYTES, crypto_box_SEEDBYTES)
   SN_EXPORT_UINT32(crypto_box_PUBLICKEYBYTES, crypto_box_PUBLICKEYBYTES)
   SN_EXPORT_UINT32(crypto_box_SECRETKEYBYTES, crypto_box_SECRETKEYBYTES)
@@ -3699,9 +3701,7 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   // crypto_generichash
 
   SN_EXPORT_FUNCTION_NOSCOPE("crypto_generichash", sn_crypto_generichash);
-  // note: the new default function-export in upcoming iteration.
-  err = js_set_property<sn_crypto_generichash_batch, true>(env, exports, "crypto_generichash_batch"); // w/ scope
-  assert(err == 0);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_generichash_batch", sn_crypto_generichash_batch);
   SN_EXPORT_FUNCTION_NOSCOPE("crypto_generichash_batch", sn_crypto_generichash_batch)
 
   SN_EXPORT_FUNCTION_NOSCOPE("crypto_generichash_keygen", sn_crypto_generichash_keygen)
@@ -3962,6 +3962,7 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   SN_EXPORT_UINT32(extension_pbkdf2_sha512_ITERATIONS_MIN, sn__extension_pbkdf2_sha512_ITERATIONS_MIN)
   SN_EXPORT_UINT64(extension_pbkdf2_sha512_BYTES_MAX, sn__extension_pbkdf2_sha512_BYTES_MAX)
 
+#undef SN_EXPORT_FUNCTION_SCOPED
 #undef SN_EXPORT_FUNCTION_NOSCOPE
 
   return exports;

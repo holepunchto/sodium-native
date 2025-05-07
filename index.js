@@ -30,7 +30,39 @@ exports.randombytes_buf_deterministic = function (buffer, seed) {
 
 // crypto_box
 
-/** @returns {bool} */
+exports.crypto_box_keypair = function (pk, sk) {
+  if (pk.byteLength !== binding.crypto_box_PUBLICKEYBYTES) throw new Error('pk') // deprecated
+  const res = binding.crypto_box_keypair(pk, sk)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_box_seed_keypair = function (pk, sk, seed) {
+  if (pk.byteLength !== binding.crypto_box_PUBLICKEYBYTES) throw new Error('pk') // deprecated
+  const res = binding.crypto_box_seed_keypair(pk, sk, seed)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_box_easy = function (c, m, n, pk, sk) {
+  const res = binding.crypto_box_easy(c, m, n, pk, sk)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_box_detached = function (c, mac, m, n, pk, sk) {
+  const res = binding.crypto_box_detached(c, mac, m, n, pk, sk)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_box_seal = function (c, m, pk) {
+  const res = binding.crypto_box_seal(c, m, pk)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+/** @returns {boolean} */
 exports.crypto_box_seal_open = function (m, c, pk, sk) {
   return binding.crypto_box_seal_open(
     m.buffer, m.byteOffset, m.byteLength,

@@ -19,7 +19,7 @@
   },
   "devDependencies": {
     "bare-compat-napi": "^1.3.4",
-    "brittle": "^3.16.1",
+    "brittle": "^3.16.2",
     "cmake-bare": "^1.6.1",
     "cmake-fetch": "^1.4.3",
     "cmake-napi": "^1.2.1",
