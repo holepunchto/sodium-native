@@ -10,7 +10,7 @@ set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 project(sodium_native C ASM CXX)
 
 fetch_package("github:jedisct1/libsodium#stable" SOURCE_DIR sodium)
-fetch_package("github:holepunchto/libjstl#f1dcff65")
+fetch_package("github:holepunchto/libjstl#b3aadac")
 
 bare_target(target)
 

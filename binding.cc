@@ -479,11 +479,17 @@ sn_crypto_generichash (
 
   assert_bounds(in);
 
+  /**
+   * JSTL has no notion of the key_len:u32;
+   * Using std::optional causes additional engine call;
+   * So if key_len is non-zero then use C-api to load the optional.
+   */
   uint8_t *key_data = NULL;
   if (key_len) {
     uint8_t *slab;
     size_t slab_len;
 
+    // /!\ FAILS! /!\ `key` arg expected to be `js_valute_t *`
     int err = js_get_arraybuffer_info(env, key, (void **) &slab, &slab_len);
     assert(err == 0);
 
