@@ -3566,15 +3566,15 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   err = sodium_init();
   SN_THROWS(err == -1, "sodium_init() failed")
 
-  // js_object_t _exports(exports); // TODO: remove
+  js_object_t _exports(exports); // TODO: remove
 
   // TODO: rename => SN_EXPORT_FUNCTION
 #define SN_EXPORT_FUNCTION_SCOPED(name, fn) \
-  err = js_set_property<fn>(env, exports, name); \
+  err = js_set_property<fn>(env, _exports, name); \
   assert(err == 0);
 
 #define SN_EXPORT_FUNCTION_NOSCOPE(name, fn) \
-  err = js_set_property<fn, false>(env, exports, name); \
+  err = js_set_property<fn, false>(env, _exports, name); \
   assert(err == 0);
 
   // memory
@@ -3582,7 +3582,7 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   SN_EXPORT_FUNCTION(sodium_memzero, sn_sodium_memzero)
   SN_EXPORT_FUNCTION(sodium_mlock, sn_sodium_mlock)
   SN_EXPORT_FUNCTION(sodium_munlock, sn_sodium_munlock)
-  SN_EXPORT_FUNCTION(_sodium_malloc, sn_sodium_malloc)
+  SN_EXPORT_FUNCTION(sodium_malloc, sn_sodium_malloc)
   SN_EXPORT_FUNCTION(sodium_free, sn_sodium_free)
   SN_EXPORT_FUNCTION(sodium_mprotect_noaccess, sn_sodium_mprotect_noaccess)
   SN_EXPORT_FUNCTION(sodium_mprotect_readonly, sn_sodium_mprotect_readonly)

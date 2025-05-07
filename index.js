@@ -1,17 +1,17 @@
 const binding = require('./binding')
 const { isNode } = require('which-runtime')
+const OPTIONAL = Buffer.from(new ArrayBuffer(0))
 
 module.exports = exports = { ...binding }
 
+// memory
+
 exports.sodium_malloc = function (size) {
-  const buf = Buffer.from(binding._sodium_malloc(size))
+  const buf = Buffer.from(binding.sodium_malloc(size))
   buf.secure = true
 
   return buf
 }
-
-// typedcall wrappers
-const OPTIONAL = Buffer.from(new ArrayBuffer(0))
 
 // crypto_randombytes
 
