@@ -194,126 +194,56 @@ sn_randombytes_buf_deterministic (
   randombytes_buf_deterministic(&buf[buf_offset], buf_len, &seed[seed_offset]);
 }
 
-js_value_t *
-sn_sodium_memcmp(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(2, sodium_memcmp);
+static inline bool
+sn_sodium_memcmp(js_env_t *, js_receiver_t, js_typedarray_span_t<> a, js_typedarray_span_t<> b) {
+  if (a.size_bytes() != b.size_bytes()) return false;
 
-  SN_ARGV_TYPEDARRAY(b1, 0)
-  SN_ARGV_TYPEDARRAY(b2, 1)
-
-  SN_THROWS(b1_size != b2_size, "buffers must be of same length")
-
-  SN_RETURN_BOOLEAN(sodium_memcmp(b1_data, b2_data, b1_size))
+  return sodium_memcmp(a.data(), b.data(), a.size_bytes()) == 0;
 }
 
-js_value_t *
-sn_sodium_increment(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(1, sodium_increment);
-  SN_ARGV_TYPEDARRAY(n, 0)
-
-  sodium_increment(n_data, n_size);
-
-  return NULL;
+static inline void
+sn_sodium_increment(js_env_t *, js_receiver_t, js_typedarray_span_t<> n) {
+  sodium_increment(n.data(), n.size_bytes());
 }
 
-js_value_t *
-sn_sodium_add(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(2, sodium_add);
-
-  SN_ARGV_TYPEDARRAY(a, 0)
-  SN_ARGV_TYPEDARRAY(b, 1)
-
-  SN_THROWS(a_size != b_size, "buffers must be of same length")
-  sodium_add(a_data, b_data, a_size);
-
-  return NULL;
+static inline void
+sn_sodium_add(js_env_t *, js_receiver_t, js_typedarray_span_t<> a, js_typedarray_span_t<> b) {
+  sodium_add(a.data(), b.data(), a.size_bytes());
 }
 
-js_value_t *
-sn_sodium_sub(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(2, sodium_sub);
-
-  SN_ARGV_TYPEDARRAY(a, 0)
-  SN_ARGV_TYPEDARRAY(b, 1)
-
-  SN_THROWS(a_size != b_size, "buffers must be of same length")
-  sodium_sub(a_data, b_data, a_size);
-
-  return NULL;
+static inline void
+sn_sodium_sub(js_env_t *, js_receiver_t, js_typedarray_span_t<> a, js_typedarray_span_t<> b) {
+  sodium_sub(a.data(), b.data(), a.size_bytes());
 }
 
-js_value_t *
-sn_sodium_compare(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(2, sodium_compare);
-
-  SN_ARGV_TYPEDARRAY(a, 0)
-  SN_ARGV_TYPEDARRAY(b, 1)
-
-  SN_THROWS(a_size != b_size, "buffers must be of same length")
-  int cmp = sodium_compare(a_data, b_data, a_size);
-
-  js_value_t *result;
-  err = js_create_int32(env, cmp, &result);
-  assert(err == 0);
-
-  return result;
+static inline int32_t
+sn_sodium_compare(js_env_t *, js_receiver_t, js_typedarray_span_t<> a, js_typedarray_span_t<> b) {
+  return sodium_compare(a.data(), b.data(), a.size_bytes());
 }
 
-js_value_t *
-sn_sodium_is_zero(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV_OPTS(1, 2, sodium_is_zero);
+static inline bool
+sn_sodium_is_zero(js_env_t *, js_receiver_t, js_typedarray_span_t<> buffer, uint32_t len) {
+  assert(len <= buffer.size_bytes());
 
-  SN_ARGV_TYPEDARRAY(a, 0)
-
-  size_t a_full = a_size;
-
-  if (argc == 2) {
-    SN_OPT_ARGV_UINT32(a_size, 1)
-    SN_THROWS(a_size > a_full, "len must be shorter than 'buf.byteLength'")
-  }
-
-  SN_RETURN_BOOLEAN_FROM_1(sodium_is_zero(a_data, a_size))
+  return sodium_is_zero(buffer.data(), len) != 0;
 }
 
-js_value_t *
-sn_sodium_pad(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(3, sodium_pad);
-
-  SN_ARGV_TYPEDARRAY(buf, 0)
-  SN_ARGV_UINT32(unpadded_buflen, 1)
-  SN_ARGV_UINT32(blocksize, 2)
-
-  SN_THROWS(unpadded_buflen > buf_size, "unpadded length cannot exceed buffer length")
-  SN_THROWS(blocksize > buf_size, "block size cannot exceed buffer length")
-  SN_THROWS(blocksize < 1, "block sizemust be at least 1 byte")
-  SN_THROWS(buf_size < unpadded_buflen + (blocksize - (unpadded_buflen % blocksize)), "buf not long enough")
-
-  js_value_t *result;
+static inline uint32_t
+sn_sodium_pad (js_env_t *, js_receiver_t, js_typedarray_span_t<> buf, uint32_t unpadded_buflen, uint32_t blocksize) {
   size_t padded_buflen;
-  sodium_pad(&padded_buflen, buf_data, unpadded_buflen, blocksize, buf_size);
-  err = js_create_uint32(env, padded_buflen, &result);
-  assert(err == 0);
-  return result;
+
+  sodium_pad(&padded_buflen, buf.data(), unpadded_buflen, blocksize, buf.size_bytes());
+
+  return padded_buflen;
 }
 
-js_value_t *
-sn_sodium_unpad(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(3, sodium_unpad);
-
-  SN_ARGV_TYPEDARRAY(buf, 0)
-  SN_ARGV_UINT32(padded_buflen, 1)
-  SN_ARGV_UINT32(blocksize, 2)
-
-  SN_THROWS(padded_buflen > buf_size, "unpadded length cannot exceed buffer length")
-  SN_THROWS(blocksize > buf_size, "block size cannot exceed buffer length")
-  SN_THROWS(blocksize < 1, "block size must be at least 1 byte")
-
-  js_value_t *result;
+static inline uint32_t
+sn_sodium_unpad (js_env_t *, js_receiver_t, js_typedarray_span_t<> buf, uint32_t padded_buflen, uint32_t blocksize) {
   size_t unpadded_buflen;
-  sodium_unpad(&unpadded_buflen, buf_data, padded_buflen, blocksize);
-  err = js_create_uint32(env, unpadded_buflen, &result);
-  assert(err == 0);
-  return result;
+
+  sodium_unpad(&unpadded_buflen, buf.data(), padded_buflen, blocksize);
+
+  return unpadded_buflen;
 }
 
 js_value_t *
@@ -489,8 +419,7 @@ sn_crypto_generichash (
     uint8_t *slab;
     size_t slab_len;
 
-    // /!\ FAILS! /!\ `key` arg expected to be `js_valute_t *`
-    int err = js_get_arraybuffer_info(env, key, (void **) &slab, &slab_len);
+    int err = js_get_arraybuffer_info(env, static_cast<js_arraybuffer_t &>(key), slab, slab_len);
     assert(err == 0);
 
     assert(key_len + key_offset <= slab_len);
@@ -543,7 +472,7 @@ sn_crypto_generichash_batch(
   for (auto &buf : batch) {
     bool is_typedarray = false;
 
-    int err = js_is_typedarray(env, buf, &is_typedarray);
+    int err = js_is_typedarray(env, static_cast<js_handle_t &>(buf), is_typedarray);
     assert(err == 0);
 
     std::span<uint8_t> view;
@@ -595,7 +524,7 @@ sn_crypto_generichash_init (
     uint8_t *slab;
     size_t slab_len;
 
-    int err = js_get_arraybuffer_info(env, key, (void **) &slab, &slab_len);
+    int err = js_get_arraybuffer_info(env, static_cast<js_arraybuffer_t &>(key), slab, slab_len);
     assert(err == 0);
 
     assert(key_len + key_offset <= slab_len);
@@ -2124,7 +2053,7 @@ sn_crypto_secretstream_xchacha20poly1305_push (
     uint8_t *slab;
     size_t slab_len;
 
-    int err = js_get_arraybuffer_info(env, ad, (void **) &slab, &slab_len);
+    int err = js_get_arraybuffer_info(env, static_cast<js_arraybuffer_t &>(ad), slab, slab_len);
     assert(err == 0);
 
     assert(ad_len + ad_offset <= slab_len);
@@ -2213,7 +2142,7 @@ sn_crypto_secretstream_xchacha20poly1305_pull(
     uint8_t *slab;
     size_t slab_len;
 
-    int err = js_get_arraybuffer_info(env, ad, (void **) &slab, &slab_len);
+    int err = js_get_arraybuffer_info(env, static_cast<js_arraybuffer_t &>(ad), slab, slab_len);
     assert(err == 0);
 
     assert(ad_len + ad_offset <= slab_len);
@@ -3600,18 +3529,19 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   SN_EXPORT_FUNCTION_NOSCOPE("randombytes_buf_deterministic", sn_randombytes_buf_deterministic)
   SN_EXPORT_FUNCTION_NOSCOPE("randombytes_random", sn_randombytes_random)
   SN_EXPORT_FUNCTION_NOSCOPE("randombytes_uniform", sn_randombytes_uniform)
+
   SN_EXPORT_UINT32(randombytes_SEEDBYTES, randombytes_SEEDBYTES)
 
   // sodium helpers
 
-  SN_EXPORT_FUNCTION(sodium_memcmp, sn_sodium_memcmp)
-  SN_EXPORT_FUNCTION(sodium_increment, sn_sodium_increment)
-  SN_EXPORT_FUNCTION(sodium_add, sn_sodium_add)
-  SN_EXPORT_FUNCTION(sodium_sub, sn_sodium_sub)
-  SN_EXPORT_FUNCTION(sodium_compare, sn_sodium_compare)
-  SN_EXPORT_FUNCTION(sodium_is_zero, sn_sodium_is_zero)
-  SN_EXPORT_FUNCTION(sodium_pad, sn_sodium_pad)
-  SN_EXPORT_FUNCTION(sodium_unpad, sn_sodium_unpad)
+  SN_EXPORT_FUNCTION_SCOPED("sodium_memcmp", sn_sodium_memcmp);
+  SN_EXPORT_FUNCTION_SCOPED("sodium_increment", sn_sodium_increment);
+  SN_EXPORT_FUNCTION_SCOPED("sodium_add", sn_sodium_add);
+  SN_EXPORT_FUNCTION_SCOPED("sodium_sub", sn_sodium_sub)
+  SN_EXPORT_FUNCTION_SCOPED("sodium_compare", sn_sodium_compare)
+  SN_EXPORT_FUNCTION_SCOPED("sodium_is_zero", sn_sodium_is_zero)
+  SN_EXPORT_FUNCTION_SCOPED("sodium_pad", sn_sodium_pad)
+  SN_EXPORT_FUNCTION_SCOPED("sodium_unpad", sn_sodium_unpad)
 
   // crypto_aead
 

@@ -28,6 +28,55 @@ exports.randombytes_buf_deterministic = function (buffer, seed) {
   )
 }
 
+// sodium_helpers
+
+exports.sodium_memcmp = function (a, b) {
+  if (a.byteLength !== b.byteLength) throw new Error('buffers must be of same length"')
+  return binding.sodium_memcmp(a, b)
+}
+
+exports.sodium_add = function (a, b) {
+  if (a.byteLength !== b.byteLength) throw new Error('buffers must be of same length"')
+  binding.sodium_add(a, b)
+}
+
+exports.sodium_sub = function (a, b) {
+  if (a.byteLength !== b.byteLength) throw new Error('buffers must be of same length"')
+  binding.sodium_sub(a, b)
+}
+
+/** @returns {number} */
+exports.sodium_compare = function (a, b) {
+  if (a.byteLength !== b.byteLength) throw new Error('buffers must be of same length"')
+  return binding.sodium_compare(a, b)
+}
+
+/** @returns {boolean} */
+exports.sodium_is_zero = function (buffer, length) {
+  length ??= buffer.byteLength
+  if (length > buffer.byteLength || length < 0) throw new Error('invalid length')
+
+  return binding.sodium_is_zero(buffer, length)
+}
+
+/** @returns {number} padded buffer length */
+exports.sodium_pad = function (buffer, unpaddedBuflen, blockSize) {
+  if (unpaddedBuflen > buffer.byteLength) throw new Error('unpadded length cannot exceed buffer length')
+  if (blockSize > buffer.byteLength) throw new Error('block size cannot exceed buffer length')
+  if (blockSize < 1) throw new Error('block sizemust be at least 1 byte')
+  if (buffer.byteLength < unpaddedBuflen + (blockSize - (unpaddedBuflen % blockSize))) throw new Error('buf not long enough')
+
+  return binding.sodium_pad(buffer, unpaddedBuflen, blockSize)
+}
+
+/** @returns {number} unpadded buffer length */
+exports.sodium_unpad = function (buffer, paddedBuflen, blockSize) {
+  if (paddedBuflen > buffer.byteLength) throw new Error('unpadded length cannot exceed buffer length')
+  if (blockSize > buffer.byteLength) throw new Error('block size cannot exceed buffer length')
+  if (blockSize < 1) throw new Error('block size must be at least 1 byte')
+  return binding.sodium_unpad(buffer, paddedBuflen, blockSize)
+}
+
 // crypto_box
 
 exports.crypto_box_keypair = function (pk, sk) {
