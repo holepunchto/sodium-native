@@ -74,7 +74,104 @@ exports.sodium_unpad = function (buffer, paddedBuflen, blockSize) {
   if (paddedBuflen > buffer.byteLength) throw new Error('unpadded length cannot exceed buffer length')
   if (blockSize > buffer.byteLength) throw new Error('block size cannot exceed buffer length')
   if (blockSize < 1) throw new Error('block size must be at least 1 byte')
+
   return binding.sodium_unpad(buffer, paddedBuflen, blockSize)
+}
+
+// crypto_sign
+
+exports.crypto_sign_keypair = function (pk, sk) {
+  if (pk.byteLength !== binding.crypto_sign_PUBLICKEYBYTES) throw new Error('pk')
+
+  const res = binding.crypto_sign_keypair(pk, sk)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_sign_seed_keypair = function (pk, sk, seed) {
+  if (pk.byteLength !== binding.crypto_sign_PUBLICKEYBYTES) throw new Error('pk')
+
+  const res = binding.crypto_sign_seed_keypair(pk, sk, seed)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_sign = function (sm, m, sk) {
+  if (sm.byteLength !== binding.crypto_sign_BYTES + m.byteLength) throw new Error('sm must be "m.byteLength + crypto_sign_BYTES" bytes')
+  if (sk.byteLength !== binding.crypto_sign_SECRETKEYBYTES) throw new Error('sk')
+
+  const res = binding.crypto_sign(sm, m, sk)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_sign_open = function (m, sm, pk) {
+  if (m.byteLength !== sm.byteLength - binding.crypto_sign_BYTES) throw new Error('m must be "sm.byteLength - crypto_sign_BYTES" bytes')
+  if (sm.byteLength < binding.crypto_sign_BYTES) throw new Error('sm')
+  if (pk.byteLength !== binding.crypto_sign_PUBLICKEYBYTES) throw new Error('pk')
+
+  const res = binding.crypto_sign_open(m, sm, pk)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+/** @returns {boolean} */
+exports.crypto_sign_open = function (m, sm, pk) {
+  if (m.byteLength !== sm.byteLength - binding.crypto_sign_BYTES) throw new Error('m must be "sm.byteLength - crypto_sign_BYTES" bytes')
+  if (sm.byteLength < binding.crypto_sign_BYTES) throw new Error('sm')
+  if (pk.byteLength !== binding.crypto_sign_PUBLICKEYBYTES) throw new Error('pk')
+
+  return binding.crypto_sign_open(m, sm, pk)
+}
+
+exports.crypto_sign_detached = function (sig, m, sk) {
+  if (sig.byteLength !== binding.crypto_sign_BYTES) throw new Error('sig')
+  if (sk.byteLength !== binding.crypto_sign_SECRETKEYBYTES) throw new Error('sk')
+
+  const res = binding.crypto_sign_detached(sig, m, sk)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+/** @returns {boolean} */
+exports.crypto_sign_verify_detached = function (sig, m, pk) {
+  return binding.crypto_sign_verify_detached(
+    sig.buffer, sig.byteOffset, sig.byteLength,
+    m.buffer, m.byteOffset, m.byteLength,
+    pk.buffer, pk.byteOffset, pk.byteLength
+  )
+}
+
+exports.crypto_sign_ed25519_sk_to_pk = function (pk, sk) {
+  if (pk.byteLength !== binding.crypto_sign_PUBLICKEYBYTES) throw new Error('pk')
+  if (sk.byteLength !== binding.crypto_sign_SECRETKEYBYTES) throw new Error('sk')
+
+  const res = binding.crypto_sign_ed25519_sk_to_pk(pk, sk)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_sign_ed25519_pk_to_curve25519 = function (x25519pk, ed25519pk) {
+  if (x25519pk.byteLength !== binding.crypto_box_PUBLICKEYBYTES) throw new Error('x25519_pk')
+  if (ed25519pk.byteLength !== binding.crypto_sign_PUBLICKEYBYTES) throw new Error('ed25519_pk')
+
+  const res = binding.crypto_sign_ed25519_pk_to_curve25519(x25519pk, ed25519pk)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_sign_ed25519_sk_to_curve25519 = function (x25519sk, ed25519sk) {
+  if (x25519sk.byteLength !== binding.crypto_box_SECRETKEYBYTES) throw new Error('x25519_sk')
+
+  const edLen = ed25519sk.byteLength
+
+  if (edLen !== binding.crypto_sign_SECRETKEYBYTES && edLen !== binding.crypto_box_SECRETKEYBYTES) {
+    throw new Error('ed25519_sk should either be \'crypto_sign_SECRETKEYBYTES\' bytes or \'crypto_sign_SECRETKEYBYTES - crypto_sign_PUBLICKEYBYTES\' bytes')
+  }
+
+  const res = binding.crypto_sign_ed25519_sk_to_curve25519(x25519sk, ed25519sk)
+
+  if (res !== 0) throw new Error('status: ' + res)
 }
 
 // crypto_box
@@ -119,6 +216,49 @@ exports.crypto_box_seal_open = function (m, c, pk, sk) {
     pk.buffer, pk.byteOffset, pk.byteLength,
     sk.buffer, sk.byteOffset, sk.byteLength
   )
+}
+
+// crypto_secretbox
+
+exports.crypto_secretbox_easy = function (c, m, n, k) {
+  if (c.byteLength !== m.byteLength + binding.crypto_secretbox_MACBYTES) throw new Error('c must be "m.byteLength + crypto_secretbox_MACBYTES" bytes')
+  if (n.byteLength !== binding.crypto_secretbox_NONCEBYTES) throw new Error('n')
+  if (k.byteLength !== binding.crypto_secretbox_KEYBYTES) throw new Error('k')
+
+  const res = binding.crypto_secretbox_easy(c, m, n, k)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+/** @returns {boolean} */
+exports.crypto_secretbox_open_easy = function (m, c, n, k) {
+  if (m.byteLength !== c.byteLength - binding.crypto_secretbox_MACBYTES) throw new Error('m must be "c - crypto_secretbox_MACBYTES" bytes')
+  if (c.byteLength < binding.crypto_secretbox_MACBYTES) throw new Error('c')
+  if (n.byteLength !== binding.crypto_secretbox_NONCEBYTES) throw new Error('n')
+  if (k.byteLength !== binding.crypto_secretbox_KEYBYTES) throw new Error('k')
+
+  return binding.crypto_secretbox_open_easy(m, c, n, k)
+}
+
+exports.crypto_secretbox_detached = function (c, mac, m, n, k) {
+  if (c.byteLength !== m.byteLength) throw new Error('c must "m.byteLength" bytes')
+  if (mac.byteLength !== binding.crypto_secretbox_MACBYTES) throw new Error('mac')
+  if (n.byteLength !== binding.crypto_secretbox_NONCEBYTES) throw new Error('n')
+  if (k.byteLength !== binding.crypto_secretbox_KEYBYTES) throw new Error('k')
+
+  const res = binding.crypto_secretbox_detached(c, mac, m, n, k)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+/** @returns {boolean} */
+exports.crypto_secretbox_open_detached = function (m, c, mac, n, k) {
+  if (m.byteLength !== c.byteLength) throw new Error('m must be "c.byteLength" bytes')
+  if (mac.byteLength !== binding.crypto_secretbox_MACBYTES) throw new Error('mac')
+  if (n.byteLength !== binding.crypto_secretbox_NONCEBYTES) throw new Error('n')
+  if (k.byteLength !== binding.crypto_secretbox_KEYBYTES) throw new Error('k')
+
+  return binding.crypto_secretbox_open_detached(m, c, mac, n, k)
 }
 
 // crypto_generichash
@@ -190,6 +330,7 @@ exports.crypto_generichash_final = function (state, output) {
 }
 
 // secretstream
+
 exports.crypto_secretstream_xchacha20poly1305_keygen = function (k) {
   binding.crypto_secretstream_xchacha20poly1305_keygen(k.buffer, k.byteOffset, k.byteLength)
 }
@@ -256,18 +397,16 @@ exports.crypto_secretstream_xchacha20poly1305_rekey = function (state) {
   binding.crypto_secretstream_xchacha20poly1305_rekey(state.buffer, state.byteOffset, state.byteLength)
 }
 
-// crypto_sign
-
-/** @returns {boolean} */
-exports.crypto_sign_verify_detached = function (sig, m, pk) {
-  return binding.crypto_sign_verify_detached(
-    sig.buffer, sig.byteOffset, sig.byteLength,
-    m.buffer, m.byteOffset, m.byteLength,
-    pk.buffer, pk.byteOffset, pk.byteLength
-  )
-}
-
 // crypto_stream
+
+exports.crypto_stream = function (c, n, k) {
+  if (n.byteLength !== binding.crypto_stream_NONCEBYTES) throw new Error('n')
+  if (k.byteLength !== binding.crypto_stream_KEYBYTES) throw new Error('k')
+
+  const res = binding.crypto_stream(c, n, k)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
 
 exports.crypto_stream_xor = function (c, m, n, k) {
   const res = binding.crypto_stream_xor(
@@ -276,6 +415,122 @@ exports.crypto_stream_xor = function (c, m, n, k) {
     n.buffer, n.byteOffset, n.byteLength,
     k.buffer, k.byteOffset, k.byteLength
   )
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_stream_chacha20 = function (c, n, k) {
+  if (n.byteLength !== binding.crypto_stream_chacha20_NONCEBYTES) throw new Error('n')
+  if (k.byteLength !== binding.crypto_stream_chacha20_KEYBYTES) throw new Error('k')
+
+  const res = binding.crypto_stream_chacha20(c, n, k)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_stream_chacha20_xor = function (c, m, n, k) {
+  if (c.byteLength !== m.byteLength) throw new Error('m must be "c.byteLength" bytes')
+  if (n.byteLength !== binding.crypto_stream_chacha20_NONCEBYTES) throw new Error('n')
+  if (k.byteLength !== binding.crypto_stream_chacha20_KEYBYTES) throw new Error('k')
+
+  const res = binding.crypto_stream_chacha20_xor(c, m, n, k)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_stream_chacha20_xor_ic = function (c, m, n, ic, k) {
+  if (c.byteLength !== m.byteLength) throw new Error('m must be "c.byteLength" bytes')
+  if (n.byteLength !== binding.crypto_stream_chacha20_NONCEBYTES) throw new Error('n')
+  if (k.byteLength !== binding.crypto_stream_chacha20_KEYBYTES) throw new Error('k')
+
+  const res = binding.crypto_stream_chacha20_xor_ic(c, m, n, ic, k)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_stream_chacha20_ietf = function (c, n, k) {
+  if (n.byteLength !== binding.crypto_stream_chacha20_ietf_NONCEBYTES) throw new Error('n')
+  if (k.byteLength !== binding.crypto_stream_chacha20_ietf_KEYBYTES) throw new Error('k')
+
+  const res = binding.crypto_stream_chacha20_ietf(c, n, k)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_stream_chacha20_ietf_xor = function (c, m, n, k) {
+  if (c.byteLength !== m.byteLength) throw new Error('m must be "c.byteLength" bytes')
+  if (n.byteLength !== binding.crypto_stream_chacha20_ietf_NONCEBYTES) throw new Error('n')
+  if (k.byteLength !== binding.crypto_stream_chacha20_ietf_KEYBYTES) throw new Error('k')
+
+  const res = binding.crypto_stream_chacha20_ietf_xor(c, m, n, k)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_stream_chacha20_ietf_xor_ic = function (c, m, n, ic, k) {
+  if (c.byteLength !== m.byteLength) throw new Error('m must be "c.byteLength" bytes')
+  if (n.byteLength !== binding.crypto_stream_chacha20_ietf_NONCEBYTES) throw new Error('n')
+  if (k.byteLength !== binding.crypto_stream_chacha20_ietf_KEYBYTES) throw new Error('k')
+
+  const res = binding.crypto_stream_chacha20_ietf_xor_ic(c, m, n, ic, k)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_stream_xchacha20 = function (c, n, k) {
+  if (n.byteLength !== binding.crypto_stream_xchacha20_NONCEBYTES) throw new Error('n')
+  if (k.byteLength !== binding.crypto_stream_xchacha20_KEYBYTES) throw new Error('k')
+
+  const res = binding.crypto_stream_xchacha20(c, n, k)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_stream_xchacha20_xor = function (c, m, n, k) {
+  if (c.byteLength !== m.byteLength) throw new Error('m must be "c.byteLength" bytes')
+  if (n.byteLength !== binding.crypto_stream_xchacha20_NONCEBYTES) throw new Error('n')
+  if (k.byteLength !== binding.crypto_stream_xchacha20_KEYBYTES) throw new Error('k')
+
+  const res = binding.crypto_stream_xchacha20_xor(c, m, n, k)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_stream_xchacha20_xor_ic = function (c, m, n, ic, k) {
+  if (c.byteLength !== m.byteLength) throw new Error('m must be "c.byteLength" bytes')
+  if (n.byteLength !== binding.crypto_stream_xchacha20_NONCEBYTES) throw new Error('n')
+  if (k.byteLength !== binding.crypto_stream_xchacha20_KEYBYTES) throw new Error('k')
+
+  const res = binding.crypto_stream_xchacha20_xor_ic(c, m, n, ic, k)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_stream_salsa20 = function (c, n, k) {
+  if (n.byteLength !== binding.crypto_stream_salsa20_NONCEBYTES) throw new Error('n')
+  if (k.byteLength !== binding.crypto_stream_salsa20_KEYBYTES) throw new Error('k')
+
+  const res = binding.crypto_stream_salsa20(c, n, k)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_stream_salsa20_xor = function (c, m, n, k) {
+  if (c.byteLength !== m.byteLength) throw new Error('m must be "c.byteLength" bytes')
+  if (n.byteLength !== binding.crypto_stream_salsa20_NONCEBYTES) throw new Error('n')
+  if (k.byteLength !== binding.crypto_stream_salsa20_KEYBYTES) throw new Error('k')
+
+  const res = binding.crypto_stream_salsa20_xor(c, m, n, k)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_stream_salsa20_xor_ic = function (c, m, n, ic, k) {
+  if (c.byteLength !== m.byteLength) throw new Error('m must be "c.byteLength" bytes')
+  if (n.byteLength !== binding.crypto_stream_salsa20_NONCEBYTES) throw new Error('n')
+  if (k.byteLength !== binding.crypto_stream_salsa20_KEYBYTES) throw new Error('k')
+
+  const res = binding.crypto_stream_salsa20_xor_ic(c, m, n, ic, k)
 
   if (res !== 0) throw new Error('status: ' + res)
 }

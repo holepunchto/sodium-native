@@ -246,75 +246,70 @@ sn_sodium_unpad (js_env_t *, js_receiver_t, js_typedarray_span_t<> buf, uint32_t
   return unpadded_buflen;
 }
 
-js_value_t *
-sn_crypto_sign_keypair(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(2, crypto_sign_keypair)
+static inline int
+sn_crypto_sign_keypair (js_env_t *, js_receiver_t, js_typedarray_span_t<> pk, js_typedarray_span_t<> sk) {
+  assert(pk.size_bytes() == crypto_sign_PUBLICKEYBYTES);
+  assert(sk.size_bytes() == crypto_sign_SECRETKEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(pk, 0)
-  SN_ARGV_TYPEDARRAY(sk, 1)
-
-  SN_ASSERT_LENGTH(pk_size, crypto_sign_PUBLICKEYBYTES, "pk")
-  SN_ASSERT_LENGTH(sk_size, crypto_sign_SECRETKEYBYTES, "sk")
-
-  SN_RETURN(crypto_sign_keypair(pk_data, sk_data), "keypair generation failed")
+  return crypto_sign_keypair(pk.data(), sk.data());
 }
 
-js_value_t *
-sn_crypto_sign_seed_keypair(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(3, crypto_sign_seed_keypair)
+static inline int
+sn_crypto_sign_seed_keypair(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> pk,
+  js_typedarray_span_t<> sk,
+  js_typedarray_span_t<> seed
+) {
+  assert(pk.size_bytes() == crypto_sign_PUBLICKEYBYTES);
+  assert(sk.size_bytes() == crypto_sign_SECRETKEYBYTES);
+  assert(seed.size_bytes() == crypto_sign_SEEDBYTES);
 
-  SN_ARGV_TYPEDARRAY(pk, 0)
-  SN_ARGV_TYPEDARRAY(sk, 1)
-  SN_ARGV_TYPEDARRAY(seed, 2)
-
-  SN_ASSERT_LENGTH(pk_size, crypto_sign_PUBLICKEYBYTES, "pk")
-  SN_ASSERT_LENGTH(sk_size, crypto_sign_SECRETKEYBYTES, "sk")
-  SN_ASSERT_LENGTH(seed_size, crypto_sign_SEEDBYTES, "seed")
-
-  SN_RETURN(crypto_sign_seed_keypair(pk_data, sk_data, seed_data), "keypair generation failed")
+  return crypto_sign_seed_keypair(pk.data(), sk.data(), seed.data());
 }
 
-js_value_t *
-sn_crypto_sign(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(3, crypto_sign)
+static inline int
+sn_crypto_sign(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> sm,
+  js_typedarray_span_t<> m,
+  js_typedarray_span_t<> sk
+) {
+  assert(sm.size_bytes() == crypto_sign_BYTES + m.size_bytes());
+  assert(sk.size_bytes() == crypto_sign_SECRETKEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(sm, 0)
-  SN_ARGV_TYPEDARRAY(m, 1)
-  SN_ARGV_TYPEDARRAY(sk, 2)
-
-  SN_THROWS(sm_size != crypto_sign_BYTES + m_size, "sm must be 'm.byteLength + crypto_sign_BYTES' bytes")
-  SN_ASSERT_LENGTH(sk_size, crypto_sign_SECRETKEYBYTES, "sk")
-
-  SN_RETURN(crypto_sign(sm_data, NULL, m_data, m_size, sk_data), "signature failed")
+  return crypto_sign(sm.data(), NULL, m.data(), m.size_bytes(), sk.data());
 }
 
-js_value_t *
-sn_crypto_sign_open(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(3, crypto_sign_open)
+static inline bool
+sn_crypto_sign_open(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> m,
+  js_typedarray_span_t<> sm,
+  js_typedarray_span_t<> pk
+) {
+  assert(m.size_bytes() == sm.size_bytes() - crypto_sign_BYTES);
+  assert(sm.size_bytes() >= crypto_sign_BYTES);
+  assert(pk.size_bytes() == crypto_sign_PUBLICKEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(m, 0)
-  SN_ARGV_TYPEDARRAY(sm, 1)
-  SN_ARGV_TYPEDARRAY(pk, 2)
-
-  SN_THROWS(m_size != sm_size - crypto_sign_BYTES, "m must be 'sm.byteLength - crypto_sign_BYTES' bytes")
-  SN_ASSERT_MIN_LENGTH(sm_size, crypto_sign_BYTES, "sm")
-  SN_ASSERT_LENGTH(pk_size, crypto_sign_PUBLICKEYBYTES, "pk")
-
-  SN_RETURN_BOOLEAN(crypto_sign_open(m_data, NULL, sm_data, sm_size, pk_data))
+  return crypto_sign_open(m.data(), NULL, sm.data(), sm.size_bytes(), pk.data()) == 0;
 }
 
-js_value_t *
-sn_crypto_sign_detached(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(3, crypto_sign_detached)
+static inline int
+sn_crypto_sign_detached(
+  js_env_t *env,
+  js_receiver_t,
+  js_typedarray_span_t<> sig,
+  js_typedarray_span_t<> m,
+  js_typedarray_span_t<> sk
+) {
+  assert(sig.size_bytes() == crypto_sign_BYTES);
+  assert(sk.size_bytes() == crypto_sign_SECRETKEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(sig, 0)
-  SN_ARGV_TYPEDARRAY(m, 1)
-  SN_ARGV_TYPEDARRAY(sk, 2)
-
-  SN_ASSERT_LENGTH(sig_size, crypto_sign_BYTES, "sm")
-  SN_ASSERT_LENGTH(sk_size, crypto_sign_SECRETKEYBYTES, "sk")
-
-  SN_RETURN(crypto_sign_detached(sig_data, NULL, m_data, m_size, sk_data), "signature failed")
+  return crypto_sign_detached(sig.data(), NULL, m.data(), m.size_bytes(), sk.data());
 }
 
 static inline bool
@@ -345,43 +340,46 @@ sn_crypto_sign_verify_detached (
   return res == 0;
 }
 
-js_value_t *
-sn_crypto_sign_ed25519_sk_to_pk(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(2, crypto_sign_ed25519_sk_to_pk)
+static inline int
+sn_crypto_sign_ed25519_sk_to_pk(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> pk,
+  js_typedarray_span_t<> sk
+) {
+  assert(pk.size_bytes() == crypto_sign_PUBLICKEYBYTES);
+  assert(sk.size_bytes() == crypto_sign_SECRETKEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(pk, 0)
-  SN_ARGV_TYPEDARRAY(sk, 1)
-
-  SN_ASSERT_LENGTH(pk_size, crypto_sign_PUBLICKEYBYTES, "pk")
-  SN_ASSERT_LENGTH(sk_size, crypto_sign_SECRETKEYBYTES, "sk")
-
-  SN_RETURN(crypto_sign_ed25519_sk_to_pk(pk_data, sk_data), "public key generation failed")
+  return crypto_sign_ed25519_sk_to_pk(pk.data(), sk.data());
 }
 
-js_value_t *
-sn_crypto_sign_ed25519_pk_to_curve25519(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(2, crypto_sign_ed25519_sk_to_pk)
+static inline int
+sn_crypto_sign_ed25519_pk_to_curve25519(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> x25519_pk,
+  js_typedarray_span_t<> ed25519_pk
+) {
+  assert(x25519_pk.size_bytes() == crypto_box_PUBLICKEYBYTES);
+  assert(ed25519_pk.size_bytes() == crypto_sign_PUBLICKEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(x25519_pk, 0)
-  SN_ARGV_TYPEDARRAY(ed25519_pk, 1)
-
-  SN_ASSERT_LENGTH(x25519_pk_size, crypto_box_PUBLICKEYBYTES, "x25519_pk")
-  SN_ASSERT_LENGTH(ed25519_pk_size, crypto_sign_PUBLICKEYBYTES, "ed25519_pk")
-
-  SN_RETURN(crypto_sign_ed25519_pk_to_curve25519(x25519_pk_data, ed25519_pk_data), "public key conversion failed")
+  return crypto_sign_ed25519_pk_to_curve25519(x25519_pk.data(), ed25519_pk.data());
 }
 
-js_value_t *
-sn_crypto_sign_ed25519_sk_to_curve25519(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(2, crypto_sign_ed25519_sk_to_pk)
+static inline int
+sn_crypto_sign_ed25519_sk_to_curve25519(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> x25519_sk,
+  js_typedarray_span_t<> ed25519_sk
+) {
+  assert(x25519_sk.size_bytes() == crypto_box_SECRETKEYBYTES);
+  assert(
+    ed25519_sk.size_bytes() == crypto_sign_SECRETKEYBYTES ||
+    ed25519_sk.size_bytes() == crypto_box_SECRETKEYBYTES
+  );
 
-  SN_ARGV_TYPEDARRAY(x25519_sk, 0)
-  SN_ARGV_TYPEDARRAY(ed25519_sk, 1)
-
-  SN_ASSERT_LENGTH(x25519_sk_size, crypto_box_SECRETKEYBYTES, "x25519_sk")
-  SN_THROWS(ed25519_sk_size != crypto_sign_SECRETKEYBYTES && ed25519_sk_size != crypto_box_SECRETKEYBYTES, "ed25519_sk should either be 'crypto_sign_SECRETKEYBYTES' bytes or 'crypto_sign_SECRETKEYBYTES - crypto_sign_PUBLICKEYBYTES' bytes")
-
-  SN_RETURN(crypto_sign_ed25519_sk_to_curve25519(x25519_sk_data, ed25519_sk_data), "secret key conversion failed")
+  return crypto_sign_ed25519_sk_to_curve25519(x25519_sk.data(), ed25519_sk.data());
 }
 
 static inline int
@@ -409,11 +407,6 @@ sn_crypto_generichash (
 
   assert_bounds(in);
 
-  /**
-   * JSTL has no notion of the key_len:u32;
-   * Using std::optional causes additional engine call;
-   * So if key_len is non-zero then use C-api to load the optional.
-   */
   uint8_t *key_data = NULL;
   if (key_len) {
     uint8_t *slab;
@@ -733,87 +726,87 @@ sn_crypto_box_seal_open(
   return crypto_box_seal_open(&m[m_offset], &c[c_offset], c_len, &pk[pk_offset], &sk[sk_offset]) == 0;
 }
 
-js_value_t *
-sn_crypto_secretbox_easy(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(4, crypto_secretbox_easy)
+static inline int
+sn_crypto_secretbox_easy(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> c,
+  js_typedarray_span_t<> m,
+  js_typedarray_span_t<> n,
+  js_typedarray_span_t<> k
+) {
+  assert(c.size_bytes() == m.size_bytes() + crypto_secretbox_MACBYTES);
+  assert(n.size_bytes() == crypto_secretbox_NONCEBYTES);
+  assert(k.size_bytes() == crypto_secretbox_KEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(c, 0)
-  SN_ARGV_TYPEDARRAY(m, 1)
-  SN_ARGV_TYPEDARRAY(n, 2)
-  SN_ARGV_TYPEDARRAY(k, 3)
-
-  SN_THROWS(c_size != m_size + crypto_secretbox_MACBYTES, "c must be 'm.byteLength + crypto_secretbox_MACBYTES' bytes")
-  SN_ASSERT_LENGTH(n_size, crypto_secretbox_NONCEBYTES, "n")
-  SN_ASSERT_LENGTH(k_size, crypto_secretbox_KEYBYTES, "k")
-
-  SN_RETURN(crypto_secretbox_easy(c_data, m_data, m_size, n_data, k_data), "crypto secretbox failed")
+  return crypto_secretbox_easy(c.data(), m.data(), m.size_bytes(), n.data(), k.data());
 }
 
-js_value_t *
-sn_crypto_secretbox_open_easy(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(4, crypto_secretbox_open_easy)
+static inline bool
+sn_crypto_secretbox_open_easy(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> m,
+  js_typedarray_span_t<> c,
+  js_typedarray_span_t<> n,
+  js_typedarray_span_t<> k
+) {
+  assert(m.size_bytes() == c.size_bytes() - crypto_secretbox_MACBYTES);
+  assert(c.size_bytes() >= crypto_secretbox_MACBYTES);
+  assert(n.size_bytes() == crypto_secretbox_NONCEBYTES);
+  assert(k.size_bytes() == crypto_secretbox_KEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(m, 0)
-  SN_ARGV_TYPEDARRAY(c, 1)
-  SN_ARGV_TYPEDARRAY(n, 2)
-  SN_ARGV_TYPEDARRAY(k, 3)
-
-  SN_THROWS(m_size != c_size - crypto_secretbox_MACBYTES, "m must be 'c - crypto_secretbox_MACBYTES' bytes")
-  SN_ASSERT_MIN_LENGTH(c_size, crypto_secretbox_MACBYTES, "c")
-  SN_ASSERT_LENGTH(n_size, crypto_secretbox_NONCEBYTES, "n")
-  SN_ASSERT_LENGTH(k_size, crypto_secretbox_KEYBYTES, "k")
-
-  SN_RETURN_BOOLEAN(crypto_secretbox_open_easy(m_data, c_data, c_size, n_data, k_data))
+  return crypto_secretbox_open_easy(m.data(), c.data(), c.size_bytes(), n.data(), k.data()) == 0;
 }
 
-js_value_t *
-sn_crypto_secretbox_detached(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(5, crypto_secretbox_detached)
+static inline int
+sn_crypto_secretbox_detached(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> c,
+  js_typedarray_span_t<> mac,
+  js_typedarray_span_t<> m,
+  js_typedarray_span_t<> n,
+  js_typedarray_span_t<> k
+) {
+  assert(c.size_bytes() == m.size_bytes());
+  assert(mac.size_bytes() == crypto_secretbox_MACBYTES);
+  assert(n.size_bytes() == crypto_secretbox_NONCEBYTES);
+  assert(k.size_bytes() == crypto_secretbox_KEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(c, 0)
-  SN_ARGV_TYPEDARRAY(mac, 1)
-  SN_ARGV_TYPEDARRAY(m, 2)
-  SN_ARGV_TYPEDARRAY(n, 3)
-  SN_ARGV_TYPEDARRAY(k, 4)
-
-  SN_THROWS(c_size != m_size, "c must 'm.byteLength' bytes")
-  SN_ASSERT_LENGTH(mac_size, crypto_secretbox_MACBYTES, "mac")
-  SN_ASSERT_LENGTH(n_size, crypto_secretbox_NONCEBYTES, "n")
-  SN_ASSERT_LENGTH(k_size, crypto_secretbox_KEYBYTES, "k")
-
-  SN_RETURN(crypto_secretbox_detached(c_data, mac_data, m_data, m_size, n_data, k_data), "failed to open box")
+  return crypto_secretbox_detached(c.data(), mac.data(), m.data(), m.size_bytes(), n.data(), k.data());
 }
 
-js_value_t *
-sn_crypto_secretbox_open_detached(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(5, crypto_secretbox_open_detached)
+static inline bool
+sn_crypto_secretbox_open_detached(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> m,
+  js_typedarray_span_t<> c,
+  js_typedarray_span_t<> mac,
+  js_typedarray_span_t<> n,
+  js_typedarray_span_t<> k
+) {
+  assert(m.size_bytes() == c.size_bytes());
+  assert(mac.size_bytes() == crypto_secretbox_MACBYTES);
+  assert(n.size_bytes() == crypto_secretbox_NONCEBYTES);
+  assert(k.size_bytes() == crypto_secretbox_KEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(m, 0)
-  SN_ARGV_TYPEDARRAY(c, 1)
-  SN_ARGV_TYPEDARRAY(mac, 2)
-  SN_ARGV_TYPEDARRAY(n, 3)
-  SN_ARGV_TYPEDARRAY(k, 4)
-
-  SN_THROWS(m_size != c_size, "m must be 'c.byteLength' bytes")
-  SN_ASSERT_LENGTH(mac_size, crypto_secretbox_MACBYTES, "mac")
-  SN_ASSERT_LENGTH(n_size, crypto_secretbox_NONCEBYTES, "n")
-  SN_ASSERT_LENGTH(k_size, crypto_secretbox_KEYBYTES, "k")
-
-  SN_RETURN_BOOLEAN(crypto_secretbox_open_detached(m_data, c_data, mac_data, c_size, n_data, k_data))
+  return crypto_secretbox_open_detached(m.data(), c.data(), mac.data(), c.size_bytes(), n.data(), k.data()) == 0;
 }
 
-js_value_t *
-sn_crypto_stream(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(3, crypto_stream)
+static inline int
+sn_crypto_stream(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> c,
+  js_typedarray_span_t<> n,
+  js_typedarray_span_t<> k
+) {
+  assert(n.size_bytes() == crypto_stream_NONCEBYTES);
+  assert(k.size_bytes() == crypto_stream_KEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(c, 0)
-  SN_ARGV_TYPEDARRAY(n, 1)
-  SN_ARGV_TYPEDARRAY(k, 2)
-
-  SN_ASSERT_LENGTH(n_size, crypto_stream_NONCEBYTES, "n")
-  SN_ASSERT_LENGTH(k_size, crypto_stream_KEYBYTES, "k")
-
-  SN_RETURN(crypto_stream(c_data, c_size, n_data, k_data), "stream encryption failed")
+  return crypto_stream(c.data(), c.size_bytes(), n.data(), k.data());
 }
 
 static inline int
@@ -849,192 +842,192 @@ sn_crypto_stream_xor(
   return crypto_stream_xor(&c[c_offset], &m[m_offset], m_len, &n[n_offset], &k[k_offset]);
 }
 
-js_value_t *
-sn_crypto_stream_chacha20(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(3, crypto_stream_chacha20)
+static inline int
+sn_crypto_stream_chacha20(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> c,
+  js_typedarray_span_t<> n,
+  js_typedarray_span_t<> k
+) {
+  assert(n.size_bytes() == crypto_stream_chacha20_NONCEBYTES);
+  assert(k.size_bytes() == crypto_stream_chacha20_KEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(c, 0)
-  SN_ARGV_TYPEDARRAY(n, 1)
-  SN_ARGV_TYPEDARRAY(k, 2)
-
-  SN_ASSERT_LENGTH(n_size, crypto_stream_chacha20_NONCEBYTES, "n")
-  SN_ASSERT_LENGTH(k_size, crypto_stream_chacha20_KEYBYTES, "k")
-
-  SN_RETURN(crypto_stream_chacha20(c_data, c_size, n_data, k_data), "stream encryption failed")
+  return crypto_stream_chacha20(c.data(), c.size_bytes(), n.data(), k.data());
 }
 
-js_value_t *
-sn_crypto_stream_chacha20_xor (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(4, crypto_stream_chacha20_xor)
+static inline int
+sn_crypto_stream_chacha20_xor(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> c,
+  js_typedarray_span_t<> m,
+  js_typedarray_span_t<> n,
+  js_typedarray_span_t<> k
+) {
+  assert(c.size_bytes() == m.size_bytes());
+  assert(n.size_bytes() == crypto_stream_chacha20_NONCEBYTES);
+  assert(k.size_bytes() == crypto_stream_chacha20_KEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(c, 0)
-  SN_ARGV_TYPEDARRAY(m, 1)
-  SN_ARGV_TYPEDARRAY(n, 2)
-  SN_ARGV_TYPEDARRAY(k, 3)
-
-  SN_THROWS(c_size != m_size, "m must be 'c.byteLength' bytes")
-  SN_ASSERT_LENGTH(n_size, crypto_stream_chacha20_NONCEBYTES, "n")
-  SN_ASSERT_LENGTH(k_size, crypto_stream_chacha20_KEYBYTES, "k")
-
-  SN_RETURN(crypto_stream_chacha20_xor(c_data, m_data, m_size, n_data, k_data), "stream encryption failed")
+  return crypto_stream_chacha20_xor(c.data(), m.data(), m.size_bytes(), n.data(), k.data());
 }
 
-js_value_t *
-sn_crypto_stream_chacha20_xor_ic(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(5, crypto_stream_chacha20_xor_ic)
+static inline int
+sn_crypto_stream_chacha20_xor_ic(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> c,
+  js_typedarray_span_t<> m,
+  js_typedarray_span_t<> n,
+  uint32_t ic,
+  js_typedarray_span_t<> k
+) {
+  assert(c.size_bytes() == m.size_bytes());
+  assert(n.size_bytes() == crypto_stream_chacha20_NONCEBYTES);
+  assert(k.size_bytes() == crypto_stream_chacha20_KEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(c, 0)
-  SN_ARGV_TYPEDARRAY(m, 1)
-  SN_ARGV_TYPEDARRAY(n, 2)
-  SN_ARGV_UINT32(ic, 3)
-  SN_ARGV_TYPEDARRAY(k, 4)
-
-  SN_THROWS(c_size != m_size, "m must be 'c.byteLength' bytes")
-  SN_ASSERT_LENGTH(n_size, crypto_stream_chacha20_NONCEBYTES, "n")
-  SN_ASSERT_LENGTH(k_size, crypto_stream_chacha20_KEYBYTES, "k")
-
-  SN_RETURN(crypto_stream_chacha20_xor_ic(c_data, m_data, m_size, n_data, ic, k_data), "stream encryption failed")
+  return crypto_stream_chacha20_xor_ic(c.data(), m.data(), m.size_bytes(), n.data(), ic, k.data());
 }
 
-js_value_t *
-sn_crypto_stream_chacha20_ietf(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(3, crypto_stream_chacha20_ietf)
+static inline int
+sn_crypto_stream_chacha20_ietf(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> c,
+  js_typedarray_span_t<> n,
+  js_typedarray_span_t<> k
+) {
+  assert(n.size_bytes() == crypto_stream_chacha20_ietf_NONCEBYTES);
+  assert(k.size_bytes() == crypto_stream_chacha20_ietf_KEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(c, 0)
-  SN_ARGV_TYPEDARRAY(n, 1)
-  SN_ARGV_TYPEDARRAY(k, 2)
-
-  SN_ASSERT_LENGTH(n_size, crypto_stream_chacha20_ietf_NONCEBYTES, "n")
-  SN_ASSERT_LENGTH(k_size, crypto_stream_chacha20_ietf_KEYBYTES, "k")
-
-  SN_RETURN(crypto_stream_chacha20_ietf(c_data, c_size, n_data, k_data), "stream encryption failed")
+  return crypto_stream_chacha20_ietf(c.data(), c.size_bytes(), n.data(), k.data());
 }
 
-js_value_t *
-sn_crypto_stream_chacha20_ietf_xor(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(4, crypto_stream_chacha20_ietf_xor)
+static inline int
+sn_crypto_stream_chacha20_ietf_xor(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> c,
+  js_typedarray_span_t<> m,
+  js_typedarray_span_t<> n,
+  js_typedarray_span_t<> k
+) {
+  assert(c.size_bytes() == m.size_bytes());
+  assert(n.size_bytes() == crypto_stream_chacha20_ietf_NONCEBYTES);
+  assert(k.size_bytes() == crypto_stream_chacha20_ietf_KEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(c, 0)
-  SN_ARGV_TYPEDARRAY(m, 1)
-  SN_ARGV_TYPEDARRAY(n, 2)
-  SN_ARGV_TYPEDARRAY(k, 3)
-
-  SN_THROWS(c_size != m_size, "m must be 'c.byteLength' bytes")
-  SN_ASSERT_LENGTH(n_size, crypto_stream_chacha20_ietf_NONCEBYTES, "n")
-  SN_ASSERT_LENGTH(k_size, crypto_stream_chacha20_ietf_KEYBYTES, "k")
-
-  SN_RETURN(crypto_stream_chacha20_ietf_xor(c_data, m_data, m_size, n_data, k_data), "stream encryption failed")
+  return crypto_stream_chacha20_ietf_xor(c.data(), m.data(), m.size_bytes(), n.data(), k.data());
 }
 
-js_value_t *
-sn_crypto_stream_chacha20_ietf_xor_ic(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(5, crypto_stream_chacha20_ietf_xor_ic)
+static inline int
+sn_crypto_stream_chacha20_ietf_xor_ic(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> c,
+  js_typedarray_span_t<> m,
+  js_typedarray_span_t<> n,
+  uint32_t ic,
+  js_typedarray_span_t<> k
+) {
+  assert(c.size_bytes() == m.size_bytes());
+  assert(n.size_bytes() == crypto_stream_chacha20_ietf_NONCEBYTES);
+  assert(k.size_bytes() == crypto_stream_chacha20_ietf_KEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(c, 0)
-  SN_ARGV_TYPEDARRAY(m, 1)
-  SN_ARGV_TYPEDARRAY(n, 2)
-  SN_ARGV_UINT32(ic, 3)
-  SN_ARGV_TYPEDARRAY(k, 4)
-
-  SN_THROWS(c_size != m_size, "m must be 'c.byteLength' bytes")
-  SN_ASSERT_LENGTH(n_size, crypto_stream_chacha20_ietf_NONCEBYTES, "n")
-  SN_ASSERT_LENGTH(k_size, crypto_stream_chacha20_ietf_KEYBYTES, "k")
-
-  SN_RETURN(crypto_stream_chacha20_ietf_xor_ic(c_data, m_data, m_size, n_data, ic, k_data), "stream encryption failed")
+  return crypto_stream_chacha20_ietf_xor_ic(c.data(), m.data(), m.size_bytes(), n.data(), ic, k.data());
 }
 
-js_value_t *
-sn_crypto_stream_xchacha20(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(3, crypto_stream_xchacha20)
+static inline int
+sn_crypto_stream_xchacha20(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> c,
+  js_typedarray_span_t<> n,
+  js_typedarray_span_t<> k
+) {
+  assert(n.size_bytes() == crypto_stream_xchacha20_NONCEBYTES);
+  assert(k.size_bytes() == crypto_stream_xchacha20_KEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(c, 0)
-  SN_ARGV_TYPEDARRAY(n, 1)
-  SN_ARGV_TYPEDARRAY(k, 2)
-
-  SN_ASSERT_LENGTH(n_size, crypto_stream_xchacha20_NONCEBYTES, "n")
-  SN_ASSERT_LENGTH(k_size, crypto_stream_xchacha20_KEYBYTES, "k")
-
-  SN_RETURN(crypto_stream_xchacha20(c_data, c_size, n_data, k_data), "stream encryption failed")
+  return crypto_stream_xchacha20(c.data(), c.size_bytes(), n.data(), k.data());
 }
 
-js_value_t *
-sn_crypto_stream_xchacha20_xor (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(4, crypto_stream_xchacha20_xor)
+static inline int
+sn_crypto_stream_xchacha20_xor(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> c,
+  js_typedarray_span_t<> m,
+  js_typedarray_span_t<> n,
+  js_typedarray_span_t<> k
+) {
+  assert(c.size_bytes() == m.size_bytes());
+  assert(n.size_bytes() == crypto_stream_xchacha20_NONCEBYTES);
+  assert(k.size_bytes() == crypto_stream_xchacha20_KEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(c, 0)
-  SN_ARGV_TYPEDARRAY(m, 1)
-  SN_ARGV_TYPEDARRAY(n, 2)
-  SN_ARGV_TYPEDARRAY(k, 3)
-
-  SN_THROWS(c_size != m_size, "m must be 'c.byteLength' bytes")
-  SN_ASSERT_LENGTH(n_size, crypto_stream_xchacha20_NONCEBYTES, "n")
-  SN_ASSERT_LENGTH(k_size, crypto_stream_xchacha20_KEYBYTES, "k")
-
-  SN_RETURN(crypto_stream_xchacha20_xor(c_data, m_data, m_size, n_data, k_data), "stream encryption failed")
+  return crypto_stream_xchacha20_xor(c.data(), m.data(), m.size_bytes(), n.data(), k.data());
 }
 
-js_value_t *
-sn_crypto_stream_xchacha20_xor_ic(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(5, crypto_stream_xchacha20_xor_ic)
+static inline int
+sn_crypto_stream_xchacha20_xor_ic(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> c,
+  js_typedarray_span_t<> m,
+  js_typedarray_span_t<> n,
+  uint32_t ic,
+  js_typedarray_span_t<> k
+) {
+  assert(c.size_bytes() == m.size_bytes());
+  assert(n.size_bytes() == crypto_stream_xchacha20_NONCEBYTES);
+  assert(k.size_bytes() == crypto_stream_xchacha20_KEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(c, 0)
-  SN_ARGV_TYPEDARRAY(m, 1)
-  SN_ARGV_TYPEDARRAY(n, 2)
-  SN_ARGV_UINT32(ic, 3)
-  SN_ARGV_TYPEDARRAY(k, 4)
-
-  SN_THROWS(c_size != m_size, "m must be 'c.byteLength' bytes")
-  SN_ASSERT_LENGTH(n_size, crypto_stream_xchacha20_NONCEBYTES, "n")
-  SN_ASSERT_LENGTH(k_size, crypto_stream_xchacha20_KEYBYTES, "k")
-
-  SN_RETURN(crypto_stream_xchacha20_xor_ic(c_data, m_data, m_size, n_data, ic, k_data), "stream encryption failed")
+  return crypto_stream_xchacha20_xor_ic(c.data(), m.data(), m.size_bytes(), n.data(), ic, k.data());
 }
 
-js_value_t *
-sn_crypto_stream_salsa20(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(3, crypto_stream_salsa20)
+static inline int
+sn_crypto_stream_salsa20(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> c,
+  js_typedarray_span_t<> n,
+  js_typedarray_span_t<> k
+) {
+  assert(n.size_bytes() == crypto_stream_salsa20_NONCEBYTES);
+  assert(k.size_bytes() == crypto_stream_salsa20_KEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(c, 0)
-  SN_ARGV_TYPEDARRAY(n, 1)
-  SN_ARGV_TYPEDARRAY(k, 2)
-
-  SN_ASSERT_LENGTH(n_size, crypto_stream_salsa20_NONCEBYTES, "n")
-  SN_ASSERT_LENGTH(k_size, crypto_stream_salsa20_KEYBYTES, "k")
-
-  SN_RETURN(crypto_stream_salsa20(c_data, c_size, n_data, k_data), "stream encryption failed")
+  return crypto_stream_salsa20(c.data(), c.size_bytes(), n.data(), k.data());
 }
 
-js_value_t *
-sn_crypto_stream_salsa20_xor (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(4, crypto_stream_salsa20_xor)
+static inline int
+sn_crypto_stream_salsa20_xor(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> c,
+  js_typedarray_span_t<> m,
+  js_typedarray_span_t<> n,
+  js_typedarray_span_t<> k
+) {
+  assert(c.size_bytes() == m.size_bytes());
+  assert(n.size_bytes() == crypto_stream_salsa20_NONCEBYTES);
+  assert(k.size_bytes() == crypto_stream_salsa20_KEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(c, 0)
-  SN_ARGV_TYPEDARRAY(m, 1)
-  SN_ARGV_TYPEDARRAY(n, 2)
-  SN_ARGV_TYPEDARRAY(k, 3)
-
-  SN_THROWS(c_size != m_size, "m must be 'c.byteLength' bytes")
-  SN_ASSERT_LENGTH(n_size, crypto_stream_salsa20_NONCEBYTES, "n")
-  SN_ASSERT_LENGTH(k_size, crypto_stream_salsa20_KEYBYTES, "k")
-
-  SN_RETURN(crypto_stream_salsa20_xor(c_data, m_data, m_size, n_data, k_data), "stream encryption failed")
+  return crypto_stream_salsa20_xor(c.data(), m.data(), m.size_bytes(), n.data(), k.data());
 }
 
-js_value_t *
-sn_crypto_stream_salsa20_xor_ic(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(5, crypto_stream_salsa20_xor_ic)
+static inline int
+sn_crypto_stream_salsa20_xor_ic(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> c,
+  js_typedarray_span_t<> m,
+  js_typedarray_span_t<> n,
+  uint32_t ic,
+  js_typedarray_span_t<> k
+) {
+  assert(c.size_bytes() == m.size_bytes());
+  assert(n.size_bytes() == crypto_stream_salsa20_NONCEBYTES);
+  assert(k.size_bytes() == crypto_stream_salsa20_KEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(c, 0)
-  SN_ARGV_TYPEDARRAY(m, 1)
-  SN_ARGV_TYPEDARRAY(n, 2)
-  SN_ARGV_UINT32(ic, 3)
-  SN_ARGV_TYPEDARRAY(k, 4)
-
-  SN_THROWS(c_size != m_size, "m must be 'c.byteLength' bytes")
-  SN_ASSERT_LENGTH(n_size, crypto_stream_salsa20_NONCEBYTES, "n")
-  SN_ASSERT_LENGTH(k_size, crypto_stream_salsa20_KEYBYTES, "k")
-
-  SN_RETURN(crypto_stream_salsa20_xor_ic(c_data, m_data, m_size, n_data, ic, k_data), "stream encryption failed")
+  return crypto_stream_salsa20_xor_ic(c.data(), m.data(), m.size_bytes(), n.data(), ic, k.data());
 }
 
 js_value_t *
@@ -3638,13 +3631,11 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
 
   SN_EXPORT_FUNCTION_NOSCOPE("crypto_generichash", sn_crypto_generichash);
   SN_EXPORT_FUNCTION_SCOPED("crypto_generichash_batch", sn_crypto_generichash_batch);
-  SN_EXPORT_FUNCTION_NOSCOPE("crypto_generichash_batch", sn_crypto_generichash_batch)
-
-  SN_EXPORT_FUNCTION_NOSCOPE("crypto_generichash_keygen", sn_crypto_generichash_keygen)
-
-  SN_EXPORT_FUNCTION_NOSCOPE("crypto_generichash_init", sn_crypto_generichash_init)
-  SN_EXPORT_FUNCTION_NOSCOPE("crypto_generichash_update", sn_crypto_generichash_update)
-  SN_EXPORT_FUNCTION_NOSCOPE("crypto_generichash_final", sn_crypto_generichash_final)
+  SN_EXPORT_FUNCTION_NOSCOPE("crypto_generichash_batch", sn_crypto_generichash_batch);
+  SN_EXPORT_FUNCTION_NOSCOPE("crypto_generichash_keygen", sn_crypto_generichash_keygen);
+  SN_EXPORT_FUNCTION_NOSCOPE("crypto_generichash_init", sn_crypto_generichash_init);
+  SN_EXPORT_FUNCTION_NOSCOPE("crypto_generichash_update", sn_crypto_generichash_update);
+  SN_EXPORT_FUNCTION_NOSCOPE("crypto_generichash_final", sn_crypto_generichash_final);
 
   SN_EXPORT_UINT32(crypto_generichash_STATEBYTES, sizeof(crypto_generichash_state))
   SN_EXPORT_STRING(crypto_generichash_PRIMITIVE, crypto_generichash_PRIMITIVE)
@@ -3758,14 +3749,14 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
 
   // crypto_secretbox
 
-  SN_EXPORT_FUNCTION(crypto_secretbox_easy, sn_crypto_secretbox_easy)
-  SN_EXPORT_FUNCTION(crypto_secretbox_open_easy, sn_crypto_secretbox_open_easy)
-  SN_EXPORT_FUNCTION(crypto_secretbox_detached, sn_crypto_secretbox_detached)
-  SN_EXPORT_FUNCTION(crypto_secretbox_open_detached, sn_crypto_secretbox_open_detached)
-  SN_EXPORT_UINT32(crypto_secretbox_KEYBYTES, crypto_secretbox_KEYBYTES)
-  SN_EXPORT_UINT32(crypto_secretbox_NONCEBYTES, crypto_secretbox_NONCEBYTES)
-  SN_EXPORT_UINT32(crypto_secretbox_MACBYTES, crypto_secretbox_MACBYTES)
-  SN_EXPORT_STRING(crypto_secretbox_PRIMITIVE, crypto_secretbox_PRIMITIVE)
+  SN_EXPORT_FUNCTION_SCOPED("crypto_secretbox_easy", sn_crypto_secretbox_easy);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_secretbox_open_easy", sn_crypto_secretbox_open_easy);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_secretbox_detached", sn_crypto_secretbox_detached);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_secretbox_open_detached", sn_crypto_secretbox_open_detached);
+  SN_EXPORT_UINT32(crypto_secretbox_KEYBYTES, crypto_secretbox_KEYBYTES);
+  SN_EXPORT_UINT32(crypto_secretbox_NONCEBYTES, crypto_secretbox_NONCEBYTES);
+  SN_EXPORT_UINT32(crypto_secretbox_MACBYTES, crypto_secretbox_MACBYTES);
+  SN_EXPORT_STRING(crypto_secretbox_PRIMITIVE, crypto_secretbox_PRIMITIVE);
 
   // crypto_secretstream
 
@@ -3776,36 +3767,36 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   SN_EXPORT_FUNCTION_NOSCOPE("crypto_secretstream_xchacha20poly1305_pull", sn_crypto_secretstream_xchacha20poly1305_pull);
   SN_EXPORT_FUNCTION_NOSCOPE("crypto_secretstream_xchacha20poly1305_rekey", sn_crypto_secretstream_xchacha20poly1305_rekey);
 
-  SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_STATEBYTES, sizeof(crypto_secretstream_xchacha20poly1305_state))
-  SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_ABYTES, crypto_secretstream_xchacha20poly1305_ABYTES)
-  SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_HEADERBYTES, crypto_secretstream_xchacha20poly1305_HEADERBYTES)
-  SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_KEYBYTES, crypto_secretstream_xchacha20poly1305_KEYBYTES)
-  SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_TAGBYTES, 1)
-  SN_EXPORT_UINT64(crypto_secretstream_xchacha20poly1305_MESSAGEBYTES_MAX, crypto_secretstream_xchacha20poly1305_MESSAGEBYTES_MAX)
-  SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_TAG_MESSAGE, crypto_secretstream_xchacha20poly1305_TAG_MESSAGE)
-  SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_TAG_PUSH, crypto_secretstream_xchacha20poly1305_TAG_PUSH)
-  SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_TAG_REKEY, crypto_secretstream_xchacha20poly1305_TAG_REKEY)
-  SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_TAG_FINAL, crypto_secretstream_xchacha20poly1305_TAG_FINAL)
+  SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_STATEBYTES, sizeof(crypto_secretstream_xchacha20poly1305_state));
+  SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_ABYTES, crypto_secretstream_xchacha20poly1305_ABYTES);
+  SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_HEADERBYTES, crypto_secretstream_xchacha20poly1305_HEADERBYTES);
+  SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_KEYBYTES, crypto_secretstream_xchacha20poly1305_KEYBYTES);
+  SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_TAGBYTES, 1);
+  SN_EXPORT_UINT64(crypto_secretstream_xchacha20poly1305_MESSAGEBYTES_MAX, crypto_secretstream_xchacha20poly1305_MESSAGEBYTES_MAX);
+  SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_TAG_MESSAGE, crypto_secretstream_xchacha20poly1305_TAG_MESSAGE);
+  SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_TAG_PUSH, crypto_secretstream_xchacha20poly1305_TAG_PUSH);
+  SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_TAG_REKEY, crypto_secretstream_xchacha20poly1305_TAG_REKEY);
+  SN_EXPORT_UINT32(crypto_secretstream_xchacha20poly1305_TAG_FINAL, crypto_secretstream_xchacha20poly1305_TAG_FINAL);
 
   // crypto_shorthash
 
-  SN_EXPORT_FUNCTION(crypto_shorthash, sn_crypto_shorthash)
-  SN_EXPORT_UINT32(crypto_shorthash_BYTES, crypto_shorthash_BYTES)
-  SN_EXPORT_UINT32(crypto_shorthash_KEYBYTES, crypto_shorthash_KEYBYTES)
-  SN_EXPORT_STRING(crypto_shorthash_PRIMITIVE, crypto_shorthash_PRIMITIVE)
+  SN_EXPORT_FUNCTION(crypto_shorthash, sn_crypto_shorthash);
+  SN_EXPORT_UINT32(crypto_shorthash_BYTES, crypto_shorthash_BYTES);
+  SN_EXPORT_UINT32(crypto_shorthash_KEYBYTES, crypto_shorthash_KEYBYTES);
+  SN_EXPORT_STRING(crypto_shorthash_PRIMITIVE, crypto_shorthash_PRIMITIVE);
 
   // crypto_sign
 
-  SN_EXPORT_FUNCTION(crypto_sign_keypair, sn_crypto_sign_keypair)
-  SN_EXPORT_FUNCTION(crypto_sign_seed_keypair, sn_crypto_sign_seed_keypair)
-  SN_EXPORT_FUNCTION(crypto_sign, sn_crypto_sign)
-  SN_EXPORT_FUNCTION(crypto_sign_open, sn_crypto_sign_open)
-  SN_EXPORT_FUNCTION(crypto_sign_detached, sn_crypto_sign_detached)
-  SN_EXPORT_FUNCTION_NOSCOPE("crypto_sign_verify_detached", sn_crypto_sign_verify_detached)
+  SN_EXPORT_FUNCTION_SCOPED("crypto_sign_keypair", sn_crypto_sign_keypair);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_sign_seed_keypair", sn_crypto_sign_seed_keypair);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_sign", sn_crypto_sign);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_sign_open", sn_crypto_sign_open);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_sign_detached", sn_crypto_sign_detached);
+  SN_EXPORT_FUNCTION_NOSCOPE("crypto_sign_verify_detached", sn_crypto_sign_verify_detached);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_sign_ed25519_sk_to_pk", sn_crypto_sign_ed25519_sk_to_pk);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_sign_ed25519_pk_to_curve25519", sn_crypto_sign_ed25519_pk_to_curve25519);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_sign_ed25519_sk_to_curve25519", sn_crypto_sign_ed25519_sk_to_curve25519);
 
-  SN_EXPORT_FUNCTION(crypto_sign_ed25519_sk_to_pk, sn_crypto_sign_ed25519_sk_to_pk)
-  SN_EXPORT_FUNCTION(crypto_sign_ed25519_pk_to_curve25519, sn_crypto_sign_ed25519_pk_to_curve25519)
-  SN_EXPORT_FUNCTION(crypto_sign_ed25519_sk_to_curve25519, sn_crypto_sign_ed25519_sk_to_curve25519)
   SN_EXPORT_UINT32(crypto_sign_SEEDBYTES, crypto_sign_SEEDBYTES)
   SN_EXPORT_UINT32(crypto_sign_PUBLICKEYBYTES, crypto_sign_PUBLICKEYBYTES)
   SN_EXPORT_UINT32(crypto_sign_SECRETKEYBYTES, crypto_sign_SECRETKEYBYTES)
@@ -3813,7 +3804,7 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
 
   // crypto_stream
 
-  SN_EXPORT_FUNCTION(crypto_stream, sn_crypto_stream)
+  SN_EXPORT_FUNCTION_SCOPED("crypto_stream", sn_crypto_stream)
   SN_EXPORT_UINT32(crypto_stream_KEYBYTES, crypto_stream_KEYBYTES)
   SN_EXPORT_UINT32(crypto_stream_NONCEBYTES, crypto_stream_NONCEBYTES)
   SN_EXPORT_STRING(crypto_stream_PRIMITIVE, crypto_stream_PRIMITIVE)
@@ -3824,50 +3815,50 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   SN_EXPORT_FUNCTION(crypto_stream_xor_final, sn_crypto_stream_xor_wrap_final)
   SN_EXPORT_UINT32(crypto_stream_xor_STATEBYTES, sizeof(sn_crypto_stream_xor_state))
 
-  SN_EXPORT_FUNCTION(crypto_stream_chacha20, sn_crypto_stream_chacha20)
+  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_chacha20", sn_crypto_stream_chacha20)
   SN_EXPORT_UINT32(crypto_stream_chacha20_KEYBYTES, crypto_stream_chacha20_KEYBYTES)
   SN_EXPORT_UINT32(crypto_stream_chacha20_NONCEBYTES, crypto_stream_chacha20_NONCEBYTES)
   SN_EXPORT_UINT64(crypto_stream_chacha20_MESSAGEBYTES_MAX, crypto_stream_chacha20_MESSAGEBYTES_MAX)
 
-  SN_EXPORT_FUNCTION(crypto_stream_chacha20_xor, sn_crypto_stream_chacha20_xor)
-  SN_EXPORT_FUNCTION(crypto_stream_chacha20_xor_ic, sn_crypto_stream_chacha20_xor_ic)
+  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_chacha20_xor", sn_crypto_stream_chacha20_xor)
+  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_chacha20_xor_ic", sn_crypto_stream_chacha20_xor_ic)
   SN_EXPORT_FUNCTION(crypto_stream_chacha20_xor_init, sn_crypto_stream_chacha20_xor_wrap_init)
   SN_EXPORT_FUNCTION(crypto_stream_chacha20_xor_update, sn_crypto_stream_chacha20_xor_wrap_update)
   SN_EXPORT_FUNCTION(crypto_stream_chacha20_xor_final, sn_crypto_stream_chacha20_xor_wrap_final)
   SN_EXPORT_UINT32(crypto_stream_chacha20_xor_STATEBYTES, sizeof(sn_crypto_stream_chacha20_xor_state))
 
-  SN_EXPORT_FUNCTION(crypto_stream_chacha20_ietf, sn_crypto_stream_chacha20_ietf)
+  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_chacha20_ietf", sn_crypto_stream_chacha20_ietf)
   SN_EXPORT_UINT32(crypto_stream_chacha20_ietf_KEYBYTES, crypto_stream_chacha20_ietf_KEYBYTES)
   SN_EXPORT_UINT32(crypto_stream_chacha20_ietf_NONCEBYTES, crypto_stream_chacha20_ietf_NONCEBYTES)
   SN_EXPORT_UINT64(crypto_stream_chacha20_ietf_MESSAGEBYTES_MAX, crypto_stream_chacha20_ietf_MESSAGEBYTES_MAX)
   SN_EXPORT_UINT32(crypto_stream_chacha20_ietf_xor_STATEBYTES, sizeof(sn_crypto_stream_chacha20_ietf_xor_state))
 
-  SN_EXPORT_FUNCTION(crypto_stream_chacha20_ietf_xor, sn_crypto_stream_chacha20_ietf_xor)
-  SN_EXPORT_FUNCTION(crypto_stream_chacha20_ietf_xor_ic, sn_crypto_stream_chacha20_ietf_xor_ic)
+  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_chacha20_ietf_xor", sn_crypto_stream_chacha20_ietf_xor)
+  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_chacha20_ietf_xor_ic", sn_crypto_stream_chacha20_ietf_xor_ic)
   SN_EXPORT_FUNCTION(crypto_stream_chacha20_ietf_xor_init, sn_crypto_stream_chacha20_ietf_xor_wrap_init)
   SN_EXPORT_FUNCTION(crypto_stream_chacha20_ietf_xor_update, sn_crypto_stream_chacha20_ietf_xor_wrap_update)
   SN_EXPORT_FUNCTION(crypto_stream_chacha20_ietf_xor_final, sn_crypto_stream_chacha20_ietf_xor_wrap_final)
 
-  SN_EXPORT_FUNCTION(crypto_stream_xchacha20, sn_crypto_stream_xchacha20)
+  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_xchacha20", sn_crypto_stream_xchacha20)
   SN_EXPORT_UINT32(crypto_stream_xchacha20_KEYBYTES, crypto_stream_xchacha20_KEYBYTES)
   SN_EXPORT_UINT32(crypto_stream_xchacha20_NONCEBYTES, crypto_stream_xchacha20_NONCEBYTES)
   SN_EXPORT_UINT64(crypto_stream_xchacha20_MESSAGEBYTES_MAX, crypto_stream_xchacha20_MESSAGEBYTES_MAX)
 
-  SN_EXPORT_FUNCTION(crypto_stream_xchacha20_xor, sn_crypto_stream_xchacha20_xor)
-  SN_EXPORT_FUNCTION(crypto_stream_xchacha20_xor_ic, sn_crypto_stream_xchacha20_xor_ic)
+  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_xchacha20_xor", sn_crypto_stream_xchacha20_xor)
+  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_xchacha20_xor_ic", sn_crypto_stream_xchacha20_xor_ic)
   SN_EXPORT_FUNCTION(crypto_stream_xchacha20_xor_init, sn_crypto_stream_xchacha20_xor_wrap_init)
   SN_EXPORT_FUNCTION(crypto_stream_xchacha20_xor_update, sn_crypto_stream_xchacha20_xor_wrap_update)
   SN_EXPORT_FUNCTION(crypto_stream_xchacha20_xor_final, sn_crypto_stream_xchacha20_xor_wrap_final)
-  SN_EXPORT_FUNCTION(crypto_stream_xchacha20, sn_crypto_stream_xchacha20)
+  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_xchacha20", sn_crypto_stream_xchacha20)
   SN_EXPORT_UINT32(crypto_stream_xchacha20_xor_STATEBYTES, sizeof(sn_crypto_stream_xchacha20_xor_state))
 
-  SN_EXPORT_FUNCTION(crypto_stream_salsa20, sn_crypto_stream_salsa20)
+  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_salsa20", sn_crypto_stream_salsa20)
   SN_EXPORT_UINT32(crypto_stream_salsa20_KEYBYTES, crypto_stream_salsa20_KEYBYTES)
   SN_EXPORT_UINT32(crypto_stream_salsa20_NONCEBYTES, crypto_stream_salsa20_NONCEBYTES)
   SN_EXPORT_UINT64(crypto_stream_salsa20_MESSAGEBYTES_MAX, crypto_stream_salsa20_MESSAGEBYTES_MAX)
 
-  SN_EXPORT_FUNCTION(crypto_stream_salsa20_xor, sn_crypto_stream_salsa20_xor)
-  SN_EXPORT_FUNCTION(crypto_stream_salsa20_xor_ic, sn_crypto_stream_salsa20_xor_ic)
+  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_salsa20_xor", sn_crypto_stream_salsa20_xor)
+  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_salsa20_xor_ic", sn_crypto_stream_salsa20_xor_ic)
   SN_EXPORT_FUNCTION(crypto_stream_salsa20_xor_init, sn_crypto_stream_salsa20_xor_wrap_init)
   SN_EXPORT_FUNCTION(crypto_stream_salsa20_xor_update, sn_crypto_stream_salsa20_xor_wrap_update)
   SN_EXPORT_FUNCTION(crypto_stream_salsa20_xor_final, sn_crypto_stream_salsa20_xor_wrap_final)
