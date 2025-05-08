@@ -1147,3 +1147,140 @@ exports.crypto_aead_chacha20poly1305_ietf_decrypt_detached = function (m, nsec =
   const res = binding.crypto_aead_chacha20poly1305_ietf_decrypt_detached(m, c, mac, ad, npub, k)
   if (res !== 0) throw new Error('could not verify data')
 }
+
+// crypto_stream
+
+exports.crypto_stream_xor_wrap_init = function (state, n, k) {
+  if (state.byteLength !== binding.sn_crypto_stream_xor_STATEBYTES) {
+    throw new Error("state must be 'sn_crypto_stream_xor_STATEBYTES' bytes")
+  }
+  if (n.byteLength !== binding.crypto_stream_NONCEBYTES) throw new Error('n')
+  if (k.byteLength !== binding.crypto_stream_KEYBYTES) throw new Error('k')
+
+  binding.crypto_stream_xor_wrap_init(state, n, k)
+}
+
+exports.crypto_stream_xor_wrap_update = function (state, c, m) {
+  if (state.byteLength !== binding.sn_crypto_stream_xor_STATEBYTES) {
+    throw new Error("state must be 'sn_crypto_stream_xor_STATEBYTES' bytes")
+  }
+  if (c.byteLength !== m.byteLength) throw new Error('c must be "m.byteLength" bytes')
+
+  binding.crypto_stream_xor_wrap_update(state, c, m)
+}
+
+exports.crypto_stream_xor_wrap_final = function (state) {
+  if (state.byteLength !== binding.sn_crypto_stream_xor_STATEBYTES) {
+    throw new Error("state must be 'sn_crypto_stream_xor_STATEBYTES' bytes")
+  }
+
+  binding.crypto_stream_xor_wrap_final(state)
+}
+
+exports.crypto_stream_chacha20_xor_wrap_init = function (state, n, k) {
+  if (state.byteLength !== binding.crypto_stream_chacha20_xor_STATEBYTES) {
+    throw new Error("state must be 'crypto_stream_chacha20_xor_STATEBYTES' bytes")
+  }
+  if (n.byteLength !== binding.crypto_stream_chacha20_NONCEBYTES) throw new Error('n')
+  if (k.byteLength !== binding.crypto_stream_chacha20_KEYBYTES) throw new Error('k')
+
+  binding.crypto_stream_chacha20_xor_wrap_init(state, n, k)
+}
+
+exports.crypto_stream_chacha20_xor_wrap_update = function (state, c, m) {
+  if (state.byteLength !== binding.crypto_stream_chacha20_xor_STATEBYTES) {
+    throw new Error("state must be 'crypto_stream_chacha20_xor_STATEBYTES' bytes")
+  }
+  if (c.byteLength !== m.byteLength) throw new Error('c must be "m.byteLength" bytes')
+
+  binding.crypto_stream_chacha20_xor_wrap_update(state, c, m)
+}
+
+exports.crypto_stream_chacha20_xor_wrap_final = function (state) {
+  if (state.byteLength !== binding.crypto_stream_chacha20_xor_STATEBYTES) {
+    throw new Error("state must be 'crypto_stream_chacha20_xor_STATEBYTES' bytes")
+  }
+
+  binding.crypto_stream_chacha20_xor_wrap_final(state)
+}
+
+exports.crypto_stream_chacha20_ietf_xor_wrap_init = function (state, n, k) {
+  if (state.byteLength !== binding.crypto_stream_chacha20_ietf_xor_STATEBYTES) {
+    throw new Error("state must be 'crypto_stream_chacha20_ietf_xor_STATEBYTES' bytes")
+  }
+  if (n.byteLength !== binding.crypto_stream_chacha20_ietf_NONCEBYTES) throw new Error('n')
+  if (k.byteLength !== binding.crypto_stream_chacha20_ietf_KEYBYTES) throw new Error('k')
+
+  binding.crypto_stream_chacha20_ietf_xor_wrap_init(state, n, k)
+}
+
+exports.crypto_stream_chacha20_ietf_xor_wrap_update = function (state, c, m) {
+  if (state.byteLength !== binding.crypto_stream_chacha20_ietf_xor_STATEBYTES) {
+    throw new Error("state must be 'crypto_stream_chacha20_ietf_xor_STATEBYTES' bytes")
+  }
+  if (c.byteLength !== m.byteLength) throw new Error('c must be "m.byteLength" bytes')
+
+  binding.crypto_stream_chacha20_ietf_xor_wrap_update(state, c, m)
+}
+
+exports.crypto_stream_chacha20_ietf_xor_wrap_final = function (state) {
+  if (state.byteLength !== binding.crypto_stream_chacha20_ietf_xor_STATEBYTES) {
+    throw new Error("state must be 'crypto_stream_chacha20_ietf_xor_STATEBYTES' bytes")
+  }
+
+  binding.crypto_stream_chacha20_ietf_xor_wrap_final(state)
+}
+
+exports.crypto_stream_xchacha20_xor_wrap_init = function (state, n, k) {
+  if (state.byteLength !== binding.crypto_stream_xchacha20_xor_STATEBYTES) {
+    throw new Error("state must be 'crypto_stream_xchacha20_xor_STATEBYTES' bytes")
+  }
+  if (n.byteLength !== binding.crypto_stream_xchacha20_NONCEBYTES) throw new Error('n')
+  if (k.byteLength !== binding.crypto_stream_xchacha20_KEYBYTES) throw new Error('k')
+
+  binding.crypto_stream_xchacha20_xor_wrap_init(state, n, k)
+}
+
+exports.crypto_stream_xchacha20_xor_wrap_update = function (state, c, m) {
+  if (state.byteLength !== binding.crypto_stream_xchacha20_xor_STATEBYTES) {
+    throw new Error("state must be 'crypto_stream_xchacha20_xor_STATEBYTES' bytes")
+  }
+  if (c.byteLength !== m.byteLength) throw new Error('c must be "m.byteLength" bytes')
+
+  binding.crypto_stream_xchacha20_xor_wrap_update(state, c, m)
+}
+
+exports.crypto_stream_xchacha20_xor_wrap_final = function (state) {
+  if (state.byteLength !== binding.crypto_stream_xchacha20_xor_STATEBYTES) {
+    throw new Error("state must be 'crypto_stream_xchacha20_xor_STATEBYTES' bytes")
+  }
+
+  binding.crypto_stream_xchacha20_xor_wrap_final(state)
+}
+
+exports.crypto_stream_salsa20_xor_wrap_init = function (state, n, k) {
+  if (state.byteLength !== binding.crypto_stream_salsa20_xor_STATEBYTES) {
+    throw new Error("state must be 'crypto_stream_salsa20_xor_STATEBYTES' bytes")
+  }
+  if (n.byteLength !== binding.crypto_stream_salsa20_NONCEBYTES) throw new Error('n')
+  if (k.byteLength !== binding.crypto_stream_salsa20_KEYBYTES) throw new Error('k')
+
+  binding.crypto_stream_salsa20_xor_wrap_init(state, n, k)
+}
+
+exports.crypto_stream_salsa20_xor_wrap_update = function (state, c, m) {
+  if (state.byteLength !== binding.crypto_stream_salsa20_xor_STATEBYTES) {
+    throw new Error("state must be 'crypto_stream_salsa20_xor_STATEBYTES' bytes")
+  }
+  if (c.byteLength !== m.byteLength) throw new Error('c must be "m.byteLength" bytes')
+
+  binding.crypto_stream_salsa20_xor_wrap_update(state, c, m)
+}
+
+exports.crypto_stream_salsa20_xor_wrap_final = function (state) {
+  if (state.byteLength !== binding.crypto_stream_salsa20_xor_STATEBYTES) {
+    throw new Error("state must be 'crypto_stream_salsa20_xor_STATEBYTES' bytes")
+  }
+
+  binding.crypto_stream_salsa20_xor_wrap_final(state)
+}
