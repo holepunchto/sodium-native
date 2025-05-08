@@ -554,6 +554,8 @@ exports.crypto_auth_verify = function (h, input, k) {
   return binding.crypto_auth_verify(h, input, k)
 }
 
+// crypto_onetimeauth
+
 exports.crypto_onetimeauth = function (out, input, k) {
   if (out.byteLength !== binding.crypto_onetimeauth_BYTES) throw new Error('out')
   if (k.byteLength !== binding.crypto_onetimeauth_KEYBYTES) throw new Error('k')
@@ -707,4 +709,321 @@ exports.crypto_kx_seed_keypair = function (pk, sk, seed) {
   const res = binding.crypto_kx_seed_keypair(pk, sk, seed)
 
   if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_kx_client_session_keys = function (rx, tx, clientPk, clientSk, serverPk) {
+  // match `std::optional` by coercing null to undefined
+  rx ??= undefined
+  tx ??= undefined
+
+  if (!rx && !tx) throw new Error('at least one session key must be specified')
+
+  if (rx) {
+    if (rx.byteLength !== binding.crypto_kx_SESSIONKEYBYTES) throw new Error('receiving key buffer must be "crypto_kx_SESSIONKEYBYTES" bytes or null')
+  } else {
+    if (tx.byteLength !== binding.crypto_kx_SESSIONKEYBYTES) throw new Error('transmitting key buffer must be "crypto_kx_SESSIONKEYBYTES" bytes or null')
+  }
+
+  if (clientPk.byteLength !== binding.crypto_kx_PUBLICKEYBYTES) throw new Error('client_pk')
+  if (clientSk.byteLength !== binding.crypto_kx_SECRETKEYBYTES) throw new Error('client_sk')
+  if (serverPk.byteLength !== binding.crypto_kx_PUBLICKEYBYTES) throw new Error('server_pk')
+
+  const res = binding.crypto_kx_client_session_keys(rx, tx, clientPk, clientSk, serverPk)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_kx_server_session_keys = function (rx, tx, serverPk, serverSk, clientPk) {
+  // match `std::optional` by coercing null to undefined
+  rx ??= undefined
+  tx ??= undefined
+
+  if (!rx && !tx) throw new Error('at least one session key must be specified')
+
+  if (rx) {
+    if (rx.byteLength !== binding.crypto_kx_SESSIONKEYBYTES) throw new Error('receiving key buffer must be "crypto_kx_SESSIONKEYBYTES" bytes or null')
+  } else {
+    if (tx.byteLength !== binding.crypto_kx_SESSIONKEYBYTES) throw new Error('transmitting key buffer must be "crypto_kx_SESSIONKEYBYTES" bytes or null')
+  }
+
+  if (serverPk.byteLength !== binding.crypto_kx_PUBLICKEYBYTES) throw new Error('server_pk')
+  if (serverSk.byteLength !== binding.crypto_kx_SECRETKEYBYTES) throw new Error('server_sk')
+  if (clientPk.byteLength !== binding.crypto_kx_PUBLICKEYBYTES) throw new Error('client_pk')
+
+  const res = binding.crypto_kx_server_session_keys(rx, tx, serverPk, serverSk, clientPk)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+// crypto_scalarmult
+
+exports.crypto_scalarmult_base = function (q, n) {
+  if (q.byteLength !== binding.crypto_scalarmult_BYTES) throw new Error('q')
+  if (n.byteLength !== binding.crypto_scalarmult_SCALARBYTES) throw new Error('n')
+
+  const res = binding.crypto_scalarmult_base(q, n)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_scalarmult = function (q, n, p) {
+  if (q.byteLength !== binding.crypto_scalarmult_BYTES) throw new Error('q')
+  if (n.byteLength !== binding.crypto_scalarmult_SCALARBYTES) throw new Error('n')
+  if (p.byteLength !== binding.crypto_scalarmult_BYTES) throw new Error('p')
+
+  const res = binding.crypto_scalarmult(q, n, p)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_scalarmult_ed25519_base = function (q, n) {
+  if (q.byteLength !== binding.crypto_scalarmult_ed25519_BYTES) throw new Error('q')
+  if (n.byteLength !== binding.crypto_scalarmult_ed25519_SCALARBYTES) throw new Error('n')
+
+  const res = binding.crypto_scalarmult_ed25519_base(q, n)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_scalarmult_ed25519 = function (q, n, p) {
+  if (q.byteLength !== binding.crypto_scalarmult_ed25519_BYTES) throw new Error('q')
+  if (n.byteLength !== binding.crypto_scalarmult_ed25519_SCALARBYTES) throw new Error('n')
+  if (p.byteLength !== binding.crypto_scalarmult_ed25519_BYTES) throw new Error('p')
+
+  const res = binding.crypto_scalarmult_ed25519(q, n, p)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+/** @returns {boolean} */
+exports.crypto_core_ed25519_is_valid_point = function (p) {
+  if (p.byteLength !== binding.crypto_core_ed25519_BYTES) throw new Error('p')
+
+  return binding.crypto_core_ed25519_is_valid_point(p)
+}
+
+exports.crypto_core_ed25519_from_uniform = function (p, r) {
+  if (p.byteLength !== binding.crypto_core_ed25519_BYTES) throw new Error('p')
+  if (r.byteLength !== binding.crypto_core_ed25519_UNIFORMBYTES) throw new Error('r')
+
+  const res = binding.crypto_core_ed25519_from_uniform(p, r)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_scalarmult_ed25519_base_noclamp = function (q, n) {
+  if (q.byteLength !== binding.crypto_scalarmult_ed25519_BYTES) throw new Error('q')
+  if (n.byteLength !== binding.crypto_scalarmult_ed25519_SCALARBYTES) throw new Error('n')
+
+  const res = binding.crypto_scalarmult_ed25519_base_noclamp(q, n)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_scalarmult_ed25519_noclamp = function (q, n, p) {
+  if (q.byteLength !== binding.crypto_scalarmult_ed25519_BYTES) throw new Error('q')
+  if (n.byteLength !== binding.crypto_scalarmult_ed25519_SCALARBYTES) throw new Error('n')
+  if (p.byteLength !== binding.crypto_scalarmult_ed25519_BYTES) throw new Error('p')
+
+  const res = binding.crypto_scalarmult_ed25519_noclamp(q, n, p)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+// crypto_core
+
+exports.crypto_core_ed25519_add = function (r, p, q) {
+  if (r.byteLength !== binding.crypto_core_ed25519_BYTES) throw new Error('r')
+  if (p.byteLength !== binding.crypto_core_ed25519_BYTES) throw new Error('p')
+  if (q.byteLength !== binding.crypto_core_ed25519_BYTES) throw new Error('q')
+
+  const res = binding.crypto_core_ed25519_add(r, p, q)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_core_ed25519_sub = function (r, p, q) {
+  if (r.byteLength !== binding.crypto_core_ed25519_BYTES) throw new Error('r')
+  if (p.byteLength !== binding.crypto_core_ed25519_BYTES) throw new Error('p')
+  if (q.byteLength !== binding.crypto_core_ed25519_BYTES) throw new Error('q')
+
+  const res = binding.crypto_core_ed25519_sub(r, p, q)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_core_ed25519_scalar_random = function (r) {
+  if (r.byteLength !== binding.crypto_core_ed25519_SCALARBYTES) throw new Error('r')
+
+  binding.crypto_core_ed25519_scalar_random(r)
+}
+
+exports.crypto_core_ed25519_scalar_reduce = function (r, s) {
+  if (r.byteLength !== binding.crypto_core_ed25519_SCALARBYTES) throw new Error('r')
+  if (s.byteLength !== binding.crypto_core_ed25519_NONREDUCEDSCALARBYTES) throw new Error('s')
+
+  binding.crypto_core_ed25519_scalar_reduce(r, s)
+}
+
+exports.crypto_core_ed25519_scalar_invert = function (recip, s) {
+  if (recip.byteLength !== binding.crypto_core_ed25519_SCALARBYTES) throw new Error('recip')
+  if (s.byteLength !== binding.crypto_core_ed25519_SCALARBYTES) throw new Error('s')
+
+  binding.crypto_core_ed25519_scalar_invert(recip, s)
+}
+
+exports.crypto_core_ed25519_scalar_negate = function (neg, s) {
+  if (neg.byteLength !== binding.crypto_core_ed25519_SCALARBYTES) throw new Error('neg')
+  if (s.byteLength !== binding.crypto_core_ed25519_SCALARBYTES) throw new Error('s')
+
+  binding.crypto_core_ed25519_scalar_negate(neg, s)
+}
+
+exports.crypto_core_ed25519_scalar_complement = function (comp, s) {
+  if (comp.byteLength !== binding.crypto_core_ed25519_SCALARBYTES) throw new Error('comp')
+  if (s.byteLength !== binding.crypto_core_ed25519_SCALARBYTES) throw new Error('s')
+
+  binding.crypto_core_ed25519_scalar_complement(comp, s)
+}
+
+exports.crypto_core_ed25519_scalar_add = function (z, x, y) {
+  if (z.byteLength !== binding.crypto_core_ed25519_SCALARBYTES) throw new Error('z')
+  if (x.byteLength !== binding.crypto_core_ed25519_SCALARBYTES) throw new Error('x')
+  if (y.byteLength !== binding.crypto_core_ed25519_SCALARBYTES) throw new Error('y')
+
+  binding.crypto_core_ed25519_scalar_add(z, x, y)
+}
+
+exports.crypto_core_ed25519_scalar_sub = function (z, x, y) {
+  if (z.byteLength !== binding.crypto_core_ed25519_SCALARBYTES) throw new Error('z')
+  if (x.byteLength !== binding.crypto_core_ed25519_SCALARBYTES) throw new Error('x')
+  if (y.byteLength !== binding.crypto_core_ed25519_SCALARBYTES) throw new Error('y')
+
+  binding.crypto_core_ed25519_scalar_sub(z, x, y)
+}
+
+// crypto_shorthash
+
+exports.crypto_shorthash = function (out, input, k) {
+  if (out.byteLength !== binding.crypto_shorthash_BYTES) throw new Error('out')
+  if (k.byteLength !== binding.crypto_shorthash_KEYBYTES) throw new Error('k')
+
+  const res = binding.crypto_shorthash(out, input, k)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+// crypto_kdf
+
+exports.crypto_kdf_keygen = function (key) {
+  if (key.byteLength !== binding.crypto_kdf_KEYBYTES) throw new Error('key')
+
+  binding.crypto_kdf_keygen(key)
+}
+
+exports.crypto_kdf_derive_from_key = function (subkey, subkeyId, ctx, key) {
+  if (subkey.byteLength < binding.crypto_kdf_BYTES_MIN) throw new Error('subkey')
+  if (subkey.byteLength > binding.crypto_kdf_BYTES_MAX) throw new Error('subkey')
+  if (ctx.byteLength !== binding.crypto_kdf_CONTEXTBYTES) throw new Error('ctx')
+  if (key.byteLength !== binding.crypto_kdf_KEYBYTES) throw new Error('key')
+
+  const res = binding.crypto_kdf_derive_from_key(subkey, subkeyId, ctx, key)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+// crypto_hash
+
+exports.crypto_hash = function (out, input) {
+  if (out.byteLength !== binding.crypto_hash_BYTES) throw new Error('out')
+
+  const res = binding.crypto_hash(out, input)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_hash_sha256 = function (out, input) {
+  if (out.byteLength !== binding.crypto_hash_sha256_BYTES) throw new Error('out')
+
+  const res = binding.crypto_hash_sha256(out, input)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_hash_sha256_init = function (state) {
+  if (state.byteLength !== binding.crypto_hash_sha256_STATEBYTES) {
+    throw new Error("state must be 'crypto_hash_sha256_STATEBYTES' bytes")
+  }
+
+  const res = binding.crypto_hash_sha256_init(state)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_hash_sha256_update = function (state, input) {
+  if (state.byteLength !== binding.crypto_hash_sha256_STATEBYTES) {
+    throw new Error("state must be 'crypto_hash_sha256_STATEBYTES' bytes")
+  }
+
+  const res = binding.crypto_hash_sha256_update(state, input)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_hash_sha256_final = function (state, out) {
+  if (state.byteLength !== binding.crypto_hash_sha256_STATEBYTES) {
+    throw new Error("state must be 'crypto_hash_sha256_STATEBYTES' bytes")
+  }
+  if (out.byteLength !== binding.crypto_hash_sha256_BYTES) throw new Error('state')
+
+  const res = binding.crypto_hash_sha256_final(state, out)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_hash_sha512 = function (out, input) {
+  if (out.byteLength !== binding.crypto_hash_sha512_BYTES) throw new Error('out')
+
+  const res = binding.crypto_hash_sha512(out, input)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_hash_sha512_init = function (state) {
+  if (state.byteLength !== binding.crypto_hash_sha512_STATEBYTES) {
+    throw new Error("state must be 'crypto_hash_sha512_STATEBYTES' bytes")
+  }
+
+  const res = binding.crypto_hash_sha512_init(state)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_hash_sha512_update = function (state, input) {
+  if (state.byteLength !== binding.crypto_hash_sha512_STATEBYTES) {
+    throw new Error("state must be 'crypto_hash_sha512_STATEBYTES' bytes")
+  }
+
+  const res = binding.crypto_hash_sha512_update(state, input)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_hash_sha512_final = function (state, out) {
+  if (state.byteLength !== binding.crypto_hash_sha512_STATEBYTES) {
+    throw new Error("state must be 'crypto_hash_sha512_STATEBYTES' bytes")
+  }
+  if (out.byteLength !== binding.crypto_hash_sha512_BYTES) throw new Error('out')
+
+  const res = binding.crypto_hash_sha512_final(state, out)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+// crypto_aead
+
+exports.crypto_aead_xchacha20poly1305_ietf_keygen = function (k) {
+  if (k.byteLength !== binding.crypto_aead_xchacha20poly1305_ietf_KEYBYTES) throw new Error('k')
+
+  binding.crypto_aead_xchacha20poly1305_ietf_keygen(k)
 }
