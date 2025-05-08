@@ -596,7 +596,7 @@ sn_crypto_box_seed_keypair(
 ) {
   assert(pk.size_bytes() == crypto_box_PUBLICKEYBYTES);
   assert(sk.size_bytes() == crypto_box_SECRETKEYBYTES);
-  assert(seed.size_bytes() == crypto_box_SEEDBYTES);
+assert(seed.size_bytes() == crypto_box_SEEDBYTES);
 
   return crypto_box_seed_keypair(pk.data(), sk.data(), seed.data());
 }
@@ -1030,267 +1030,325 @@ sn_crypto_stream_salsa20_xor_ic(
   return crypto_stream_salsa20_xor_ic(c.data(), m.data(), m.size_bytes(), n.data(), ic, k.data());
 }
 
-js_value_t *
-sn_crypto_auth (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(3, crypto_auth)
+static inline int
+sn_crypto_auth(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> out,
+  js_typedarray_span_t<> in,
+  js_typedarray_span_t<> k
+) {
+  assert(out.size_bytes() == crypto_auth_BYTES);
+  assert(k.size_bytes() == crypto_auth_KEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(out, 0)
-  SN_ARGV_TYPEDARRAY(in, 1)
-  SN_ARGV_TYPEDARRAY(k, 2)
-
-  SN_ASSERT_LENGTH(out_size, crypto_auth_BYTES, "out")
-  SN_ASSERT_LENGTH(k_size, crypto_auth_KEYBYTES, "k")
-
-  SN_RETURN(crypto_auth(out_data, in_data, in_size, k_data), "failed to generate authentication tag")
+  return crypto_auth(out.data(), in.data(), in.size_bytes(), k.data());
 }
 
-js_value_t *
-sn_crypto_auth_verify (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(3, crypto_auth_verify)
+static inline bool
+sn_crypto_auth_verify(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> h,
+  js_typedarray_span_t<> in,
+  js_typedarray_span_t<> k
+) {
+  assert(h.size_bytes() == crypto_auth_BYTES);
+  assert(k.size_bytes() == crypto_auth_KEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(h, 0)
-  SN_ARGV_TYPEDARRAY(in, 1)
-  SN_ARGV_TYPEDARRAY(k, 2)
-
-  SN_ASSERT_LENGTH(h_size, crypto_auth_BYTES, "h")
-  SN_ASSERT_LENGTH(k_size, crypto_auth_KEYBYTES, "k")
-
-  SN_RETURN_BOOLEAN(crypto_auth_verify(h_data, in_data, in_size, k_data))
+  return crypto_auth_verify(h.data(), in.data(), in.size_bytes(), k.data()) == 0;
 }
 
-js_value_t *
-sn_crypto_onetimeauth (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(3, crypto_onetimeauth)
+static inline int
+sn_crypto_onetimeauth(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> out,
+  js_typedarray_span_t<> in,
+  js_typedarray_span_t<> k
+) {
+  assert(out.size_bytes() == crypto_onetimeauth_BYTES);
+  assert(k.size_bytes() == crypto_onetimeauth_KEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(out, 0)
-  SN_ARGV_TYPEDARRAY(in, 1)
-  SN_ARGV_TYPEDARRAY(k, 2)
-
-  SN_ASSERT_LENGTH(out_size, crypto_onetimeauth_BYTES, "out")
-  SN_ASSERT_LENGTH(k_size, crypto_onetimeauth_KEYBYTES, "k")
-
-  SN_RETURN(crypto_onetimeauth(out_data, in_data, in_size, k_data), "failed to generate onetime authentication tag")
+  return crypto_onetimeauth(out.data(), in.data(), in.size_bytes(), k.data());
 }
 
-js_value_t *
-sn_crypto_onetimeauth_init (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(2, crypto_onetimeauth_init)
+static inline int
+sn_crypto_onetimeauth_init(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> state,
+  js_typedarray_span_t<> k
+) {
+  assert(state.size_bytes() == sizeof(crypto_onetimeauth_state));
+  auto state_data = reinterpret_cast<crypto_onetimeauth_state *>(state.data());
 
-  SN_ARGV_BUFFER_CAST(crypto_onetimeauth_state *, state, 0)
-  SN_ARGV_TYPEDARRAY(k, 1)
+  assert(k.size_bytes() == crypto_onetimeauth_KEYBYTES);
 
-  SN_THROWS(state_size != sizeof(crypto_onetimeauth_state), "state must be 'crypto_onetimeauth_STATEBYTES' bytes")
-  SN_ASSERT_LENGTH(k_size, crypto_onetimeauth_KEYBYTES, "k")
-
-  SN_RETURN(crypto_onetimeauth_init(state, k_data), "failed to initialise onetime authentication")
+  return crypto_onetimeauth_init(state_data, k.data());
 }
 
-js_value_t *
-sn_crypto_onetimeauth_update(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(2, crypto_onetimeauth_update)
+static inline int
+sn_crypto_onetimeauth_update(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> state,
+  js_typedarray_span_t<> in
+) {
+  assert(state.size_bytes() == sizeof(crypto_onetimeauth_state));
+  auto state_data = reinterpret_cast<crypto_onetimeauth_state *>(state.data());
 
-  SN_ARGV_BUFFER_CAST(crypto_onetimeauth_state *, state, 0)
-  SN_ARGV_TYPEDARRAY(in, 1)
-
-  SN_THROWS(state_size != sizeof(crypto_onetimeauth_state), "state must be 'crypto_onetimeauth_STATEBYTES' bytes")
-
-  SN_RETURN(crypto_onetimeauth_update(state, in_data, in_size), "update failed")
+  return crypto_onetimeauth_update(state_data, in.data(), in.size_bytes());
 }
 
-js_value_t *
-sn_crypto_onetimeauth_final(js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(2, crypto_onetimeauth_final)
+static inline int
+sn_crypto_onetimeauth_final(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> state,
+  js_typedarray_span_t<> out
+) {
+  assert(state.size_bytes() == sizeof(crypto_onetimeauth_state));
+  auto state_data = reinterpret_cast<crypto_onetimeauth_state *>(state.data());
 
-  SN_ARGV_BUFFER_CAST(crypto_onetimeauth_state *, state, 0)
-  SN_ARGV_TYPEDARRAY(out, 1)
+  assert(out.size_bytes() == crypto_onetimeauth_BYTES);
 
-  SN_THROWS(state_size != sizeof(crypto_onetimeauth_state), "state must be 'crypto_onetimeauth_STATEBYTES' bytes")
-  SN_ASSERT_LENGTH(out_size, crypto_onetimeauth_BYTES, "out")
-
-  SN_RETURN(crypto_onetimeauth_final(state, out_data), "failed to generate authentication tag")
+  return crypto_onetimeauth_final(state_data, out.data());
 }
 
-js_value_t *
-sn_crypto_onetimeauth_verify (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(3, crypto_onetimeauth_verify)
+static inline bool
+sn_crypto_onetimeauth_verify(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> h,
+  js_typedarray_span_t<> in,
+  js_typedarray_span_t<> k
+) {
+  assert(h.size_bytes() == crypto_onetimeauth_BYTES);
+  assert(k.size_bytes() == crypto_onetimeauth_KEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(h, 0)
-  SN_ARGV_TYPEDARRAY(in, 1)
-  SN_ARGV_TYPEDARRAY(k, 2)
-
-  SN_ASSERT_LENGTH(h_size, crypto_onetimeauth_BYTES, "h")
-  SN_ASSERT_LENGTH(k_size, crypto_onetimeauth_KEYBYTES, "k")
-
-  SN_RETURN_BOOLEAN(crypto_onetimeauth_verify(h_data, in_data, in_size, k_data))
+  return crypto_onetimeauth_verify(h.data(), in.data(), in.size_bytes(), k.data()) == 0;
 }
 
 // CHECK: memlimit can be >32bit
-js_value_t *
-sn_crypto_pwhash (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(6, crypto_pwhash)
+static inline int
+sn_crypto_pwhash(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> out,
+  js_typedarray_span_t<> passwd,
+  js_typedarray_span_t<> salt,
+  int64_t opslimit,
+  int64_t memlimit,
+  int32_t alg
+) {
+  assert(out.size_bytes() >= crypto_pwhash_BYTES_MIN);
+  assert(out.size_bytes() <= crypto_pwhash_BYTES_MAX);
+  assert(salt.size_bytes() == crypto_pwhash_SALTBYTES);
+  assert(opslimit >= crypto_pwhash_OPSLIMIT_MIN);
+  assert(opslimit <= crypto_pwhash_OPSLIMIT_MAX);
+  assert(memlimit >= crypto_pwhash_MEMLIMIT_MIN);
+  assert(memlimit <= crypto_pwhash_MEMLIMIT_MAX);
+  assert(alg == 1 || alg == 2); // Argon2i or Argon2id
 
-  SN_ARGV_TYPEDARRAY(out, 0)
-  SN_ARGV_TYPEDARRAY(passwd, 1)
-  SN_ARGV_TYPEDARRAY(salt, 2)
-  SN_ARGV_UINT64(opslimit, 3)
-  SN_ARGV_UINT64(memlimit, 4)
-  SN_ARGV_UINT8(alg, 5)
-
-  SN_ASSERT_MIN_LENGTH(out_size, crypto_pwhash_BYTES_MIN, "out")
-  SN_ASSERT_MAX_LENGTH(out_size, crypto_pwhash_BYTES_MAX, "out")
-  SN_ASSERT_LENGTH(salt_size, crypto_pwhash_SALTBYTES, "salt")
-  SN_ASSERT_MIN_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MIN, "opslimit")
-  SN_ASSERT_MAX_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MAX, "opslimit")
-  SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_MEMLIMIT_MIN, "memlimit")
-  SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_MEMLIMIT_MAX, "memlimit")
-  SN_THROWS(alg < 1 || alg > 2, "alg must be either Argon2i 1.3 or Argon2id 1.3")
-
-  SN_RETURN(crypto_pwhash(out_data, out_size, (const char *) passwd_data, passwd_size, salt_data, opslimit, memlimit, alg), "password hashing failed, check memory requirements.")
+  return crypto_pwhash(
+    out.data(),
+    out.size_bytes(),
+    reinterpret_cast<const char *>(passwd.data()),
+    passwd.size_bytes(),
+    salt.data(),
+    opslimit,
+    memlimit,
+    alg
+  );
 }
 
-js_value_t *
-sn_crypto_pwhash_str (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(4, crypto_pwhash_str)
+static inline int
+sn_crypto_pwhash_str(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> out,
+  js_typedarray_span_t<> passwd,
+  int64_t opslimit,
+  int64_t memlimit
+) {
+  assert(out.size_bytes() == crypto_pwhash_STRBYTES);
+  assert(opslimit >= crypto_pwhash_OPSLIMIT_MIN);
+  assert(opslimit <= crypto_pwhash_OPSLIMIT_MAX);
+  assert(memlimit >= crypto_pwhash_MEMLIMIT_MIN);
+  assert(memlimit <= crypto_pwhash_MEMLIMIT_MAX);
 
-  SN_ARGV_TYPEDARRAY(out, 0)
-  SN_ARGV_TYPEDARRAY(passwd, 1)
-  SN_ARGV_UINT64(opslimit, 2)
-  SN_ARGV_UINT64(memlimit, 3)
-
-  SN_ASSERT_LENGTH(out_size, crypto_pwhash_STRBYTES, "out")
-  SN_ASSERT_MIN_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MIN, "opslimit")
-  SN_ASSERT_MAX_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MAX, "opslimit")
-  SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_MEMLIMIT_MIN, "memlimit")
-  SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_MEMLIMIT_MAX, "memlimit")
-
-  SN_RETURN(crypto_pwhash_str((char *) out_data, (const char *) passwd_data, passwd_size, opslimit, memlimit), "password hashing failed, check memory requirements.")
+  return crypto_pwhash_str(
+    reinterpret_cast<char *>(out.data()),
+    reinterpret_cast<const char *>(passwd.data()),
+    passwd.size_bytes(),
+    opslimit,
+    memlimit
+  );
 }
 
-js_value_t *
-sn_crypto_pwhash_str_verify (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(2, crypto_pwhash_str_verify)
+static inline bool
+sn_crypto_pwhash_str_verify(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> str,
+  js_typedarray_span_t<> passwd
+) {
+  assert(str.size_bytes() == crypto_pwhash_STRBYTES);
 
-  SN_ARGV_TYPEDARRAY(str, 0)
-  SN_ARGV_TYPEDARRAY(passwd, 1)
+  int res = crypto_pwhash_str_verify(
+    reinterpret_cast<const char *>(str.data()),
+    reinterpret_cast<const char *>(passwd.data()),
+    passwd.size_bytes()
+  );
 
-  SN_ASSERT_LENGTH(str_size, crypto_pwhash_STRBYTES, "str")
-
-  SN_RETURN_BOOLEAN(crypto_pwhash_str_verify((const char *) str_data, (const char *) passwd_data, passwd_size))
+  return res == 0;
 }
 
 // CHECK: returns 1, 0, -1
-js_value_t *
-sn_crypto_pwhash_str_needs_rehash (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(3, crypto_pwhash_str_needs_rehash)
+static inline bool
+sn_crypto_pwhash_str_needs_rehash(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> str,
+  int64_t opslimit,
+  int64_t memlimit
+) {
+  assert(str.size_bytes() == crypto_pwhash_STRBYTES);
+  assert(opslimit >= crypto_pwhash_OPSLIMIT_MIN);
+  assert(opslimit <= crypto_pwhash_OPSLIMIT_MAX);
+  assert(memlimit >= crypto_pwhash_MEMLIMIT_MIN);
+  assert(memlimit <= static_cast<int64_t>(crypto_pwhash_MEMLIMIT_MAX));
 
-  SN_ARGV_TYPEDARRAY(str, 0)
-  SN_ARGV_UINT64(opslimit, 1)
-  SN_ARGV_UINT64(memlimit, 2)
+  int res = crypto_pwhash_str_needs_rehash(
+    reinterpret_cast<const char *>(str.data()),
+    opslimit,
+    memlimit
+  );
 
-  SN_ASSERT_LENGTH(str_size, crypto_pwhash_STRBYTES, "str")
-  SN_ASSERT_MIN_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MIN, "opslimit")
-  SN_ASSERT_MAX_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MAX, "opslimit")
-  SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_MEMLIMIT_MIN, "memlimit")
-  SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_MEMLIMIT_MAX, "memlimit")
-
-  SN_RETURN_BOOLEAN_FROM_1(crypto_pwhash_str_needs_rehash((const char *) str_data, opslimit, memlimit))
+  return res != 0;
 }
 
 // CHECK: memlimit can be >32bit
-js_value_t *
-sn_crypto_pwhash_scryptsalsa208sha256 (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(5, crypto_pwhash_scryptsalsa208sha256)
+static inline int
+sn_crypto_pwhash_scryptsalsa208sha256(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> out,
+  js_typedarray_span_t<> passwd,
+  js_typedarray_span_t<> salt,
+  int64_t opslimit,
+  int64_t memlimit
+) {
+  assert(out.size_bytes() >= crypto_pwhash_scryptsalsa208sha256_BYTES_MIN);
+  assert(out.size_bytes() <= crypto_pwhash_scryptsalsa208sha256_BYTES_MAX);
+  assert(salt.size_bytes() == crypto_pwhash_scryptsalsa208sha256_SALTBYTES);
+  assert(opslimit >= crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN);
+  assert(opslimit <= crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX);
+  assert(memlimit >= crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN);
+  assert(memlimit <= static_cast<int64_t>(crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX));
 
-  SN_ARGV_TYPEDARRAY(out, 0)
-  SN_ARGV_TYPEDARRAY(passwd, 1)
-  SN_ARGV_TYPEDARRAY(salt, 2)
-  SN_ARGV_UINT64(opslimit, 3)
-  SN_ARGV_UINT64(memlimit, 4)
-
-  SN_ASSERT_MIN_LENGTH(out_size, crypto_pwhash_scryptsalsa208sha256_BYTES_MIN, "out")
-  SN_ASSERT_MAX_LENGTH(out_size, crypto_pwhash_scryptsalsa208sha256_BYTES_MAX, "out")
-  SN_ASSERT_LENGTH(salt_size, crypto_pwhash_scryptsalsa208sha256_SALTBYTES, "salt")
-  SN_ASSERT_MIN_LENGTH(opslimit, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN, "opslimit")
-  SN_ASSERT_MAX_LENGTH(opslimit, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, "opslimit")
-  SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, "memlimit")
-  SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, "memlimit")
-
-  SN_RETURN(crypto_pwhash_scryptsalsa208sha256(out_data, out_size, (const char *) passwd_data, passwd_size, salt_data, opslimit, memlimit), "password hashing failed, check memory requirements.")
+  return crypto_pwhash_scryptsalsa208sha256(
+    out.data(),
+    out.size_bytes(),
+    reinterpret_cast<const char *>(passwd.data()),
+    passwd.size_bytes(),
+    salt.data(),
+    opslimit,
+    memlimit
+  );
 }
 
-js_value_t *
-sn_crypto_pwhash_scryptsalsa208sha256_str (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(4, crypto_pwhash_scryptsalsa208sha256_str)
+static inline int
+sn_crypto_pwhash_scryptsalsa208sha256_str(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> out,
+  js_typedarray_span_t<> passwd,
+  int64_t opslimit,
+  int64_t memlimit
+) {
+  assert(out.size_bytes() == crypto_pwhash_scryptsalsa208sha256_STRBYTES);
+  assert(opslimit >= crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN);
+  assert(opslimit <= crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX);
+  assert(memlimit >= crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN);
+  assert(memlimit <= static_cast<int64_t>(crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX));
 
-  SN_ARGV_TYPEDARRAY(out, 0)
-  SN_ARGV_TYPEDARRAY(passwd, 1)
-  SN_ARGV_UINT64(opslimit, 2)
-  SN_ARGV_UINT64(memlimit, 3)
-
-  SN_ASSERT_LENGTH(out_size, crypto_pwhash_scryptsalsa208sha256_STRBYTES, "out")
-  SN_ASSERT_MIN_LENGTH(opslimit, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN, "opslimit")
-  SN_ASSERT_MAX_LENGTH(opslimit, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, "opslimit")
-  SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, "memlimit")
-  SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, "memlimit")
-
-  SN_RETURN(crypto_pwhash_scryptsalsa208sha256_str((char * ) out_data, (const char *) passwd_data, passwd_size, opslimit, memlimit), "password hashing failed, check memory requirements.")
+  return crypto_pwhash_scryptsalsa208sha256_str(
+    reinterpret_cast<char *>(out.data()),
+    reinterpret_cast<const char *>(passwd.data()),
+    passwd.size_bytes(),
+    opslimit,
+    memlimit
+  );
 }
 
-js_value_t *
-sn_crypto_pwhash_scryptsalsa208sha256_str_verify (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(2, crypto_pwhash_scryptsalsa208sha256_str_verify)
+static inline bool
+sn_crypto_pwhash_scryptsalsa208sha256_str_verify(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> str,
+  js_typedarray_span_t<> passwd
+) {
+  assert(str.size_bytes() == crypto_pwhash_scryptsalsa208sha256_STRBYTES);
 
-  SN_ARGV_TYPEDARRAY(str, 0)
-  SN_ARGV_TYPEDARRAY(passwd, 1)
+  int res = crypto_pwhash_scryptsalsa208sha256_str_verify(
+    reinterpret_cast<const char *>(str.data()),
+    reinterpret_cast<const char *>(passwd.data()),
+    passwd.size_bytes()
+  );
 
-  SN_ASSERT_LENGTH(str_size, crypto_pwhash_scryptsalsa208sha256_STRBYTES, "str")
-
-  SN_RETURN_BOOLEAN(crypto_pwhash_scryptsalsa208sha256_str_verify((const char*) str_data, (const char *) passwd_data, passwd_size))
+  return res == 0;
 }
 
-js_value_t *
-sn_crypto_pwhash_scryptsalsa208sha256_str_needs_rehash (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(3, crypto_pwhash_scryptsalsa208sha256_str_needs_rehash)
+static inline bool
+sn_crypto_pwhash_scryptsalsa208sha256_str_needs_rehash(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> str,
+  int64_t opslimit,
+  int64_t memlimit
+) {
+  assert(str.size_bytes() == crypto_pwhash_scryptsalsa208sha256_STRBYTES);
+  assert(opslimit >= crypto_pwhash_OPSLIMIT_MIN);
+  assert(opslimit <= crypto_pwhash_OPSLIMIT_MAX);
+  assert(memlimit >= crypto_pwhash_MEMLIMIT_MIN);
+  assert(memlimit <= static_cast<int64_t>(crypto_pwhash_MEMLIMIT_MAX));
 
-  SN_ARGV_TYPEDARRAY(str, 0)
-  SN_ARGV_UINT64(opslimit, 1)
-  SN_ARGV_UINT64(memlimit, 2)
+  int res = crypto_pwhash_scryptsalsa208sha256_str_needs_rehash(
+    reinterpret_cast<const char *>(str.data()),
+    opslimit,
+    memlimit
+  );
 
-  SN_ASSERT_LENGTH(str_size, crypto_pwhash_scryptsalsa208sha256_STRBYTES, "str")
-  SN_ASSERT_MIN_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MIN, "opslimit")
-  SN_ASSERT_MAX_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MAX, "opslimit")
-  SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_MEMLIMIT_MIN, "memlimit")
-  SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_MEMLIMIT_MAX, "memlimit")
-
-  SN_RETURN_BOOLEAN_FROM_1(crypto_pwhash_scryptsalsa208sha256_str_needs_rehash((const char *) str_data, opslimit, memlimit))
+  return res != 0;
 }
 
-js_value_t *
-sn_crypto_kx_keypair (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(2, crypto_kx_keypair)
+static inline int
+sn_crypto_kx_keypair(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> pk,
+  js_typedarray_span_t<> sk
+) {
+  assert(pk.size_bytes() == crypto_kx_PUBLICKEYBYTES);
+  assert(sk.size_bytes() == crypto_kx_SECRETKEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(pk, 0)
-  SN_ARGV_TYPEDARRAY(sk, 1)
-
-  SN_ASSERT_LENGTH(pk_size, crypto_kx_PUBLICKEYBYTES, "pk")
-  SN_ASSERT_LENGTH(sk_size, crypto_kx_SECRETKEYBYTES, "sk")
-
-  SN_RETURN(crypto_kx_keypair(pk_data, sk_data), "failed to generate keypair")
+  return crypto_kx_keypair(pk.data(), sk.data());
 }
 
-js_value_t *
-sn_crypto_kx_seed_keypair (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(3, crypto_kx_seed_keypair)
+static inline int
+sn_crypto_kx_seed_keypair(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> pk,
+  js_typedarray_span_t<> sk,
+  js_typedarray_span_t<> seed
+) {
+  assert(pk.size_bytes() == crypto_kx_PUBLICKEYBYTES);
+  assert(sk.size_bytes() == crypto_kx_SECRETKEYBYTES);
+  assert(seed.size_bytes() == crypto_kx_SEEDBYTES);
 
-  SN_ARGV_TYPEDARRAY(pk, 0)
-  SN_ARGV_TYPEDARRAY(sk, 1)
-  SN_ARGV_TYPEDARRAY(seed, 2)
-
-  SN_ASSERT_LENGTH(pk_size, crypto_kx_PUBLICKEYBYTES, "pk")
-  SN_ASSERT_LENGTH(sk_size, crypto_kx_SECRETKEYBYTES, "sk")
-  SN_ASSERT_LENGTH(seed_size, crypto_kx_SEEDBYTES, "seed")
-
-  SN_RETURN(crypto_kx_seed_keypair(pk_data, sk_data, seed_data), "failed to derive keypair from seed")
+  return crypto_kx_seed_keypair(pk.data(), sk.data(), seed.data());
 }
 
 js_value_t *
@@ -3507,125 +3565,125 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
 
   // memory
 
-  SN_EXPORT_FUNCTION(sodium_memzero, sn_sodium_memzero)
-  SN_EXPORT_FUNCTION(sodium_mlock, sn_sodium_mlock)
-  SN_EXPORT_FUNCTION(sodium_munlock, sn_sodium_munlock)
-  SN_EXPORT_FUNCTION(sodium_malloc, sn_sodium_malloc)
-  SN_EXPORT_FUNCTION(sodium_free, sn_sodium_free)
-  SN_EXPORT_FUNCTION(sodium_mprotect_noaccess, sn_sodium_mprotect_noaccess)
-  SN_EXPORT_FUNCTION(sodium_mprotect_readonly, sn_sodium_mprotect_readonly)
-  SN_EXPORT_FUNCTION(sodium_mprotect_readwrite, sn_sodium_mprotect_readwrite)
+  SN_EXPORT_FUNCTION(sodium_memzero, sn_sodium_memzero);
+  SN_EXPORT_FUNCTION(sodium_mlock, sn_sodium_mlock);
+  SN_EXPORT_FUNCTION(sodium_munlock, sn_sodium_munlock);
+  SN_EXPORT_FUNCTION(sodium_malloc, sn_sodium_malloc);
+  SN_EXPORT_FUNCTION(sodium_free, sn_sodium_free);
+  SN_EXPORT_FUNCTION(sodium_mprotect_noaccess, sn_sodium_mprotect_noaccess);
+  SN_EXPORT_FUNCTION(sodium_mprotect_readonly, sn_sodium_mprotect_readonly);
+  SN_EXPORT_FUNCTION(sodium_mprotect_readwrite, sn_sodium_mprotect_readwrite);
 
   // randombytes
 
-  SN_EXPORT_FUNCTION_NOSCOPE("randombytes_buf", sn_randombytes_buf)
-  SN_EXPORT_FUNCTION_NOSCOPE("randombytes_buf_deterministic", sn_randombytes_buf_deterministic)
-  SN_EXPORT_FUNCTION_NOSCOPE("randombytes_random", sn_randombytes_random)
-  SN_EXPORT_FUNCTION_NOSCOPE("randombytes_uniform", sn_randombytes_uniform)
+  SN_EXPORT_FUNCTION_NOSCOPE("randombytes_buf", sn_randombytes_buf);
+  SN_EXPORT_FUNCTION_NOSCOPE("randombytes_buf_deterministic", sn_randombytes_buf_deterministic);
+  SN_EXPORT_FUNCTION_NOSCOPE("randombytes_random", sn_randombytes_random);
+  SN_EXPORT_FUNCTION_NOSCOPE("randombytes_uniform", sn_randombytes_uniform);
 
-  SN_EXPORT_UINT32(randombytes_SEEDBYTES, randombytes_SEEDBYTES)
+  SN_EXPORT_UINT32(randombytes_SEEDBYTES, randombytes_SEEDBYTES);
 
   // sodium helpers
 
   SN_EXPORT_FUNCTION_SCOPED("sodium_memcmp", sn_sodium_memcmp);
   SN_EXPORT_FUNCTION_SCOPED("sodium_increment", sn_sodium_increment);
   SN_EXPORT_FUNCTION_SCOPED("sodium_add", sn_sodium_add);
-  SN_EXPORT_FUNCTION_SCOPED("sodium_sub", sn_sodium_sub)
-  SN_EXPORT_FUNCTION_SCOPED("sodium_compare", sn_sodium_compare)
-  SN_EXPORT_FUNCTION_SCOPED("sodium_is_zero", sn_sodium_is_zero)
-  SN_EXPORT_FUNCTION_SCOPED("sodium_pad", sn_sodium_pad)
-  SN_EXPORT_FUNCTION_SCOPED("sodium_unpad", sn_sodium_unpad)
+  SN_EXPORT_FUNCTION_SCOPED("sodium_sub", sn_sodium_sub);
+  SN_EXPORT_FUNCTION_SCOPED("sodium_compare", sn_sodium_compare);
+  SN_EXPORT_FUNCTION_SCOPED("sodium_is_zero", sn_sodium_is_zero);
+  SN_EXPORT_FUNCTION_SCOPED("sodium_pad", sn_sodium_pad);
+  SN_EXPORT_FUNCTION_SCOPED("sodium_unpad", sn_sodium_unpad);
 
   // crypto_aead
 
-  SN_EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_keygen, sn_crypto_aead_xchacha20poly1305_ietf_keygen)
-  SN_EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_encrypt, sn_crypto_aead_xchacha20poly1305_ietf_encrypt)
-  SN_EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_decrypt, sn_crypto_aead_xchacha20poly1305_ietf_decrypt)
-  SN_EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_encrypt_detached, sn_crypto_aead_xchacha20poly1305_ietf_encrypt_detached)
-  SN_EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_decrypt_detached, sn_crypto_aead_xchacha20poly1305_ietf_decrypt_detached)
-  SN_EXPORT_UINT32(crypto_aead_xchacha20poly1305_ietf_ABYTES, crypto_aead_xchacha20poly1305_ietf_ABYTES)
-  SN_EXPORT_UINT32(crypto_aead_xchacha20poly1305_ietf_KEYBYTES, crypto_aead_xchacha20poly1305_ietf_KEYBYTES)
-  SN_EXPORT_UINT32(crypto_aead_xchacha20poly1305_ietf_NPUBBYTES, crypto_aead_xchacha20poly1305_ietf_NPUBBYTES)
-  SN_EXPORT_UINT32(crypto_aead_xchacha20poly1305_ietf_NSECBYTES, crypto_aead_xchacha20poly1305_ietf_NSECBYTES)
-  SN_EXPORT_UINT64(crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX, crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX)
+  SN_EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_keygen, sn_crypto_aead_xchacha20poly1305_ietf_keygen);
+  SN_EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_encrypt, sn_crypto_aead_xchacha20poly1305_ietf_encrypt);
+  SN_EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_decrypt, sn_crypto_aead_xchacha20poly1305_ietf_decrypt);
+  SN_EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_encrypt_detached, sn_crypto_aead_xchacha20poly1305_ietf_encrypt_detached);
+  SN_EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_decrypt_detached, sn_crypto_aead_xchacha20poly1305_ietf_decrypt_detached);
+  SN_EXPORT_UINT32(crypto_aead_xchacha20poly1305_ietf_ABYTES, crypto_aead_xchacha20poly1305_ietf_ABYTES);
+  SN_EXPORT_UINT32(crypto_aead_xchacha20poly1305_ietf_KEYBYTES, crypto_aead_xchacha20poly1305_ietf_KEYBYTES);
+  SN_EXPORT_UINT32(crypto_aead_xchacha20poly1305_ietf_NPUBBYTES, crypto_aead_xchacha20poly1305_ietf_NPUBBYTES);
+  SN_EXPORT_UINT32(crypto_aead_xchacha20poly1305_ietf_NSECBYTES, crypto_aead_xchacha20poly1305_ietf_NSECBYTES);
+  SN_EXPORT_UINT64(crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX, crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX);
 
-  SN_EXPORT_FUNCTION(crypto_aead_chacha20poly1305_ietf_keygen, sn_crypto_aead_chacha20poly1305_ietf_keygen)
-  SN_EXPORT_FUNCTION(crypto_aead_chacha20poly1305_ietf_encrypt, sn_crypto_aead_chacha20poly1305_ietf_encrypt)
-  SN_EXPORT_FUNCTION(crypto_aead_chacha20poly1305_ietf_decrypt, sn_crypto_aead_chacha20poly1305_ietf_decrypt)
-  SN_EXPORT_FUNCTION(crypto_aead_chacha20poly1305_ietf_encrypt_detached, sn_crypto_aead_chacha20poly1305_ietf_encrypt_detached)
-  SN_EXPORT_FUNCTION(crypto_aead_chacha20poly1305_ietf_decrypt_detached, sn_crypto_aead_chacha20poly1305_ietf_decrypt_detached)
-  SN_EXPORT_UINT32(crypto_aead_chacha20poly1305_ietf_ABYTES, crypto_aead_chacha20poly1305_ietf_ABYTES)
-  SN_EXPORT_UINT32(crypto_aead_chacha20poly1305_ietf_KEYBYTES, crypto_aead_chacha20poly1305_ietf_KEYBYTES)
-  SN_EXPORT_UINT32(crypto_aead_chacha20poly1305_ietf_NPUBBYTES, crypto_aead_chacha20poly1305_ietf_NPUBBYTES)
-  SN_EXPORT_UINT32(crypto_aead_chacha20poly1305_ietf_NSECBYTES, crypto_aead_chacha20poly1305_ietf_NSECBYTES)
-  SN_EXPORT_UINT64(crypto_aead_chacha20poly1305_ietf_MESSAGEBYTES_MAX, crypto_aead_chacha20poly1305_ietf_MESSAGEBYTES_MAX)
+  SN_EXPORT_FUNCTION(crypto_aead_chacha20poly1305_ietf_keygen, sn_crypto_aead_chacha20poly1305_ietf_keygen);
+  SN_EXPORT_FUNCTION(crypto_aead_chacha20poly1305_ietf_encrypt, sn_crypto_aead_chacha20poly1305_ietf_encrypt);
+  SN_EXPORT_FUNCTION(crypto_aead_chacha20poly1305_ietf_decrypt, sn_crypto_aead_chacha20poly1305_ietf_decrypt);
+  SN_EXPORT_FUNCTION(crypto_aead_chacha20poly1305_ietf_encrypt_detached, sn_crypto_aead_chacha20poly1305_ietf_encrypt_detached);
+  SN_EXPORT_FUNCTION(crypto_aead_chacha20poly1305_ietf_decrypt_detached, sn_crypto_aead_chacha20poly1305_ietf_decrypt_detached);
+  SN_EXPORT_UINT32(crypto_aead_chacha20poly1305_ietf_ABYTES, crypto_aead_chacha20poly1305_ietf_ABYTES);
+  SN_EXPORT_UINT32(crypto_aead_chacha20poly1305_ietf_KEYBYTES, crypto_aead_chacha20poly1305_ietf_KEYBYTES);
+  SN_EXPORT_UINT32(crypto_aead_chacha20poly1305_ietf_NPUBBYTES, crypto_aead_chacha20poly1305_ietf_NPUBBYTES);
+  SN_EXPORT_UINT32(crypto_aead_chacha20poly1305_ietf_NSECBYTES, crypto_aead_chacha20poly1305_ietf_NSECBYTES);
+  SN_EXPORT_UINT64(crypto_aead_chacha20poly1305_ietf_MESSAGEBYTES_MAX, crypto_aead_chacha20poly1305_ietf_MESSAGEBYTES_MAX);
 
   // crypto_auth
 
-  SN_EXPORT_FUNCTION(crypto_auth, sn_crypto_auth)
-  SN_EXPORT_FUNCTION(crypto_auth_verify, sn_crypto_auth_verify)
-  SN_EXPORT_UINT32(crypto_auth_BYTES, crypto_auth_BYTES)
-  SN_EXPORT_UINT32(crypto_auth_KEYBYTES, crypto_auth_KEYBYTES)
-  SN_EXPORT_STRING(crypto_auth_PRIMITIVE, crypto_auth_PRIMITIVE)
+  SN_EXPORT_FUNCTION_SCOPED("crypto_auth", sn_crypto_auth);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_auth_verify", sn_crypto_auth_verify);
+  SN_EXPORT_UINT32(crypto_auth_BYTES, crypto_auth_BYTES);
+  SN_EXPORT_UINT32(crypto_auth_KEYBYTES, crypto_auth_KEYBYTES);
+  SN_EXPORT_STRING(crypto_auth_PRIMITIVE, crypto_auth_PRIMITIVE);
 
   // crypto_box
 
   SN_EXPORT_FUNCTION_SCOPED("crypto_box_keypair", sn_crypto_box_keypair);
-  SN_EXPORT_FUNCTION_SCOPED("crypto_box_seed_keypair", sn_crypto_box_seed_keypair)
-  SN_EXPORT_FUNCTION_SCOPED("crypto_box_easy", sn_crypto_box_easy)
-  SN_EXPORT_FUNCTION_SCOPED("crypto_box_open_easy", sn_crypto_box_open_easy)
-  SN_EXPORT_FUNCTION_SCOPED("crypto_box_detached", sn_crypto_box_detached)
-  SN_EXPORT_FUNCTION_SCOPED("crypto_box_open_detached", sn_crypto_box_open_detached)
-  SN_EXPORT_FUNCTION_SCOPED("crypto_box_seal", sn_crypto_box_seal)
-  SN_EXPORT_FUNCTION_NOSCOPE("crypto_box_seal_open", sn_crypto_box_seal_open)
+  SN_EXPORT_FUNCTION_SCOPED("crypto_box_seed_keypair", sn_crypto_box_seed_keypair);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_box_easy", sn_crypto_box_easy);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_box_open_easy", sn_crypto_box_open_easy);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_box_detached", sn_crypto_box_detached);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_box_open_detached", sn_crypto_box_open_detached);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_box_seal", sn_crypto_box_seal);
+  SN_EXPORT_FUNCTION_NOSCOPE("crypto_box_seal_open", sn_crypto_box_seal_open);
 
-  SN_EXPORT_UINT32(crypto_box_SEEDBYTES, crypto_box_SEEDBYTES)
-  SN_EXPORT_UINT32(crypto_box_PUBLICKEYBYTES, crypto_box_PUBLICKEYBYTES)
-  SN_EXPORT_UINT32(crypto_box_SECRETKEYBYTES, crypto_box_SECRETKEYBYTES)
-  SN_EXPORT_UINT32(crypto_box_NONCEBYTES, crypto_box_NONCEBYTES)
-  SN_EXPORT_UINT32(crypto_box_MACBYTES, crypto_box_MACBYTES)
-  SN_EXPORT_UINT32(crypto_box_SEALBYTES, crypto_box_SEALBYTES)
-  SN_EXPORT_STRING(crypto_box_PRIMITIVE, crypto_box_PRIMITIVE)
+  SN_EXPORT_UINT32(crypto_box_SEEDBYTES, crypto_box_SEEDBYTES);
+  SN_EXPORT_UINT32(crypto_box_PUBLICKEYBYTES, crypto_box_PUBLICKEYBYTES);
+  SN_EXPORT_UINT32(crypto_box_SECRETKEYBYTES, crypto_box_SECRETKEYBYTES);
+  SN_EXPORT_UINT32(crypto_box_NONCEBYTES, crypto_box_NONCEBYTES);
+  SN_EXPORT_UINT32(crypto_box_MACBYTES, crypto_box_MACBYTES);
+  SN_EXPORT_UINT32(crypto_box_SEALBYTES, crypto_box_SEALBYTES);
+  SN_EXPORT_STRING(crypto_box_PRIMITIVE, crypto_box_PRIMITIVE);
 
   // crypto_core
 
-  SN_EXPORT_FUNCTION(crypto_core_ed25519_is_valid_point, sn_crypto_core_ed25519_is_valid_point)
-  SN_EXPORT_FUNCTION(crypto_core_ed25519_from_uniform, sn_crypto_core_ed25519_from_uniform)
-  SN_EXPORT_FUNCTION(crypto_core_ed25519_add, sn_crypto_core_ed25519_add)
-  SN_EXPORT_FUNCTION(crypto_core_ed25519_sub, sn_crypto_core_ed25519_sub)
-  SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_random, sn_crypto_core_ed25519_scalar_random)
-  SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_reduce, sn_crypto_core_ed25519_scalar_reduce)
-  SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_invert, sn_crypto_core_ed25519_scalar_invert)
-  SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_negate, sn_crypto_core_ed25519_scalar_negate)
-  SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_complement, sn_crypto_core_ed25519_scalar_complement)
-  SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_add, sn_crypto_core_ed25519_scalar_add)
-  SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_sub, sn_crypto_core_ed25519_scalar_sub)
-  SN_EXPORT_UINT32(crypto_core_ed25519_BYTES, crypto_core_ed25519_BYTES)
-  SN_EXPORT_UINT32(crypto_core_ed25519_UNIFORMBYTES, crypto_core_ed25519_UNIFORMBYTES)
-  SN_EXPORT_UINT32(crypto_core_ed25519_SCALARBYTES, crypto_core_ed25519_SCALARBYTES)
-  SN_EXPORT_UINT32(crypto_core_ed25519_NONREDUCEDSCALARBYTES, crypto_core_ed25519_NONREDUCEDSCALARBYTES)
+  SN_EXPORT_FUNCTION(crypto_core_ed25519_is_valid_point, sn_crypto_core_ed25519_is_valid_point);
+  SN_EXPORT_FUNCTION(crypto_core_ed25519_from_uniform, sn_crypto_core_ed25519_from_uniform);
+  SN_EXPORT_FUNCTION(crypto_core_ed25519_add, sn_crypto_core_ed25519_add);
+  SN_EXPORT_FUNCTION(crypto_core_ed25519_sub, sn_crypto_core_ed25519_sub);
+  SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_random, sn_crypto_core_ed25519_scalar_random);
+  SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_reduce, sn_crypto_core_ed25519_scalar_reduce);
+  SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_invert, sn_crypto_core_ed25519_scalar_invert);
+  SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_negate, sn_crypto_core_ed25519_scalar_negate);
+  SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_complement, sn_crypto_core_ed25519_scalar_complement);
+  SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_add, sn_crypto_core_ed25519_scalar_add);
+  SN_EXPORT_FUNCTION(crypto_core_ed25519_scalar_sub, sn_crypto_core_ed25519_scalar_sub);
+  SN_EXPORT_UINT32(crypto_core_ed25519_BYTES, crypto_core_ed25519_BYTES);
+  SN_EXPORT_UINT32(crypto_core_ed25519_UNIFORMBYTES, crypto_core_ed25519_UNIFORMBYTES);
+  SN_EXPORT_UINT32(crypto_core_ed25519_SCALARBYTES, crypto_core_ed25519_SCALARBYTES);
+  SN_EXPORT_UINT32(crypto_core_ed25519_NONREDUCEDSCALARBYTES, crypto_core_ed25519_NONREDUCEDSCALARBYTES);
 
   // crypto_kdf
 
-  SN_EXPORT_FUNCTION(crypto_kdf_keygen, sn_crypto_kdf_keygen)
-  SN_EXPORT_FUNCTION(crypto_kdf_derive_from_key, sn_crypto_kdf_derive_from_key)
-  SN_EXPORT_UINT32(crypto_kdf_BYTES_MIN, crypto_kdf_BYTES_MIN)
-  SN_EXPORT_UINT32(crypto_kdf_BYTES_MAX, crypto_kdf_BYTES_MAX)
-  SN_EXPORT_UINT32(crypto_kdf_CONTEXTBYTES, crypto_kdf_CONTEXTBYTES)
-  SN_EXPORT_UINT32(crypto_kdf_KEYBYTES, crypto_kdf_KEYBYTES)
-  SN_EXPORT_STRING(crypto_kdf_PRIMITIVE, crypto_kdf_PRIMITIVE)
+  SN_EXPORT_FUNCTION(crypto_kdf_keygen, sn_crypto_kdf_keygen);
+  SN_EXPORT_FUNCTION(crypto_kdf_derive_from_key, sn_crypto_kdf_derive_from_key);
+  SN_EXPORT_UINT32(crypto_kdf_BYTES_MIN, crypto_kdf_BYTES_MIN);
+  SN_EXPORT_UINT32(crypto_kdf_BYTES_MAX, crypto_kdf_BYTES_MAX);
+  SN_EXPORT_UINT32(crypto_kdf_CONTEXTBYTES, crypto_kdf_CONTEXTBYTES);
+  SN_EXPORT_UINT32(crypto_kdf_KEYBYTES, crypto_kdf_KEYBYTES);
+  SN_EXPORT_STRING(crypto_kdf_PRIMITIVE, crypto_kdf_PRIMITIVE);
 
   // crypto_kx
 
-  SN_EXPORT_FUNCTION(crypto_kx_keypair, sn_crypto_kx_keypair)
-  SN_EXPORT_FUNCTION(crypto_kx_seed_keypair, sn_crypto_kx_seed_keypair)
-  SN_EXPORT_FUNCTION(crypto_kx_client_session_keys, sn_crypto_kx_client_session_keys)
-  SN_EXPORT_FUNCTION(crypto_kx_server_session_keys, sn_crypto_kx_server_session_keys)
-  SN_EXPORT_UINT32(crypto_kx_PUBLICKEYBYTES, crypto_kx_PUBLICKEYBYTES)
-  SN_EXPORT_UINT32(crypto_kx_SECRETKEYBYTES, crypto_kx_SECRETKEYBYTES)
-  SN_EXPORT_UINT32(crypto_kx_SEEDBYTES, crypto_kx_SEEDBYTES)
-  SN_EXPORT_UINT32(crypto_kx_SESSIONKEYBYTES, crypto_kx_SESSIONKEYBYTES)
-  SN_EXPORT_STRING(crypto_kx_PRIMITIVE, crypto_kx_PRIMITIVE)
+  SN_EXPORT_FUNCTION_SCOPED("crypto_kx_keypair", sn_crypto_kx_keypair);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_kx_seed_keypair", sn_crypto_kx_seed_keypair);
+  SN_EXPORT_FUNCTION(crypto_kx_client_session_keys, sn_crypto_kx_client_session_keys);
+  SN_EXPORT_FUNCTION(crypto_kx_server_session_keys, sn_crypto_kx_server_session_keys);
+  SN_EXPORT_UINT32(crypto_kx_PUBLICKEYBYTES, crypto_kx_PUBLICKEYBYTES);
+  SN_EXPORT_UINT32(crypto_kx_SECRETKEYBYTES, crypto_kx_SECRETKEYBYTES);
+  SN_EXPORT_UINT32(crypto_kx_SEEDBYTES, crypto_kx_SEEDBYTES);
+  SN_EXPORT_UINT32(crypto_kx_SESSIONKEYBYTES, crypto_kx_SESSIONKEYBYTES);
+  SN_EXPORT_STRING(crypto_kx_PRIMITIVE, crypto_kx_PRIMITIVE);
 
   // crypto_generichash
 
@@ -3637,115 +3695,115 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   SN_EXPORT_FUNCTION_NOSCOPE("crypto_generichash_update", sn_crypto_generichash_update);
   SN_EXPORT_FUNCTION_NOSCOPE("crypto_generichash_final", sn_crypto_generichash_final);
 
-  SN_EXPORT_UINT32(crypto_generichash_STATEBYTES, sizeof(crypto_generichash_state))
-  SN_EXPORT_STRING(crypto_generichash_PRIMITIVE, crypto_generichash_PRIMITIVE)
-  SN_EXPORT_UINT32(crypto_generichash_BYTES_MIN, crypto_generichash_BYTES_MIN)
-  SN_EXPORT_UINT32(crypto_generichash_BYTES_MAX, crypto_generichash_BYTES_MAX)
-  SN_EXPORT_UINT32(crypto_generichash_BYTES, crypto_generichash_BYTES)
-  SN_EXPORT_UINT32(crypto_generichash_KEYBYTES_MIN, crypto_generichash_KEYBYTES_MIN)
-  SN_EXPORT_UINT32(crypto_generichash_KEYBYTES_MAX, crypto_generichash_KEYBYTES_MAX)
-  SN_EXPORT_UINT32(crypto_generichash_KEYBYTES, crypto_generichash_KEYBYTES)
+  SN_EXPORT_UINT32(crypto_generichash_STATEBYTES, sizeof(crypto_generichash_state));
+  SN_EXPORT_STRING(crypto_generichash_PRIMITIVE, crypto_generichash_PRIMITIVE);
+  SN_EXPORT_UINT32(crypto_generichash_BYTES_MIN, crypto_generichash_BYTES_MIN);
+  SN_EXPORT_UINT32(crypto_generichash_BYTES_MAX, crypto_generichash_BYTES_MAX);
+  SN_EXPORT_UINT32(crypto_generichash_BYTES, crypto_generichash_BYTES);
+  SN_EXPORT_UINT32(crypto_generichash_KEYBYTES_MIN, crypto_generichash_KEYBYTES_MIN);
+  SN_EXPORT_UINT32(crypto_generichash_KEYBYTES_MAX, crypto_generichash_KEYBYTES_MAX);
+  SN_EXPORT_UINT32(crypto_generichash_KEYBYTES, crypto_generichash_KEYBYTES);
 
   // crypto_hash
 
-  SN_EXPORT_FUNCTION(crypto_hash, sn_crypto_hash)
-  SN_EXPORT_UINT32(crypto_hash_BYTES, crypto_hash_BYTES)
-  SN_EXPORT_STRING(crypto_hash_PRIMITIVE, crypto_hash_PRIMITIVE)
+  SN_EXPORT_FUNCTION(crypto_hash, sn_crypto_hash);
+  SN_EXPORT_UINT32(crypto_hash_BYTES, crypto_hash_BYTES);
+  SN_EXPORT_STRING(crypto_hash_PRIMITIVE, crypto_hash_PRIMITIVE);
 
-  SN_EXPORT_FUNCTION(crypto_hash_sha256, sn_crypto_hash_sha256)
-  SN_EXPORT_FUNCTION(crypto_hash_sha256_init, sn_crypto_hash_sha256_init)
-  SN_EXPORT_FUNCTION(crypto_hash_sha256_update, sn_crypto_hash_sha256_update)
-  SN_EXPORT_FUNCTION(crypto_hash_sha256_final, sn_crypto_hash_sha256_final)
-  SN_EXPORT_UINT32(crypto_hash_sha256_STATEBYTES, sizeof(crypto_hash_sha256_state))
-  SN_EXPORT_UINT32(crypto_hash_sha256_BYTES, crypto_hash_sha256_BYTES)
+  SN_EXPORT_FUNCTION(crypto_hash_sha256, sn_crypto_hash_sha256);
+  SN_EXPORT_FUNCTION(crypto_hash_sha256_init, sn_crypto_hash_sha256_init);
+  SN_EXPORT_FUNCTION(crypto_hash_sha256_update, sn_crypto_hash_sha256_update);
+  SN_EXPORT_FUNCTION(crypto_hash_sha256_final, sn_crypto_hash_sha256_final);
+  SN_EXPORT_UINT32(crypto_hash_sha256_STATEBYTES, sizeof(crypto_hash_sha256_state));
+  SN_EXPORT_UINT32(crypto_hash_sha256_BYTES, crypto_hash_sha256_BYTES);
 
-  SN_EXPORT_FUNCTION(crypto_hash_sha512, sn_crypto_hash_sha512)
-  SN_EXPORT_FUNCTION(crypto_hash_sha512_init, sn_crypto_hash_sha512_init)
-  SN_EXPORT_FUNCTION(crypto_hash_sha512_update, sn_crypto_hash_sha512_update)
-  SN_EXPORT_FUNCTION(crypto_hash_sha512_final, sn_crypto_hash_sha512_final)
-  SN_EXPORT_UINT32(crypto_hash_sha512_STATEBYTES, sizeof(crypto_hash_sha512_state))
-  SN_EXPORT_UINT32(crypto_hash_sha512_BYTES, crypto_hash_sha512_BYTES)
+  SN_EXPORT_FUNCTION(crypto_hash_sha512, sn_crypto_hash_sha512);
+  SN_EXPORT_FUNCTION(crypto_hash_sha512_init, sn_crypto_hash_sha512_init);
+  SN_EXPORT_FUNCTION(crypto_hash_sha512_update, sn_crypto_hash_sha512_update);
+  SN_EXPORT_FUNCTION(crypto_hash_sha512_final, sn_crypto_hash_sha512_final);
+  SN_EXPORT_UINT32(crypto_hash_sha512_STATEBYTES, sizeof(crypto_hash_sha512_state));
+  SN_EXPORT_UINT32(crypto_hash_sha512_BYTES, crypto_hash_sha512_BYTES);
 
   // crypto_onetimeauth
 
-  SN_EXPORT_FUNCTION(crypto_onetimeauth, sn_crypto_onetimeauth)
-  SN_EXPORT_FUNCTION(crypto_onetimeauth_verify, sn_crypto_onetimeauth_verify)
-  SN_EXPORT_FUNCTION(crypto_onetimeauth_init, sn_crypto_onetimeauth_init)
-  SN_EXPORT_FUNCTION(crypto_onetimeauth_update, sn_crypto_onetimeauth_update)
-  SN_EXPORT_FUNCTION(crypto_onetimeauth_final, sn_crypto_onetimeauth_final)
-  SN_EXPORT_UINT32(crypto_onetimeauth_STATEBYTES, sizeof(crypto_onetimeauth_state))
-  SN_EXPORT_UINT32(crypto_onetimeauth_BYTES, crypto_onetimeauth_BYTES)
-  SN_EXPORT_UINT32(crypto_onetimeauth_KEYBYTES, crypto_onetimeauth_KEYBYTES)
-  SN_EXPORT_STRING(crypto_onetimeauth_PRIMITIVE, crypto_onetimeauth_PRIMITIVE)
+  SN_EXPORT_FUNCTION_SCOPED("crypto_onetimeauth", sn_crypto_onetimeauth);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_onetimeauth_verify", sn_crypto_onetimeauth_verify);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_onetimeauth_init", sn_crypto_onetimeauth_init);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_onetimeauth_update", sn_crypto_onetimeauth_update);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_onetimeauth_final", sn_crypto_onetimeauth_final);
+  SN_EXPORT_UINT32(crypto_onetimeauth_STATEBYTES, sizeof(crypto_onetimeauth_state));
+  SN_EXPORT_UINT32(crypto_onetimeauth_BYTES, crypto_onetimeauth_BYTES);
+  SN_EXPORT_UINT32(crypto_onetimeauth_KEYBYTES, crypto_onetimeauth_KEYBYTES);
+  SN_EXPORT_STRING(crypto_onetimeauth_PRIMITIVE, crypto_onetimeauth_PRIMITIVE);
 
   // crypto_pwhash
 
-  SN_EXPORT_FUNCTION(crypto_pwhash, sn_crypto_pwhash)
-  SN_EXPORT_FUNCTION(crypto_pwhash_str, sn_crypto_pwhash_str)
-  SN_EXPORT_FUNCTION(crypto_pwhash_str_verify, sn_crypto_pwhash_str_verify)
-  SN_EXPORT_FUNCTION(crypto_pwhash_str_needs_rehash, sn_crypto_pwhash_str_needs_rehash)
-  SN_EXPORT_FUNCTION(crypto_pwhash_async, sn_crypto_pwhash_async)
-  SN_EXPORT_FUNCTION(crypto_pwhash_str_async, sn_crypto_pwhash_str_async)
-  SN_EXPORT_FUNCTION(crypto_pwhash_str_verify_async, sn_crypto_pwhash_str_verify_async)
-  SN_EXPORT_UINT32(crypto_pwhash_ALG_ARGON2I13, crypto_pwhash_ALG_ARGON2I13)
-  SN_EXPORT_UINT32(crypto_pwhash_ALG_ARGON2ID13, crypto_pwhash_ALG_ARGON2ID13)
-  SN_EXPORT_UINT32(crypto_pwhash_ALG_DEFAULT, crypto_pwhash_ALG_DEFAULT)
-  SN_EXPORT_UINT32(crypto_pwhash_BYTES_MIN, crypto_pwhash_BYTES_MIN)
-  SN_EXPORT_UINT32(crypto_pwhash_BYTES_MAX, crypto_pwhash_BYTES_MAX)
-  SN_EXPORT_UINT32(crypto_pwhash_PASSWD_MIN, crypto_pwhash_PASSWD_MIN)
-  SN_EXPORT_UINT32(crypto_pwhash_PASSWD_MAX, crypto_pwhash_PASSWD_MAX)
-  SN_EXPORT_UINT32(crypto_pwhash_SALTBYTES, crypto_pwhash_SALTBYTES)
-  SN_EXPORT_UINT32(crypto_pwhash_STRBYTES, crypto_pwhash_STRBYTES)
-  SN_EXPORT_STRING(crypto_pwhash_STRPREFIX, crypto_pwhash_STRPREFIX)
-  SN_EXPORT_UINT32(crypto_pwhash_OPSLIMIT_MIN, crypto_pwhash_OPSLIMIT_MIN)
-  SN_EXPORT_UINT32(crypto_pwhash_OPSLIMIT_MAX, crypto_pwhash_OPSLIMIT_MAX)
-  SN_EXPORT_UINT64(crypto_pwhash_MEMLIMIT_MIN, crypto_pwhash_MEMLIMIT_MIN)
-  SN_EXPORT_UINT64(crypto_pwhash_MEMLIMIT_MAX, crypto_pwhash_MEMLIMIT_MAX)
-  SN_EXPORT_UINT32(crypto_pwhash_OPSLIMIT_INTERACTIVE, crypto_pwhash_OPSLIMIT_INTERACTIVE)
-  SN_EXPORT_UINT64(crypto_pwhash_MEMLIMIT_INTERACTIVE, crypto_pwhash_MEMLIMIT_INTERACTIVE)
-  SN_EXPORT_UINT32(crypto_pwhash_OPSLIMIT_MODERATE, crypto_pwhash_OPSLIMIT_MODERATE)
-  SN_EXPORT_UINT64(crypto_pwhash_MEMLIMIT_MODERATE, crypto_pwhash_MEMLIMIT_MODERATE)
-  SN_EXPORT_UINT32(crypto_pwhash_OPSLIMIT_SENSITIVE, crypto_pwhash_OPSLIMIT_SENSITIVE)
-  SN_EXPORT_UINT64(crypto_pwhash_MEMLIMIT_SENSITIVE, crypto_pwhash_MEMLIMIT_SENSITIVE)
-  SN_EXPORT_STRING(crypto_pwhash_PRIMITIVE, crypto_pwhash_PRIMITIVE)
+  SN_EXPORT_FUNCTION_SCOPED("crypto_pwhash", sn_crypto_pwhash);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_pwhash_str", sn_crypto_pwhash_str);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_pwhash_str_verify", sn_crypto_pwhash_str_verify);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_pwhash_str_needs_rehash", sn_crypto_pwhash_str_needs_rehash);
+  SN_EXPORT_FUNCTION(crypto_pwhash_async, sn_crypto_pwhash_async);
+  SN_EXPORT_FUNCTION(crypto_pwhash_str_async, sn_crypto_pwhash_str_async);
+  SN_EXPORT_FUNCTION(crypto_pwhash_str_verify_async, sn_crypto_pwhash_str_verify_async);
+  SN_EXPORT_UINT32(crypto_pwhash_ALG_ARGON2I13, crypto_pwhash_ALG_ARGON2I13);
+  SN_EXPORT_UINT32(crypto_pwhash_ALG_ARGON2ID13, crypto_pwhash_ALG_ARGON2ID13);
+  SN_EXPORT_UINT32(crypto_pwhash_ALG_DEFAULT, crypto_pwhash_ALG_DEFAULT);
+  SN_EXPORT_UINT32(crypto_pwhash_BYTES_MIN, crypto_pwhash_BYTES_MIN);
+  SN_EXPORT_UINT32(crypto_pwhash_BYTES_MAX, crypto_pwhash_BYTES_MAX);
+  SN_EXPORT_UINT32(crypto_pwhash_PASSWD_MIN, crypto_pwhash_PASSWD_MIN);
+  SN_EXPORT_UINT32(crypto_pwhash_PASSWD_MAX, crypto_pwhash_PASSWD_MAX);
+  SN_EXPORT_UINT32(crypto_pwhash_SALTBYTES, crypto_pwhash_SALTBYTES);
+  SN_EXPORT_UINT32(crypto_pwhash_STRBYTES, crypto_pwhash_STRBYTES);
+  SN_EXPORT_STRING(crypto_pwhash_STRPREFIX, crypto_pwhash_STRPREFIX);
+  SN_EXPORT_UINT32(crypto_pwhash_OPSLIMIT_MIN, crypto_pwhash_OPSLIMIT_MIN);
+  SN_EXPORT_UINT32(crypto_pwhash_OPSLIMIT_MAX, crypto_pwhash_OPSLIMIT_MAX);
+  SN_EXPORT_UINT64(crypto_pwhash_MEMLIMIT_MIN, crypto_pwhash_MEMLIMIT_MIN);
+  SN_EXPORT_UINT64(crypto_pwhash_MEMLIMIT_MAX, crypto_pwhash_MEMLIMIT_MAX);
+  SN_EXPORT_UINT32(crypto_pwhash_OPSLIMIT_INTERACTIVE, crypto_pwhash_OPSLIMIT_INTERACTIVE);
+  SN_EXPORT_UINT64(crypto_pwhash_MEMLIMIT_INTERACTIVE, crypto_pwhash_MEMLIMIT_INTERACTIVE);
+  SN_EXPORT_UINT32(crypto_pwhash_OPSLIMIT_MODERATE, crypto_pwhash_OPSLIMIT_MODERATE);
+  SN_EXPORT_UINT64(crypto_pwhash_MEMLIMIT_MODERATE, crypto_pwhash_MEMLIMIT_MODERATE);
+  SN_EXPORT_UINT32(crypto_pwhash_OPSLIMIT_SENSITIVE, crypto_pwhash_OPSLIMIT_SENSITIVE);
+  SN_EXPORT_UINT64(crypto_pwhash_MEMLIMIT_SENSITIVE, crypto_pwhash_MEMLIMIT_SENSITIVE);
+  SN_EXPORT_STRING(crypto_pwhash_PRIMITIVE, crypto_pwhash_PRIMITIVE);
 
-  SN_EXPORT_FUNCTION(crypto_pwhash_scryptsalsa208sha256, sn_crypto_pwhash_scryptsalsa208sha256)
-  SN_EXPORT_FUNCTION(crypto_pwhash_scryptsalsa208sha256_str, sn_crypto_pwhash_scryptsalsa208sha256_str)
-  SN_EXPORT_FUNCTION(crypto_pwhash_scryptsalsa208sha256_str_verify, sn_crypto_pwhash_scryptsalsa208sha256_str_verify)
-  SN_EXPORT_FUNCTION(crypto_pwhash_scryptsalsa208sha256_str_needs_rehash, sn_crypto_pwhash_scryptsalsa208sha256_str_needs_rehash)
-  SN_EXPORT_FUNCTION(crypto_pwhash_scryptsalsa208sha256_async, sn_crypto_pwhash_scryptsalsa208sha256_async)
+  SN_EXPORT_FUNCTION_SCOPED("crypto_pwhash_scryptsalsa208sha256", sn_crypto_pwhash_scryptsalsa208sha256);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_pwhash_scryptsalsa208sha256_str", sn_crypto_pwhash_scryptsalsa208sha256_str);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_pwhash_scryptsalsa208sha256_str_verify", sn_crypto_pwhash_scryptsalsa208sha256_str_verify);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_pwhash_scryptsalsa208sha256_str_needs_rehash", sn_crypto_pwhash_scryptsalsa208sha256_str_needs_rehash);
+  SN_EXPORT_FUNCTION(crypto_pwhash_scryptsalsa208sha256_async, sn_crypto_pwhash_scryptsalsa208sha256_async);
   SN_EXPORT_FUNCTION(crypto_pwhash_scryptsalsa208sha256_str_async, sn_crypto_pwhash_scryptsalsa208sha256_str_async)
-  SN_EXPORT_FUNCTION(crypto_pwhash_scryptsalsa208sha256_str_verify_async, sn_crypto_pwhash_scryptsalsa208sha256_str_verify_async)
-  SN_EXPORT_UINT64(crypto_pwhash_scryptsalsa208sha256_BYTES_MIN, crypto_pwhash_scryptsalsa208sha256_BYTES_MIN)
-  SN_EXPORT_UINT64(crypto_pwhash_scryptsalsa208sha256_BYTES_MAX, crypto_pwhash_scryptsalsa208sha256_BYTES_MAX)
-  SN_EXPORT_UINT64(crypto_pwhash_scryptsalsa208sha256_PASSWD_MIN, crypto_pwhash_scryptsalsa208sha256_PASSWD_MIN)
-  SN_EXPORT_UINT64(crypto_pwhash_scryptsalsa208sha256_PASSWD_MAX, crypto_pwhash_scryptsalsa208sha256_PASSWD_MAX)
-  SN_EXPORT_UINT64(crypto_pwhash_scryptsalsa208sha256_SALTBYTES, crypto_pwhash_scryptsalsa208sha256_SALTBYTES)
-  SN_EXPORT_UINT64(crypto_pwhash_scryptsalsa208sha256_STRBYTES, crypto_pwhash_scryptsalsa208sha256_STRBYTES)
-  SN_EXPORT_STRING(crypto_pwhash_scryptsalsa208sha256_STRPREFIX, crypto_pwhash_scryptsalsa208sha256_STRPREFIX)
-  SN_EXPORT_UINT32(crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN)
-  SN_EXPORT_UINT32(crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX)
-  SN_EXPORT_UINT64(crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN)
-  SN_EXPORT_UINT64(crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX)
-  SN_EXPORT_UINT32(crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE)
-  SN_EXPORT_UINT64(crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE, crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE)
-  SN_EXPORT_UINT32(crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_SENSITIVE, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_SENSITIVE)
-  SN_EXPORT_UINT64(crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_SENSITIVE, crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_SENSITIVE)
+  SN_EXPORT_FUNCTION(crypto_pwhash_scryptsalsa208sha256_str_verify_async, sn_crypto_pwhash_scryptsalsa208sha256_str_verify_async);
+  SN_EXPORT_UINT64(crypto_pwhash_scryptsalsa208sha256_BYTES_MIN, crypto_pwhash_scryptsalsa208sha256_BYTES_MIN);
+  SN_EXPORT_UINT64(crypto_pwhash_scryptsalsa208sha256_BYTES_MAX, crypto_pwhash_scryptsalsa208sha256_BYTES_MAX);
+  SN_EXPORT_UINT64(crypto_pwhash_scryptsalsa208sha256_PASSWD_MIN, crypto_pwhash_scryptsalsa208sha256_PASSWD_MIN);
+  SN_EXPORT_UINT64(crypto_pwhash_scryptsalsa208sha256_PASSWD_MAX, crypto_pwhash_scryptsalsa208sha256_PASSWD_MAX);
+  SN_EXPORT_UINT64(crypto_pwhash_scryptsalsa208sha256_SALTBYTES, crypto_pwhash_scryptsalsa208sha256_SALTBYTES);
+  SN_EXPORT_UINT64(crypto_pwhash_scryptsalsa208sha256_STRBYTES, crypto_pwhash_scryptsalsa208sha256_STRBYTES);
+  SN_EXPORT_STRING(crypto_pwhash_scryptsalsa208sha256_STRPREFIX, crypto_pwhash_scryptsalsa208sha256_STRPREFIX);
+  SN_EXPORT_UINT32(crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN);
+  SN_EXPORT_UINT32(crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX);
+  SN_EXPORT_UINT64(crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN);
+  SN_EXPORT_UINT64(crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX);
+  SN_EXPORT_UINT32(crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE);
+  SN_EXPORT_UINT64(crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE, crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE);
+  SN_EXPORT_UINT32(crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_SENSITIVE, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_SENSITIVE);
+  SN_EXPORT_UINT64(crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_SENSITIVE, crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_SENSITIVE);
 
   // crypto_scalarmult
 
-  SN_EXPORT_FUNCTION(crypto_scalarmult_base, sn_crypto_scalarmult_base)
-  SN_EXPORT_FUNCTION(crypto_scalarmult, sn_crypto_scalarmult)
-  SN_EXPORT_STRING(crypto_scalarmult_PRIMITIVE, crypto_scalarmult_PRIMITIVE)
-  SN_EXPORT_UINT32(crypto_scalarmult_BYTES, crypto_scalarmult_BYTES)
-  SN_EXPORT_UINT32(crypto_scalarmult_SCALARBYTES, crypto_scalarmult_SCALARBYTES)
+  SN_EXPORT_FUNCTION(crypto_scalarmult_base, sn_crypto_scalarmult_base);
+  SN_EXPORT_FUNCTION(crypto_scalarmult, sn_crypto_scalarmult);
+  SN_EXPORT_STRING(crypto_scalarmult_PRIMITIVE, crypto_scalarmult_PRIMITIVE);
+  SN_EXPORT_UINT32(crypto_scalarmult_BYTES, crypto_scalarmult_BYTES);
+  SN_EXPORT_UINT32(crypto_scalarmult_SCALARBYTES, crypto_scalarmult_SCALARBYTES);
 
-  SN_EXPORT_FUNCTION(crypto_scalarmult_ed25519_base, sn_crypto_scalarmult_ed25519_base)
-  SN_EXPORT_FUNCTION(crypto_scalarmult_ed25519, sn_crypto_scalarmult_ed25519)
-  SN_EXPORT_FUNCTION(crypto_scalarmult_ed25519_base_noclamp, sn_crypto_scalarmult_ed25519_base_noclamp)
-  SN_EXPORT_FUNCTION(crypto_scalarmult_ed25519_noclamp, sn_crypto_scalarmult_ed25519_noclamp)
-  SN_EXPORT_UINT32(crypto_scalarmult_ed25519_BYTES, crypto_scalarmult_ed25519_BYTES)
-  SN_EXPORT_UINT32(crypto_scalarmult_ed25519_SCALARBYTES, crypto_scalarmult_ed25519_SCALARBYTES)
+  SN_EXPORT_FUNCTION(crypto_scalarmult_ed25519_base, sn_crypto_scalarmult_ed25519_base);
+  SN_EXPORT_FUNCTION(crypto_scalarmult_ed25519, sn_crypto_scalarmult_ed25519);
+  SN_EXPORT_FUNCTION(crypto_scalarmult_ed25519_base_noclamp, sn_crypto_scalarmult_ed25519_base_noclamp);
+  SN_EXPORT_FUNCTION(crypto_scalarmult_ed25519_noclamp, sn_crypto_scalarmult_ed25519_noclamp);
+  SN_EXPORT_UINT32(crypto_scalarmult_ed25519_BYTES, crypto_scalarmult_ed25519_BYTES);
+  SN_EXPORT_UINT32(crypto_scalarmult_ed25519_SCALARBYTES, crypto_scalarmult_ed25519_SCALARBYTES);
 
   // crypto_secretbox
 
@@ -3797,97 +3855,97 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   SN_EXPORT_FUNCTION_SCOPED("crypto_sign_ed25519_pk_to_curve25519", sn_crypto_sign_ed25519_pk_to_curve25519);
   SN_EXPORT_FUNCTION_SCOPED("crypto_sign_ed25519_sk_to_curve25519", sn_crypto_sign_ed25519_sk_to_curve25519);
 
-  SN_EXPORT_UINT32(crypto_sign_SEEDBYTES, crypto_sign_SEEDBYTES)
-  SN_EXPORT_UINT32(crypto_sign_PUBLICKEYBYTES, crypto_sign_PUBLICKEYBYTES)
-  SN_EXPORT_UINT32(crypto_sign_SECRETKEYBYTES, crypto_sign_SECRETKEYBYTES)
-  SN_EXPORT_UINT32(crypto_sign_BYTES, crypto_sign_BYTES)
+  SN_EXPORT_UINT32(crypto_sign_SEEDBYTES, crypto_sign_SEEDBYTES);
+  SN_EXPORT_UINT32(crypto_sign_PUBLICKEYBYTES, crypto_sign_PUBLICKEYBYTES);
+  SN_EXPORT_UINT32(crypto_sign_SECRETKEYBYTES, crypto_sign_SECRETKEYBYTES);
+  SN_EXPORT_UINT32(crypto_sign_BYTES, crypto_sign_BYTES);
 
   // crypto_stream
 
-  SN_EXPORT_FUNCTION_SCOPED("crypto_stream", sn_crypto_stream)
-  SN_EXPORT_UINT32(crypto_stream_KEYBYTES, crypto_stream_KEYBYTES)
-  SN_EXPORT_UINT32(crypto_stream_NONCEBYTES, crypto_stream_NONCEBYTES)
-  SN_EXPORT_STRING(crypto_stream_PRIMITIVE, crypto_stream_PRIMITIVE)
+  SN_EXPORT_FUNCTION_SCOPED("crypto_stream", sn_crypto_stream);
+  SN_EXPORT_UINT32(crypto_stream_KEYBYTES, crypto_stream_KEYBYTES);
+  SN_EXPORT_UINT32(crypto_stream_NONCEBYTES, crypto_stream_NONCEBYTES);
+  SN_EXPORT_STRING(crypto_stream_PRIMITIVE, crypto_stream_PRIMITIVE);
 
-  SN_EXPORT_FUNCTION_NOSCOPE("crypto_stream_xor", sn_crypto_stream_xor)
-  SN_EXPORT_FUNCTION(crypto_stream_xor_init, sn_crypto_stream_xor_wrap_init)
-  SN_EXPORT_FUNCTION(crypto_stream_xor_update, sn_crypto_stream_xor_wrap_update)
-  SN_EXPORT_FUNCTION(crypto_stream_xor_final, sn_crypto_stream_xor_wrap_final)
-  SN_EXPORT_UINT32(crypto_stream_xor_STATEBYTES, sizeof(sn_crypto_stream_xor_state))
+  SN_EXPORT_FUNCTION_NOSCOPE("crypto_stream_xor", sn_crypto_stream_xor);
+  SN_EXPORT_FUNCTION(crypto_stream_xor_init, sn_crypto_stream_xor_wrap_init);
+  SN_EXPORT_FUNCTION(crypto_stream_xor_update, sn_crypto_stream_xor_wrap_update);
+  SN_EXPORT_FUNCTION(crypto_stream_xor_final, sn_crypto_stream_xor_wrap_final);
+  SN_EXPORT_UINT32(crypto_stream_xor_STATEBYTES, sizeof(sn_crypto_stream_xor_state));
 
-  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_chacha20", sn_crypto_stream_chacha20)
-  SN_EXPORT_UINT32(crypto_stream_chacha20_KEYBYTES, crypto_stream_chacha20_KEYBYTES)
-  SN_EXPORT_UINT32(crypto_stream_chacha20_NONCEBYTES, crypto_stream_chacha20_NONCEBYTES)
-  SN_EXPORT_UINT64(crypto_stream_chacha20_MESSAGEBYTES_MAX, crypto_stream_chacha20_MESSAGEBYTES_MAX)
+  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_chacha20", sn_crypto_stream_chacha20);
+  SN_EXPORT_UINT32(crypto_stream_chacha20_KEYBYTES, crypto_stream_chacha20_KEYBYTES);
+  SN_EXPORT_UINT32(crypto_stream_chacha20_NONCEBYTES, crypto_stream_chacha20_NONCEBYTES);
+  SN_EXPORT_UINT64(crypto_stream_chacha20_MESSAGEBYTES_MAX, crypto_stream_chacha20_MESSAGEBYTES_MAX);
 
-  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_chacha20_xor", sn_crypto_stream_chacha20_xor)
-  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_chacha20_xor_ic", sn_crypto_stream_chacha20_xor_ic)
-  SN_EXPORT_FUNCTION(crypto_stream_chacha20_xor_init, sn_crypto_stream_chacha20_xor_wrap_init)
-  SN_EXPORT_FUNCTION(crypto_stream_chacha20_xor_update, sn_crypto_stream_chacha20_xor_wrap_update)
-  SN_EXPORT_FUNCTION(crypto_stream_chacha20_xor_final, sn_crypto_stream_chacha20_xor_wrap_final)
-  SN_EXPORT_UINT32(crypto_stream_chacha20_xor_STATEBYTES, sizeof(sn_crypto_stream_chacha20_xor_state))
+  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_chacha20_xor", sn_crypto_stream_chacha20_xor);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_chacha20_xor_ic", sn_crypto_stream_chacha20_xor_ic);
+  SN_EXPORT_FUNCTION(crypto_stream_chacha20_xor_init, sn_crypto_stream_chacha20_xor_wrap_init);
+  SN_EXPORT_FUNCTION(crypto_stream_chacha20_xor_update, sn_crypto_stream_chacha20_xor_wrap_update);
+  SN_EXPORT_FUNCTION(crypto_stream_chacha20_xor_final, sn_crypto_stream_chacha20_xor_wrap_final);
+  SN_EXPORT_UINT32(crypto_stream_chacha20_xor_STATEBYTES, sizeof(sn_crypto_stream_chacha20_xor_state));
 
-  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_chacha20_ietf", sn_crypto_stream_chacha20_ietf)
-  SN_EXPORT_UINT32(crypto_stream_chacha20_ietf_KEYBYTES, crypto_stream_chacha20_ietf_KEYBYTES)
-  SN_EXPORT_UINT32(crypto_stream_chacha20_ietf_NONCEBYTES, crypto_stream_chacha20_ietf_NONCEBYTES)
-  SN_EXPORT_UINT64(crypto_stream_chacha20_ietf_MESSAGEBYTES_MAX, crypto_stream_chacha20_ietf_MESSAGEBYTES_MAX)
-  SN_EXPORT_UINT32(crypto_stream_chacha20_ietf_xor_STATEBYTES, sizeof(sn_crypto_stream_chacha20_ietf_xor_state))
+  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_chacha20_ietf", sn_crypto_stream_chacha20_ietf);
+  SN_EXPORT_UINT32(crypto_stream_chacha20_ietf_KEYBYTES, crypto_stream_chacha20_ietf_KEYBYTES);
+  SN_EXPORT_UINT32(crypto_stream_chacha20_ietf_NONCEBYTES, crypto_stream_chacha20_ietf_NONCEBYTES);
+  SN_EXPORT_UINT64(crypto_stream_chacha20_ietf_MESSAGEBYTES_MAX, crypto_stream_chacha20_ietf_MESSAGEBYTES_MAX);
+  SN_EXPORT_UINT32(crypto_stream_chacha20_ietf_xor_STATEBYTES, sizeof(sn_crypto_stream_chacha20_ietf_xor_state));
 
-  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_chacha20_ietf_xor", sn_crypto_stream_chacha20_ietf_xor)
-  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_chacha20_ietf_xor_ic", sn_crypto_stream_chacha20_ietf_xor_ic)
-  SN_EXPORT_FUNCTION(crypto_stream_chacha20_ietf_xor_init, sn_crypto_stream_chacha20_ietf_xor_wrap_init)
-  SN_EXPORT_FUNCTION(crypto_stream_chacha20_ietf_xor_update, sn_crypto_stream_chacha20_ietf_xor_wrap_update)
-  SN_EXPORT_FUNCTION(crypto_stream_chacha20_ietf_xor_final, sn_crypto_stream_chacha20_ietf_xor_wrap_final)
+  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_chacha20_ietf_xor", sn_crypto_stream_chacha20_ietf_xor);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_chacha20_ietf_xor_ic", sn_crypto_stream_chacha20_ietf_xor_ic);
+  SN_EXPORT_FUNCTION(crypto_stream_chacha20_ietf_xor_init, sn_crypto_stream_chacha20_ietf_xor_wrap_init);
+  SN_EXPORT_FUNCTION(crypto_stream_chacha20_ietf_xor_update, sn_crypto_stream_chacha20_ietf_xor_wrap_update);
+  SN_EXPORT_FUNCTION(crypto_stream_chacha20_ietf_xor_final, sn_crypto_stream_chacha20_ietf_xor_wrap_final);
 
-  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_xchacha20", sn_crypto_stream_xchacha20)
-  SN_EXPORT_UINT32(crypto_stream_xchacha20_KEYBYTES, crypto_stream_xchacha20_KEYBYTES)
-  SN_EXPORT_UINT32(crypto_stream_xchacha20_NONCEBYTES, crypto_stream_xchacha20_NONCEBYTES)
-  SN_EXPORT_UINT64(crypto_stream_xchacha20_MESSAGEBYTES_MAX, crypto_stream_xchacha20_MESSAGEBYTES_MAX)
+  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_xchacha20", sn_crypto_stream_xchacha20);
+  SN_EXPORT_UINT32(crypto_stream_xchacha20_KEYBYTES, crypto_stream_xchacha20_KEYBYTES);
+  SN_EXPORT_UINT32(crypto_stream_xchacha20_NONCEBYTES, crypto_stream_xchacha20_NONCEBYTES);
+  SN_EXPORT_UINT64(crypto_stream_xchacha20_MESSAGEBYTES_MAX, crypto_stream_xchacha20_MESSAGEBYTES_MAX);
 
-  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_xchacha20_xor", sn_crypto_stream_xchacha20_xor)
-  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_xchacha20_xor_ic", sn_crypto_stream_xchacha20_xor_ic)
-  SN_EXPORT_FUNCTION(crypto_stream_xchacha20_xor_init, sn_crypto_stream_xchacha20_xor_wrap_init)
-  SN_EXPORT_FUNCTION(crypto_stream_xchacha20_xor_update, sn_crypto_stream_xchacha20_xor_wrap_update)
-  SN_EXPORT_FUNCTION(crypto_stream_xchacha20_xor_final, sn_crypto_stream_xchacha20_xor_wrap_final)
-  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_xchacha20", sn_crypto_stream_xchacha20)
-  SN_EXPORT_UINT32(crypto_stream_xchacha20_xor_STATEBYTES, sizeof(sn_crypto_stream_xchacha20_xor_state))
+  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_xchacha20_xor", sn_crypto_stream_xchacha20_xor);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_xchacha20_xor_ic", sn_crypto_stream_xchacha20_xor_ic);
+  SN_EXPORT_FUNCTION(crypto_stream_xchacha20_xor_init, sn_crypto_stream_xchacha20_xor_wrap_init);
+  SN_EXPORT_FUNCTION(crypto_stream_xchacha20_xor_update, sn_crypto_stream_xchacha20_xor_wrap_update);
+  SN_EXPORT_FUNCTION(crypto_stream_xchacha20_xor_final, sn_crypto_stream_xchacha20_xor_wrap_final);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_xchacha20", sn_crypto_stream_xchacha20);
+  SN_EXPORT_UINT32(crypto_stream_xchacha20_xor_STATEBYTES, sizeof(sn_crypto_stream_xchacha20_xor_state));
 
-  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_salsa20", sn_crypto_stream_salsa20)
-  SN_EXPORT_UINT32(crypto_stream_salsa20_KEYBYTES, crypto_stream_salsa20_KEYBYTES)
-  SN_EXPORT_UINT32(crypto_stream_salsa20_NONCEBYTES, crypto_stream_salsa20_NONCEBYTES)
-  SN_EXPORT_UINT64(crypto_stream_salsa20_MESSAGEBYTES_MAX, crypto_stream_salsa20_MESSAGEBYTES_MAX)
+  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_salsa20", sn_crypto_stream_salsa20);
+  SN_EXPORT_UINT32(crypto_stream_salsa20_KEYBYTES, crypto_stream_salsa20_KEYBYTES);
+  SN_EXPORT_UINT32(crypto_stream_salsa20_NONCEBYTES, crypto_stream_salsa20_NONCEBYTES);
+  SN_EXPORT_UINT64(crypto_stream_salsa20_MESSAGEBYTES_MAX, crypto_stream_salsa20_MESSAGEBYTES_MAX);
 
-  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_salsa20_xor", sn_crypto_stream_salsa20_xor)
-  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_salsa20_xor_ic", sn_crypto_stream_salsa20_xor_ic)
-  SN_EXPORT_FUNCTION(crypto_stream_salsa20_xor_init, sn_crypto_stream_salsa20_xor_wrap_init)
-  SN_EXPORT_FUNCTION(crypto_stream_salsa20_xor_update, sn_crypto_stream_salsa20_xor_wrap_update)
-  SN_EXPORT_FUNCTION(crypto_stream_salsa20_xor_final, sn_crypto_stream_salsa20_xor_wrap_final)
-  SN_EXPORT_UINT32(crypto_stream_salsa20_xor_STATEBYTES, sizeof(sn_crypto_stream_salsa20_xor_state))
+  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_salsa20_xor", sn_crypto_stream_salsa20_xor);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_stream_salsa20_xor_ic", sn_crypto_stream_salsa20_xor_ic);
+  SN_EXPORT_FUNCTION(crypto_stream_salsa20_xor_init, sn_crypto_stream_salsa20_xor_wrap_init);
+  SN_EXPORT_FUNCTION(crypto_stream_salsa20_xor_update, sn_crypto_stream_salsa20_xor_wrap_update);
+  SN_EXPORT_FUNCTION(crypto_stream_salsa20_xor_final, sn_crypto_stream_salsa20_xor_wrap_final);
+  SN_EXPORT_UINT32(crypto_stream_salsa20_xor_STATEBYTES, sizeof(sn_crypto_stream_salsa20_xor_state));
 
   // extensions
 
   // tweak
 
-  SN_EXPORT_FUNCTION(extension_tweak_ed25519_base, sn_extension_tweak_ed25519_base)
-  SN_EXPORT_FUNCTION(extension_tweak_ed25519_sign_detached, sn_extension_tweak_ed25519_sign_detached)
-  SN_EXPORT_FUNCTION(extension_tweak_ed25519_sk_to_scalar, sn_extension_tweak_ed25519_sk_to_scalar)
-  SN_EXPORT_FUNCTION(extension_tweak_ed25519_scalar, sn_extension_tweak_ed25519_scalar)
-  SN_EXPORT_FUNCTION(extension_tweak_ed25519_pk, sn_extension_tweak_ed25519_pk)
-  SN_EXPORT_FUNCTION(extension_tweak_ed25519_keypair, sn_extension_tweak_ed25519_keypair)
-  SN_EXPORT_FUNCTION(extension_tweak_ed25519_scalar_add, sn_extension_tweak_ed25519_scalar_add)
-  SN_EXPORT_FUNCTION(extension_tweak_ed25519_pk_add, sn_extension_tweak_ed25519_pk_add)
-  SN_EXPORT_FUNCTION(extension_tweak_ed25519_keypair_add, sn_extension_tweak_ed25519_keypair_add)
-  SN_EXPORT_UINT32(extension_tweak_ed25519_BYTES, sn__extension_tweak_ed25519_BYTES)
-  SN_EXPORT_UINT32(extension_tweak_ed25519_SCALARBYTES, sn__extension_tweak_ed25519_SCALARBYTES)
+  SN_EXPORT_FUNCTION(extension_tweak_ed25519_base, sn_extension_tweak_ed25519_base);
+  SN_EXPORT_FUNCTION(extension_tweak_ed25519_sign_detached, sn_extension_tweak_ed25519_sign_detached);
+  SN_EXPORT_FUNCTION(extension_tweak_ed25519_sk_to_scalar, sn_extension_tweak_ed25519_sk_to_scalar);
+  SN_EXPORT_FUNCTION(extension_tweak_ed25519_scalar, sn_extension_tweak_ed25519_scalar);
+  SN_EXPORT_FUNCTION(extension_tweak_ed25519_pk, sn_extension_tweak_ed25519_pk);
+  SN_EXPORT_FUNCTION(extension_tweak_ed25519_keypair, sn_extension_tweak_ed25519_keypair);
+  SN_EXPORT_FUNCTION(extension_tweak_ed25519_scalar_add, sn_extension_tweak_ed25519_scalar_add);
+  SN_EXPORT_FUNCTION(extension_tweak_ed25519_pk_add, sn_extension_tweak_ed25519_pk_add);
+  SN_EXPORT_FUNCTION(extension_tweak_ed25519_keypair_add, sn_extension_tweak_ed25519_keypair_add);
+  SN_EXPORT_UINT32(extension_tweak_ed25519_BYTES, sn__extension_tweak_ed25519_BYTES);
+  SN_EXPORT_UINT32(extension_tweak_ed25519_SCALARBYTES, sn__extension_tweak_ed25519_SCALARBYTES);
 
   // pbkdf2
 
-  SN_EXPORT_FUNCTION(extension_pbkdf2_sha512, sn_extension_pbkdf2_sha512)
-  SN_EXPORT_FUNCTION(extension_pbkdf2_sha512_async, sn_extension_pbkdf2_sha512_async)
-  SN_EXPORT_UINT32(extension_pbkdf2_sha512_SALTBYTES, sn__extension_pbkdf2_sha512_SALTBYTES)
-  SN_EXPORT_UINT32(extension_pbkdf2_sha512_HASHBYTES, sn__extension_pbkdf2_sha512_HASHBYTES)
-  SN_EXPORT_UINT32(extension_pbkdf2_sha512_ITERATIONS_MIN, sn__extension_pbkdf2_sha512_ITERATIONS_MIN)
-  SN_EXPORT_UINT64(extension_pbkdf2_sha512_BYTES_MAX, sn__extension_pbkdf2_sha512_BYTES_MAX)
+  SN_EXPORT_FUNCTION(extension_pbkdf2_sha512, sn_extension_pbkdf2_sha512);
+  SN_EXPORT_FUNCTION(extension_pbkdf2_sha512_async, sn_extension_pbkdf2_sha512_async);
+  SN_EXPORT_UINT32(extension_pbkdf2_sha512_SALTBYTES, sn__extension_pbkdf2_sha512_SALTBYTES);
+  SN_EXPORT_UINT32(extension_pbkdf2_sha512_HASHBYTES, sn__extension_pbkdf2_sha512_HASHBYTES);
+  SN_EXPORT_UINT32(extension_pbkdf2_sha512_ITERATIONS_MIN, sn__extension_pbkdf2_sha512_ITERATIONS_MIN);
+  SN_EXPORT_UINT64(extension_pbkdf2_sha512_BYTES_MAX, sn__extension_pbkdf2_sha512_BYTES_MAX);
 
 #undef SN_EXPORT_FUNCTION_SCOPED
 #undef SN_EXPORT_FUNCTION_NOSCOPE

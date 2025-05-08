@@ -534,3 +534,177 @@ exports.crypto_stream_salsa20_xor_ic = function (c, m, n, ic, k) {
 
   if (res !== 0) throw new Error('status: ' + res)
 }
+
+// crypto_auth
+
+exports.crypto_auth = function (out, input, k) {
+  if (out.byteLength !== binding.crypto_auth_BYTES) throw new Error('out')
+  if (k.byteLength !== binding.crypto_auth_KEYBYTES) throw new Error('k')
+
+  const res = binding.crypto_auth(out, input, k)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+/** @returns {boolean} */
+exports.crypto_auth_verify = function (h, input, k) {
+  if (h.byteLength !== binding.crypto_auth_BYTES) throw new Error('h')
+  if (k.byteLength !== binding.crypto_auth_KEYBYTES) throw new Error('k')
+
+  return binding.crypto_auth_verify(h, input, k)
+}
+
+exports.crypto_onetimeauth = function (out, input, k) {
+  if (out.byteLength !== binding.crypto_onetimeauth_BYTES) throw new Error('out')
+  if (k.byteLength !== binding.crypto_onetimeauth_KEYBYTES) throw new Error('k')
+
+  const res = binding.crypto_onetimeauth(out, input, k)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_onetimeauth_init = function (state, k) {
+  if (state.byteLength !== binding.crypto_onetimeauth_STATEBYTES) throw new Error("state must be 'crypto_onetimeauth_STATEBYTES' bytes")
+  if (k.byteLength !== binding.crypto_onetimeauth_KEYBYTES) throw new Error('k')
+
+  const res = binding.crypto_onetimeauth_init(state, k)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_onetimeauth_update = function (state, input) {
+  if (state.byteLength !== binding.crypto_onetimeauth_STATEBYTES) throw new Error("state must be 'crypto_onetimeauth_STATEBYTES' bytes")
+
+  const res = binding.crypto_onetimeauth_update(state, input)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_onetimeauth_final = function (state, out) {
+  if (state.byteLength !== binding.crypto_onetimeauth_STATEBYTES) throw new Error("state must be 'crypto_onetimeauth_STATEBYTES' bytes")
+  if (out.byteLength !== binding.crypto_onetimeauth_BYTES) throw new Error('out')
+
+  const res = binding.crypto_onetimeauth_final(state, out)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+/** @returns {boolean} */
+exports.crypto_onetimeauth_verify = function (h, input, k) {
+  if (h.byteLength !== binding.crypto_onetimeauth_BYTES) throw new Error('h')
+  if (k.byteLength !== binding.crypto_onetimeauth_KEYBYTES) throw new Error('k')
+
+  return binding.crypto_onetimeauth_verify(h, input, k)
+}
+
+// crypto_pwhash
+
+exports.crypto_pwhash = function (out, passwd, salt, opslimit, memlimit, alg) {
+  if (out.byteLength < binding.crypto_pwhash_BYTES_MIN) throw new Error('out')
+  if (out.byteLength > binding.crypto_pwhash_BYTES_MAX) throw new Error('out')
+  if (salt.byteLength !== binding.crypto_pwhash_SALTBYTES) throw new Error('salt')
+  if (opslimit < binding.crypto_pwhash_OPSLIMIT_MIN) throw new Error('opslimit')
+  if (opslimit > binding.crypto_pwhash_OPSLIMIT_MAX) throw new Error('opslimit')
+  if (memlimit < binding.crypto_pwhash_MEMLIMIT_MIN) throw new Error('memlimit')
+  if (memlimit > binding.crypto_pwhash_MEMLIMIT_MAX) throw new Error('memlimit')
+  if (alg < 1 || alg > 2) throw new Error('alg must be either Argon2i 1.3 or Argon2id 1.3')
+
+  const res = binding.crypto_pwhash(out, passwd, salt, opslimit, memlimit, alg)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_pwhash_str = function (out, passwd, opslimit, memlimit) {
+  if (out.byteLength !== binding.crypto_pwhash_STRBYTES) throw new Error('out')
+  if (opslimit < binding.crypto_pwhash_OPSLIMIT_MIN) throw new Error('opslimit')
+  if (opslimit > binding.crypto_pwhash_OPSLIMIT_MAX) throw new Error('opslimit')
+  if (memlimit < binding.crypto_pwhash_MEMLIMIT_MIN) throw new Error('memlimit')
+  if (memlimit > binding.crypto_pwhash_MEMLIMIT_MAX) throw new Error('memlimit')
+
+  const res = binding.crypto_pwhash_str(out, passwd, opslimit, memlimit)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+/** @returns {boolean} */
+exports.crypto_pwhash_str_verify = function (str, passwd) {
+  if (str.byteLength !== binding.crypto_pwhash_STRBYTES) throw new Error('str')
+
+  return binding.crypto_pwhash_str_verify(str, passwd)
+}
+
+/** @returns {boolean} */
+exports.crypto_pwhash_str_needs_rehash = function (str, opslimit, memlimit) {
+  if (str.byteLength !== binding.crypto_pwhash_STRBYTES) throw new Error('str')
+  if (opslimit < binding.crypto_pwhash_OPSLIMIT_MIN) throw new Error('opslimit')
+  if (opslimit > binding.crypto_pwhash_OPSLIMIT_MAX) throw new Error('opslimit')
+  if (memlimit < binding.crypto_pwhash_MEMLIMIT_MIN) throw new Error('memlimit')
+  if (memlimit > binding.crypto_pwhash_MEMLIMIT_MAX) throw new Error('memlimit')
+
+  return binding.crypto_pwhash_str_needs_rehash(str, opslimit, memlimit)
+}
+
+exports.crypto_pwhash_scryptsalsa208sha256 = function (out, passwd, salt, opslimit, memlimit) {
+  if (out.byteLength < binding.crypto_pwhash_scryptsalsa208sha256_BYTES_MIN) throw new Error('out')
+  if (out.byteLength > binding.crypto_pwhash_scryptsalsa208sha256_BYTES_MAX) throw new Error('out')
+  if (salt.byteLength !== binding.crypto_pwhash_scryptsalsa208sha256_SALTBYTES) throw new Error('salt')
+  if (opslimit < binding.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN) throw new Error('opslimit')
+  if (opslimit > binding.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX) throw new Error('opslimit')
+  if (memlimit < binding.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN) throw new Error('memlimit')
+  if (memlimit > binding.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX) throw new Error('memlimit')
+
+  const res = binding.crypto_pwhash_scryptsalsa208sha256(out, passwd, salt, opslimit, memlimit)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_pwhash_scryptsalsa208sha256_str = function (out, passwd, opslimit, memlimit) {
+  if (out.byteLength !== binding.crypto_pwhash_scryptsalsa208sha256_STRBYTES) throw new Error('out')
+  if (opslimit < binding.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN) throw new Error('opslimit')
+  if (opslimit > binding.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX) throw new Error('opslimit')
+  if (memlimit < binding.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN) throw new Error('memlimit')
+  if (memlimit > binding.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX) throw new Error('memlimit')
+
+  const res = binding.crypto_pwhash_scryptsalsa208sha256_str(out, passwd, opslimit, memlimit)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+/** @returns {boolean} */
+exports.crypto_pwhash_scryptsalsa208sha256_str_verify = function (str, passwd) {
+  if (str.byteLength !== binding.crypto_pwhash_scryptsalsa208sha256_STRBYTES) throw new Error('str')
+
+  return binding.crypto_pwhash_scryptsalsa208sha256_str_verify(str, passwd)
+}
+
+/** @returns {boolean} */
+exports.crypto_pwhash_scryptsalsa208sha256_str_needs_rehash = function (str, opslimit, memlimit) {
+  if (str.byteLength !== binding.crypto_pwhash_scryptsalsa208sha256_STRBYTES) throw new Error('str')
+  if (opslimit < binding.crypto_pwhash_OPSLIMIT_MIN) throw new Error('opslimit')
+  if (opslimit > binding.crypto_pwhash_OPSLIMIT_MAX) throw new Error('opslimit')
+  if (memlimit < binding.crypto_pwhash_MEMLIMIT_MIN) throw new Error('memlimit')
+  if (memlimit > binding.crypto_pwhash_MEMLIMIT_MAX) throw new Error('memlimit')
+
+  return binding.crypto_pwhash_scryptsalsa208sha256_str_needs_rehash(str, opslimit, memlimit)
+}
+
+// crypto_kx
+
+exports.crypto_kx_keypair = function (pk, sk) {
+  if (pk.byteLength !== binding.crypto_kx_PUBLICKEYBYTES) throw new Error('pk')
+  if (sk.byteLength !== binding.crypto_kx_SECRETKEYBYTES) throw new Error('sk')
+
+  const res = binding.crypto_kx_keypair(pk, sk)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
+
+exports.crypto_kx_seed_keypair = function (pk, sk, seed) {
+  if (pk.byteLength !== binding.crypto_kx_PUBLICKEYBYTES) throw new Error('pk')
+  if (sk.byteLength !== binding.crypto_kx_SECRETKEYBYTES) throw new Error('sk')
+  if (seed.byteLength !== binding.crypto_kx_SEEDBYTES) throw new Error('seed')
+
+  const res = binding.crypto_kx_seed_keypair(pk, sk, seed)
+
+  if (res !== 0) throw new Error('status: ' + res)
+}
