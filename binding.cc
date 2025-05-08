@@ -1055,7 +1055,7 @@ sn_crypto_auth_verify(
   assert(h.size_bytes() == crypto_auth_BYTES);
   assert(k.size_bytes() == crypto_auth_KEYBYTES);
 
-  return crypto_auth_verify(h.data(), in.data(), in.size_bytes(), k.data()) == 0;
+return crypto_auth_verify(h.data(), in.data(), in.size_bytes(), k.data()) == 0;
 }
 
 static inline int
@@ -1814,218 +1814,333 @@ sn_crypto_aead_xchacha20poly1305_ietf_keygen(
   crypto_aead_xchacha20poly1305_ietf_keygen(k.data());
 }
 
-js_value_t *
-sn_crypto_aead_xchacha20poly1305_ietf_encrypt (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(6, crypto_aead_xchacha20poly1305_ietf_encrypt)
+static inline int64_t
+sn_crypto_aead_xchacha20poly1305_ietf_encrypt(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> c,
+  js_typedarray_span_t<> m,
+  std::optional<js_typedarray_span_t<>> ad,
+  js_typedarray_span_t<> npub,
+  js_typedarray_span_t<> k
+) {
+  assert(c.size_bytes() == m.size_bytes() + crypto_aead_xchacha20poly1305_ietf_ABYTES);
+  assert(c.size_bytes() <= 0xffffffff);
+  assert(npub.size_bytes() == crypto_aead_xchacha20poly1305_ietf_NPUBBYTES);
+  assert(k.size_bytes() == crypto_aead_xchacha20poly1305_ietf_KEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(c, 0)
-  SN_ARGV_TYPEDARRAY(m, 1)
-  SN_ARGV_OPTS_TYPEDARRAY(ad, 2)
-  SN_ARGV_CHECK_NULL(nsec, 3)
-  SN_ARGV_TYPEDARRAY(npub, 4)
-  SN_ARGV_TYPEDARRAY(k, 5)
+  uint8_t *ad_data = nullptr;
+  size_t ad_size = 0;
+  if (ad) {
+    ad_data = ad->data();
+    ad_size = ad->size_bytes();
+  }
 
-  SN_THROWS(!nsec_is_null, "nsec must always be set to null")
+  unsigned long long clen = 0;
+  int status = crypto_aead_xchacha20poly1305_ietf_encrypt(
+    c.data(),
+    &clen,
+    m.data(),
+    m.size_bytes(),
+    ad_data,
+    ad_size,
+    nullptr,
+    npub.data(),
+    k.data()
+  );
 
-  SN_THROWS(c_size != m_size + crypto_aead_xchacha20poly1305_ietf_ABYTES, "c must 'm.byteLength + crypto_aead_xchacha20poly1305_ietf_ABYTES' bytes")
-  SN_THROWS(c_size > 0xffffffff, "c.byteLength must be a 32bit integer")
-  SN_ASSERT_LENGTH(npub_size, crypto_aead_xchacha20poly1305_ietf_NPUBBYTES, "npub")
-  SN_ASSERT_LENGTH(k_size, crypto_aead_xchacha20poly1305_ietf_KEYBYTES, "k")
+  if (status < 0) return status;
 
-  unsigned long long clen;
-  SN_CALL(crypto_aead_xchacha20poly1305_ietf_encrypt(c_data, &clen, m_data, m_size, ad_data, ad_size, NULL, npub_data, k_data), "could not encrypt data")
-
-  js_value_t *result;
-  SN_STATUS_THROWS(js_create_uint32(env, (uint32_t) clen, &result), "")
-  return result;
+  return static_cast<int64_t>(clen);
 }
 
-js_value_t *
-sn_crypto_aead_xchacha20poly1305_ietf_decrypt (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(6, crypto_aead_xchacha20poly1305_ietf_decrypt)
+static inline int64_t
+sn_crypto_aead_xchacha20poly1305_ietf_decrypt(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> m,
+  js_typedarray_span_t<> c,
+  std::optional<js_typedarray_span_t<>> ad,
+  js_typedarray_span_t<> npub,
+  js_typedarray_span_t<> k
+) {
+  assert(m.size_bytes() == c.size_bytes() - crypto_aead_xchacha20poly1305_ietf_ABYTES);
+  assert(m.size_bytes() <= 0xffffffff);
+  assert(npub.size_bytes() == crypto_aead_xchacha20poly1305_ietf_NPUBBYTES);
+  assert(k.size_bytes() == crypto_aead_xchacha20poly1305_ietf_KEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(m, 0)
-  SN_ARGV_CHECK_NULL(nsec, 1)
-  SN_ARGV_TYPEDARRAY(c, 2)
-  SN_ARGV_OPTS_TYPEDARRAY(ad, 3)
-  SN_ARGV_TYPEDARRAY(npub, 4)
-  SN_ARGV_TYPEDARRAY(k, 5)
+  uint8_t *ad_data = nullptr;
+  size_t ad_size = 0;
+  if (ad) {
+    ad_data = ad->data();
+    ad_size = ad->size_bytes();
+  }
 
-  SN_THROWS(!nsec_is_null, "nsec must always be set to null")
+  unsigned long long mlen = 0;
+  int status = crypto_aead_xchacha20poly1305_ietf_decrypt(
+    m.data(),
+    &mlen,
+    nullptr,
+    c.data(),
+    c.size_bytes(),
+    ad_data,
+    ad_size,
+    npub.data(),
+    k.data()
+  );
 
-  SN_THROWS(m_size != c_size - crypto_aead_xchacha20poly1305_ietf_ABYTES, "m must 'c.byteLength - crypto_aead_xchacha20poly1305_ietf_ABYTES' bytes")
-  SN_ASSERT_LENGTH(npub_size, crypto_aead_xchacha20poly1305_ietf_NPUBBYTES, "npub")
-  SN_ASSERT_LENGTH(k_size, crypto_aead_xchacha20poly1305_ietf_KEYBYTES, "k")
-  SN_THROWS(m_size > 0xffffffff, "m.byteLength must be a 32bit integer")
+  if (status < 0) return status;
 
-  unsigned long long mlen;
-  SN_CALL(crypto_aead_xchacha20poly1305_ietf_decrypt(m_data, &mlen, NULL, c_data, c_size, ad_data, ad_size, npub_data, k_data), "could not verify data")
-
-  js_value_t *result;
-  SN_STATUS_THROWS(js_create_uint32(env, (uint32_t) mlen, &result), "")
-  return result;
+  return static_cast<int64_t>(mlen);
 }
 
-js_value_t *
-sn_crypto_aead_xchacha20poly1305_ietf_encrypt_detached (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(7, crypto_aead_xchacha20poly1305_ietf_encrypt_detached)
+static inline int64_t
+sn_crypto_aead_xchacha20poly1305_ietf_encrypt_detached(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> c,
+  js_typedarray_span_t<> mac,
+  js_typedarray_span_t<> m,
+  std::optional<js_typedarray_span_t<>> ad,
+  js_typedarray_span_t<> npub,
+  js_typedarray_span_t<> k
+) {
+  assert(c.size_bytes() == m.size_bytes());
+  assert(mac.size_bytes() == crypto_aead_xchacha20poly1305_ietf_ABYTES);
+  assert(npub.size_bytes() == crypto_aead_xchacha20poly1305_ietf_NPUBBYTES);
+  assert(k.size_bytes() == crypto_aead_xchacha20poly1305_ietf_KEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(c, 0)
-  SN_ARGV_TYPEDARRAY(mac, 1)
-  SN_ARGV_TYPEDARRAY(m, 2)
-  SN_ARGV_OPTS_TYPEDARRAY(ad, 3)
-  SN_ARGV_CHECK_NULL(nsec, 4)
-  SN_ARGV_TYPEDARRAY(npub, 5)
-  SN_ARGV_TYPEDARRAY(k, 6)
+  uint8_t *ad_data = nullptr;
+  size_t ad_size = 0;
+  if (ad) {
+    ad_data = ad->data();
+    ad_size = ad->size_bytes();
+  }
 
-  SN_THROWS(!nsec_is_null, "nsec must always be set to null")
+  unsigned long long maclen = 0;
+  int status = crypto_aead_xchacha20poly1305_ietf_encrypt_detached(
+    c.data(),
+    mac.data(),
+    &maclen,
+    m.data(),
+    m.size_bytes(),
+    ad_data,
+    ad_size,
+    nullptr,
+    npub.data(),
+    k.data()
+  );
 
-  SN_THROWS(c_size != m_size, "c must be 'm.byteLength' bytes")
-  SN_ASSERT_LENGTH(mac_size, crypto_aead_xchacha20poly1305_ietf_ABYTES, "mac")
-  SN_ASSERT_LENGTH(npub_size, crypto_aead_xchacha20poly1305_ietf_NPUBBYTES, "npub")
-  SN_ASSERT_LENGTH(k_size, crypto_aead_xchacha20poly1305_ietf_KEYBYTES, "k")
+  if (status < 0) return status;
 
-  unsigned long long maclen;
-  SN_CALL(crypto_aead_xchacha20poly1305_ietf_encrypt_detached(c_data, mac_data, &maclen, m_data, m_size, ad_data, ad_size, NULL, npub_data, k_data), "could not encrypt data")
-
-  js_value_t *result;
-  SN_STATUS_THROWS(js_create_uint32(env, (uint32_t) maclen, &result), "")
-  return result;
+  return static_cast<int64_t>(maclen);
 }
 
-js_value_t *
-sn_crypto_aead_xchacha20poly1305_ietf_decrypt_detached (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(7, crypto_aead_xchacha20poly1305_ietf_decrypt_detached)
+static inline int
+sn_crypto_aead_xchacha20poly1305_ietf_decrypt_detached(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> m,
+  js_typedarray_span_t<> c,
+  js_typedarray_span_t<> mac,
+  std::optional<js_typedarray_span_t<>> ad,
+  js_typedarray_span_t<> npub,
+  js_typedarray_span_t<> k
+) {
+  assert(m.size_bytes() == c.size_bytes());
+  assert(mac.size_bytes() == crypto_aead_xchacha20poly1305_ietf_ABYTES);
+  assert(npub.size_bytes() == crypto_aead_xchacha20poly1305_ietf_NPUBBYTES);
+  assert(k.size_bytes() == crypto_aead_xchacha20poly1305_ietf_KEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(m, 0)
-  SN_ARGV_CHECK_NULL(nsec, 1)
-  SN_ARGV_TYPEDARRAY(c, 2)
-  SN_ARGV_TYPEDARRAY(mac, 3)
-  SN_ARGV_OPTS_TYPEDARRAY(ad, 4)
-  SN_ARGV_TYPEDARRAY(npub, 5)
-  SN_ARGV_TYPEDARRAY(k, 6)
+  uint8_t *ad_data = nullptr;
+  size_t ad_size = 0;
+  if (ad) {
+    ad_data = ad->data();
+    ad_size = ad->size_bytes();
+  }
 
-  SN_THROWS(!nsec_is_null, "nsec must always be set to null")
+  int status = crypto_aead_xchacha20poly1305_ietf_decrypt_detached(
+    m.data(),
+    nullptr,
+    c.data(),
+    c.size_bytes(),
+    mac.data(),
+    ad_data,
+    ad_size,
+    npub.data(),
+    k.data()
+  );
 
-  SN_THROWS(m_size != c_size, "m must be 'c.byteLength' bytes")
-  SN_ASSERT_LENGTH(mac_size, crypto_aead_xchacha20poly1305_ietf_ABYTES, "mac")
-  SN_ASSERT_LENGTH(npub_size, crypto_aead_xchacha20poly1305_ietf_NPUBBYTES, "npub")
-  SN_ASSERT_LENGTH(k_size, crypto_aead_xchacha20poly1305_ietf_KEYBYTES, "k")
-
-  SN_RETURN(crypto_aead_xchacha20poly1305_ietf_decrypt_detached(m_data, NULL, c_data, c_size, mac_data, ad_data, ad_size, npub_data, k_data), "could not verify data")
+  return status;
 }
 
-js_value_t *
-sn_crypto_aead_chacha20poly1305_ietf_keygen (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(1, crypto_aead_chacha20poly1305_ietf_keygen)
+static inline void
+sn_crypto_aead_chacha20poly1305_ietf_keygen(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> k
+) {
+  assert(k.size_bytes() == crypto_aead_chacha20poly1305_ietf_KEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(k, 0)
-
-  SN_ASSERT_LENGTH(k_size, crypto_aead_chacha20poly1305_ietf_KEYBYTES, "k")
-
-  crypto_aead_chacha20poly1305_ietf_keygen(k_data);
-  return NULL;
+  crypto_aead_chacha20poly1305_ietf_keygen(k.data());
 }
 
-js_value_t *
-sn_crypto_aead_chacha20poly1305_ietf_encrypt (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(6, crypto_aead_chacha20poly1305_ietf_encrypt)
+static inline int64_t
+sn_crypto_aead_chacha20poly1305_ietf_encrypt(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> c,
+  js_typedarray_span_t<> m,
+  std::optional<js_typedarray_span_t<>> ad,
+  js_typedarray_span_t<> npub,
+  js_typedarray_span_t<> k
+) {
+  assert(c.size_bytes() == m.size_bytes() + crypto_aead_chacha20poly1305_ietf_ABYTES);
+  assert(c.size_bytes() <= 0xffffffff);
+  assert(npub.size_bytes() == crypto_aead_chacha20poly1305_ietf_NPUBBYTES);
+  assert(k.size_bytes() == crypto_aead_chacha20poly1305_ietf_KEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(c, 0)
-  SN_ARGV_TYPEDARRAY(m, 1)
-  SN_ARGV_OPTS_TYPEDARRAY(ad, 2)
-  SN_ARGV_CHECK_NULL(nsec, 3)
-  SN_ARGV_TYPEDARRAY(npub, 4)
-  SN_ARGV_TYPEDARRAY(k, 5)
+  uint8_t *ad_data = nullptr;
+  size_t ad_size = 0;
+  if (ad) {
+    ad_data = ad->data();
+    ad_size = ad->size_bytes();
+  }
 
-  SN_THROWS(!nsec_is_null, "nsec must always be set to null")
+  unsigned long long clen = 0;
+  int status = crypto_aead_chacha20poly1305_ietf_encrypt(
+    c.data(),
+    &clen,
+    m.data(),
+    m.size_bytes(),
+    ad_data,
+    ad_size,
+    nullptr,
+    npub.data(),
+    k.data()
+  );
 
-  SN_THROWS(c_size != m_size + crypto_aead_chacha20poly1305_ietf_ABYTES, "c must 'm.byteLength + crypto_aead_chacha20poly1305_ietf_ABYTES' bytes")
-  SN_THROWS(c_size > 0xffffffff, "c.byteLength must be a 32bit integer")
-  SN_ASSERT_LENGTH(npub_size, crypto_aead_chacha20poly1305_ietf_NPUBBYTES, "npub")
-  SN_ASSERT_LENGTH(k_size, crypto_aead_chacha20poly1305_ietf_KEYBYTES, "k")
+  if (status < 0) return status;
 
-  unsigned long long clen;
-  SN_CALL(crypto_aead_chacha20poly1305_ietf_encrypt(c_data, &clen, m_data, m_size, ad_data, ad_size, NULL, npub_data, k_data), "could not encrypt data")
-
-  js_value_t *result;
-  SN_STATUS_THROWS(js_create_uint32(env, (uint32_t) clen, &result), "")
-  return result;
+  return static_cast<int64_t>(clen);
 }
 
-js_value_t *
-sn_crypto_aead_chacha20poly1305_ietf_decrypt (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(6, crypto_aead_chacha20poly1305_ietf_decrypt)
+static inline int64_t
+sn_crypto_aead_chacha20poly1305_ietf_decrypt(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> m,
+  js_typedarray_span_t<> c,
+  std::optional<js_typedarray_span_t<>> ad,
+  js_typedarray_span_t<> npub,
+  js_typedarray_span_t<> k
+) {
+  assert(m.size_bytes() == c.size_bytes() - crypto_aead_chacha20poly1305_ietf_ABYTES);
+  assert(m.size_bytes() <= 0xffffffff);
+  assert(npub.size_bytes() == crypto_aead_chacha20poly1305_ietf_NPUBBYTES);
+  assert(k.size_bytes() == crypto_aead_chacha20poly1305_ietf_KEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(m, 0)
-  SN_ARGV_CHECK_NULL(nsec, 1)
-  SN_ARGV_TYPEDARRAY(c, 2)
-  SN_ARGV_OPTS_TYPEDARRAY(ad, 3)
-  SN_ARGV_TYPEDARRAY(npub, 4)
-  SN_ARGV_TYPEDARRAY(k, 5)
+  uint8_t *ad_data = nullptr;
+  size_t ad_size = 0;
+  if (ad) {
+    ad_data = ad->data();
+    ad_size = ad->size_bytes();
+  }
 
-  SN_THROWS(!nsec_is_null, "nsec must always be set to null")
+  unsigned long long mlen = 0;
+  int status = crypto_aead_chacha20poly1305_ietf_decrypt(
+    m.data(),
+    &mlen,
+    nullptr,
+    c.data(),
+    c.size_bytes(),
+    ad_data,
+    ad_size,
+    npub.data(),
+    k.data()
+  );
 
-  SN_THROWS(m_size != c_size - crypto_aead_chacha20poly1305_ietf_ABYTES, "m must 'c.byteLength - crypto_aead_chacha20poly1305_ietf_ABYTES' bytes")
-  SN_ASSERT_LENGTH(npub_size, crypto_aead_chacha20poly1305_ietf_NPUBBYTES, "npub")
-  SN_ASSERT_LENGTH(k_size, crypto_aead_chacha20poly1305_ietf_KEYBYTES, "k")
-  SN_THROWS(m_size > 0xffffffff, "m.byteLength must be a 32bit integer")
+  if (status < 0) return status;
 
-  unsigned long long mlen;
-  SN_CALL(crypto_aead_chacha20poly1305_ietf_decrypt(m_data, &mlen, NULL, c_data, c_size, ad_data, ad_size, npub_data, k_data), "could not verify data")
-
-  js_value_t *result;
-  SN_STATUS_THROWS(js_create_uint32(env, (uint32_t) mlen, &result), "")
-  return result;
+  return static_cast<int64_t>(mlen);
 }
 
-js_value_t *
-sn_crypto_aead_chacha20poly1305_ietf_encrypt_detached (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(7, crypto_aead_chacha20poly1305_ietf_encrypt_detached)
+static inline int64_t
+sn_crypto_aead_chacha20poly1305_ietf_encrypt_detached(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> c,
+  js_typedarray_span_t<> mac,
+  js_typedarray_span_t<> m,
+  std::optional<js_typedarray_span_t<>> ad,
+  js_typedarray_span_t<> npub,
+  js_typedarray_span_t<> k
+) {
+  assert(c.size_bytes() == m.size_bytes());
+  assert(mac.size_bytes() == crypto_aead_chacha20poly1305_ietf_ABYTES);
+  assert(npub.size_bytes() == crypto_aead_chacha20poly1305_ietf_NPUBBYTES);
+  assert(k.size_bytes() == crypto_aead_chacha20poly1305_ietf_KEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(c, 0)
-  SN_ARGV_TYPEDARRAY(mac, 1)
-  SN_ARGV_TYPEDARRAY(m, 2)
-  SN_ARGV_OPTS_TYPEDARRAY(ad, 3)
-  SN_ARGV_CHECK_NULL(nsec, 4)
-  SN_ARGV_TYPEDARRAY(npub, 5)
-  SN_ARGV_TYPEDARRAY(k, 6)
+  uint8_t *ad_data = nullptr;
+  size_t ad_size = 0;
+  if (ad) {
+    ad_data = ad->data();
+    ad_size = ad->size_bytes();
+  }
 
-  SN_THROWS(!nsec_is_null, "nsec must always be set to null")
+  unsigned long long maclen = 0;
+  int status = crypto_aead_chacha20poly1305_ietf_encrypt_detached(
+    c.data(),
+    mac.data(),
+    &maclen,
+    m.data(),
+    m.size_bytes(),
+    ad_data,
+    ad_size,
+    nullptr,
+    npub.data(),
+    k.data()
+  );
 
-  SN_THROWS(c_size != m_size, "c must be 'm.byteLength' bytes")
-  SN_ASSERT_LENGTH(mac_size, crypto_aead_chacha20poly1305_ietf_ABYTES, "mac")
-  SN_ASSERT_LENGTH(npub_size, crypto_aead_chacha20poly1305_ietf_NPUBBYTES, "npub")
-  SN_ASSERT_LENGTH(k_size, crypto_aead_chacha20poly1305_ietf_KEYBYTES, "k")
+  if (status < 0) return status;
 
-  unsigned long long maclen;
-  SN_CALL(crypto_aead_chacha20poly1305_ietf_encrypt_detached(c_data, mac_data, &maclen, m_data, m_size, ad_data, ad_size, NULL, npub_data, k_data), "could not encrypt data")
-
-  js_value_t *result;
-  SN_STATUS_THROWS(js_create_uint32(env, (uint32_t) maclen, &result), "")
-  return result;
+  return static_cast<int64_t>(maclen);
 }
 
-js_value_t *
-sn_crypto_aead_chacha20poly1305_ietf_decrypt_detached (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(7, crypto_aead_chacha20poly1305_ietf_decrypt_detached)
+static inline int
+sn_crypto_aead_chacha20poly1305_ietf_decrypt_detached(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> m,
+  js_typedarray_span_t<> c,
+  js_typedarray_span_t<> mac,
+  std::optional<js_typedarray_span_t<>> ad,
+  js_typedarray_span_t<> npub,
+  js_typedarray_span_t<> k
+) {
+  assert(m.size_bytes() == c.size_bytes());
+  assert(mac.size_bytes() == crypto_aead_chacha20poly1305_ietf_ABYTES);
+  assert(npub.size_bytes() == crypto_aead_chacha20poly1305_ietf_NPUBBYTES);
+  assert(k.size_bytes() == crypto_aead_chacha20poly1305_ietf_KEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(m, 0)
-  SN_ARGV_CHECK_NULL(nsec, 1)
-  SN_ARGV_TYPEDARRAY(c, 2)
-  SN_ARGV_TYPEDARRAY(mac, 3)
-  SN_ARGV_OPTS_TYPEDARRAY(ad, 4)
-  SN_ARGV_TYPEDARRAY(npub, 5)
-  SN_ARGV_TYPEDARRAY(k, 6)
+  uint8_t *ad_data = nullptr;
+  size_t ad_size = 0;
+  if (ad) {
+    ad_data = ad->data();
+    ad_size = ad->size_bytes();
+  }
 
-  SN_THROWS(!nsec_is_null, "nsec must always be set to null")
-
-  SN_THROWS(m_size != c_size, "m must be 'c.byteLength' bytes")
-  SN_ASSERT_LENGTH(mac_size, crypto_aead_chacha20poly1305_ietf_ABYTES, "mac")
-  SN_ASSERT_LENGTH(npub_size, crypto_aead_chacha20poly1305_ietf_NPUBBYTES, "npub")
-  SN_ASSERT_LENGTH(k_size, crypto_aead_chacha20poly1305_ietf_KEYBYTES, "k")
-
-  SN_RETURN(crypto_aead_chacha20poly1305_ietf_decrypt_detached(m_data, NULL, c_data, c_size, mac_data, ad_data, ad_size, npub_data, k_data), "could not verify data")
+  return crypto_aead_chacha20poly1305_ietf_decrypt_detached(
+    m.data(),
+    nullptr,
+    c.data(),
+    c.size_bytes(),
+    mac.data(),
+    ad_data,
+    ad_size,
+    npub.data(),
+    k.data()
+  );
 }
 
 static inline void
@@ -3606,21 +3721,21 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   // crypto_aead
 
   SN_EXPORT_FUNCTION_SCOPED("crypto_aead_xchacha20poly1305_ietf_keygen", sn_crypto_aead_xchacha20poly1305_ietf_keygen);
-  SN_EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_encrypt, sn_crypto_aead_xchacha20poly1305_ietf_encrypt);
-  SN_EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_decrypt, sn_crypto_aead_xchacha20poly1305_ietf_decrypt);
-  SN_EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_encrypt_detached, sn_crypto_aead_xchacha20poly1305_ietf_encrypt_detached);
-  SN_EXPORT_FUNCTION(crypto_aead_xchacha20poly1305_ietf_decrypt_detached, sn_crypto_aead_xchacha20poly1305_ietf_decrypt_detached);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_aead_xchacha20poly1305_ietf_encrypt", sn_crypto_aead_xchacha20poly1305_ietf_encrypt);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_aead_xchacha20poly1305_ietf_decrypt", sn_crypto_aead_xchacha20poly1305_ietf_decrypt);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_aead_xchacha20poly1305_ietf_encrypt_detached", sn_crypto_aead_xchacha20poly1305_ietf_encrypt_detached);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_aead_xchacha20poly1305_ietf_decrypt_detached", sn_crypto_aead_xchacha20poly1305_ietf_decrypt_detached);
   SN_EXPORT_UINT32(crypto_aead_xchacha20poly1305_ietf_ABYTES, crypto_aead_xchacha20poly1305_ietf_ABYTES);
   SN_EXPORT_UINT32(crypto_aead_xchacha20poly1305_ietf_KEYBYTES, crypto_aead_xchacha20poly1305_ietf_KEYBYTES);
   SN_EXPORT_UINT32(crypto_aead_xchacha20poly1305_ietf_NPUBBYTES, crypto_aead_xchacha20poly1305_ietf_NPUBBYTES);
   SN_EXPORT_UINT32(crypto_aead_xchacha20poly1305_ietf_NSECBYTES, crypto_aead_xchacha20poly1305_ietf_NSECBYTES);
   SN_EXPORT_UINT64(crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX, crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX);
 
-  SN_EXPORT_FUNCTION(crypto_aead_chacha20poly1305_ietf_keygen, sn_crypto_aead_chacha20poly1305_ietf_keygen);
-  SN_EXPORT_FUNCTION(crypto_aead_chacha20poly1305_ietf_encrypt, sn_crypto_aead_chacha20poly1305_ietf_encrypt);
-  SN_EXPORT_FUNCTION(crypto_aead_chacha20poly1305_ietf_decrypt, sn_crypto_aead_chacha20poly1305_ietf_decrypt);
-  SN_EXPORT_FUNCTION(crypto_aead_chacha20poly1305_ietf_encrypt_detached, sn_crypto_aead_chacha20poly1305_ietf_encrypt_detached);
-  SN_EXPORT_FUNCTION(crypto_aead_chacha20poly1305_ietf_decrypt_detached, sn_crypto_aead_chacha20poly1305_ietf_decrypt_detached);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_aead_chacha20poly1305_ietf_keygen", sn_crypto_aead_chacha20poly1305_ietf_keygen);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_aead_chacha20poly1305_ietf_encrypt", sn_crypto_aead_chacha20poly1305_ietf_encrypt);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_aead_chacha20poly1305_ietf_decrypt", sn_crypto_aead_chacha20poly1305_ietf_decrypt);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_aead_chacha20poly1305_ietf_encrypt_detached", sn_crypto_aead_chacha20poly1305_ietf_encrypt_detached);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_aead_chacha20poly1305_ietf_decrypt_detached", sn_crypto_aead_chacha20poly1305_ietf_decrypt_detached);
   SN_EXPORT_UINT32(crypto_aead_chacha20poly1305_ietf_ABYTES, crypto_aead_chacha20poly1305_ietf_ABYTES);
   SN_EXPORT_UINT32(crypto_aead_chacha20poly1305_ietf_KEYBYTES, crypto_aead_chacha20poly1305_ietf_KEYBYTES);
   SN_EXPORT_UINT32(crypto_aead_chacha20poly1305_ietf_NPUBBYTES, crypto_aead_chacha20poly1305_ietf_NPUBBYTES);

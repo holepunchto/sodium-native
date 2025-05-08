@@ -1027,3 +1027,123 @@ exports.crypto_aead_xchacha20poly1305_ietf_keygen = function (k) {
 
   binding.crypto_aead_xchacha20poly1305_ietf_keygen(k)
 }
+
+/** @returns {number} */
+exports.crypto_aead_xchacha20poly1305_ietf_encrypt = function (c, m, ad, nsec = null, npub, k) {
+  ad ??= undefined
+  if (nsec !== null) throw new Error('nsec must always be set to null')
+  if (c.byteLength !== m.byteLength + binding.crypto_aead_xchacha20poly1305_ietf_ABYTES) throw new Error('c must "m.byteLength + crypto_aead_xchacha20poly1305_ietf_ABYTES" bytes')
+  if (c.byteLength > 0xffffffff) throw new Error('c.byteLength must be a 32bit integer')
+  if (npub.byteLength !== binding.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES) throw new Error('npub')
+  if (k.byteLength !== binding.crypto_aead_xchacha20poly1305_ietf_KEYBYTES) throw new Error('k')
+
+  const res = binding.crypto_aead_xchacha20poly1305_ietf_encrypt(c, m, ad, npub, k)
+  if (res < 0) throw new Error('could not encrypt data')
+
+  return res
+}
+
+/** @returns {number} */
+exports.crypto_aead_xchacha20poly1305_ietf_decrypt = function (m, nsec = null, c, ad, npub, k) {
+  ad ??= undefined
+  if (nsec !== null) throw new Error('nsec must always be set to null')
+  if (m.byteLength !== c.byteLength - binding.crypto_aead_xchacha20poly1305_ietf_ABYTES) throw new Error('m must "c.byteLength - crypto_aead_xchacha20poly1305_ietf_ABYTES" bytes')
+  if (m.byteLength > 0xffffffff) throw new Error('m.byteLength must be a 32bit integer')
+  if (npub.byteLength !== binding.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES) throw new Error('npub')
+  if (k.byteLength !== binding.crypto_aead_xchacha20poly1305_ietf_KEYBYTES) throw new Error('k')
+
+  const res = binding.crypto_aead_xchacha20poly1305_ietf_decrypt(m, c, ad, npub, k)
+  if (res < 0) throw new Error('could not verify data')
+
+  return res
+}
+
+/** @returns {number} */
+exports.crypto_aead_xchacha20poly1305_ietf_encrypt_detached = function (c, mac, m, ad, nsec = null, npub, k) {
+  ad ??= undefined
+  if (nsec !== null) throw new Error('nsec must always be set to null')
+  if (c.byteLength !== m.byteLength) throw new Error('c must be "m.byteLength" bytes')
+  if (mac.byteLength !== binding.crypto_aead_xchacha20poly1305_ietf_ABYTES) throw new Error('mac')
+  if (npub.byteLength !== binding.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES) throw new Error('npub')
+  if (k.byteLength !== binding.crypto_aead_xchacha20poly1305_ietf_KEYBYTES) throw new Error('k')
+
+  const res = binding.crypto_aead_xchacha20poly1305_ietf_encrypt_detached(c, mac, m, ad, npub, k)
+  if (res < 0) throw new Error('could not encrypt data')
+
+  return res
+}
+
+exports.crypto_aead_xchacha20poly1305_ietf_decrypt_detached = function (m, nsec = null, c, mac, ad, npub, k) {
+  ad ??= undefined
+  if (nsec !== null) throw new Error('nsec must always be set to null')
+  if (m.byteLength !== c.byteLength) throw new Error('m must be "c.byteLength" bytes')
+  if (mac.byteLength !== binding.crypto_aead_xchacha20poly1305_ietf_ABYTES) throw new Error('mac')
+  if (npub.byteLength !== binding.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES) throw new Error('npub')
+  if (k.byteLength !== binding.crypto_aead_xchacha20poly1305_ietf_KEYBYTES) throw new Error('k')
+
+  const res = binding.crypto_aead_xchacha20poly1305_ietf_decrypt_detached(m, c, mac, ad, npub, k)
+  if (res !== 0) throw new Error('could not verify data')
+}
+
+exports.crypto_aead_chacha20poly1305_ietf_keygen = function (k) {
+  if (k.byteLength !== binding.crypto_aead_chacha20poly1305_ietf_KEYBYTES) throw new Error('k')
+
+  binding.crypto_aead_chacha20poly1305_ietf_keygen(k)
+}
+
+/** @returns {number} */
+exports.crypto_aead_chacha20poly1305_ietf_encrypt = function (c, m, ad, nsec = null, npub, k) {
+  ad ??= undefined
+  if (nsec !== null) throw new Error('nsec must always be set to null')
+  if (c.byteLength !== m.byteLength + binding.crypto_aead_chacha20poly1305_ietf_ABYTES) throw new Error('c must "m.byteLength + crypto_aead_chacha20poly1305_ietf_ABYTES" bytes')
+  if (c.byteLength > 0xffffffff) throw new Error('c.byteLength must be a 32bit integer')
+  if (npub.byteLength !== binding.crypto_aead_chacha20poly1305_ietf_NPUBBYTES) throw new Error('npub')
+  if (k.byteLength !== binding.crypto_aead_chacha20poly1305_ietf_KEYBYTES) throw new Error('k')
+
+  const res = binding.crypto_aead_chacha20poly1305_ietf_encrypt(c, m, ad, npub, k)
+  if (res < 0) throw new Error('could not encrypt data')
+
+  return res
+}
+
+/** @returns {number} */
+exports.crypto_aead_chacha20poly1305_ietf_decrypt = function (m, nsec = null, c, ad, npub, k) {
+  ad ??= undefined
+  if (nsec !== null) throw new Error('nsec must always be set to null')
+  if (m.byteLength !== c.byteLength - binding.crypto_aead_chacha20poly1305_ietf_ABYTES) throw new Error('m must "c.byteLength - crypto_aead_chacha20poly1305_ietf_ABYTES" bytes')
+  if (m.byteLength > 0xffffffff) throw new Error('m.byteLength must be a 32bit integer')
+  if (npub.byteLength !== binding.crypto_aead_chacha20poly1305_ietf_NPUBBYTES) throw new Error('npub')
+  if (k.byteLength !== binding.crypto_aead_chacha20poly1305_ietf_KEYBYTES) throw new Error('k')
+
+  const res = binding.crypto_aead_chacha20poly1305_ietf_decrypt(m, c, ad, npub, k)
+  if (res < 0) throw new Error('could not verify data')
+
+  return res
+}
+
+/** @returns {number} */
+exports.crypto_aead_chacha20poly1305_ietf_encrypt_detached = function (c, mac, m, ad, nsec = null, npub, k) {
+  ad ??= undefined
+  if (nsec !== null) throw new Error('nsec must always be set to null')
+  if (c.byteLength !== m.byteLength) throw new Error('c must be "m.byteLength" bytes')
+  if (mac.byteLength !== binding.crypto_aead_chacha20poly1305_ietf_ABYTES) throw new Error('mac')
+  if (npub.byteLength !== binding.crypto_aead_chacha20poly1305_ietf_NPUBBYTES) throw new Error('npub')
+  if (k.byteLength !== binding.crypto_aead_chacha20poly1305_ietf_KEYBYTES) throw new Error('k')
+
+  const res = binding.crypto_aead_chacha20poly1305_ietf_encrypt_detached(c, mac, m, ad, npub, k)
+  if (res < 0) throw new Error('could not encrypt data')
+
+  return res
+}
+
+exports.crypto_aead_chacha20poly1305_ietf_decrypt_detached = function (m, nsec = null, c, mac, ad, npub, k) {
+  ad ??= undefined
+  if (nsec !== null) throw new Error('nsec must always be set to null')
+  if (m.byteLength !== c.byteLength) throw new Error('m must be "c.byteLength" bytes')
+  if (mac.byteLength !== binding.crypto_aead_chacha20poly1305_ietf_ABYTES) throw new Error('mac')
+  if (npub.byteLength !== binding.crypto_aead_chacha20poly1305_ietf_NPUBBYTES) throw new Error('npub')
+  if (k.byteLength !== binding.crypto_aead_chacha20poly1305_ietf_KEYBYTES) throw new Error('k')
+
+  const res = binding.crypto_aead_chacha20poly1305_ietf_decrypt_detached(m, c, mac, ad, npub, k)
+  if (res !== 0) throw new Error('could not verify data')
+}
