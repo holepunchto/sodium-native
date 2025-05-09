@@ -7,9 +7,10 @@ find_package(cmake-npm REQUIRED PATHS node_modules/cmake-npm)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
-project(sodium_native C ASM)
+project(sodium_native C ASM CXX)
 
 fetch_package("github:jedisct1/libsodium#stable" SOURCE_DIR sodium)
+fetch_package("github:holepunchto/libjstl#2188770")
 
 bare_target(target)
 
@@ -212,7 +213,7 @@ add_bare_module(sodium_native_bare)
 target_sources(
   ${sodium_native_bare}
   PRIVATE
-    binding.c
+    binding.cc
     macros.h
     extensions/tweak/tweak.c
     extensions/tweak/tweak.h
@@ -224,6 +225,7 @@ target_link_libraries(
   ${sodium_native_bare}
   PRIVATE
     $<TARGET_OBJECTS:sodium>
+    jstl
   PUBLIC
     sodium
 )
@@ -233,7 +235,7 @@ add_napi_module(sodium_native_node)
 target_sources(
   ${sodium_native_node}
   PRIVATE
-    binding.c
+    binding.cc
     macros.h
     extensions/tweak/tweak.c
     extensions/tweak/tweak.h
@@ -245,6 +247,7 @@ target_link_libraries(
   ${sodium_native_node}
   PRIVATE
     $<TARGET_OBJECTS:sodium>
+    jstl
   PUBLIC
     sodium
 )

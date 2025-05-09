@@ -1,3 +1,7 @@
+#ifdef __cplusplus
+extern "C" {
+#endif
+
 #include <sodium.h>
 
 // copy 32 bytes using int64_t pointers
@@ -52,3 +56,7 @@ int sn__extension_tweak_ed25519_pk_add(unsigned char *tpk,
 
 int sn__extension_tweak_ed25519_keypair_add(unsigned char *pk, unsigned char *scalar_out,
                                       unsigned char *scalar, const unsigned char *tweak);
+
+#ifdef __cplusplus
+};
+#endif
