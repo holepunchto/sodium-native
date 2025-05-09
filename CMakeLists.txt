@@ -230,13 +230,6 @@ target_link_libraries(
     sodium
 )
 
-set_target_properties(
-  ${sodium_native_bare}
-  PROPERTIES
-  C_STANDARD 11
-  CXX_STANDARD 20
-)
-
 add_napi_module(sodium_native_node)
 
 target_sources(
@@ -248,13 +241,6 @@ target_sources(
     extensions/tweak/tweak.h
     extensions/pbkdf2/pbkdf2.c
     extensions/pbkdf2/pbkdf2.h
-)
-
-set_target_properties(
-  ${sodium_native_node}
-  PROPERTIES
-  C_STANDARD 11
-  CXX_STANDARD 20
 )
 
 target_link_libraries(
