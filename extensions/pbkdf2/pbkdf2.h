@@ -28,6 +28,9 @@
 /*
  * Adapted from libsodium/crypto_pwhash/scryptsalsa208sha256/pbkdf-sha256.c
  */
+#ifdef __cplusplus
+extern "C" {
+#endif
 
 #include <sodium.h>
 
@@ -52,3 +55,6 @@
  */
 int sn__extension_pbkdf2_sha512(const unsigned char *, size_t, const unsigned char *, size_t,
                            uint64_t, unsigned char *, size_t);
+#ifdef __cplusplus
+};
+#endif
