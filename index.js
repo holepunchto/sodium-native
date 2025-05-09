@@ -6,6 +6,20 @@ module.exports = exports = { ...binding }
 
 // memory
 
+exports.sodium_memzero = function (buf) {
+  binding.sodium_memzero(buf)
+}
+
+exports.sodium_mlock = function (buf) {
+  const res = binding.sodium_mlock(buf)
+  if (res !== 0) throw new Error('memory lock failed')
+}
+
+exports.sodium_munlock = function (buf) {
+  const res = binding.sodium_munlock(buf)
+  if (res !== 0) throw new Error('memory unlock failed')
+}
+
 exports.sodium_malloc = function (size) {
   const buf = Buffer.from(binding.sodium_malloc(size))
   buf.secure = true
@@ -1283,4 +1297,88 @@ exports.crypto_stream_salsa20_xor_wrap_final = function (state) {
   }
 
   binding.crypto_stream_salsa20_xor_wrap_final(state)
+}
+
+// experimental
+
+exports.extension_tweak_ed25519_base = function (n, p, ns) {
+  if (n.byteLength !== binding.extension_tweak_ed25519_SCALARBYTES) throw new Error('n')
+  if (p.byteLength !== binding.extension_tweak_ed25519_BYTES) throw new Error('p')
+
+  binding.extension_tweak_ed25519_base(n, p, ns)
+}
+
+exports.extension_tweak_ed25519_sign_detached = function (sig, m, scalar, pk) {
+  if (sig.byteLength !== binding.crypto_sign_BYTES) throw new Error('sig')
+  if (scalar.byteLength !== binding.extension_tweak_ed25519_SCALARBYTES) throw new Error('scalar')
+  if (pk && pk.byteLength !== binding.crypto_sign_PUBLICKEYBYTES) throw new Error('pk')
+
+  const res = binding.extension_tweak_ed25519_sign_detached(sig, m, scalar, pk)
+  if (res !== 0) throw new Error('failed to compute signature')
+}
+
+exports.extension_tweak_ed25519_sk_to_scalar = function (n, sk) {
+  if (n.byteLength !== binding.extension_tweak_ed25519_SCALARBYTES) throw new Error('n')
+  if (sk.byteLength !== binding.crypto_sign_SECRETKEYBYTES) throw new Error('sk')
+
+  binding.extension_tweak_ed25519_sk_to_scalar(n, sk)
+}
+
+exports.extension_tweak_ed25519_scalar = function (scalarOut, scalar, ns) {
+  if (scalarOut.byteLength !== binding.extension_tweak_ed25519_SCALARBYTES) throw new Error('scalar_out')
+  if (scalar.byteLength !== binding.extension_tweak_ed25519_SCALARBYTES) throw new Error('scalar')
+
+  binding.extension_tweak_ed25519_scalar(scalarOut, scalar, ns)
+}
+
+exports.extension_tweak_ed25519_pk = function (tpk, pk, ns) {
+  if (tpk.byteLength !== binding.crypto_sign_PUBLICKEYBYTES) throw new Error('tpk')
+  if (pk.byteLength !== binding.crypto_sign_PUBLICKEYBYTES) throw new Error('pk')
+
+  const res = binding.extension_tweak_ed25519_pk(tpk, pk, ns)
+  if (res !== 0) throw new Error('failed to tweak public key')
+}
+
+exports.extension_tweak_ed25519_keypair = function (pk, scalarOut, scalarIn, ns) {
+  if (pk.byteLength !== binding.extension_tweak_ed25519_BYTES) throw new Error('pk')
+  if (scalarOut.byteLength !== binding.extension_tweak_ed25519_SCALARBYTES) throw new Error('scalar_out')
+  if (scalarIn.byteLength !== binding.extension_tweak_ed25519_SCALARBYTES) throw new Error('scalar_in')
+
+  binding.extension_tweak_ed25519_keypair(pk, scalarOut, scalarIn, ns)
+}
+
+exports.extension_tweak_ed25519_scalar_add = function (scalarOut, scalar, n) {
+  if (scalarOut.byteLength !== binding.extension_tweak_ed25519_SCALARBYTES) throw new Error('scalar_out')
+  if (scalar.byteLength !== binding.extension_tweak_ed25519_SCALARBYTES) throw new Error('scalar')
+  if (n.byteLength !== binding.extension_tweak_ed25519_SCALARBYTES) throw new Error('n')
+
+  binding.extension_tweak_ed25519_scalar_add(scalarOut, scalar, n)
+}
+
+exports.extension_tweak_ed25519_pk_add = function (tpk, pk, p) {
+  if (tpk.byteLength !== binding.crypto_sign_PUBLICKEYBYTES) throw new Error('tpk')
+  if (pk.byteLength !== binding.crypto_sign_PUBLICKEYBYTES) throw new Error('pk')
+  if (p.byteLength !== binding.crypto_sign_PUBLICKEYBYTES) throw new Error('p')
+
+  const res = binding.extension_tweak_ed25519_pk_add(tpk, pk, p)
+  if (res !== 0) throw new Error('failed to add tweak to public key')
+}
+
+exports.extension_tweak_ed25519_keypair_add = function (pk, scalarOut, scalarIn, tweak) {
+  if (pk.byteLength !== binding.extension_tweak_ed25519_BYTES) throw new Error('pk')
+  if (scalarOut.byteLength !== binding.extension_tweak_ed25519_SCALARBYTES) throw new Error('scalar_out')
+  if (scalarIn.byteLength !== binding.extension_tweak_ed25519_SCALARBYTES) throw new Error('scalar_in')
+  if (tweak.byteLength !== binding.extension_tweak_ed25519_SCALARBYTES) throw new Error('tweak')
+
+  const res = binding.extension_tweak_ed25519_keypair_add(pk, scalarOut, scalarIn, tweak)
+  if (res !== 0) throw new Error('failed to add tweak to keypair')
+}
+
+exports.extension_pbkdf2_sha512 = function (out, passwd, salt, iter, outlen) {
+  if (iter < binding.extension_pbkdf2_sha512_ITERATIONS_MIN) throw new Error('iterations')
+  if (outlen > binding.extension_pbkdf2_sha512_BYTES_MAX) throw new Error('outlen')
+  if (out.byteLength < outlen) throw new Error('out')
+
+  const res = binding.extension_pbkdf2_sha512(out, passwd, salt, iter, outlen)
+  if (res !== 0) throw new Error('failed to add tweak to public key')
 }

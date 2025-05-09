@@ -30,33 +30,31 @@ static uint8_t typedarray_width (js_typedarray_type_t type) {
   }
 }
 
-js_value_t *
-sn_sodium_memzero (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(1, sodium_memzero)
-
-  SN_ARGV_TYPEDARRAY(buf, 0)
-
-  sodium_memzero(buf_data, buf_size);
-
-  return NULL;
+static inline void
+sn_sodium_memzero(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> buf
+) {
+  sodium_memzero(buf.data(), buf.size_bytes());
 }
 
-js_value_t *
-sn_sodium_mlock (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(1, sodium_mlock)
-
-  SN_ARGV_TYPEDARRAY(buf, 0)
-
-  SN_RETURN(sodium_mlock(buf_data, buf_size), "memory lock failed")
+static inline int
+sn_sodium_mlock(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> buf
+) {
+  return sodium_mlock(buf.data(), buf.size_bytes());
 }
 
-js_value_t *
-sn_sodium_munlock (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(1, sodium_munlock)
-
-  SN_ARGV_TYPEDARRAY(buf, 0)
-
-  SN_RETURN(sodium_munlock(buf_data, buf_size), "memory unlock failed")
+static inline int
+sn_sodium_munlock(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> buf
+) {
+  return sodium_munlock(buf.data(), buf.size_bytes());
 }
 
 static void sn_sodium_free_finalise (js_env_t *env, void *finalise_data, void *finalise_hint) {
@@ -3466,169 +3464,189 @@ sn_crypto_stream_salsa20_xor_wrap_final(
 
 // Experimental API
 
-js_value_t *
-sn_extension_tweak_ed25519_base (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(3, extension_tweak_ed25519_base)
+static inline void
+sn_extension_tweak_ed25519_base(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> n,
+  js_typedarray_span_t<> p,
+  js_typedarray_span_t<> ns
+) {
+  assert(n.size_bytes() == sn__extension_tweak_ed25519_SCALARBYTES);
+  assert(p.size_bytes() == sn__extension_tweak_ed25519_BYTES);
 
-  SN_ARGV_TYPEDARRAY(n, 0)
-  SN_ARGV_TYPEDARRAY(p, 1)
-  SN_ARGV_TYPEDARRAY(ns, 2)
-
-  SN_ASSERT_LENGTH(n_size, sn__extension_tweak_ed25519_SCALARBYTES, "n")
-  SN_ASSERT_LENGTH(p_size, sn__extension_tweak_ed25519_BYTES, "p")
-
-  sn__extension_tweak_ed25519_base(p_data, n_data, ns_data, ns_size);
-
-  return NULL;
+  sn__extension_tweak_ed25519_base(p.data(), n.data(), ns.data(), ns.size_bytes());
 }
 
-js_value_t *
-sn_extension_tweak_ed25519_sign_detached (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV_OPTS(3, 4, extension_tweak_ed25519_sign_detached)
+static inline int
+sn_extension_tweak_ed25519_sign_detached(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> sig,
+  js_typedarray_span_t<> m,
+  js_typedarray_span_t<> scalar,
+  std::optional<js_typedarray_span_t<>> pk
+) {
+  assert(sig.size_bytes() == crypto_sign_BYTES);
+  assert(scalar.size_bytes() == sn__extension_tweak_ed25519_SCALARBYTES);
 
-  SN_ARGV_TYPEDARRAY(sig, 0)
-  SN_ARGV_TYPEDARRAY(m, 1)
-  SN_ARGV_TYPEDARRAY(scalar, 2)
-  SN_ARGV_OPTS_TYPEDARRAY(pk, 3)
-
-  SN_ASSERT_LENGTH(sig_size, crypto_sign_BYTES, "sig")
-  SN_ASSERT_LENGTH(scalar_size, sn__extension_tweak_ed25519_SCALARBYTES, "scalar")
-
-  if (pk_data != NULL) {
-    SN_ASSERT_LENGTH(pk_size, crypto_sign_PUBLICKEYBYTES, "pk")
+  uint8_t *pk_data = nullptr;
+  if (pk) {
+    assert(pk->size_bytes() == crypto_sign_PUBLICKEYBYTES);
+    pk_data = pk->data();
   }
 
-  SN_RETURN(sn__extension_tweak_ed25519_sign_detached(sig_data, NULL, m_data, m_size, scalar_data, pk_data), "failed to compute signature")
+  return sn__extension_tweak_ed25519_sign_detached(
+    sig.data(),
+    nullptr,
+    m.data(),
+    m.size_bytes(),
+    scalar.data(),
+    pk_data
+  );
 }
 
-js_value_t *
-sn_extension_tweak_ed25519_sk_to_scalar (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(2, extension_tweak_ed25519_sk_to_scalar)
+static inline void
+sn_extension_tweak_ed25519_sk_to_scalar(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> n,
+  js_typedarray_span_t<> sk
+) {
+  assert(n.size_bytes() == sn__extension_tweak_ed25519_SCALARBYTES);
+  assert(sk.size_bytes() == crypto_sign_SECRETKEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(n, 0)
-  SN_ARGV_TYPEDARRAY(sk, 1)
-
-  SN_ASSERT_LENGTH(n_size, sn__extension_tweak_ed25519_SCALARBYTES, "n")
-  SN_ASSERT_LENGTH(sk_size, crypto_sign_SECRETKEYBYTES, "sk")
-
-  sn__extension_tweak_ed25519_sk_to_scalar(n_data, sk_data);
-
-  return NULL;
+  sn__extension_tweak_ed25519_sk_to_scalar(n.data(), sk.data());
 }
 
-js_value_t *
-sn_extension_tweak_ed25519_scalar (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(3, extension_tweak_ed25519_scalar)
+static inline void
+sn_extension_tweak_ed25519_scalar(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> scalar_out,
+  js_typedarray_span_t<> scalar,
+  js_typedarray_span_t<> ns
+) {
+  assert(scalar_out.size_bytes() == sn__extension_tweak_ed25519_SCALARBYTES);
+  assert(scalar.size_bytes() == sn__extension_tweak_ed25519_SCALARBYTES);
 
-  SN_ARGV_TYPEDARRAY(scalar_out, 0)
-  SN_ARGV_TYPEDARRAY(scalar, 1)
-  SN_ARGV_TYPEDARRAY(ns, 2)
-
-  SN_ASSERT_LENGTH(scalar_out_size, sn__extension_tweak_ed25519_SCALARBYTES, "scalar_out")
-  SN_ASSERT_LENGTH(scalar_size, sn__extension_tweak_ed25519_SCALARBYTES, "scalar")
-
-  sn__extension_tweak_ed25519_scalar(scalar_out_data, scalar_data, ns_data, ns_size);
-
-  return NULL;
+  sn__extension_tweak_ed25519_scalar(scalar_out.data(), scalar.data(), ns.data(), ns.size_bytes());
 }
 
-js_value_t *
-sn_extension_tweak_ed25519_pk (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(3, extension_tweak_ed25519_pk)
+static inline int
+sn_extension_tweak_ed25519_pk(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> tpk,
+  js_typedarray_span_t<> pk,
+  js_typedarray_span_t<> ns
+) {
+  assert(tpk.size_bytes() == crypto_sign_PUBLICKEYBYTES);
+  assert(pk.size_bytes() == crypto_sign_PUBLICKEYBYTES);
 
-  SN_ARGV_TYPEDARRAY(tpk, 0)
-  SN_ARGV_TYPEDARRAY(pk, 1)
-  SN_ARGV_TYPEDARRAY(ns, 2)
-
-  SN_ASSERT_LENGTH(tpk_size, crypto_sign_PUBLICKEYBYTES, "tpk")
-  SN_ASSERT_LENGTH(pk_size, crypto_sign_PUBLICKEYBYTES, "pk")
-
-  SN_RETURN(sn__extension_tweak_ed25519_pk(tpk_data, pk_data, ns_data, ns_size), "failed to tweak public key")
+  return sn__extension_tweak_ed25519_pk(tpk.data(), pk.data(), ns.data(), ns.size_bytes());
 }
 
-js_value_t *
-sn_extension_tweak_ed25519_keypair (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(4, extension_tweak_ed25519_keypair)
 
-  SN_ARGV_TYPEDARRAY(pk, 0)
-  SN_ARGV_TYPEDARRAY(scalar_out, 1)
-  SN_ARGV_TYPEDARRAY(scalar_in, 2)
-  SN_ARGV_TYPEDARRAY(ns, 3)
+static inline void
+sn_extension_tweak_ed25519_keypair(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> pk,
+  js_typedarray_span_t<> scalar_out,
+  js_typedarray_span_t<> scalar_in,
+  js_typedarray_span_t<> ns
+) {
+  assert(pk.size_bytes() == sn__extension_tweak_ed25519_BYTES);
+  assert(scalar_out.size_bytes() == sn__extension_tweak_ed25519_SCALARBYTES);
+  assert(scalar_in.size_bytes() == sn__extension_tweak_ed25519_SCALARBYTES);
 
-  SN_ASSERT_LENGTH(pk_size, sn__extension_tweak_ed25519_BYTES, "pk")
-  SN_ASSERT_LENGTH(scalar_out_size, sn__extension_tweak_ed25519_SCALARBYTES, "scalar_out")
-  SN_ASSERT_LENGTH(scalar_in_size, sn__extension_tweak_ed25519_SCALARBYTES, "scalar_in")
-
-  sn__extension_tweak_ed25519_keypair(pk_data, scalar_out_data, scalar_in_data, ns_data, ns_size);
-
-  return NULL;
+  sn__extension_tweak_ed25519_keypair(
+    pk.data(),
+    scalar_out.data(),
+    scalar_in.data(),
+    ns.data(),
+    ns.size_bytes()
+  );
 }
 
-js_value_t *
-sn_extension_tweak_ed25519_scalar_add (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(3, extension_tweak_ed25519_scalar_add)
+static inline void
+sn_extension_tweak_ed25519_scalar_add(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> scalar_out,
+  js_typedarray_span_t<> scalar,
+  js_typedarray_span_t<> n
+) {
+  assert(scalar_out.size_bytes() == sn__extension_tweak_ed25519_SCALARBYTES);
+  assert(scalar.size_bytes() == sn__extension_tweak_ed25519_SCALARBYTES);
+  assert(n.size_bytes() == sn__extension_tweak_ed25519_SCALARBYTES);
 
-  SN_ARGV_TYPEDARRAY(scalar_out, 0)
-  SN_ARGV_TYPEDARRAY(scalar, 1)
-  SN_ARGV_TYPEDARRAY(n, 2)
-
-  SN_ASSERT_LENGTH(scalar_out_size, sn__extension_tweak_ed25519_SCALARBYTES, "scalar_out")
-  SN_ASSERT_LENGTH(scalar_size, sn__extension_tweak_ed25519_SCALARBYTES, "scalar")
-  SN_ASSERT_LENGTH(n_size, sn__extension_tweak_ed25519_SCALARBYTES, "n")
-
-  sn__extension_tweak_ed25519_scalar_add(scalar_out_data, scalar_data, n_data);
-
-  return NULL;
+  sn__extension_tweak_ed25519_scalar_add(scalar_out.data(), scalar.data(), n.data());
 }
 
-js_value_t *
-sn_extension_tweak_ed25519_pk_add (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(3, extension_tweak_ed25519_pk)
 
-  SN_ARGV_TYPEDARRAY(tpk, 0)
-  SN_ARGV_TYPEDARRAY(pk, 1)
-  SN_ARGV_TYPEDARRAY(p, 2)
+static inline int
+sn_extension_tweak_ed25519_pk_add(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> tpk,
+  js_typedarray_span_t<> pk,
+  js_typedarray_span_t<> p
+) {
+  assert(tpk.size_bytes() == crypto_sign_PUBLICKEYBYTES);
+  assert(pk.size_bytes() == crypto_sign_PUBLICKEYBYTES);
+  assert(p.size_bytes() == crypto_sign_PUBLICKEYBYTES);
 
-  SN_ASSERT_LENGTH(tpk_size, crypto_sign_PUBLICKEYBYTES, "tpk")
-  SN_ASSERT_LENGTH(pk_size, crypto_sign_PUBLICKEYBYTES, "pk")
-  SN_ASSERT_LENGTH(p_size, crypto_sign_PUBLICKEYBYTES, "p")
-
-  SN_RETURN(sn__extension_tweak_ed25519_pk_add(tpk_data, pk_data, p_data), "failed to add tweak to public key")
+  return sn__extension_tweak_ed25519_pk_add(tpk.data(), pk.data(), p.data());
 }
 
-js_value_t *
-sn_extension_tweak_ed25519_keypair_add (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(4, extension_tweak_ed25519_keypair_add)
+static inline int
+sn_extension_tweak_ed25519_keypair_add(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> pk,
+  js_typedarray_span_t<> scalar_out,
+  js_typedarray_span_t<> scalar_in,
+  js_typedarray_span_t<> tweak
+) {
+  assert(pk.size_bytes() == sn__extension_tweak_ed25519_BYTES);
+  assert(scalar_out.size_bytes() == sn__extension_tweak_ed25519_SCALARBYTES);
+  assert(scalar_in.size_bytes() == sn__extension_tweak_ed25519_SCALARBYTES);
+  assert(tweak.size_bytes() == sn__extension_tweak_ed25519_SCALARBYTES);
 
-  SN_ARGV_TYPEDARRAY(pk, 0)
-  SN_ARGV_TYPEDARRAY(scalar_out, 1)
-  SN_ARGV_TYPEDARRAY(scalar_in, 2)
-  SN_ARGV_TYPEDARRAY(tweak, 3)
-
-  SN_ASSERT_LENGTH(pk_size, sn__extension_tweak_ed25519_BYTES, "pk")
-  SN_ASSERT_LENGTH(scalar_out_size, sn__extension_tweak_ed25519_SCALARBYTES, "scalar_out")
-  SN_ASSERT_LENGTH(scalar_in_size, sn__extension_tweak_ed25519_SCALARBYTES, "scalar_in")
-  SN_ASSERT_LENGTH(tweak_size, sn__extension_tweak_ed25519_SCALARBYTES, "tweak")
-
-  SN_RETURN(sn__extension_tweak_ed25519_keypair_add(pk_data, scalar_out_data, scalar_in_data, tweak_data), "failed to add tweak to keypair")
+  return sn__extension_tweak_ed25519_keypair_add(
+    pk.data(),
+    scalar_out.data(),
+    scalar_in.data(),
+    tweak.data()
+  );
 }
 
-js_value_t *
-sn_extension_pbkdf2_sha512 (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(5, extension_pbkdf2_sha512)
+static inline int
+sn_extension_pbkdf2_sha512(
+  js_env_t *,
+  js_receiver_t,
+  js_typedarray_span_t<> out,
+  js_typedarray_span_t<> passwd,
+  js_typedarray_span_t<> salt,
+  int64_t iter,
+  int64_t outlen
+) {
 
-  SN_ARGV_BUFFER_CAST(unsigned char *, out, 0)
-  SN_ARGV_BUFFER_CAST(unsigned char *, passwd, 1)
-  SN_ARGV_BUFFER_CAST(unsigned char *, salt, 2)
-  SN_ARGV_UINT64(iter, 3)
-  SN_ARGV_UINT64(outlen, 4)
+  assert(static_cast<uint64_t>(iter) >= sn__extension_pbkdf2_sha512_ITERATIONS_MIN);
+  assert(static_cast<uint64_t>(outlen) <= sn__extension_pbkdf2_sha512_BYTES_MAX);
+  assert(out.size_bytes() >= static_cast<size_t>(outlen));
 
-  SN_ASSERT_MIN_LENGTH(iter, sn__extension_pbkdf2_sha512_ITERATIONS_MIN, "iterations")
-  SN_ASSERT_MAX_LENGTH(outlen, sn__extension_pbkdf2_sha512_BYTES_MAX, "outlen")
-
-  SN_ASSERT_MIN_LENGTH(out_size, outlen, "out")
-
-  SN_RETURN(sn__extension_pbkdf2_sha512(passwd, passwd_size, salt, salt_size, iter, out, outlen), "failed to add tweak to public key")
+  return sn__extension_pbkdf2_sha512(
+    passwd.data(),
+    passwd.size_bytes(),
+    salt.data(),
+    salt.size_bytes(),
+    static_cast<uint64_t>(iter),
+    out.data(),
+    static_cast<uint64_t>(outlen)
+  );
 }
 
 typedef struct sn_async_pbkdf2_sha512_request {
@@ -3748,9 +3766,9 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
 
   // memory
 
-  SN_EXPORT_FUNCTION(sodium_memzero, sn_sodium_memzero);
-  SN_EXPORT_FUNCTION(sodium_mlock, sn_sodium_mlock);
-  SN_EXPORT_FUNCTION(sodium_munlock, sn_sodium_munlock);
+  SN_EXPORT_FUNCTION_SCOPED("sodium_memzero", sn_sodium_memzero);
+  SN_EXPORT_FUNCTION_SCOPED("sodium_mlock", sn_sodium_mlock);
+  SN_EXPORT_FUNCTION_SCOPED("sodium_munlock", sn_sodium_munlock);
   SN_EXPORT_FUNCTION(sodium_malloc, sn_sodium_malloc);
   SN_EXPORT_FUNCTION(sodium_free, sn_sodium_free);
   SN_EXPORT_FUNCTION(sodium_mprotect_noaccess, sn_sodium_mprotect_noaccess);
@@ -4109,21 +4127,21 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
 
   // tweak
 
-  SN_EXPORT_FUNCTION(extension_tweak_ed25519_base, sn_extension_tweak_ed25519_base);
-  SN_EXPORT_FUNCTION(extension_tweak_ed25519_sign_detached, sn_extension_tweak_ed25519_sign_detached);
-  SN_EXPORT_FUNCTION(extension_tweak_ed25519_sk_to_scalar, sn_extension_tweak_ed25519_sk_to_scalar);
-  SN_EXPORT_FUNCTION(extension_tweak_ed25519_scalar, sn_extension_tweak_ed25519_scalar);
-  SN_EXPORT_FUNCTION(extension_tweak_ed25519_pk, sn_extension_tweak_ed25519_pk);
-  SN_EXPORT_FUNCTION(extension_tweak_ed25519_keypair, sn_extension_tweak_ed25519_keypair);
-  SN_EXPORT_FUNCTION(extension_tweak_ed25519_scalar_add, sn_extension_tweak_ed25519_scalar_add);
-  SN_EXPORT_FUNCTION(extension_tweak_ed25519_pk_add, sn_extension_tweak_ed25519_pk_add);
-  SN_EXPORT_FUNCTION(extension_tweak_ed25519_keypair_add, sn_extension_tweak_ed25519_keypair_add);
+  SN_EXPORT_FUNCTION_SCOPED("extension_tweak_ed25519_base", sn_extension_tweak_ed25519_base);
+  SN_EXPORT_FUNCTION_SCOPED("extension_tweak_ed25519_sign_detached", sn_extension_tweak_ed25519_sign_detached);
+  SN_EXPORT_FUNCTION_SCOPED("extension_tweak_ed25519_sk_to_scalar", sn_extension_tweak_ed25519_sk_to_scalar);
+  SN_EXPORT_FUNCTION_SCOPED("extension_tweak_ed25519_scalar", sn_extension_tweak_ed25519_scalar);
+  SN_EXPORT_FUNCTION_SCOPED("extension_tweak_ed25519_pk", sn_extension_tweak_ed25519_pk);
+  SN_EXPORT_FUNCTION_SCOPED("extension_tweak_ed25519_keypair", sn_extension_tweak_ed25519_keypair);
+  SN_EXPORT_FUNCTION_SCOPED("extension_tweak_ed25519_scalar_add", sn_extension_tweak_ed25519_scalar_add);
+  SN_EXPORT_FUNCTION_SCOPED("extension_tweak_ed25519_pk_add", sn_extension_tweak_ed25519_pk_add);
+  SN_EXPORT_FUNCTION_SCOPED("extension_tweak_ed25519_keypair_add", sn_extension_tweak_ed25519_keypair_add);
   SN_EXPORT_UINT32(extension_tweak_ed25519_BYTES, sn__extension_tweak_ed25519_BYTES);
   SN_EXPORT_UINT32(extension_tweak_ed25519_SCALARBYTES, sn__extension_tweak_ed25519_SCALARBYTES);
 
   // pbkdf2
 
-  SN_EXPORT_FUNCTION(extension_pbkdf2_sha512, sn_extension_pbkdf2_sha512);
+  SN_EXPORT_FUNCTION_SCOPED("extension_pbkdf2_sha512", sn_extension_pbkdf2_sha512);
   SN_EXPORT_FUNCTION(extension_pbkdf2_sha512_async, sn_extension_pbkdf2_sha512_async);
   SN_EXPORT_UINT32(extension_pbkdf2_sha512_SALTBYTES, sn__extension_pbkdf2_sha512_SALTBYTES);
   SN_EXPORT_UINT32(extension_pbkdf2_sha512_HASHBYTES, sn__extension_pbkdf2_sha512_HASHBYTES);
