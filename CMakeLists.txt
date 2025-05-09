@@ -234,7 +234,7 @@ set_target_properties(
   ${sodium_native_bare}
   PROPERTIES
   C_STANDARD 11
-  CXX_STANDARD 23
+  CXX_STANDARD 20
 )
 
 add_napi_module(sodium_native_node)
@@ -254,7 +254,7 @@ set_target_properties(
   ${sodium_native_node}
   PROPERTIES
   C_STANDARD 11
-  CXX_STANDARD 23
+  CXX_STANDARD 20
 )
 
 target_link_libraries(
