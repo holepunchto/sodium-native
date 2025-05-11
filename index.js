@@ -21,10 +21,35 @@ exports.sodium_munlock = function (buf) {
 }
 
 exports.sodium_malloc = function (size) {
+  if (size < 0) throw new Error('invalid size')
   const buf = Buffer.from(binding.sodium_malloc(size))
   buf.secure = true
 
   return buf
+}
+
+exports.sodium_free = function (buf) {
+  if (!buf?.secure) return
+
+  binding.sodium_free(buf.buffer)
+}
+
+exports.sodium_mprotect_noaccess = function (buf) {
+  const res = binding.sodium_mprotect_noaccess(buf.buffer)
+
+  if (res !== 0) throw new Error('failed to lock buffer')
+}
+
+exports.sodium_mprotect_readonly = function (buf) {
+  const res = binding.sodium_mprotect_readonly(buf.buffer)
+
+  if (res !== 0) throw new Error('failed to unlock buffer')
+}
+
+exports.sodium_mprotect_readwrite = function (buf) {
+  const res = binding.sodium_mprotect_readwrite(buf.buffer)
+
+  if (res !== 0) throw new Error('failed to unlock buffer')
 }
 
 // crypto_randombytes

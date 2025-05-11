@@ -57,104 +57,81 @@ sn_sodium_munlock(
   return sodium_munlock(buf.data(), buf.size_bytes());
 }
 
-static void sn_sodium_free_finalise (js_env_t *env, void *finalise_data, void *finalise_hint) {
+static void
+sn_external_arraybuffer_finalize (js_env_t *env, void *finalise_data, void *finalise_hint) {
   sodium_free(finalise_data);
-
-  int64_t ext_mem;
-  int err = js_adjust_external_memory(env, -4 * 4096, &ext_mem);
-  assert(err == 0);
 }
 
-js_value_t *
-sn_sodium_free (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(1, sodium_free)
-
-  SN_ARGV_TYPEDARRAY_PTR(buf, 0)
-  if (buf_data == NULL) return NULL;
-
-  js_value_t *array_buf;
-  SN_STATUS_THROWS(js_get_named_property(env, argv[0], "buffer", &array_buf), "failed to get arraybuffer");
-
-  SN_STATUS_THROWS(js_detach_arraybuffer(env, array_buf), "failed to detach array buffer");
-
-  void *ptr;
-  err = js_remove_wrap(env, array_buf, &ptr);
-  assert(err == 0);
-  assert(ptr == buf_data);
-
-  sodium_free(buf_data);
-
-  int64_t ext_mem;
-  err = js_adjust_external_memory(env, -4 * 4096, &ext_mem);
-  assert(err == 0);
-  return NULL;
-}
-
-js_value_t *
-sn_sodium_malloc (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(1, sodium_malloc);
-
-  SN_ARGV_UINT32(size, 0)
-
-  void *ptr = sodium_malloc(size);
-  SN_THROWS(ptr == NULL, "ENOMEM")
-
-  SN_THROWS(ptr == NULL, "sodium_malloc failed");
+static js_arraybuffer_t
+sn_sodium_malloc (js_env_t *env, js_receiver_t, uint32_t len) {
+  void *ptr = sodium_malloc(len);
+  assert(ptr != nullptr);
 
   js_value_t *buffer;
-
-  SN_STATUS_THROWS(js_create_external_arraybuffer(env, ptr, size, NULL, NULL, &buffer), "failed to create a native arraybuffer")
-
-
-  js_value_t *value;
-  SN_STATUS_THROWS(js_get_boolean(env, true, &value), "failed to create boolean")
-  SN_STATUS_THROWS(js_set_named_property(env, buffer, "secure", value), "failed to set secure property")
-
-  err = js_wrap(env, buffer, ptr, sn_sodium_free_finalise, NULL, NULL);
+  int err = js_create_external_arraybuffer(env, ptr, len, sn_external_arraybuffer_finalize, NULL, &buffer);
   assert(err == 0);
 
-  int64_t ext_mem;
-  err = js_adjust_external_memory(env, 4 * 4096, &ext_mem);
+  return static_cast<js_arraybuffer_t>(buffer);
+}
+
+static void
+sn_sodium_free (js_env_t *env, js_receiver_t, js_arraybuffer_t buf) {
+  int err;
+
+  js_value_t * handle = static_cast<js_value_t *>(buf);
+
+  bool is_detached;
+  err = js_is_detached_arraybuffer(env, handle, &is_detached);
   assert(err == 0);
 
-  return buffer;
+  std::span<uint8_t> view;
+  err = js_get_arraybuffer_info(env, buf, view);
+  assert(err == 0);
+
+  if (is_detached || view.data() == nullptr) return;
+
+  err = js_detach_arraybuffer(env, handle);
+  assert(err == 0);
 }
 
-js_value_t *
-sn_sodium_mprotect_noaccess (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(1, sodium_mprotect_noaccess);
+static inline int
+sn_sodium_mprotect_noaccess (js_env_t *env, js_receiver_t, js_arraybuffer_t buf) {
+  std::span<uint8_t> view;
 
-  SN_ARGV_TYPEDARRAY_PTR(buf, 0)
+  int err = js_get_arraybuffer_info(env, buf, view);
+  assert(err == 0);
 
-  SN_RETURN(sodium_mprotect_noaccess(buf_data), "failed to lock buffer")
+  return sodium_mprotect_noaccess(view.data());
 }
 
 
-js_value_t *
-sn_sodium_mprotect_readonly (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(1, sodium_readonly);
+static inline int
+sn_sodium_mprotect_readonly (js_env_t *env, js_receiver_t, js_arraybuffer_t buf) {
+  std::span<uint8_t> view;
 
-  SN_ARGV_TYPEDARRAY_PTR(buf, 0)
+  int err = js_get_arraybuffer_info(env, buf, view);
+  assert(err == 0);
 
-  SN_RETURN(sodium_mprotect_readonly(buf_data), "failed to unlock buffer")
+  return sodium_mprotect_readonly(view.data());
 }
 
 
-js_value_t *
-sn_sodium_mprotect_readwrite (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV(1, sodium_readwrite);
+static inline int
+sn_sodium_mprotect_readwrite (js_env_t *env, js_receiver_t, js_arraybuffer_t buf) {
+  std::span<uint8_t> view;
 
-  SN_ARGV_TYPEDARRAY_PTR(buf, 0)
+  int err = js_get_arraybuffer_info(env, buf, view);
+  assert(err == 0);
 
-  SN_RETURN(sodium_mprotect_readwrite(buf_data), "failed to unlock buffer")
+  return sodium_mprotect_readwrite(view.data());
 }
 
-uint32_t // TODO: test envless
+static inline uint32_t // TODO: test envless
 sn_randombytes_random (js_env_t *env, js_receiver_t) {
   return randombytes_random();
 }
 
-uint32_t // TODO: test envless
+static inline uint32_t // TODO: test envless
 sn_randombytes_uniform (js_env_t *env, js_receiver_t, uint32_t upper_bound) {
   return randombytes_uniform(upper_bound);
 }
@@ -3769,11 +3746,11 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   SN_EXPORT_FUNCTION_SCOPED("sodium_memzero", sn_sodium_memzero);
   SN_EXPORT_FUNCTION_SCOPED("sodium_mlock", sn_sodium_mlock);
   SN_EXPORT_FUNCTION_SCOPED("sodium_munlock", sn_sodium_munlock);
-  SN_EXPORT_FUNCTION(sodium_malloc, sn_sodium_malloc);
-  SN_EXPORT_FUNCTION(sodium_free, sn_sodium_free);
-  SN_EXPORT_FUNCTION(sodium_mprotect_noaccess, sn_sodium_mprotect_noaccess);
-  SN_EXPORT_FUNCTION(sodium_mprotect_readonly, sn_sodium_mprotect_readonly);
-  SN_EXPORT_FUNCTION(sodium_mprotect_readwrite, sn_sodium_mprotect_readwrite);
+  SN_EXPORT_FUNCTION_SCOPED("sodium_malloc", sn_sodium_malloc);
+  SN_EXPORT_FUNCTION_SCOPED("sodium_free", sn_sodium_free);
+  SN_EXPORT_FUNCTION_SCOPED("sodium_mprotect_noaccess", sn_sodium_mprotect_noaccess);
+  SN_EXPORT_FUNCTION_SCOPED("sodium_mprotect_readonly", sn_sodium_mprotect_readonly);
+  SN_EXPORT_FUNCTION_SCOPED("sodium_mprotect_readwrite", sn_sodium_mprotect_readwrite);
 
   // randombytes
 
