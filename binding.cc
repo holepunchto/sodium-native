@@ -3730,15 +3730,15 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   err = sodium_init();
   SN_THROWS(err == -1, "sodium_init() failed")
 
-  js_object_t _exports(exports); // TODO: remove
+  js_object_t _exports = static_cast<js_object_t>(exports); // TODO: remove
 
   // TODO: rename => SN_EXPORT_FUNCTION
 #define SN_EXPORT_FUNCTION_SCOPED(name, fn) \
-  err = js_set_property<fn>(env, _exports, name); \
+  err = js_set_property<fn, js_function_options_t{ .scoped=false }>(env, _exports, name); \
   assert(err == 0);
 
 #define SN_EXPORT_FUNCTION_NOSCOPE(name, fn) \
-  err = js_set_property<fn, false>(env, _exports, name); \
+  err = js_set_property<fn, js_function_options_t{}>(env, _exports, name); \
   assert(err == 0);
 
   // memory
