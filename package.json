@@ -5,7 +5,7 @@
   "main": "index.js",
   "files": [
     "index.js",
-    "binding.c",
+    "binding.cc",
     "binding.js",
     "macros.h",
     "extensions",
