@@ -1143,7 +1143,7 @@ sn_crypto_pwhash_str(
   js_receiver_t,
   js_typedarray_span_t<> out,
   js_typedarray_span_t<> passwd,
-int64_t opslimit,
+  int64_t opslimit,
   int64_t memlimit
 ) {
   assert(out.size_bytes() == crypto_pwhash_STRBYTES);
@@ -2324,595 +2324,646 @@ sn_crypto_secretstream_xchacha20poly1305_rekey (
   crypto_secretstream_xchacha20poly1305_rekey(state_data);
 }
 
-typedef struct sn_async_task_t {
+struct sn_async_task_t {
   uv_work_t task;
-
-  enum {
-    sn_async_task_promise,
-    sn_async_task_callback
-  } type;
-
-  void *req;
-  int code;
-
-  js_deferred_t *deferred;
-  js_ref_t *cb;
-} sn_async_task_t;
-
-typedef struct sn_async_pwhash_request {
   js_env_t *env;
-  js_ref_t *out_ref;
-  unsigned char *out_data;
-  size_t out_size;
-  js_ref_t *pwd_ref;
-  const char *pwd_data;
-  size_t pwd_size;
-  js_ref_t *salt_ref;
-  unsigned char *salt;
-  uint32_t opslimit;
-  uint32_t memlimit;
-  uint32_t alg;
-} sn_async_pwhash_request;
+  js_persistent_t<js_function_t<void, int>> cb;
+  int code;
+};
 
-static void async_pwhash_execute (uv_work_t *uv_req) {
-  sn_async_task_t *task = (sn_async_task_t *) uv_req;
-  sn_async_pwhash_request *req = (sn_async_pwhash_request *) task->req;
-  task->code = crypto_pwhash(req->out_data,
-                             req->out_size,
-                             req->pwd_data,
-                             req->pwd_size,
-                             req->salt,
-                             req->opslimit,
-                             req->memlimit,
-                             req->alg);
+struct sn_async_pwhash_request : sn_async_task_t {
+  js_persistent_t<js_arraybuffer_t> out_ref;
+  std::span<uint8_t> out;
+
+  js_persistent_t<js_arraybuffer_t> pwd_ref;
+  std::span<char> pwd;
+
+  js_persistent_t<js_arraybuffer_t> salt_ref;
+  std::span<uint8_t> salt;
+
+  uint64_t opslimit;
+  size_t memlimit;
+  int alg;
+};
+
+static void
+async_pwhash_execute (uv_work_t *uv_req) {
+  auto req = reinterpret_cast<sn_async_pwhash_request *>(uv_req);
+  req->code = crypto_pwhash(
+    req->out.data(),
+    req->out.size(),
+    req->pwd.data(),
+    req->pwd.size(),
+    req->salt.data(),
+    req->opslimit,
+    req->memlimit,
+    req->alg
+  );
 }
 
-static void async_pwhash_complete (uv_work_t *uv_req, int status) {
+static void
+async_pwhash_complete (uv_work_t *uv_req, int status) {
   int err;
-  sn_async_task_t *task = (sn_async_task_t *) uv_req;
-  sn_async_pwhash_request *req = (sn_async_pwhash_request *) task->req;
+
+  auto req = reinterpret_cast<sn_async_pwhash_request *>(uv_req);
 
   js_handle_scope_t *scope;
   err = js_open_handle_scope(req->env, &scope);
   assert(err == 0);
 
-  js_value_t *global;
-  err = js_get_global(req->env, &global);
+  js_function_t<void, int> callback;
+  err = js_get_reference_value(req->env, req->cb, callback);
   assert(err == 0);
 
-  SN_ASYNC_COMPLETE("failed to compute password hash")
+  err = js_call_function_with_checkpoint(req->env, callback, req->code);
+  assert(err != js_pending_exception);
 
   err = js_close_handle_scope(req->env, scope);
   assert(err == 0);
 
-  err = js_delete_reference(req->env, req->out_ref);
-  assert(err == 0);
-  err = js_delete_reference(req->env, req->pwd_ref);
-  assert(err == 0);
-  err = js_delete_reference(req->env, req->salt_ref);
-  assert(err == 0);
-
-  free(req);
-  free(task);
+  delete req;
 }
 
-js_value_t *
-sn_crypto_pwhash_async (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV_OPTS(6, 7, crypto_pwhash_async)
+static inline void
+sn_crypto_pwhash_async (
+  js_env_t *env,
+  js_receiver_t,
 
-  SN_ARGV_BUFFER_CAST(unsigned char *, out, 0)
-  SN_ARGV_BUFFER_CAST(char *, pwd, 1)
-  SN_ARGV_BUFFER_CAST(unsigned char *, salt, 2)
-  SN_ARGV_UINT64(opslimit, 3)
-  SN_ARGV_UINT64(memlimit, 4)
-  SN_ARGV_UINT8(alg, 5)
+  js_arraybuffer_t out,
+  uint32_t out_offset,
+  uint32_t out_len,
 
-  SN_ASSERT_MIN_LENGTH(out_size, crypto_pwhash_BYTES_MIN, "out")
-  SN_ASSERT_MAX_LENGTH(out_size, crypto_pwhash_BYTES_MAX, "out")
-  SN_ASSERT_LENGTH(salt_size, crypto_pwhash_SALTBYTES, "salt")
-  SN_ASSERT_MIN_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MIN, "opslimit")
-  SN_ASSERT_MAX_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MAX, "opslimit")
-  SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_MEMLIMIT_MIN, "memlimit")
-  SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_MEMLIMIT_MAX, "memlimit")
-  SN_THROWS(alg < 1 || alg > 2, "alg must be either Argon2i 1.3 or Argon2id 1.3")
-  SN_ASSERT_OPT_CALLBACK(6)
+  js_arraybuffer_t pwd,
+  uint32_t pwd_offset,
+  uint32_t pwd_len,
 
-  sn_async_pwhash_request *req = (sn_async_pwhash_request *) malloc(sizeof(sn_async_pwhash_request));
+  js_arraybuffer_t salt,
+  uint32_t salt_offset,
+  uint32_t salt_len,
+
+  int64_t opslimit,
+  int64_t memlimit,
+  uint32_t alg,
+
+  js_function_t<void, int> callback
+) {
+  int err;
+
+  auto *req = new sn_async_pwhash_request;
 
   req->env = env;
-  req->out_data = out;
-  req->out_size = out_size;
-  req->pwd_data = pwd;
-  req->pwd_size = pwd_size;
-  req->salt = salt;
+
+  std::span<uint8_t> out_view;
+  err = js_get_arraybuffer_info(env, out, out_view);
+  assert(err == 0);
+  assert(out_offset + out_len <= out_view.size());
+
+  req->out = { &out_view[out_offset] , out_len };
+
+  std::span<char> pwd_view;
+  err = js_get_arraybuffer_info(env, pwd, pwd_view);
+  assert(err == 0);
+  assert(pwd_offset + pwd_len <= out_view.size());
+
+  req->pwd = { &pwd_view[pwd_offset], pwd_len };
+
+  std::span<uint8_t> salt_view;
+  err = js_get_arraybuffer_info(env, salt, salt_view);
+  assert(err == 0);
+  assert(salt_offset + salt_len <= salt_view.size());
+
+  req->salt = { &salt_view[salt_offset], salt_len };
+
+  err = js_create_reference(env, out, req->out_ref);
+  assert(err == 0);
+  err = js_create_reference(env, pwd, req->pwd_ref);
+  assert(err == 0);
+  err = js_create_reference(env, salt, req->salt_ref);
+  assert(err == 0);
+
   req->opslimit = opslimit;
   req->memlimit = memlimit;
   req->alg = alg;
 
-  sn_async_task_t *task = (sn_async_task_t *) malloc(sizeof(sn_async_task_t));
-  SN_ASYNC_TASK(6)
-
-  err = js_create_reference(env, out_argv, 1, &req->out_ref);
-  assert(err == 0);
-  err = js_create_reference(env, pwd_argv, 1, &req->pwd_ref);
-  assert(err == 0);
-  err = js_create_reference(env, salt_argv, 1, &req->salt_ref);
+  err = js_create_reference(env, callback, req->cb);
   assert(err == 0);
 
-  SN_QUEUE_TASK(task, async_pwhash_execute, async_pwhash_complete)
+  uv_loop_t *loop;
+  err = js_get_env_loop(env, &loop);
+  assert(err == 0);
 
-  return promise;
+  err = uv_queue_work(loop, &req->task, async_pwhash_execute, async_pwhash_complete);
+  assert(err == 0);
 }
 
-typedef struct sn_async_pwhash_str_request {
-  uv_work_t task;
-  js_env_t *env;
-  js_ref_t *out_ref;
-  char *out_data;
-  js_ref_t *pwd_ref;
-  const char *pwd_data;
-  size_t pwd_size;
-  uint32_t opslimit;
-  uint32_t memlimit;
-} sn_async_pwhash_str_request;
+struct sn_async_pwhash_str_request : sn_async_task_t {
+  js_persistent_t<js_arraybuffer_t> out_ref;
+  std::span<char> out;
 
-static void async_pwhash_str_execute (uv_work_t *uv_req) {
-  sn_async_task_t *task = (sn_async_task_t *) uv_req;
-  sn_async_pwhash_str_request *req = (sn_async_pwhash_str_request *) task->req;
-  task->code = crypto_pwhash_str(req->out_data,
-                                 req->pwd_data,
-                                 req->pwd_size,
-                                 req->opslimit,
-                                 req->memlimit);
+  js_persistent_t<js_arraybuffer_t> pwd_ref;
+  std::span<char> pwd;
+
+  uint64_t opslimit;
+  size_t memlimit;
+};
+
+static void
+async_pwhash_str_execute (uv_work_t *uv_req) {
+  auto *req = reinterpret_cast<sn_async_pwhash_str_request *>(uv_req);
+  req->code = crypto_pwhash_str(
+    req->out.data(),
+    req->pwd.data(),
+    req->pwd.size(),
+    req->opslimit,
+    req->memlimit
+  );
 }
 
-static void async_pwhash_str_complete (uv_work_t *uv_req, int status) {
-  sn_async_task_t *task = (sn_async_task_t *) uv_req;
-  sn_async_pwhash_str_request *req = (sn_async_pwhash_str_request *) task->req;
+static void
+async_pwhash_str_complete (uv_work_t *uv_req, int status) {
   int err;
+
+  auto *req = reinterpret_cast<sn_async_pwhash_str_request *>(uv_req);
+
   js_handle_scope_t *scope;
   err = js_open_handle_scope(req->env, &scope);
   assert(err == 0);
 
-  js_value_t *global;
-  err = js_get_global(req->env, &global);
+  js_function_t<void, int> callback;
+  err = js_get_reference_value(req->env, req->cb, callback);
   assert(err == 0);
 
-  SN_ASYNC_COMPLETE("failed to compute password hash")
+  err = js_call_function_with_checkpoint(req->env, callback, req->code);
+  assert(err != js_pending_exception);
 
   err = js_close_handle_scope(req->env, scope);
   assert(err == 0);
 
-  err = js_delete_reference(req->env, req->out_ref);
-  assert(err == 0);
-  err = js_delete_reference(req->env, req->pwd_ref);
-  assert(err == 0);
-
-  free(req);
-  free(task);
+  delete req;
 }
 
-js_value_t *
-sn_crypto_pwhash_str_async (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV_OPTS(4, 5, crypto_pwhash_str_async)
+static inline void
+sn_crypto_pwhash_str_async(
+  js_env_t *env,
+  js_receiver_t,
 
-  SN_ARGV_BUFFER_CAST(char *, out, 0)
-  SN_ARGV_BUFFER_CAST(char *, pwd, 1)
-  SN_ARGV_UINT64(opslimit, 2)
-  SN_ARGV_UINT64(memlimit, 3)
+  js_arraybuffer_t out,
+  uint32_t out_offset,
+  uint32_t out_len,
 
-  SN_ASSERT_LENGTH(out_size, crypto_pwhash_STRBYTES, "out")
-  SN_ASSERT_MIN_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MIN, "opslimit")
-  SN_ASSERT_MAX_LENGTH(opslimit, crypto_pwhash_OPSLIMIT_MAX, "opslimit")
-  SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_MEMLIMIT_MIN, "memlimit")
-  SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_MEMLIMIT_MAX, "memlimit")
-  SN_ASSERT_OPT_CALLBACK(4)
+  js_arraybuffer_t pwd,
+  uint32_t pwd_offset,
+  uint32_t pwd_len,
 
-  sn_async_pwhash_str_request *req = (sn_async_pwhash_str_request *) malloc(sizeof(sn_async_pwhash_str_request));
+  int64_t opslimit,
+  int64_t memlimit,
+  js_function_t<void, int> callback
+) {
+  int err;
+
+  auto *req = new sn_async_pwhash_str_request;
+
   req->env = env;
-  req->out_data = out;
-  req->pwd_data = pwd;
-  req->pwd_size = pwd_size;
+
+  std::span<char> out_view;
+  err = js_get_arraybuffer_info(env, out, out_view);
+  assert(err == 0);
+  assert(out_offset + out_len <= out_view.size());
+
+  req->out = { &out_view[out_offset], out_len };
+
+  std::span<char> pwd_view;
+  err = js_get_arraybuffer_info(env, pwd, pwd_view);
+  assert(err == 0);
+  assert(pwd_offset + pwd_len <= pwd_view.size());
+
+  req->pwd = { &pwd_view[pwd_offset],  pwd_len };
+
   req->opslimit = opslimit;
   req->memlimit = memlimit;
 
-  sn_async_task_t *task = (sn_async_task_t *) malloc(sizeof(sn_async_task_t));
-  SN_ASYNC_TASK(4)
-
-  err = js_create_reference(env, out_argv, 1, &req->out_ref);
+  err = js_create_reference(env, out, req->out_ref);
   assert(err == 0);
-  err = js_create_reference(env, pwd_argv, 1, &req->pwd_ref);
+  err = js_create_reference(env, pwd, req->pwd_ref);
   assert(err == 0);
 
-  SN_QUEUE_TASK(task, async_pwhash_str_execute, async_pwhash_str_complete)
+  err = js_create_reference(env, callback, req->cb);
+  assert(err == 0);
 
-  return promise;
+  uv_loop_t *loop;
+  err = js_get_env_loop(env, &loop);
+  assert(err == 0);
+
+  err = uv_queue_work(loop, &req->task, async_pwhash_str_execute, async_pwhash_str_complete);
+  assert(err == 0);
 }
 
-typedef struct sn_async_pwhash_str_verify_request {
-  uv_work_t task;
-  js_env_t *env;
-  js_ref_t *str_ref;
-  char *str_data;
-  js_ref_t *pwd_ref;
-  const char *pwd_data;
-  size_t pwd_size;
-} sn_async_pwhash_str_verify_request;
+struct sn_async_pwhash_str_verify_request : sn_async_task_t {
+  js_persistent_t<js_arraybuffer_t> str_ref;
+  std::span<char> str;
 
-static void async_pwhash_str_verify_execute (uv_work_t *uv_req) {
-  sn_async_task_t *task = (sn_async_task_t *) uv_req;
-  sn_async_pwhash_str_verify_request *req = (sn_async_pwhash_str_verify_request *) task->req;
-  task->code = crypto_pwhash_str_verify(req->str_data, req->pwd_data, req->pwd_size);
+  js_persistent_t<js_arraybuffer_t> pwd_ref;
+  std::span<char> pwd;
+};
+
+static void
+async_pwhash_str_verify_execute (uv_work_t *uv_req) {
+  auto *req = reinterpret_cast<sn_async_pwhash_str_verify_request *>(uv_req);
+  req->code = crypto_pwhash_str_verify(req->str.data(), req->pwd.data(), req->pwd.size());
 }
 
-static void async_pwhash_str_verify_complete (uv_work_t *uv_req, int status) {
+static void
+async_pwhash_str_verify_complete (uv_work_t *uv_req, int status) {
   int err;
-  sn_async_task_t *task = (sn_async_task_t *) uv_req;
-  sn_async_pwhash_str_verify_request *req = (sn_async_pwhash_str_verify_request *) task->req;
+
+  auto *req = reinterpret_cast<sn_async_pwhash_str_verify_request *>(uv_req);
 
   js_handle_scope_t *scope;
   err = js_open_handle_scope(req->env, &scope);
   assert(err == 0);
-  js_value_t *global;
-  err = js_get_global(req->env, &global);
-  assert(err == 0);
 
-  js_value_t *argv[2];
+  js_function_t<void, int> callback;
+  err = js_get_reference_value(req->env, req->cb, callback);
+  assert(err == 0);
 
   // Due to the way that crypto_pwhash_str_verify signals error different
   // from a verification mismatch, we will count all errors as mismatch.
   // The other possible error is wrong argument sizes, which is protected
-  // by macros above
-  err = js_get_null(req->env, &argv[0]);
-  assert(err == 0);
-  err = js_get_boolean(req->env, task->code == 0, &argv[1]);
-  assert(err == 0);
-
-  switch (task->type) {
-  case sn_async_task_t::sn_async_task_promise: {
-    err = js_resolve_deferred(req->env, task->deferred, argv[1]);
-    assert(err == 0);
-    task->deferred = NULL;
-    break;
-  }
-
-  case sn_async_task_t::sn_async_task_callback: {
-    js_value_t *callback;
-    err = js_get_reference_value(req->env, task->cb, &callback);
-    assert(err == 0);
-
-    js_value_t *return_val;
-    SN_CALL_FUNCTION(req->env, global, callback, 2, argv, &return_val)
-    break;
-  }
-  }
+  // by macros above;
+  err = js_call_function_with_checkpoint(req->env, callback, req->code);
+  assert(err != js_pending_exception);
 
   err = js_close_handle_scope(req->env, scope);
   assert(err == 0);
 
-  err = js_delete_reference(req->env, req->str_ref);
-  assert(err == 0);
-  err = js_delete_reference(req->env, req->pwd_ref);
-  assert(err == 0);
-
-  free(req);
-  free(task);
+  delete req;
 }
 
-js_value_t *
-sn_crypto_pwhash_str_verify_async (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV_OPTS(2, 3, crypto_pwhash_str_async)
+static inline void
+sn_crypto_pwhash_str_verify_async(
+  js_env_t *env,
+  js_receiver_t,
 
-  SN_ARGV_BUFFER_CAST(char *, str, 0)
-  SN_ARGV_BUFFER_CAST(char *, pwd, 1)
+  js_arraybuffer_t str,
+  uint32_t str_offset,
+  uint32_t str_len,
 
-  SN_ASSERT_LENGTH(str_size, crypto_pwhash_STRBYTES, "str")
-  SN_ASSERT_OPT_CALLBACK(2)
+  js_arraybuffer_t pwd,
+  uint32_t pwd_offset,
+  uint32_t pwd_len,
 
-  sn_async_pwhash_str_verify_request *req = (sn_async_pwhash_str_verify_request *) malloc(sizeof(sn_async_pwhash_str_verify_request));
-  req->env = env;
-  req->str_data = str;
-  req->pwd_data = pwd;
-  req->pwd_size = pwd_size;
-
-  sn_async_task_t *task = (sn_async_task_t *) malloc(sizeof(sn_async_task_t));
-  SN_ASYNC_TASK(2)
-
-  err = js_create_reference(env, str_argv, 1, &req->str_ref);
-  assert(err == 0);
-  err = js_create_reference(env, pwd_argv, 1, &req->pwd_ref);
-  assert(err == 0);
-
-  SN_QUEUE_TASK(task, async_pwhash_str_verify_execute, async_pwhash_str_verify_complete)
-
-  return promise;
-}
-
-typedef struct sn_async_pwhash_scryptsalsa208sha256_request {
-  uv_work_t task;
-  js_env_t *env;
-  js_ref_t *out_ref;
-  unsigned char *out_data;
-  size_t out_size;
-  js_ref_t *pwd_ref;
-  const char *pwd_data;
-  size_t pwd_size;
-  js_ref_t *salt_ref;
-  unsigned char *salt;
-  uint32_t opslimit;
-  uint32_t memlimit;
-} sn_async_pwhash_scryptsalsa208sha256_request;
-
-static void async_pwhash_scryptsalsa208sha256_execute (uv_work_t *uv_req) {
-  sn_async_task_t *task = (sn_async_task_t *) uv_req;
-  sn_async_pwhash_scryptsalsa208sha256_request *req = (sn_async_pwhash_scryptsalsa208sha256_request *) task->req;
-  task->code = crypto_pwhash_scryptsalsa208sha256(req->out_data,
-                                                  req->out_size,
-                                                  req-> pwd_data,
-                                                  req->pwd_size,
-                                                  req->salt,
-                                                  req->opslimit,
-                                                  req->memlimit);
-}
-
-static void async_pwhash_scryptsalsa208sha256_complete (uv_work_t *uv_req, int status) {
+  js_function_t<void, int> callback
+) {
   int err;
-  sn_async_task_t *task = (sn_async_task_t *) uv_req;
-  sn_async_pwhash_scryptsalsa208sha256_request *req = (sn_async_pwhash_scryptsalsa208sha256_request *) task->req;
+
+  auto *req = new sn_async_pwhash_str_verify_request;
+  req->env = env;
+
+  std::span<char> str_view;
+  err = js_get_arraybuffer_info(env, str, str_view);
+  assert(err == 0);
+  assert(str_offset + str_len <= str_view.size());
+
+  req->str = { &str_view[str_offset], str_len };
+
+  std::span<char> pwd_view;
+  err = js_get_arraybuffer_info(env, pwd, pwd_view);
+  assert(err == 0);
+  assert(pwd_offset + pwd_len <= pwd_view.size());
+
+  req->pwd = { &pwd_view[pwd_offset], pwd_len };
+
+  err = js_create_reference(env, str, req->str_ref);
+  assert(err == 0);
+  err = js_create_reference(env, pwd, req->pwd_ref);
+  assert(err == 0);
+  err = js_create_reference(env, callback, req->cb);
+  assert(err == 0);
+
+  uv_loop_t *loop;
+  err = js_get_env_loop(env, &loop);
+  assert(err == 0);
+
+  err = uv_queue_work(loop, &req->task, async_pwhash_str_verify_execute, async_pwhash_str_verify_complete);
+  assert(err == 0);
+}
+
+struct sn_async_pwhash_scryptsalsa208sha256_request : sn_async_task_t {
+  js_persistent_t<js_arraybuffer_t> out_ref;
+  std::span<uint8_t> out;
+
+  js_persistent_t<js_arraybuffer_t> pwd_ref;
+  std::span<char> pwd;
+
+  js_persistent_t<js_arraybuffer_t> salt_ref;
+  std::span<uint8_t> salt;
+
+  uint64_t opslimit;
+  size_t memlimit;
+};
+
+static void
+async_pwhash_scryptsalsa208sha256_execute (uv_work_t *uv_req) {
+  auto *req = reinterpret_cast<sn_async_pwhash_scryptsalsa208sha256_request *>(uv_req);
+
+  req->code = crypto_pwhash_scryptsalsa208sha256(
+    req->out.data(),
+    req->out.size(),
+    req->pwd.data(),
+    req->pwd.size(),
+    req->salt.data(),
+    req->opslimit,
+    req->memlimit
+  );
+}
+
+static void
+async_pwhash_scryptsalsa208sha256_complete (uv_work_t *uv_req, int status) {
+  int err;
+
+  auto *req = reinterpret_cast<sn_async_pwhash_scryptsalsa208sha256_request *>(uv_req);
 
   js_handle_scope_t *scope;
   err = js_open_handle_scope(req->env, &scope);
   assert(err == 0);
 
-  js_value_t *global;
-  err = js_get_global(req->env, &global);
+  js_function_t<void, int> callback;
+  err = js_get_reference_value(req->env, req->cb, callback);
   assert(err == 0);
 
-  SN_ASYNC_COMPLETE("failed to compute password hash")
+  err = js_call_function_with_checkpoint(req->env, callback, req->code);
+  assert(err != js_pending_exception);
 
   err = js_close_handle_scope(req->env, scope);
   assert(err == 0);
 
-  err = js_delete_reference(req->env, req->out_ref);
-  assert(err == 0);
-  err = js_delete_reference(req->env, req->pwd_ref);
-  assert(err == 0);
-  err = js_delete_reference(req->env, req->salt_ref);
-  assert(err == 0);
-
-  free(req);
-  free(task);
+  delete req;
 }
 
-js_value_t *
-sn_crypto_pwhash_scryptsalsa208sha256_async (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV_OPTS(5, 6, crypto_pwhash_scryptsalsa208sha256_async)
+static inline void
+sn_crypto_pwhash_scryptsalsa208sha256_async(
+  js_env_t *env,
+  js_receiver_t,
 
-  SN_ARGV_BUFFER_CAST(unsigned char *, out, 0)
-  SN_ARGV_BUFFER_CAST(char *, pwd, 1)
-  SN_ARGV_BUFFER_CAST(unsigned char *, salt, 2)
-  SN_ARGV_UINT64(opslimit, 3)
-  SN_ARGV_UINT64(memlimit, 4)
+  js_arraybuffer_t out,
+  uint32_t out_offset,
+  uint32_t out_len,
 
-  SN_ASSERT_MIN_LENGTH(out_size, crypto_pwhash_scryptsalsa208sha256_BYTES_MIN, "out")
-  SN_ASSERT_MAX_LENGTH(out_size, crypto_pwhash_scryptsalsa208sha256_BYTES_MAX, "out")
-  SN_ASSERT_LENGTH(salt_size, crypto_pwhash_scryptsalsa208sha256_SALTBYTES, "salt")
-  SN_ASSERT_MIN_LENGTH(opslimit, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN, "opslimit")
-  SN_ASSERT_MAX_LENGTH(opslimit, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, "opslimit")
-  SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, "memlimit")
-  SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, "memlimit")
-  SN_ASSERT_OPT_CALLBACK(5)
+  js_arraybuffer_t pwd,
+  uint32_t pwd_offset,
+  uint32_t pwd_len,
 
-  sn_async_pwhash_scryptsalsa208sha256_request *req = (sn_async_pwhash_scryptsalsa208sha256_request *) malloc(sizeof(sn_async_pwhash_scryptsalsa208sha256_request));
+  js_arraybuffer_t salt,
+  uint32_t salt_offset,
+  uint32_t salt_len,
+
+  int64_t opslimit,
+  int64_t memlimit,
+
+  js_function_t<void, int> callback
+) {
+  int err;
+
+  auto *req = new sn_async_pwhash_scryptsalsa208sha256_request;
+
   req->env = env;
-  req->out_data = out;
-  req->out_size = out_size;
-  req->pwd_data = pwd;
-  req->pwd_size = pwd_size;
-  req-> salt = salt;
+
+  std::span<uint8_t> out_view;
+  err = js_get_arraybuffer_info(env, out, out_view);
+  assert(err == 0);
+  assert(out_offset + out_len <= out_view.size());
+
+  req->out = { &out_view[out_offset], out_len };
+
+  std::span<char> pwd_view;
+  err = js_get_arraybuffer_info(env, pwd, pwd_view);
+  assert(err == 0);
+  assert(pwd_offset + pwd_len <= pwd_view.size());
+
+  req->pwd = { &pwd_view[pwd_offset], pwd_len };
+
+  std::span<uint8_t> salt_view;
+  err = js_get_arraybuffer_info(env, salt, salt_view);
+  assert(err == 0);
+  assert(salt_offset + salt_len <= salt_view.size());
+  assert(salt_len == crypto_pwhash_scryptsalsa208sha256_SALTBYTES);
+
+  req->salt = { &salt_view[salt_offset], salt_len };
+
+  err = js_create_reference(env, out, req->out_ref);
+  assert(err == 0);
+  err = js_create_reference(env, pwd, req->pwd_ref);
+  assert(err == 0);
+  err = js_create_reference(env, salt, req->salt_ref);
+  assert(err == 0);
+
   req->opslimit = opslimit;
   req->memlimit = memlimit;
 
-  sn_async_task_t *task = (sn_async_task_t *) malloc(sizeof(sn_async_task_t));
-  SN_ASYNC_TASK(5)
-
-  err = js_create_reference(env, out_argv, 1, &req->out_ref);
-  assert(err == 0);
-  err = js_create_reference(env, pwd_argv, 1, &req->pwd_ref);
-  assert(err == 0);
-  err = js_create_reference(env, salt_argv, 1, &req->salt_ref);
+  err = js_create_reference(env, callback, req->cb);
   assert(err == 0);
 
-  SN_QUEUE_TASK(task, async_pwhash_scryptsalsa208sha256_execute, async_pwhash_scryptsalsa208sha256_complete)
+  uv_loop_t *loop;
+  err = js_get_env_loop(env, &loop);
+  assert(err == 0);
 
-  return promise;
+  err = uv_queue_work(loop, &req->task, async_pwhash_scryptsalsa208sha256_execute, async_pwhash_scryptsalsa208sha256_complete);
+  assert(err == 0);
 }
 
-typedef struct sn_async_pwhash_scryptsalsa208sha256_str_request {
-  uv_work_t task;
-  js_env_t *env;
-  js_ref_t *out_ref;
-  char *out_data;
-  js_ref_t *pwd_ref;
-  const char *pwd_data;
-  size_t pwd_size;
-  uint32_t opslimit;
-  uint32_t memlimit;
-} sn_async_pwhash_scryptsalsa208sha256_str_request;
+struct sn_async_pwhash_scryptsalsa208sha256_str_request : sn_async_task_t {
+  js_persistent_t<js_arraybuffer_t> out_ref;
+  std::span<char> out;
 
-static void async_pwhash_scryptsalsa208sha256_str_execute (uv_work_t *uv_req) {
-  sn_async_task_t *task = (sn_async_task_t *) uv_req;
-  sn_async_pwhash_scryptsalsa208sha256_str_request *req = (sn_async_pwhash_scryptsalsa208sha256_str_request *) task->req;
-  task->code = crypto_pwhash_scryptsalsa208sha256_str(req->out_data,
-                                                      req->pwd_data,
-                                                      req->pwd_size,
-                                                      req->opslimit,
-                                                      req->memlimit);
+  js_persistent_t<js_arraybuffer_t> pwd_ref;
+  std::span<char> pwd;
+
+  uint64_t opslimit;
+  size_t memlimit;
+};
+
+static void
+async_pwhash_scryptsalsa208sha256_str_execute (uv_work_t *uv_req) {
+  auto *req = reinterpret_cast<sn_async_pwhash_scryptsalsa208sha256_str_request *>(uv_req);
+  req->code = crypto_pwhash_scryptsalsa208sha256_str(
+    req->out.data(),
+    req->pwd.data(),
+    req->pwd.size(),
+    req->opslimit,
+    req->memlimit
+  );
 }
 
-static void async_pwhash_scryptsalsa208sha256_str_complete (uv_work_t *uv_req, int status) {
+static void
+async_pwhash_scryptsalsa208sha256_str_complete (uv_work_t *uv_req, int status) {
   int err;
-  sn_async_task_t *task = (sn_async_task_t *) uv_req;
-  sn_async_pwhash_scryptsalsa208sha256_str_request *req = (sn_async_pwhash_scryptsalsa208sha256_str_request *) task->req;
+
+  auto *req = reinterpret_cast<sn_async_pwhash_scryptsalsa208sha256_str_request *>(uv_req);
 
   js_handle_scope_t *scope;
   err = js_open_handle_scope(req->env, &scope);
   assert(err == 0);
 
-  js_value_t *global;
-  err = js_get_global(req->env, &global);
+  js_function_t<void, int> callback;
+  err = js_get_reference_value(req->env, req->cb, callback);
   assert(err == 0);
 
-  SN_ASYNC_COMPLETE("failed to compute password hash")
+  err = js_call_function_with_checkpoint(req->env, callback, req->code);
+  assert(err != js_pending_exception);
 
   err = js_close_handle_scope(req->env, scope);
   assert(err == 0);
 
-  err = js_delete_reference(req->env, req->out_ref);
-  assert(err == 0);
-  err = js_delete_reference(req->env, req->pwd_ref);
-  assert(err == 0);
-
-  free(req);
-  free(task);
+  delete req;
 }
 
-js_value_t *
-sn_crypto_pwhash_scryptsalsa208sha256_str_async (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV_OPTS(4, 5, crypto_pwhash_scryptsalsa208sha256_str_async)
+static inline void
+sn_crypto_pwhash_scryptsalsa208sha256_str_async (
+    js_env_t *env,
+    js_receiver_t,
 
-  SN_ARGV_BUFFER_CAST(char *, out, 0)
-  SN_ARGV_BUFFER_CAST(char *, pwd, 1)
-  SN_ARGV_UINT64(opslimit, 2)
-  SN_ARGV_UINT64(memlimit, 3)
+    js_arraybuffer_t out,
+    uint32_t out_offset,
+    uint32_t out_len,
 
-  SN_ASSERT_LENGTH(out_size, crypto_pwhash_scryptsalsa208sha256_STRBYTES, "out")
-  SN_ASSERT_MIN_LENGTH(opslimit, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN, "opslimit")
-  SN_ASSERT_MAX_LENGTH(opslimit, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, "opslimit")
-  SN_ASSERT_MIN_LENGTH(memlimit, crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, "memlimit")
-  SN_ASSERT_MAX_LENGTH(memlimit, (int64_t) crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, "memlimit")
-  SN_ASSERT_OPT_CALLBACK(4)
+    js_arraybuffer_t pwd,
+    uint32_t pwd_offset,
+    uint32_t pwd_len,
 
-  sn_async_pwhash_scryptsalsa208sha256_str_request *req = (sn_async_pwhash_scryptsalsa208sha256_str_request *) malloc(sizeof(sn_async_pwhash_scryptsalsa208sha256_str_request));
+    int64_t opslimit,
+    int64_t memlimit,
+
+    js_function_t<void, int> callback
+) {
+  int err;
+
+  auto *req = new sn_async_pwhash_scryptsalsa208sha256_str_request;
+
   req->env = env;
-  req->out_data = out;
-  req->pwd_data = pwd;
-  req->pwd_size = pwd_size;
+
+  std::span<char> out_view;
+  err = js_get_arraybuffer_info(env, out, out_view);
+  assert(err == 0);
+  assert(out_offset + out_len <= out_view.size());
+
+  req->out = { &out_view[out_offset], out_len };
+
+  std::span<char> pwd_view;
+  err = js_get_arraybuffer_info(env, pwd, pwd_view);
+  assert(err == 0);
+  assert(pwd_offset + pwd_len <= pwd_view.size());
+
+  req->pwd = { &pwd_view[pwd_offset], pwd_len };
+
   req->opslimit = opslimit;
   req->memlimit = memlimit;
 
-  sn_async_task_t *task = (sn_async_task_t *) malloc(sizeof(sn_async_task_t));
-
-  SN_ASYNC_TASK(4)
-
-  err = js_create_reference(env, out_argv, 1, &req->out_ref);
-  assert(err == 0);
-  err = js_create_reference(env, pwd_argv, 1, &req->pwd_ref);
+  err = js_create_reference(env, out, req->out_ref);
   assert(err == 0);
 
-  SN_QUEUE_TASK(task, async_pwhash_scryptsalsa208sha256_str_execute, async_pwhash_scryptsalsa208sha256_str_complete)
+  err = js_create_reference(env, out, req->pwd_ref);
+  assert(err == 0);
 
-  return promise;
+  err = js_create_reference(env, callback, req->cb);
+  assert(err == 0);
+
+  uv_loop_t *loop;
+  err = js_get_env_loop(env, &loop);
+  assert(err == 0);
+
+  err = uv_queue_work(loop, &req->task, async_pwhash_scryptsalsa208sha256_str_execute, async_pwhash_scryptsalsa208sha256_str_complete);
+  assert(err == 0);
 }
 
-typedef struct sn_async_pwhash_scryptsalsa208sha256_str_verify_request {
-  uv_work_t task;
-  js_env_t *env;
-  js_ref_t *str_ref;
-  char *str_data;
-  js_ref_t *pwd_ref;
-  const char *pwd_data;
-  size_t pwd_size;
-} sn_async_pwhash_scryptsalsa208sha256_str_verify_request;
+struct sn_async_pwhash_scryptsalsa208sha256_str_verify_request : sn_async_task_t {
+  js_persistent_t<js_arraybuffer_t> str_ref;
+  std::span<char> str;
 
-static void async_pwhash_scryptsalsa208sha256_str_verify_execute (uv_work_t *uv_req) {
-  sn_async_task_t *task = (sn_async_task_t *) uv_req;
-  sn_async_pwhash_scryptsalsa208sha256_str_verify_request *req = (sn_async_pwhash_scryptsalsa208sha256_str_verify_request *) task->req;
-  task->code = crypto_pwhash_scryptsalsa208sha256_str_verify(req->str_data, req->pwd_data, req->pwd_size);
+  js_persistent_t<js_arraybuffer_t> pwd_ref;
+  std::span<char> pwd;
+};
+
+static void
+async_pwhash_scryptsalsa208sha256_str_verify_execute (uv_work_t *uv_req) {
+  auto *req = reinterpret_cast<sn_async_pwhash_scryptsalsa208sha256_str_verify_request *>(uv_req);
+
+  req->code = crypto_pwhash_scryptsalsa208sha256_str_verify(req->str.data(), req->pwd.data(), req->pwd.size());
 }
 
-static void async_pwhash_scryptsalsa208sha256_str_verify_complete (uv_work_t *uv_req, int status) {
+static void
+async_pwhash_scryptsalsa208sha256_str_verify_complete (uv_work_t *uv_req, int status) {
   int err;
-  sn_async_task_t *task = (sn_async_task_t *) uv_req;
-  sn_async_pwhash_scryptsalsa208sha256_str_verify_request *req = (sn_async_pwhash_scryptsalsa208sha256_str_verify_request *) task->req;
+
+  auto *req = reinterpret_cast<sn_async_pwhash_scryptsalsa208sha256_str_verify_request *>(uv_req);
 
   js_handle_scope_t *scope;
   err = js_open_handle_scope(req->env, &scope);
   assert(err == 0);
 
-  js_value_t *global;
-  err = js_get_global(req->env, &global);
+  js_function_t<void, int> callback;
+  err = js_get_reference_value(req->env, req->cb, callback);
   assert(err == 0);
-
-  js_value_t *argv[2];
 
   // Due to the way that crypto_pwhash_scryptsalsa208sha256_str_verify
   // signal serror different from a verification mismatch, we will count
   // all errors as mismatch. The other possible error is wrong argument
   // sizes, which is protected by macros above
-  err = js_get_null(req->env, &argv[0]);
-  assert(err == 0);
-  err = js_get_boolean(req->env, task->code == 0, &argv[1]);
-  assert(err == 0);
-
-  switch (task->type) {
-  case sn_async_task_t::sn_async_task_promise: {
-    err = js_resolve_deferred(req->env, task->deferred, argv[1]);
-    assert(err == 0);
-    task->deferred = NULL;
-    break;
-  }
-
-  case sn_async_task_t::sn_async_task_callback: {
-    js_value_t *callback;
-    err = js_get_reference_value(req->env, task->cb, &callback);
-    assert(err == 0);
-
-    js_value_t *return_val;
-    SN_CALL_FUNCTION(req->env, global, callback, 2, argv, &return_val)
-    break;
-  }
-  }
+  err = js_call_function_with_checkpoint(req->env, callback, req->code);
+  assert(err != js_pending_exception);
 
   err = js_close_handle_scope(req->env, scope);
   assert(err == 0);
 
-  err = js_delete_reference(req->env, req->str_ref);
-  assert(err == 0);
-  err = js_delete_reference(req->env, req->pwd_ref);
-  assert(err == 0);
-
-  free(req);
-  free(task);
+  delete req;
 }
 
-js_value_t *
-sn_crypto_pwhash_scryptsalsa208sha256_str_verify_async (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV_OPTS(2, 3, crypto_pwhash_scryptsalsa208sha256_str_async)
+static inline void
+sn_crypto_pwhash_scryptsalsa208sha256_str_verify_async (
+  js_env_t *env,
+  js_receiver_t,
 
-  SN_ARGV_BUFFER_CAST(char *, str, 0)
-  SN_ARGV_BUFFER_CAST(char *, pwd, 1)
+  js_arraybuffer_t str,
+  uint32_t str_offset,
+  uint32_t str_len,
 
-  SN_ASSERT_LENGTH(str_size, crypto_pwhash_scryptsalsa208sha256_STRBYTES, "str")
-  SN_ASSERT_OPT_CALLBACK(2)
+  js_arraybuffer_t pwd,
+  uint32_t pwd_offset,
+  uint32_t pwd_len,
 
-  sn_async_pwhash_scryptsalsa208sha256_str_verify_request *req = (sn_async_pwhash_scryptsalsa208sha256_str_verify_request *) malloc(sizeof(sn_async_pwhash_scryptsalsa208sha256_str_verify_request));
+  js_function_t<void, int> callback
+) {
+  int err;
+  auto *req = new sn_async_pwhash_scryptsalsa208sha256_str_verify_request;
+
   req->env = env;
-  req->str_data = str;
-  req->pwd_data = pwd;
-  req->pwd_size = pwd_size;
 
-  sn_async_task_t *task = (sn_async_task_t *) malloc(sizeof(sn_async_task_t));
-  SN_ASYNC_TASK(2)
-
-  err = js_create_reference(env, str_argv, 1, &req->str_ref);
+  std::span<char> str_view;
+  err = js_get_arraybuffer_info(env, str, str_view);
   assert(err == 0);
-  err = js_create_reference(env, pwd_argv, 1, &req->pwd_ref);
+  assert(str_offset + str_len <= str_view.size());
+
+  req->str = { &str_view[str_offset], str_len };
+
+  std::span<char> pwd_view;
+  err = js_get_arraybuffer_info(env, pwd, pwd_view);
+  assert(err == 0);
+  assert(pwd_offset + pwd_len <= pwd_view.size());
+
+  req->pwd = { &pwd_view[pwd_offset], pwd_len };
+
+  err = js_create_reference(env, str, req->str_ref);
+  assert(err == 0);
+  err = js_create_reference(env, pwd, req->pwd_ref);
   assert(err == 0);
 
-  SN_QUEUE_TASK(task, async_pwhash_scryptsalsa208sha256_str_verify_execute, async_pwhash_scryptsalsa208sha256_str_verify_complete)
+  err = js_create_reference(env, callback, req->cb);
 
-  return promise;
+  uv_loop_t *loop;
+  err = js_get_env_loop(env, &loop);
+  assert(err == 0);
+
+  err = uv_queue_work(loop, &req->task, async_pwhash_scryptsalsa208sha256_str_verify_execute, async_pwhash_scryptsalsa208sha256_str_verify_complete);
+  assert(err == 0);
 }
 
 typedef struct sn_crypto_stream_xor_state {
@@ -3626,102 +3677,132 @@ sn_extension_pbkdf2_sha512(
   );
 }
 
-typedef struct sn_async_pbkdf2_sha512_request {
-  js_env_t *env;
-  unsigned char *out_data;
-  size_t out_size;
-  js_ref_t *out_ref;
-  size_t outlen;
-  js_ref_t *pwd_ref;
-  const unsigned char *pwd_data;
-  size_t pwd_size;
-  js_ref_t *salt_ref;
-  unsigned char *salt_data;
-  size_t salt_size;
-  uint64_t iter;
-} sn_async_pbkdf2_sha512_request;
+struct sn_async_pbkdf2_sha512_request {
+  uv_work_t task;
 
-static void async_pbkdf2_sha512_execute (uv_work_t *uv_req) {
-  sn_async_task_t *task = (sn_async_task_t *) uv_req;
-  sn_async_pbkdf2_sha512_request *req = (sn_async_pbkdf2_sha512_request *) task->req;
-  task->code = sn__extension_pbkdf2_sha512(req->pwd_data,
-                                    req->pwd_size,
-                                    req->salt_data,
-                                    req->salt_size,
-                                    req->iter,
-                                    req->out_data,
-                                    req->outlen);
+  js_persistent_t<js_function_t<void, int>> cb;
+  int code;
+  js_env_t *env;
+
+  js_persistent_t<js_arraybuffer_t> out_ref;
+  std::span<uint8_t> out;
+
+  size_t outlen;
+
+  js_persistent_t<js_arraybuffer_t> pwd_ref;
+  std::span<uint8_t> pwd;
+
+  js_persistent_t<js_arraybuffer_t> salt_ref;
+  std::span<uint8_t> salt;
+
+  uint64_t iter;
+};
+
+static void
+async_pbkdf2_sha512_execute (uv_work_t *uv_req) {
+  auto *req = reinterpret_cast<sn_async_pbkdf2_sha512_request *>(uv_req);
+
+  req->code = sn__extension_pbkdf2_sha512(
+    req->pwd.data(),
+    req->pwd.size(),
+    req->salt.data(),
+    req->salt.size(),
+    req->iter,
+    req->out.data(),
+    req->outlen
+  );
 }
 
-static void async_pbkdf2_sha512_complete (uv_work_t *uv_req, int status) {
+static void
+async_pbkdf2_sha512_complete (uv_work_t *uv_req, int status) {
   int err;
-  sn_async_task_t *task = (sn_async_task_t *) uv_req;
-  sn_async_pbkdf2_sha512_request *req = (sn_async_pbkdf2_sha512_request *) task->req;
+
+  auto *req = reinterpret_cast<sn_async_pbkdf2_sha512_request *>(uv_req);
 
   js_handle_scope_t *scope;
   err = js_open_handle_scope(req->env, &scope);
   assert(err == 0);
 
-  js_value_t *global;
-  err = js_get_global(req->env, &global);
+  js_function_t<void, int> callback;
+  err = js_get_reference_value(req->env, req->cb, callback);
   assert(err == 0);
 
-  SN_ASYNC_COMPLETE("failed to compute kdf")
+  err = js_call_function_with_checkpoint(req->env, callback, req->code);
+  assert(err != js_pending_exception);
 
   err = js_close_handle_scope(req->env, scope);
   assert(err == 0);
 
-  err = js_delete_reference(req->env, req->out_ref);
-  assert(err == 0);
-  err = js_delete_reference(req->env, req->pwd_ref);
-  assert(err == 0);
-  err = js_delete_reference(req->env, req->salt_ref);
-  assert(err == 0);
-
-  free(req);
-  free(task);
+  delete req;
 }
 
-js_value_t *
-sn_extension_pbkdf2_sha512_async (js_env_t *env, js_callback_info_t *info) {
-  SN_ARGV_OPTS(5, 6, extension_pbkdf2_sha512_async)
+static inline void
+sn_extension_pbkdf2_sha512_async (
+    js_env_t *env,
+    js_receiver_t,
 
-  SN_ARGV_BUFFER_CAST(unsigned char *, out, 0)
-  SN_ARGV_BUFFER_CAST(unsigned char *, pwd, 1)
-  SN_ARGV_BUFFER_CAST(unsigned char *, salt, 2)
-  SN_ARGV_UINT64(iter, 3)
-  SN_ARGV_UINT64(outlen, 4)
+    js_arraybuffer_t out,
+    uint32_t out_offset,
+    uint32_t out_len,
 
-  SN_ASSERT_MIN_LENGTH(iter, sn__extension_pbkdf2_sha512_ITERATIONS_MIN, "iterations")
-  SN_ASSERT_MAX_LENGTH(outlen, sn__extension_pbkdf2_sha512_BYTES_MAX, "outlen")
-  SN_ASSERT_MIN_LENGTH(out_size, outlen, "output")
-  SN_ASSERT_OPT_CALLBACK(5)
+    js_arraybuffer_t pwd,
+    uint32_t pwd_offset,
+    uint32_t pwd_len,
 
-  sn_async_pbkdf2_sha512_request *req = (sn_async_pbkdf2_sha512_request *) malloc(sizeof(sn_async_pbkdf2_sha512_request));
+    js_arraybuffer_t salt,
+    uint32_t salt_offset,
+    uint32_t salt_len,
+
+    int64_t iter,
+    int64_t outlen,
+
+    js_function_t<void, int> callback
+) {
+  int err;
+
+  auto *req = new sn_async_pbkdf2_sha512_request;
 
   req->env = env;
-  req->out_data = out;
-  req->out_size = out_size;
-  req->pwd_data = pwd;
-  req->pwd_size = pwd_size;
-  req->salt_data = salt;
-  req->salt_size = salt_size;
+
+  std::span<uint8_t> out_view;
+  err = js_get_arraybuffer_info(env, out, out_view);
+  assert(err == 0);
+  assert(out_offset + out_len <= out_view.size());
+
+  req->out = { &out_view[out_offset], out_len };
+
+  std::span<uint8_t> pwd_view;
+  err = js_get_arraybuffer_info(env, pwd, pwd_view);
+  assert(err == 0);
+  assert(pwd_offset + pwd_len <= pwd_view.size());
+
+  req->pwd = { &pwd_view[pwd_offset], pwd_len };
+
+  std::span<uint8_t> salt_view;
+  err = js_get_arraybuffer_info(env, salt, salt_view);
+  assert(err == 0);
+  assert(salt_offset + salt_len <= salt_view.size());
+
+  req->salt = { &salt_view[salt_offset], salt_len };
+
   req->iter = iter;
   req->outlen = outlen;
 
-  sn_async_task_t *task = (sn_async_task_t *) malloc(sizeof(sn_async_task_t));
-  SN_ASYNC_TASK(5);
-
-  err = js_create_reference(env, out_argv, 1, &req->out_ref);
+  err = js_create_reference(env, out, req->out_ref);
   assert(err == 0);
-  err = js_create_reference(env, pwd_argv, 1, &req->pwd_ref);
+  err = js_create_reference(env, pwd, req->pwd_ref);
   assert(err == 0);
-  err = js_create_reference(env, salt_argv, 1, &req->salt_ref);
+  err = js_create_reference(env, salt, req->salt_ref);
+  assert(err == 0);
+  err = js_create_reference(env, callback, req->cb);
   assert(err == 0);
 
-  SN_QUEUE_TASK(task, async_pbkdf2_sha512_execute, async_pbkdf2_sha512_complete)
+  uv_loop_t *loop;
+  err = js_get_env_loop(env, &loop);
+  assert(err == 0);
 
-  return promise;
+  err = uv_queue_work(loop, &req->task, async_pbkdf2_sha512_execute, async_pbkdf2_sha512_complete);
+  assert(err == 0);
 }
 
 js_value_t *
@@ -3730,15 +3811,15 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   err = sodium_init();
   SN_THROWS(err == -1, "sodium_init() failed")
 
-  js_object_t _exports = static_cast<js_object_t>(exports); // TODO: remove
+  js_object_t _exports = static_cast<js_object_t>(exports);
 
   // TODO: rename => SN_EXPORT_FUNCTION
 #define SN_EXPORT_FUNCTION_SCOPED(name, fn) \
-  err = js_set_property<fn, js_function_options_t{ .scoped=false }>(env, _exports, name); \
+  err = js_set_property<fn, js_function_options_t{}>(env, _exports, name); \
   assert(err == 0);
 
 #define SN_EXPORT_FUNCTION_NOSCOPE(name, fn) \
-  err = js_set_property<fn, js_function_options_t{}>(env, _exports, name); \
+  err = js_set_property<fn, js_function_options_t{.scoped = false}>(env, _exports, name); \
   assert(err == 0);
 
   // memory
@@ -3920,9 +4001,9 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   SN_EXPORT_FUNCTION_SCOPED("crypto_pwhash_str", sn_crypto_pwhash_str);
   SN_EXPORT_FUNCTION_SCOPED("crypto_pwhash_str_verify", sn_crypto_pwhash_str_verify);
   SN_EXPORT_FUNCTION_SCOPED("crypto_pwhash_str_needs_rehash", sn_crypto_pwhash_str_needs_rehash);
-  SN_EXPORT_FUNCTION(crypto_pwhash_async, sn_crypto_pwhash_async);
-  SN_EXPORT_FUNCTION(crypto_pwhash_str_async, sn_crypto_pwhash_str_async);
-  SN_EXPORT_FUNCTION(crypto_pwhash_str_verify_async, sn_crypto_pwhash_str_verify_async);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_pwhash_async", sn_crypto_pwhash_async);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_pwhash_str_async", sn_crypto_pwhash_str_async);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_pwhash_str_verify_async", sn_crypto_pwhash_str_verify_async);
   SN_EXPORT_UINT32(crypto_pwhash_ALG_ARGON2I13, crypto_pwhash_ALG_ARGON2I13);
   SN_EXPORT_UINT32(crypto_pwhash_ALG_ARGON2ID13, crypto_pwhash_ALG_ARGON2ID13);
   SN_EXPORT_UINT32(crypto_pwhash_ALG_DEFAULT, crypto_pwhash_ALG_DEFAULT);
@@ -3949,9 +4030,9 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   SN_EXPORT_FUNCTION_SCOPED("crypto_pwhash_scryptsalsa208sha256_str", sn_crypto_pwhash_scryptsalsa208sha256_str);
   SN_EXPORT_FUNCTION_SCOPED("crypto_pwhash_scryptsalsa208sha256_str_verify", sn_crypto_pwhash_scryptsalsa208sha256_str_verify);
   SN_EXPORT_FUNCTION_SCOPED("crypto_pwhash_scryptsalsa208sha256_str_needs_rehash", sn_crypto_pwhash_scryptsalsa208sha256_str_needs_rehash);
-  SN_EXPORT_FUNCTION(crypto_pwhash_scryptsalsa208sha256_async, sn_crypto_pwhash_scryptsalsa208sha256_async);
-  SN_EXPORT_FUNCTION(crypto_pwhash_scryptsalsa208sha256_str_async, sn_crypto_pwhash_scryptsalsa208sha256_str_async)
-  SN_EXPORT_FUNCTION(crypto_pwhash_scryptsalsa208sha256_str_verify_async, sn_crypto_pwhash_scryptsalsa208sha256_str_verify_async);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_pwhash_scryptsalsa208sha256_async", sn_crypto_pwhash_scryptsalsa208sha256_async);
+  SN_EXPORT_FUNCTION_SCOPED("crypto_pwhash_scryptsalsa208sha256_str_async", sn_crypto_pwhash_scryptsalsa208sha256_str_async)
+  SN_EXPORT_FUNCTION_SCOPED("crypto_pwhash_scryptsalsa208sha256_str_verify_async", sn_crypto_pwhash_scryptsalsa208sha256_str_verify_async);
   SN_EXPORT_UINT64(crypto_pwhash_scryptsalsa208sha256_BYTES_MIN, crypto_pwhash_scryptsalsa208sha256_BYTES_MIN);
   SN_EXPORT_UINT64(crypto_pwhash_scryptsalsa208sha256_BYTES_MAX, crypto_pwhash_scryptsalsa208sha256_BYTES_MAX);
   SN_EXPORT_UINT64(crypto_pwhash_scryptsalsa208sha256_PASSWD_MIN, crypto_pwhash_scryptsalsa208sha256_PASSWD_MIN);
@@ -4119,7 +4200,7 @@ sodium_native_exports (js_env_t *env, js_value_t *exports) {
   // pbkdf2
 
   SN_EXPORT_FUNCTION_SCOPED("extension_pbkdf2_sha512", sn_extension_pbkdf2_sha512);
-  SN_EXPORT_FUNCTION(extension_pbkdf2_sha512_async, sn_extension_pbkdf2_sha512_async);
+  SN_EXPORT_FUNCTION_SCOPED("extension_pbkdf2_sha512_async", sn_extension_pbkdf2_sha512_async);
   SN_EXPORT_UINT32(extension_pbkdf2_sha512_SALTBYTES, sn__extension_pbkdf2_sha512_SALTBYTES);
   SN_EXPORT_UINT32(extension_pbkdf2_sha512_HASHBYTES, sn__extension_pbkdf2_sha512_HASHBYTES);
   SN_EXPORT_UINT32(extension_pbkdf2_sha512_ITERATIONS_MIN, sn__extension_pbkdf2_sha512_ITERATIONS_MIN);

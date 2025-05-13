@@ -216,14 +216,18 @@ exports.crypto_sign_ed25519_sk_to_curve25519 = function (x25519sk, ed25519sk) {
 // crypto_box
 
 exports.crypto_box_keypair = function (pk, sk) {
-  if (pk.byteLength !== binding.crypto_box_PUBLICKEYBYTES) throw new Error('pk') // deprecated
+  if (pk?.byteLength !== binding.crypto_box_PUBLICKEYBYTES) throw new Error('pk')
+  if (sk?.byteLength !== binding.crypto_box_SECRETKEYBYTES) throw new Error('sk')
+
   const res = binding.crypto_box_keypair(pk, sk)
 
   if (res !== 0) throw new Error('status: ' + res)
 }
 
 exports.crypto_box_seed_keypair = function (pk, sk, seed) {
-  if (pk.byteLength !== binding.crypto_box_PUBLICKEYBYTES) throw new Error('pk') // deprecated
+  if (pk.byteLength !== binding.crypto_box_PUBLICKEYBYTES) throw new Error('pk')
+  if (sk?.byteLength !== binding.crypto_box_SECRETKEYBYTES) throw new Error('sk')
+
   const res = binding.crypto_box_seed_keypair(pk, sk, seed)
 
   if (res !== 0) throw new Error('status: ' + res)
@@ -655,10 +659,70 @@ exports.crypto_pwhash = function (out, passwd, salt, opslimit, memlimit, alg) {
   if (res !== 0) throw new Error('status: ' + res)
 }
 
-exports.crypto_pwhash_str = function (out, passwd, opslimit, memlimit) {
-  if (out.byteLength !== binding.crypto_pwhash_STRBYTES) throw new Error('out')
+// mimic 4.x public api
+function checkStatus (callback, booleanResult = false) {
+  let done, promise
+
+  if (typeof callback === 'function') {
+    done = function (status) {
+      if (booleanResult) callback(null, status === 0)
+      else if (status === 0) callback(null)
+      else callback(new Error('status: ' + status))
+    }
+  } else {
+    promise = new Promise(function (resolve, reject) {
+      done = function (status) {
+        if (booleanResult) resolve(status === 0)
+        else if (status === 0) resolve()
+        else reject(new Error('status: ' + status))
+      }
+    })
+  }
+
+  return [done, promise]
+}
+
+/** @returns {Promise<void>|undefined} */
+exports.crypto_pwhash_async = function (out, passwd, salt, opslimit, memlimit, alg, callback = undefined) {
+  if (out.byteLength < binding.crypto_pwhash_BYTES_MIN) throw new Error('out')
+  if (out.byteLength > binding.crypto_pwhash_BYTES_MAX) throw new Error('out')
+  if (salt.byteLength !== binding.crypto_pwhash_SALTBYTES) throw new Error('salt')
   if (opslimit < binding.crypto_pwhash_OPSLIMIT_MIN) throw new Error('opslimit')
   if (opslimit > binding.crypto_pwhash_OPSLIMIT_MAX) throw new Error('opslimit')
+  if (memlimit < binding.crypto_pwhash_MEMLIMIT_MIN) throw new Error('memlimit')
+  if (memlimit > binding.crypto_pwhash_MEMLIMIT_MAX) throw new Error('memlimit')
+  if (alg < 1 || alg > 2) throw new Error('alg must be either Argon2i 1.3 or Argon2id 1.3')
+
+  const [done, promise] = checkStatus(callback)
+
+  binding.crypto_pwhash_async(
+    out.buffer,
+    out.byteOffset,
+    out.byteLength,
+
+    passwd.buffer,
+    passwd.byteOffset,
+    passwd.byteLength,
+
+    salt.buffer,
+    salt.byteOffset,
+    salt.byteLength,
+
+    opslimit,
+    memlimit,
+    alg,
+    done
+  )
+
+  return promise
+}
+
+exports.crypto_pwhash_str = function (out, passwd, opslimit, memlimit) {
+  if (out.byteLength !== binding.crypto_pwhash_STRBYTES) throw new Error('out')
+  if (typeof opslimit !== 'number') throw new Error('opslimit')
+  if (opslimit < binding.crypto_pwhash_OPSLIMIT_MIN) throw new Error('opslimit')
+  if (opslimit > binding.crypto_pwhash_OPSLIMIT_MAX) throw new Error('opslimit')
+  if (typeof memlimit !== 'number') throw new Error('memlimit')
   if (memlimit < binding.crypto_pwhash_MEMLIMIT_MIN) throw new Error('memlimit')
   if (memlimit > binding.crypto_pwhash_MEMLIMIT_MAX) throw new Error('memlimit')
 
@@ -667,11 +731,63 @@ exports.crypto_pwhash_str = function (out, passwd, opslimit, memlimit) {
   if (res !== 0) throw new Error('status: ' + res)
 }
 
+/** @returns {Promise<void>|undefined} */
+exports.crypto_pwhash_str_async = function (out, passwd, opslimit, memlimit, callback = undefined) {
+  if (out.byteLength !== binding.crypto_pwhash_STRBYTES) throw new Error('out')
+  if (!passwd?.byteLength) throw new Error('passwd')
+  if (typeof opslimit !== 'number') throw new Error('opslimit')
+  if (opslimit < binding.crypto_pwhash_OPSLIMIT_MIN) throw new Error('opslimit')
+  if (opslimit > binding.crypto_pwhash_OPSLIMIT_MAX) throw new Error('opslimit')
+  if (typeof memlimit !== 'number') throw new Error('memlimit')
+  if (memlimit < binding.crypto_pwhash_MEMLIMIT_MIN) throw new Error('memlimit')
+  if (memlimit > binding.crypto_pwhash_MEMLIMIT_MAX) throw new Error('memlimit')
+
+  const [done, promise] = checkStatus(callback)
+
+  binding.crypto_pwhash_str_async(
+    out.buffer,
+    out.byteOffset,
+    out.byteLength,
+
+    passwd.buffer,
+    passwd.byteOffset,
+    passwd.byteLength,
+
+    opslimit,
+    memlimit,
+    done
+  )
+
+  return promise
+}
+
 /** @returns {boolean} */
 exports.crypto_pwhash_str_verify = function (str, passwd) {
   if (str.byteLength !== binding.crypto_pwhash_STRBYTES) throw new Error('str')
 
   return binding.crypto_pwhash_str_verify(str, passwd)
+}
+
+/** @returns {Promise<boolean>|undefined} */
+exports.crypto_pwhash_str_verify_async = function (str, passwd, callback = undefined) {
+  if (str.byteLength !== binding.crypto_pwhash_STRBYTES) throw new Error('str')
+  if (!passwd?.byteLength) throw new Error('passwd')
+
+  const [done, promise] = checkStatus(callback, true)
+
+  binding.crypto_pwhash_str_verify_async(
+    str.buffer,
+    str.byteOffset,
+    str.byteLength,
+
+    passwd.buffer,
+    passwd.byteOffset,
+    passwd.byteLength,
+
+    done
+  )
+
+  return promise
 }
 
 /** @returns {boolean} */
@@ -699,8 +815,71 @@ exports.crypto_pwhash_scryptsalsa208sha256 = function (out, passwd, salt, opslim
   if (res !== 0) throw new Error('status: ' + res)
 }
 
+/** @returns {Promise<void>|undefined} */
+exports.crypto_pwhash_scryptsalsa208sha256_async = function (out, passwd, salt, opslimit, memlimit, callback = undefined) {
+  if (out.byteLength < binding.crypto_pwhash_scryptsalsa208sha256_BYTES_MIN) throw new Error('out')
+  if (out.byteLength > binding.crypto_pwhash_scryptsalsa208sha256_BYTES_MAX) throw new Error('out')
+  if (!passwd?.byteLength) throw new Error('passwd')
+  if (salt.byteLength !== binding.crypto_pwhash_scryptsalsa208sha256_SALTBYTES) throw new Error('salt')
+  if (opslimit < binding.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN) throw new Error('opslimit')
+  if (opslimit > binding.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX) throw new Error('opslimit')
+  if (memlimit < binding.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN) throw new Error('memlimit')
+  if (memlimit > binding.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX) throw new Error('memlimit')
+
+  const [done, promise] = checkStatus(callback)
+
+  binding.crypto_pwhash_scryptsalsa208sha256_async(
+    out.buffer,
+    out.byteOffset,
+    out.byteLength,
+
+    passwd.buffer,
+    passwd.byteOffset,
+    passwd.byteLength,
+
+    salt.buffer,
+    salt.byteOffset,
+    salt.byteLength,
+
+    opslimit,
+    memlimit,
+    done
+  )
+
+  return promise
+}
+
+/** @returns {Promise<void>|undefined} */
+exports.crypto_pwhash_scryptsalsa208sha256_str_async = function (out, passwd, opslimit, memlimit, callback = undefined) {
+  if (out.byteLength !== binding.crypto_pwhash_scryptsalsa208sha256_STRBYTES) throw new Error('out')
+  if (!passwd?.byteLength) throw new Error('passwd')
+  if (opslimit < binding.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN) throw new Error('opslimit')
+  if (opslimit > binding.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX) throw new Error('opslimit')
+  if (memlimit < binding.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN) throw new Error('memlimit')
+  if (memlimit > binding.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX) throw new Error('memlimit')
+
+  const [done, promise] = checkStatus(callback)
+
+  binding.crypto_pwhash_scryptsalsa208sha256_str_async(
+    out.buffer,
+    out.byteOffset,
+    out.byteLength,
+
+    passwd.buffer,
+    passwd.byteOffset,
+    passwd.byteLength,
+
+    opslimit,
+    memlimit,
+    done
+  )
+
+  return promise
+}
+
 exports.crypto_pwhash_scryptsalsa208sha256_str = function (out, passwd, opslimit, memlimit) {
   if (out.byteLength !== binding.crypto_pwhash_scryptsalsa208sha256_STRBYTES) throw new Error('out')
+  if (!passwd?.byteLength) throw new Error('passwd')
   if (opslimit < binding.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN) throw new Error('opslimit')
   if (opslimit > binding.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX) throw new Error('opslimit')
   if (memlimit < binding.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN) throw new Error('memlimit')
@@ -711,9 +890,32 @@ exports.crypto_pwhash_scryptsalsa208sha256_str = function (out, passwd, opslimit
   if (res !== 0) throw new Error('status: ' + res)
 }
 
+/** @returns {Promise<boolean>|undefined} */
+exports.crypto_pwhash_scryptsalsa208sha256_str_verify_async = function (str, passwd, callback = undefined) {
+  if (str.byteLength !== binding.crypto_pwhash_scryptsalsa208sha256_STRBYTES) throw new Error('str')
+  if (!passwd?.byteLength) throw new Error('passwd')
+
+  const [done, promise] = checkStatus(callback, true)
+
+  binding.crypto_pwhash_scryptsalsa208sha256_str_verify_async(
+    str.buffer,
+    str.byteOffset,
+    str.byteLength,
+
+    passwd.buffer,
+    passwd.byteOffset,
+    passwd.byteLength,
+
+    done
+  )
+
+  return promise
+}
+
 /** @returns {boolean} */
 exports.crypto_pwhash_scryptsalsa208sha256_str_verify = function (str, passwd) {
   if (str.byteLength !== binding.crypto_pwhash_scryptsalsa208sha256_STRBYTES) throw new Error('str')
+  if (!passwd?.byteLength) throw new Error('passwd')
 
   return binding.crypto_pwhash_scryptsalsa208sha256_str_verify(str, passwd)
 }
@@ -1397,6 +1599,38 @@ exports.extension_tweak_ed25519_keypair_add = function (pk, scalarOut, scalarIn,
 
   const res = binding.extension_tweak_ed25519_keypair_add(pk, scalarOut, scalarIn, tweak)
   if (res !== 0) throw new Error('failed to add tweak to keypair')
+}
+
+/** @returns {Promise<void>|undefined} */
+exports.extension_pbkdf2_sha512_async = function (out, passwd, salt, iter, outlen, callback = undefined) {
+  if (iter < binding.extension_pbkdf2_sha512_ITERATIONS_MIN) throw new Error('iterations')
+  if (outlen > binding.extension_pbkdf2_sha512_BYTES_MAX) throw new Error('outlen')
+  if (out.byteLength < outlen) throw new Error('out')
+  if (!out?.byteLength) throw new Error('out')
+  if (!passwd?.byteLength) throw new Error('passwd')
+  if (!salt?.byteLength) throw new Error('salt')
+
+  const [done, promise] = checkStatus(callback)
+
+  binding.extension_pbkdf2_sha512_async(
+    out.buffer,
+    out.byteOffset,
+    out.byteLength,
+
+    passwd.buffer,
+    passwd.byteOffset,
+    passwd.byteLength,
+
+    salt.buffer,
+    salt.byteOffset,
+    salt.byteLength,
+
+    iter,
+    outlen,
+    done
+  )
+
+  return promise
 }
 
 exports.extension_pbkdf2_sha512 = function (out, passwd, salt, iter, outlen) {
