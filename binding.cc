@@ -2,14 +2,14 @@
 #include <bare.h>
 #include <js.h>
 #include <jstl.h>
+#include <sodium.h>
 #include <stdbool.h>
 #include <stdint.h>
-#include <uv.h>
 #include <string.h>
-#include <sodium.h>
+#include <uv.h>
 
-#include "extensions/tweak/tweak.h"
 #include "extensions/pbkdf2/pbkdf2.h"
+#include "extensions/tweak/tweak.h"
 #include "sodium/crypto_generichash.h"
 
 #define assert_bounds(arraybuffer) \
@@ -43,12 +43,12 @@ sn_sodium_munlock(
 }
 
 static void
-sn_external_arraybuffer_finalize (js_env_t *env, void *finalise_data, void *finalise_hint) {
+sn_external_arraybuffer_finalize(js_env_t *env, void *finalise_data, void *finalise_hint) {
   sodium_free(finalise_data);
 }
 
 static js_arraybuffer_t
-sn_sodium_malloc (js_env_t *env, js_receiver_t, uint32_t len) {
+sn_sodium_malloc(js_env_t *env, js_receiver_t, uint32_t len) {
   void *ptr = sodium_malloc(len);
   assert(ptr != nullptr);
 
@@ -60,10 +60,10 @@ sn_sodium_malloc (js_env_t *env, js_receiver_t, uint32_t len) {
 }
 
 static void
-sn_sodium_free (js_env_t *env, js_receiver_t, js_arraybuffer_t buf) {
+sn_sodium_free(js_env_t *env, js_receiver_t, js_arraybuffer_t buf) {
   int err;
 
-  js_value_t * handle = static_cast<js_value_t *>(buf);
+  js_value_t *handle = static_cast<js_value_t *>(buf);
 
   bool is_detached;
   err = js_is_detached_arraybuffer(env, handle, &is_detached);
@@ -80,7 +80,7 @@ sn_sodium_free (js_env_t *env, js_receiver_t, js_arraybuffer_t buf) {
 }
 
 static inline int
-sn_sodium_mprotect_noaccess (js_env_t *env, js_receiver_t, js_arraybuffer_t buf) {
+sn_sodium_mprotect_noaccess(js_env_t *env, js_receiver_t, js_arraybuffer_t buf) {
   std::span<uint8_t> view;
 
   int err = js_get_arraybuffer_info(env, buf, view);
@@ -89,9 +89,8 @@ sn_sodium_mprotect_noaccess (js_env_t *env, js_receiver_t, js_arraybuffer_t buf)
   return sodium_mprotect_noaccess(view.data());
 }
 
-
 static inline int
-sn_sodium_mprotect_readonly (js_env_t *env, js_receiver_t, js_arraybuffer_t buf) {
+sn_sodium_mprotect_readonly(js_env_t *env, js_receiver_t, js_arraybuffer_t buf) {
   std::span<uint8_t> view;
 
   int err = js_get_arraybuffer_info(env, buf, view);
@@ -100,9 +99,8 @@ sn_sodium_mprotect_readonly (js_env_t *env, js_receiver_t, js_arraybuffer_t buf)
   return sodium_mprotect_readonly(view.data());
 }
 
-
 static inline int
-sn_sodium_mprotect_readwrite (js_env_t *env, js_receiver_t, js_arraybuffer_t buf) {
+sn_sodium_mprotect_readwrite(js_env_t *env, js_receiver_t, js_arraybuffer_t buf) {
   std::span<uint8_t> view;
 
   int err = js_get_arraybuffer_info(env, buf, view);
@@ -112,39 +110,39 @@ sn_sodium_mprotect_readwrite (js_env_t *env, js_receiver_t, js_arraybuffer_t buf
 }
 
 static inline uint32_t // TODO: test envless
-sn_randombytes_random (js_env_t *env, js_receiver_t) {
+sn_randombytes_random(js_env_t *env, js_receiver_t) {
   return randombytes_random();
 }
 
 static inline uint32_t // TODO: test envless
-sn_randombytes_uniform (js_env_t *env, js_receiver_t, uint32_t upper_bound) {
+sn_randombytes_uniform(js_env_t *env, js_receiver_t, uint32_t upper_bound) {
   return randombytes_uniform(upper_bound);
 }
 
 static inline void
-sn_randombytes_buf (
-    js_env_t *env,
-    js_receiver_t,
-    js_arraybuffer_span_t buf,
-    uint32_t buf_offset,
-    uint32_t buf_len
+sn_randombytes_buf(
+  js_env_t *env,
+  js_receiver_t,
+  js_arraybuffer_span_t buf,
+  uint32_t buf_offset,
+  uint32_t buf_len
 ) {
   assert_bounds(buf);
   randombytes_buf(&buf[buf_offset], buf_len);
 }
 
 static inline void
-sn_randombytes_buf_deterministic (
-    js_env_t *env,
-    js_receiver_t,
+sn_randombytes_buf_deterministic(
+  js_env_t *env,
+  js_receiver_t,
 
-    js_arraybuffer_span_t buf,
-    uint32_t buf_offset,
-    uint32_t buf_len,
+  js_arraybuffer_span_t buf,
+  uint32_t buf_offset,
+  uint32_t buf_len,
 
-    js_arraybuffer_span_t seed,
-    uint32_t seed_offset,
-    uint32_t seed_len
+  js_arraybuffer_span_t seed,
+  uint32_t seed_offset,
+  uint32_t seed_len
 ) {
   assert_bounds(buf);
   assert_bounds(seed);
@@ -189,7 +187,7 @@ sn_sodium_is_zero(js_env_t *, js_receiver_t, js_typedarray_span_t<> buffer, uint
 }
 
 static inline uint32_t
-sn_sodium_pad (js_env_t *, js_receiver_t, js_typedarray_span_t<> buf, uint32_t unpadded_buflen, uint32_t blocksize) {
+sn_sodium_pad(js_env_t *, js_receiver_t, js_typedarray_span_t<> buf, uint32_t unpadded_buflen, uint32_t blocksize) {
   size_t padded_buflen;
 
   sodium_pad(&padded_buflen, buf.data(), unpadded_buflen, blocksize, buf.size_bytes());
@@ -198,7 +196,7 @@ sn_sodium_pad (js_env_t *, js_receiver_t, js_typedarray_span_t<> buf, uint32_t u
 }
 
 static inline uint32_t
-sn_sodium_unpad (js_env_t *, js_receiver_t, js_typedarray_span_t<> buf, uint32_t padded_buflen, uint32_t blocksize) {
+sn_sodium_unpad(js_env_t *, js_receiver_t, js_typedarray_span_t<> buf, uint32_t padded_buflen, uint32_t blocksize) {
   size_t unpadded_buflen;
 
   sodium_unpad(&unpadded_buflen, buf.data(), padded_buflen, blocksize);
@@ -207,7 +205,7 @@ sn_sodium_unpad (js_env_t *, js_receiver_t, js_typedarray_span_t<> buf, uint32_t
 }
 
 static inline int
-sn_crypto_sign_keypair (js_env_t *, js_receiver_t, js_typedarray_span_t<> pk, js_typedarray_span_t<> sk) {
+sn_crypto_sign_keypair(js_env_t *, js_receiver_t, js_typedarray_span_t<> pk, js_typedarray_span_t<> sk) {
   assert(pk.size_bytes() == crypto_sign_PUBLICKEYBYTES);
   assert(sk.size_bytes() == crypto_sign_SECRETKEYBYTES);
 
@@ -273,7 +271,7 @@ sn_crypto_sign_detached(
 }
 
 static inline bool
-sn_crypto_sign_verify_detached (
+sn_crypto_sign_verify_detached(
   js_env_t *env,
   js_receiver_t,
 
@@ -343,7 +341,7 @@ sn_crypto_sign_ed25519_sk_to_curve25519(
 }
 
 static inline int
-sn_crypto_generichash (
+sn_crypto_generichash(
   js_env_t *env,
   js_receiver_t,
 
@@ -389,12 +387,12 @@ sn_crypto_generichash (
 
 static inline int
 sn_crypto_generichash_batch(
-    js_env_t *env,
-    js_receiver_t,
-    js_typedarray_t<uint8_t> out,
-    std::vector<js_typedarray_t<uint8_t>> batch,
-    bool use_key,
-    js_typedarray_t<uint8_t> key
+  js_env_t *env,
+  js_receiver_t,
+  js_typedarray_t<uint8_t> out,
+  std::vector<js_typedarray_t<uint8_t>> batch,
+  bool use_key,
+  js_typedarray_t<uint8_t> key
 ) {
   int err;
 
@@ -441,12 +439,12 @@ sn_crypto_generichash_batch(
 
 static inline void
 sn_crypto_generichash_keygen(
-    js_env_t *env,
-    js_receiver_t,
+  js_env_t *env,
+  js_receiver_t,
 
-    js_arraybuffer_span_t key,
-    uint32_t key_offset,
-    uint32_t key_len
+  js_arraybuffer_span_t key,
+  uint32_t key_offset,
+  uint32_t key_len
 ) {
   assert_bounds(key);
   assert(key_len == crypto_generichash_KEYBYTES);
@@ -455,7 +453,7 @@ sn_crypto_generichash_keygen(
 }
 
 static inline int
-sn_crypto_generichash_init (
+sn_crypto_generichash_init(
   js_env_t *env,
   js_receiver_t,
 
@@ -495,7 +493,7 @@ sn_crypto_generichash_init (
 }
 
 static inline int
-sn_crypto_generichash_update (
+sn_crypto_generichash_update(
   js_env_t *env,
   js_receiver_t,
 
@@ -517,7 +515,7 @@ sn_crypto_generichash_update (
 }
 
 static inline int
-sn_crypto_generichash_final (
+sn_crypto_generichash_final(
   js_env_t *env,
   js_receiver_t,
 
@@ -539,7 +537,7 @@ sn_crypto_generichash_final (
 }
 
 static inline int
-sn_crypto_box_keypair (js_env_t *, js_receiver_t, js_typedarray_span_t<> pk, js_typedarray_span_t<> sk) {
+sn_crypto_box_keypair(js_env_t *, js_receiver_t, js_typedarray_span_t<> pk, js_typedarray_span_t<> sk) {
   assert(pk.size_bytes() == crypto_box_PUBLICKEYBYTES);
   assert(sk.size_bytes() == crypto_box_SECRETKEYBYTES);
 
@@ -556,13 +554,13 @@ sn_crypto_box_seed_keypair(
 ) {
   assert(pk.size_bytes() == crypto_box_PUBLICKEYBYTES);
   assert(sk.size_bytes() == crypto_box_SECRETKEYBYTES);
-assert(seed.size_bytes() == crypto_box_SEEDBYTES);
+  assert(seed.size_bytes() == crypto_box_SEEDBYTES);
 
   return crypto_box_seed_keypair(pk.data(), sk.data(), seed.data());
 }
 
 static inline int
-sn_crypto_box_easy (
+sn_crypto_box_easy(
   js_env_t *,
   js_receiver_t,
   js_typedarray_span_t<> c,
@@ -580,7 +578,7 @@ sn_crypto_box_easy (
 }
 
 static inline bool
-sn_crypto_box_open_easy (
+sn_crypto_box_open_easy(
   js_env_t *,
   js_receiver_t,
   js_typedarray_span_t<> m,
@@ -744,7 +742,7 @@ sn_crypto_secretbox_open_detached(
   js_typedarray_span_t<> m,
   js_typedarray_span_t<> c,
   js_typedarray_span_t<> mac,
-js_typedarray_span_t<> n,
+  js_typedarray_span_t<> n,
   js_typedarray_span_t<> k
 ) {
   assert(m.size_bytes() == c.size_bytes());
@@ -1015,7 +1013,7 @@ sn_crypto_auth_verify(
   assert(h.size_bytes() == crypto_auth_BYTES);
   assert(k.size_bytes() == crypto_auth_KEYBYTES);
 
-return crypto_auth_verify(h.data(), in.data(), in.size_bytes(), k.data()) == 0;
+  return crypto_auth_verify(h.data(), in.data(), in.size_bytes(), k.data()) == 0;
 }
 
 static inline int
@@ -1710,7 +1708,6 @@ sn_crypto_hash_sha256_final(
   return crypto_hash_sha256_final(state_data, out.data());
 }
 
-
 static inline int
 sn_crypto_hash_sha512(
   js_env_t *,
@@ -2104,7 +2101,7 @@ sn_crypto_aead_chacha20poly1305_ietf_decrypt_detached(
 }
 
 static inline void
-sn_crypto_secretstream_xchacha20poly1305_keygen (
+sn_crypto_secretstream_xchacha20poly1305_keygen(
   js_env_t *env,
   js_receiver_t,
 
@@ -2119,7 +2116,7 @@ sn_crypto_secretstream_xchacha20poly1305_keygen (
 }
 
 static inline int
-sn_crypto_secretstream_xchacha20poly1305_init_push (
+sn_crypto_secretstream_xchacha20poly1305_init_push(
   js_env_t *env,
   js_receiver_t,
 
@@ -2149,7 +2146,7 @@ sn_crypto_secretstream_xchacha20poly1305_init_push (
 }
 
 static inline int64_t
-sn_crypto_secretstream_xchacha20poly1305_push (
+sn_crypto_secretstream_xchacha20poly1305_push(
   js_env_t *env,
   js_receiver_t,
 
@@ -2204,7 +2201,7 @@ sn_crypto_secretstream_xchacha20poly1305_push (
 }
 
 static inline int
-sn_crypto_secretstream_xchacha20poly1305_init_pull (
+sn_crypto_secretstream_xchacha20poly1305_init_pull(
   js_env_t *,
   js_receiver_t,
 
@@ -2232,7 +2229,6 @@ sn_crypto_secretstream_xchacha20poly1305_init_pull (
 
   return crypto_secretstream_xchacha20poly1305_init_pull(state_data, &header[header_offset], &k[k_offset]);
 }
-
 
 static inline int64_t
 sn_crypto_secretstream_xchacha20poly1305_pull(
@@ -2265,7 +2261,7 @@ sn_crypto_secretstream_xchacha20poly1305_pull(
   assert_bounds(c);
 
   assert(state_len == sizeof(crypto_secretstream_xchacha20poly1305_state));
-  auto state_data = reinterpret_cast<crypto_secretstream_xchacha20poly1305_state*>(&state[state_offset]);
+  auto state_data = reinterpret_cast<crypto_secretstream_xchacha20poly1305_state *>(&state[state_offset]);
 
   assert(c_len >= crypto_secretstream_xchacha20poly1305_ABYTES);
   assert(tag_len == 1);
@@ -2293,7 +2289,7 @@ sn_crypto_secretstream_xchacha20poly1305_pull(
 }
 
 static inline void
-sn_crypto_secretstream_xchacha20poly1305_rekey (
+sn_crypto_secretstream_xchacha20poly1305_rekey(
   js_env_t *,
   js_receiver_t,
 
@@ -2304,7 +2300,7 @@ sn_crypto_secretstream_xchacha20poly1305_rekey (
   assert_bounds(state);
 
   assert(state_len == sizeof(crypto_secretstream_xchacha20poly1305_state));
-  auto state_data = reinterpret_cast<crypto_secretstream_xchacha20poly1305_state*>(&state[state_offset]);
+  auto state_data = reinterpret_cast<crypto_secretstream_xchacha20poly1305_state *>(&state[state_offset]);
 
   crypto_secretstream_xchacha20poly1305_rekey(state_data);
 }
@@ -2332,7 +2328,7 @@ struct sn_async_pwhash_request : sn_async_task_t {
 };
 
 static void
-async_pwhash_execute (uv_work_t *uv_req) {
+async_pwhash_execute(uv_work_t *uv_req) {
   auto req = reinterpret_cast<sn_async_pwhash_request *>(uv_req);
   req->code = crypto_pwhash(
     req->out.data(),
@@ -2347,7 +2343,7 @@ async_pwhash_execute (uv_work_t *uv_req) {
 }
 
 static void
-async_pwhash_complete (uv_work_t *uv_req, int status) {
+async_pwhash_complete(uv_work_t *uv_req, int status) {
   int err;
 
   auto req = reinterpret_cast<sn_async_pwhash_request *>(uv_req);
@@ -2370,7 +2366,7 @@ async_pwhash_complete (uv_work_t *uv_req, int status) {
 }
 
 static inline void
-sn_crypto_pwhash_async (
+sn_crypto_pwhash_async(
   js_env_t *env,
   js_receiver_t,
 
@@ -2403,21 +2399,21 @@ sn_crypto_pwhash_async (
   assert(err == 0);
   assert(out_offset + out_len <= out_view.size());
 
-  req->out = { &out_view[out_offset] , out_len };
+  req->out = {&out_view[out_offset], out_len};
 
   std::span<char> pwd_view;
   err = js_get_arraybuffer_info(env, pwd, pwd_view);
   assert(err == 0);
   assert(pwd_offset + pwd_len <= out_view.size());
 
-  req->pwd = { &pwd_view[pwd_offset], pwd_len };
+  req->pwd = {&pwd_view[pwd_offset], pwd_len};
 
   std::span<uint8_t> salt_view;
   err = js_get_arraybuffer_info(env, salt, salt_view);
   assert(err == 0);
   assert(salt_offset + salt_len <= salt_view.size());
 
-  req->salt = { &salt_view[salt_offset], salt_len };
+  req->salt = {&salt_view[salt_offset], salt_len};
 
   err = js_create_reference(env, out, req->out_ref);
   assert(err == 0);
@@ -2453,7 +2449,7 @@ struct sn_async_pwhash_str_request : sn_async_task_t {
 };
 
 static void
-async_pwhash_str_execute (uv_work_t *uv_req) {
+async_pwhash_str_execute(uv_work_t *uv_req) {
   auto *req = reinterpret_cast<sn_async_pwhash_str_request *>(uv_req);
   req->code = crypto_pwhash_str(
     req->out.data(),
@@ -2465,7 +2461,7 @@ async_pwhash_str_execute (uv_work_t *uv_req) {
 }
 
 static void
-async_pwhash_str_complete (uv_work_t *uv_req, int status) {
+async_pwhash_str_complete(uv_work_t *uv_req, int status) {
   int err;
 
   auto *req = reinterpret_cast<sn_async_pwhash_str_request *>(uv_req);
@@ -2515,14 +2511,14 @@ sn_crypto_pwhash_str_async(
   assert(err == 0);
   assert(out_offset + out_len <= out_view.size());
 
-  req->out = { &out_view[out_offset], out_len };
+  req->out = {&out_view[out_offset], out_len};
 
   std::span<char> pwd_view;
   err = js_get_arraybuffer_info(env, pwd, pwd_view);
   assert(err == 0);
   assert(pwd_offset + pwd_len <= pwd_view.size());
 
-  req->pwd = { &pwd_view[pwd_offset],  pwd_len };
+  req->pwd = {&pwd_view[pwd_offset], pwd_len};
 
   req->opslimit = opslimit;
   req->memlimit = memlimit;
@@ -2552,13 +2548,13 @@ struct sn_async_pwhash_str_verify_request : sn_async_task_t {
 };
 
 static void
-async_pwhash_str_verify_execute (uv_work_t *uv_req) {
+async_pwhash_str_verify_execute(uv_work_t *uv_req) {
   auto *req = reinterpret_cast<sn_async_pwhash_str_verify_request *>(uv_req);
   req->code = crypto_pwhash_str_verify(req->str.data(), req->pwd.data(), req->pwd.size());
 }
 
 static void
-async_pwhash_str_verify_complete (uv_work_t *uv_req, int status) {
+async_pwhash_str_verify_complete(uv_work_t *uv_req, int status) {
   int err;
 
   auto *req = reinterpret_cast<sn_async_pwhash_str_verify_request *>(uv_req);
@@ -2609,14 +2605,14 @@ sn_crypto_pwhash_str_verify_async(
   assert(err == 0);
   assert(str_offset + str_len <= str_view.size());
 
-  req->str = { &str_view[str_offset], str_len };
+  req->str = {&str_view[str_offset], str_len};
 
   std::span<char> pwd_view;
   err = js_get_arraybuffer_info(env, pwd, pwd_view);
   assert(err == 0);
   assert(pwd_offset + pwd_len <= pwd_view.size());
 
-  req->pwd = { &pwd_view[pwd_offset], pwd_len };
+  req->pwd = {&pwd_view[pwd_offset], pwd_len};
 
   err = js_create_reference(env, str, req->str_ref);
   assert(err == 0);
@@ -2648,7 +2644,7 @@ struct sn_async_pwhash_scryptsalsa208sha256_request : sn_async_task_t {
 };
 
 static void
-async_pwhash_scryptsalsa208sha256_execute (uv_work_t *uv_req) {
+async_pwhash_scryptsalsa208sha256_execute(uv_work_t *uv_req) {
   auto *req = reinterpret_cast<sn_async_pwhash_scryptsalsa208sha256_request *>(uv_req);
 
   req->code = crypto_pwhash_scryptsalsa208sha256(
@@ -2663,7 +2659,7 @@ async_pwhash_scryptsalsa208sha256_execute (uv_work_t *uv_req) {
 }
 
 static void
-async_pwhash_scryptsalsa208sha256_complete (uv_work_t *uv_req, int status) {
+async_pwhash_scryptsalsa208sha256_complete(uv_work_t *uv_req, int status) {
   int err;
 
   auto *req = reinterpret_cast<sn_async_pwhash_scryptsalsa208sha256_request *>(uv_req);
@@ -2718,14 +2714,14 @@ sn_crypto_pwhash_scryptsalsa208sha256_async(
   assert(err == 0);
   assert(out_offset + out_len <= out_view.size());
 
-  req->out = { &out_view[out_offset], out_len };
+  req->out = {&out_view[out_offset], out_len};
 
   std::span<char> pwd_view;
   err = js_get_arraybuffer_info(env, pwd, pwd_view);
   assert(err == 0);
   assert(pwd_offset + pwd_len <= pwd_view.size());
 
-  req->pwd = { &pwd_view[pwd_offset], pwd_len };
+  req->pwd = {&pwd_view[pwd_offset], pwd_len};
 
   std::span<uint8_t> salt_view;
   err = js_get_arraybuffer_info(env, salt, salt_view);
@@ -2733,7 +2729,7 @@ sn_crypto_pwhash_scryptsalsa208sha256_async(
   assert(salt_offset + salt_len <= salt_view.size());
   assert(salt_len == crypto_pwhash_scryptsalsa208sha256_SALTBYTES);
 
-  req->salt = { &salt_view[salt_offset], salt_len };
+  req->salt = {&salt_view[salt_offset], salt_len};
 
   err = js_create_reference(env, out, req->out_ref);
   assert(err == 0);
@@ -2768,7 +2764,7 @@ struct sn_async_pwhash_scryptsalsa208sha256_str_request : sn_async_task_t {
 };
 
 static void
-async_pwhash_scryptsalsa208sha256_str_execute (uv_work_t *uv_req) {
+async_pwhash_scryptsalsa208sha256_str_execute(uv_work_t *uv_req) {
   auto *req = reinterpret_cast<sn_async_pwhash_scryptsalsa208sha256_str_request *>(uv_req);
   req->code = crypto_pwhash_scryptsalsa208sha256_str(
     req->out.data(),
@@ -2780,7 +2776,7 @@ async_pwhash_scryptsalsa208sha256_str_execute (uv_work_t *uv_req) {
 }
 
 static void
-async_pwhash_scryptsalsa208sha256_str_complete (uv_work_t *uv_req, int status) {
+async_pwhash_scryptsalsa208sha256_str_complete(uv_work_t *uv_req, int status) {
   int err;
 
   auto *req = reinterpret_cast<sn_async_pwhash_scryptsalsa208sha256_str_request *>(uv_req);
@@ -2803,22 +2799,22 @@ async_pwhash_scryptsalsa208sha256_str_complete (uv_work_t *uv_req, int status) {
 }
 
 static inline void
-sn_crypto_pwhash_scryptsalsa208sha256_str_async (
-    js_env_t *env,
-    js_receiver_t,
+sn_crypto_pwhash_scryptsalsa208sha256_str_async(
+  js_env_t *env,
+  js_receiver_t,
 
-    js_arraybuffer_t out,
-    uint32_t out_offset,
-    uint32_t out_len,
+  js_arraybuffer_t out,
+  uint32_t out_offset,
+  uint32_t out_len,
 
-    js_arraybuffer_t pwd,
-    uint32_t pwd_offset,
-    uint32_t pwd_len,
+  js_arraybuffer_t pwd,
+  uint32_t pwd_offset,
+  uint32_t pwd_len,
 
-    int64_t opslimit,
-    int64_t memlimit,
+  int64_t opslimit,
+  int64_t memlimit,
 
-    js_function_t<void, int> callback
+  js_function_t<void, int> callback
 ) {
   int err;
 
@@ -2831,14 +2827,14 @@ sn_crypto_pwhash_scryptsalsa208sha256_str_async (
   assert(err == 0);
   assert(out_offset + out_len <= out_view.size());
 
-  req->out = { &out_view[out_offset], out_len };
+  req->out = {&out_view[out_offset], out_len};
 
   std::span<char> pwd_view;
   err = js_get_arraybuffer_info(env, pwd, pwd_view);
   assert(err == 0);
   assert(pwd_offset + pwd_len <= pwd_view.size());
 
-  req->pwd = { &pwd_view[pwd_offset], pwd_len };
+  req->pwd = {&pwd_view[pwd_offset], pwd_len};
 
   req->opslimit = opslimit;
   req->memlimit = memlimit;
@@ -2869,14 +2865,14 @@ struct sn_async_pwhash_scryptsalsa208sha256_str_verify_request : sn_async_task_t
 };
 
 static void
-async_pwhash_scryptsalsa208sha256_str_verify_execute (uv_work_t *uv_req) {
+async_pwhash_scryptsalsa208sha256_str_verify_execute(uv_work_t *uv_req) {
   auto *req = reinterpret_cast<sn_async_pwhash_scryptsalsa208sha256_str_verify_request *>(uv_req);
 
   req->code = crypto_pwhash_scryptsalsa208sha256_str_verify(req->str.data(), req->pwd.data(), req->pwd.size());
 }
 
 static void
-async_pwhash_scryptsalsa208sha256_str_verify_complete (uv_work_t *uv_req, int status) {
+async_pwhash_scryptsalsa208sha256_str_verify_complete(uv_work_t *uv_req, int status) {
   int err;
 
   auto *req = reinterpret_cast<sn_async_pwhash_scryptsalsa208sha256_str_verify_request *>(uv_req);
@@ -2903,7 +2899,7 @@ async_pwhash_scryptsalsa208sha256_str_verify_complete (uv_work_t *uv_req, int st
 }
 
 static inline void
-sn_crypto_pwhash_scryptsalsa208sha256_str_verify_async (
+sn_crypto_pwhash_scryptsalsa208sha256_str_verify_async(
   js_env_t *env,
   js_receiver_t,
 
@@ -2927,14 +2923,14 @@ sn_crypto_pwhash_scryptsalsa208sha256_str_verify_async (
   assert(err == 0);
   assert(str_offset + str_len <= str_view.size());
 
-  req->str = { &str_view[str_offset], str_len };
+  req->str = {&str_view[str_offset], str_len};
 
   std::span<char> pwd_view;
   err = js_get_arraybuffer_info(env, pwd, pwd_view);
   assert(err == 0);
   assert(pwd_offset + pwd_len <= pwd_view.size());
 
-  req->pwd = { &pwd_view[pwd_offset], pwd_len };
+  req->pwd = {&pwd_view[pwd_offset], pwd_len};
 
   err = js_create_reference(env, str, req->str_ref);
   assert(err == 0);
@@ -3115,10 +3111,7 @@ sn_crypto_stream_chacha20_xor_wrap_update(
   size_t main_len = m_size - state_data->remainder;
 
   crypto_stream_chacha20_xor_ic(
-    c_ptr, m_ptr, main_len,
-    state_data->n,
-    state_data->block_counter,
-    state_data->k
+    c_ptr, m_ptr, main_len, state_data->n, state_data->block_counter, state_data->k
   );
 
   state_data->block_counter += main_len / 64;
@@ -3128,10 +3121,7 @@ sn_crypto_stream_chacha20_xor_wrap_update(
     memcpy(next_block, m_ptr + main_len, state_data->remainder);
 
     crypto_stream_chacha20_xor_ic(
-      next_block, next_block, 64,
-      state_data->n,
-      state_data->block_counter,
-      state_data->k
+      next_block, next_block, 64, state_data->n, state_data->block_counter, state_data->k
     );
     memcpy(c_ptr + main_len, next_block, state_data->remainder);
 
@@ -3221,10 +3211,7 @@ sn_crypto_stream_chacha20_ietf_xor_wrap_update(
   size_t main_len = m_size - state_data->remainder;
 
   crypto_stream_chacha20_ietf_xor_ic(
-    c_ptr, m_ptr, main_len,
-    state_data->n,
-    state_data->block_counter,
-    state_data->k
+    c_ptr, m_ptr, main_len, state_data->n, state_data->block_counter, state_data->k
   );
 
   state_data->block_counter += main_len / 64;
@@ -3234,10 +3221,7 @@ sn_crypto_stream_chacha20_ietf_xor_wrap_update(
     memcpy(next_block, m_ptr + main_len, state_data->remainder);
 
     crypto_stream_chacha20_ietf_xor_ic(
-      next_block, next_block, 64,
-      state_data->n,
-      state_data->block_counter,
-      state_data->k
+      next_block, next_block, 64, state_data->n, state_data->block_counter, state_data->k
     );
     memcpy(c_ptr + main_len, next_block, state_data->remainder);
 
@@ -3260,7 +3244,6 @@ sn_crypto_stream_chacha20_ietf_xor_wrap_final(
   state_data->remainder = 0;
 }
 
-
 typedef struct sn_crypto_stream_xchacha20_xor_state {
   unsigned char n[crypto_stream_xchacha20_NONCEBYTES];
   unsigned char k[crypto_stream_xchacha20_KEYBYTES];
@@ -3268,7 +3251,6 @@ typedef struct sn_crypto_stream_xchacha20_xor_state {
   int remainder;
   uint64_t block_counter;
 } sn_crypto_stream_xchacha20_xor_state;
-
 
 static inline void
 sn_crypto_stream_xchacha20_xor_wrap_init(
@@ -3329,10 +3311,7 @@ sn_crypto_stream_xchacha20_xor_wrap_update(
   size_t main_len = m_size - state_data->remainder;
 
   crypto_stream_xchacha20_xor_ic(
-    c_ptr, m_ptr, main_len,
-    state_data->n,
-    state_data->block_counter,
-    state_data->k
+    c_ptr, m_ptr, main_len, state_data->n, state_data->block_counter, state_data->k
   );
 
   state_data->block_counter += main_len / 64;
@@ -3342,10 +3321,7 @@ sn_crypto_stream_xchacha20_xor_wrap_update(
     memcpy(next_block, m_ptr + main_len, state_data->remainder);
 
     crypto_stream_xchacha20_xor_ic(
-      next_block, next_block, 64,
-      state_data->n,
-      state_data->block_counter,
-      state_data->k
+      next_block, next_block, 64, state_data->n, state_data->block_counter, state_data->k
     );
     memcpy(c_ptr + main_len, next_block, state_data->remainder);
 
@@ -3375,7 +3351,6 @@ typedef struct sn_crypto_stream_salsa20_xor_state {
   int remainder;
   uint64_t block_counter;
 } sn_crypto_stream_salsa20_xor_state;
-
 
 static inline void
 sn_crypto_stream_salsa20_xor_wrap_init(
@@ -3436,10 +3411,7 @@ sn_crypto_stream_salsa20_xor_wrap_update(
   size_t main_len = m_size - state_data->remainder;
 
   crypto_stream_salsa20_xor_ic(
-    c_ptr, m_ptr, main_len,
-    state_data->n,
-    state_data->block_counter,
-    state_data->k
+    c_ptr, m_ptr, main_len, state_data->n, state_data->block_counter, state_data->k
   );
 
   state_data->block_counter += main_len / 64;
@@ -3449,10 +3421,7 @@ sn_crypto_stream_salsa20_xor_wrap_update(
     memcpy(next_block, m_ptr + main_len, state_data->remainder);
 
     crypto_stream_salsa20_xor_ic(
-      next_block, next_block, 64,
-      state_data->n,
-      state_data->block_counter,
-      state_data->k
+      next_block, next_block, 64, state_data->n, state_data->block_counter, state_data->k
     );
     memcpy(c_ptr + main_len, next_block, state_data->remainder);
 
@@ -3560,7 +3529,6 @@ sn_extension_tweak_ed25519_pk(
   return sn__extension_tweak_ed25519_pk(tpk.data(), pk.data(), ns.data(), ns.size_bytes());
 }
 
-
 static inline void
 sn_extension_tweak_ed25519_keypair(
   js_env_t *,
@@ -3597,7 +3565,6 @@ sn_extension_tweak_ed25519_scalar_add(
 
   sn__extension_tweak_ed25519_scalar_add(scalar_out.data(), scalar.data(), n.data());
 }
-
 
 static inline int
 sn_extension_tweak_ed25519_pk_add(
@@ -3684,7 +3651,7 @@ struct sn_async_pbkdf2_sha512_request {
 };
 
 static void
-async_pbkdf2_sha512_execute (uv_work_t *uv_req) {
+async_pbkdf2_sha512_execute(uv_work_t *uv_req) {
   auto *req = reinterpret_cast<sn_async_pbkdf2_sha512_request *>(uv_req);
 
   req->code = sn__extension_pbkdf2_sha512(
@@ -3699,7 +3666,7 @@ async_pbkdf2_sha512_execute (uv_work_t *uv_req) {
 }
 
 static void
-async_pbkdf2_sha512_complete (uv_work_t *uv_req, int status) {
+async_pbkdf2_sha512_complete(uv_work_t *uv_req, int status) {
   int err;
 
   auto *req = reinterpret_cast<sn_async_pbkdf2_sha512_request *>(uv_req);
@@ -3722,26 +3689,26 @@ async_pbkdf2_sha512_complete (uv_work_t *uv_req, int status) {
 }
 
 static inline void
-sn_extension_pbkdf2_sha512_async (
-    js_env_t *env,
-    js_receiver_t,
+sn_extension_pbkdf2_sha512_async(
+  js_env_t *env,
+  js_receiver_t,
 
-    js_arraybuffer_t out,
-    uint32_t out_offset,
-    uint32_t out_len,
+  js_arraybuffer_t out,
+  uint32_t out_offset,
+  uint32_t out_len,
 
-    js_arraybuffer_t pwd,
-    uint32_t pwd_offset,
-    uint32_t pwd_len,
+  js_arraybuffer_t pwd,
+  uint32_t pwd_offset,
+  uint32_t pwd_len,
 
-    js_arraybuffer_t salt,
-    uint32_t salt_offset,
-    uint32_t salt_len,
+  js_arraybuffer_t salt,
+  uint32_t salt_offset,
+  uint32_t salt_len,
 
-    int64_t iter,
-    int64_t outlen,
+  int64_t iter,
+  int64_t outlen,
 
-    js_function_t<void, int> callback
+  js_function_t<void, int> callback
 ) {
   int err;
 
@@ -3754,21 +3721,21 @@ sn_extension_pbkdf2_sha512_async (
   assert(err == 0);
   assert(out_offset + out_len <= out_view.size());
 
-  req->out = { &out_view[out_offset], out_len };
+  req->out = {&out_view[out_offset], out_len};
 
   std::span<uint8_t> pwd_view;
   err = js_get_arraybuffer_info(env, pwd, pwd_view);
   assert(err == 0);
   assert(pwd_offset + pwd_len <= pwd_view.size());
 
-  req->pwd = { &pwd_view[pwd_offset], pwd_len };
+  req->pwd = {&pwd_view[pwd_offset], pwd_len};
 
   std::span<uint8_t> salt_view;
   err = js_get_arraybuffer_info(env, salt, salt_view);
   assert(err == 0);
   assert(salt_offset + salt_len <= salt_view.size());
 
-  req->salt = { &salt_view[salt_offset], salt_len };
+  req->salt = {&salt_view[salt_offset], salt_len};
 
   req->iter = iter;
   req->outlen = outlen;
@@ -3791,7 +3758,7 @@ sn_extension_pbkdf2_sha512_async (
 }
 
 js_value_t *
-sodium_native_exports (js_env_t *env, js_value_t *exports) {
+sodium_native_exports(js_env_t *env, js_value_t *exports) {
   int err;
 
   err = sodium_init();
