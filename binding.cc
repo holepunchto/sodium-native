@@ -3767,7 +3767,7 @@ sodium_native_exports(js_env_t *env, js_value_t *exports) {
   js_object_t _exports = static_cast<js_object_t>(exports);
 
 #define V_FUNCTION(name, fn) \
-  err = js_set_property<fn, js_function_options_t{}>(env, _exports, name); \
+  err = js_set_property<fn>(env, _exports, name); \
   assert(err == 0);
 
 #define V_FUNCTION_NOSCOPE(name, fn) \
