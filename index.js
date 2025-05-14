@@ -100,7 +100,7 @@ exports.sodium_compare = function (a, b) {
 
 /** @returns {boolean} */
 exports.sodium_is_zero = function (buffer, length) {
-  if (!buffer?.byteLength) throw new Error('invalid buffer')
+  if (!buffer) throw new Error('invalid buffer')
   length ??= buffer.byteLength
   if (length > buffer.byteLength || length < 0) throw new Error('invalid length')
 

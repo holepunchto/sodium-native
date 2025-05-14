@@ -2404,7 +2404,7 @@ sn_crypto_pwhash_async(
   std::span<char> pwd_view;
   err = js_get_arraybuffer_info(env, pwd, pwd_view);
   assert(err == 0);
-  assert(pwd_offset + pwd_len <= out_view.size());
+  assert(pwd_offset + pwd_len <= pwd_view.size());
 
   req->pwd = {&pwd_view[pwd_offset], pwd_len};
 
