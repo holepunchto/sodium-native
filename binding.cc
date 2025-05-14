@@ -3775,16 +3775,16 @@ sodium_native_exports(js_env_t *env, js_value_t *exports) {
   assert(err == 0);
 
 #define V_UINT32(name, constant) \
-  err = js_set_property(env, _exports, #name, static_cast<uint32_t>(constant)); \
+  err = js_set_property(env, _exports, name, static_cast<uint32_t>(constant)); \
   assert(err == 0);
 
 #define V_UINT64(name, constant) \
   assert(constant >= 0); \
-  err = js_set_property(env, _exports, #name, static_cast<int64_t>(std::min<uint64_t>(constant, 0x1fffffffffffffULL))); \
+  err = js_set_property(env, _exports, name, static_cast<int64_t>(std::min<uint64_t>(constant, 0x1fffffffffffffULL))); \
   assert(err == 0);
 
 #define V_STRING(name, str) \
-  err = js_set_property(env, _exports, #name, str); \
+  err = js_set_property(env, _exports, name, str); \
   assert(err == 0);
 
   // memory
@@ -3805,7 +3805,7 @@ sodium_native_exports(js_env_t *env, js_value_t *exports) {
   V_FUNCTION_NOSCOPE("randombytes_random", sn_randombytes_random);
   V_FUNCTION_NOSCOPE("randombytes_uniform", sn_randombytes_uniform);
 
-  V_UINT32(randombytes_SEEDBYTES, randombytes_SEEDBYTES);
+  V_UINT32("randombytes_SEEDBYTES", randombytes_SEEDBYTES);
 
   // sodium helpers
 
@@ -3825,30 +3825,30 @@ sodium_native_exports(js_env_t *env, js_value_t *exports) {
   V_FUNCTION("crypto_aead_xchacha20poly1305_ietf_decrypt", sn_crypto_aead_xchacha20poly1305_ietf_decrypt);
   V_FUNCTION("crypto_aead_xchacha20poly1305_ietf_encrypt_detached", sn_crypto_aead_xchacha20poly1305_ietf_encrypt_detached);
   V_FUNCTION("crypto_aead_xchacha20poly1305_ietf_decrypt_detached", sn_crypto_aead_xchacha20poly1305_ietf_decrypt_detached);
-  V_UINT32(crypto_aead_xchacha20poly1305_ietf_ABYTES, crypto_aead_xchacha20poly1305_ietf_ABYTES);
-  V_UINT32(crypto_aead_xchacha20poly1305_ietf_KEYBYTES, crypto_aead_xchacha20poly1305_ietf_KEYBYTES);
-  V_UINT32(crypto_aead_xchacha20poly1305_ietf_NPUBBYTES, crypto_aead_xchacha20poly1305_ietf_NPUBBYTES);
-  V_UINT32(crypto_aead_xchacha20poly1305_ietf_NSECBYTES, crypto_aead_xchacha20poly1305_ietf_NSECBYTES);
-  V_UINT64(crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX, crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX);
+  V_UINT32("crypto_aead_xchacha20poly1305_ietf_ABYTES", crypto_aead_xchacha20poly1305_ietf_ABYTES);
+  V_UINT32("crypto_aead_xchacha20poly1305_ietf_KEYBYTES", crypto_aead_xchacha20poly1305_ietf_KEYBYTES);
+  V_UINT32("crypto_aead_xchacha20poly1305_ietf_NPUBBYTES", crypto_aead_xchacha20poly1305_ietf_NPUBBYTES);
+  V_UINT32("crypto_aead_xchacha20poly1305_ietf_NSECBYTES", crypto_aead_xchacha20poly1305_ietf_NSECBYTES);
+  V_UINT64("crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX", crypto_aead_xchacha20poly1305_ietf_MESSAGEBYTES_MAX);
 
   V_FUNCTION("crypto_aead_chacha20poly1305_ietf_keygen", sn_crypto_aead_chacha20poly1305_ietf_keygen);
   V_FUNCTION("crypto_aead_chacha20poly1305_ietf_encrypt", sn_crypto_aead_chacha20poly1305_ietf_encrypt);
   V_FUNCTION("crypto_aead_chacha20poly1305_ietf_decrypt", sn_crypto_aead_chacha20poly1305_ietf_decrypt);
   V_FUNCTION("crypto_aead_chacha20poly1305_ietf_encrypt_detached", sn_crypto_aead_chacha20poly1305_ietf_encrypt_detached);
   V_FUNCTION("crypto_aead_chacha20poly1305_ietf_decrypt_detached", sn_crypto_aead_chacha20poly1305_ietf_decrypt_detached);
-  V_UINT32(crypto_aead_chacha20poly1305_ietf_ABYTES, crypto_aead_chacha20poly1305_ietf_ABYTES);
-  V_UINT32(crypto_aead_chacha20poly1305_ietf_KEYBYTES, crypto_aead_chacha20poly1305_ietf_KEYBYTES);
-  V_UINT32(crypto_aead_chacha20poly1305_ietf_NPUBBYTES, crypto_aead_chacha20poly1305_ietf_NPUBBYTES);
-  V_UINT32(crypto_aead_chacha20poly1305_ietf_NSECBYTES, crypto_aead_chacha20poly1305_ietf_NSECBYTES);
-  V_UINT64(crypto_aead_chacha20poly1305_ietf_MESSAGEBYTES_MAX, crypto_aead_chacha20poly1305_ietf_MESSAGEBYTES_MAX);
+  V_UINT32("crypto_aead_chacha20poly1305_ietf_ABYTES", crypto_aead_chacha20poly1305_ietf_ABYTES);
+  V_UINT32("crypto_aead_chacha20poly1305_ietf_KEYBYTES", crypto_aead_chacha20poly1305_ietf_KEYBYTES);
+  V_UINT32("crypto_aead_chacha20poly1305_ietf_NPUBBYTES", crypto_aead_chacha20poly1305_ietf_NPUBBYTES);
+  V_UINT32("crypto_aead_chacha20poly1305_ietf_NSECBYTES", crypto_aead_chacha20poly1305_ietf_NSECBYTES);
+  V_UINT64("crypto_aead_chacha20poly1305_ietf_MESSAGEBYTES_MAX", crypto_aead_chacha20poly1305_ietf_MESSAGEBYTES_MAX);
 
   // crypto_auth
 
   V_FUNCTION("crypto_auth", sn_crypto_auth);
   V_FUNCTION("crypto_auth_verify", sn_crypto_auth_verify);
-  V_UINT32(crypto_auth_BYTES, crypto_auth_BYTES);
-  V_UINT32(crypto_auth_KEYBYTES, crypto_auth_KEYBYTES);
-  V_STRING(crypto_auth_PRIMITIVE, crypto_auth_PRIMITIVE);
+  V_UINT32("crypto_auth_BYTES", crypto_auth_BYTES);
+  V_UINT32("crypto_auth_KEYBYTES", crypto_auth_KEYBYTES);
+  V_STRING("crypto_auth_PRIMITIVE", crypto_auth_PRIMITIVE);
 
   // crypto_box
 
@@ -3861,13 +3861,13 @@ sodium_native_exports(js_env_t *env, js_value_t *exports) {
   V_FUNCTION("crypto_box_seal", sn_crypto_box_seal);
   V_FUNCTION_NOSCOPE("crypto_box_seal_open", sn_crypto_box_seal_open);
 
-  V_UINT32(crypto_box_SEEDBYTES, crypto_box_SEEDBYTES);
-  V_UINT32(crypto_box_PUBLICKEYBYTES, crypto_box_PUBLICKEYBYTES);
-  V_UINT32(crypto_box_SECRETKEYBYTES, crypto_box_SECRETKEYBYTES);
-  V_UINT32(crypto_box_NONCEBYTES, crypto_box_NONCEBYTES);
-  V_UINT32(crypto_box_MACBYTES, crypto_box_MACBYTES);
-  V_UINT32(crypto_box_SEALBYTES, crypto_box_SEALBYTES);
-  V_STRING(crypto_box_PRIMITIVE, crypto_box_PRIMITIVE);
+  V_UINT32("crypto_box_SEEDBYTES", crypto_box_SEEDBYTES);
+  V_UINT32("crypto_box_PUBLICKEYBYTES", crypto_box_PUBLICKEYBYTES);
+  V_UINT32("crypto_box_SECRETKEYBYTES", crypto_box_SECRETKEYBYTES);
+  V_UINT32("crypto_box_NONCEBYTES", crypto_box_NONCEBYTES);
+  V_UINT32("crypto_box_MACBYTES", crypto_box_MACBYTES);
+  V_UINT32("crypto_box_SEALBYTES", crypto_box_SEALBYTES);
+  V_STRING("crypto_box_PRIMITIVE", crypto_box_PRIMITIVE);
 
   // crypto_core
 
@@ -3882,20 +3882,20 @@ sodium_native_exports(js_env_t *env, js_value_t *exports) {
   V_FUNCTION("crypto_core_ed25519_scalar_complement", sn_crypto_core_ed25519_scalar_complement);
   V_FUNCTION("crypto_core_ed25519_scalar_add", sn_crypto_core_ed25519_scalar_add);
   V_FUNCTION("crypto_core_ed25519_scalar_sub", sn_crypto_core_ed25519_scalar_sub);
-  V_UINT32(crypto_core_ed25519_BYTES, crypto_core_ed25519_BYTES);
-  V_UINT32(crypto_core_ed25519_UNIFORMBYTES, crypto_core_ed25519_UNIFORMBYTES);
-  V_UINT32(crypto_core_ed25519_SCALARBYTES, crypto_core_ed25519_SCALARBYTES);
-  V_UINT32(crypto_core_ed25519_NONREDUCEDSCALARBYTES, crypto_core_ed25519_NONREDUCEDSCALARBYTES);
+  V_UINT32("crypto_core_ed25519_BYTES", crypto_core_ed25519_BYTES);
+  V_UINT32("crypto_core_ed25519_UNIFORMBYTES", crypto_core_ed25519_UNIFORMBYTES);
+  V_UINT32("crypto_core_ed25519_SCALARBYTES", crypto_core_ed25519_SCALARBYTES);
+  V_UINT32("crypto_core_ed25519_NONREDUCEDSCALARBYTES", crypto_core_ed25519_NONREDUCEDSCALARBYTES);
 
   // crypto_kdf
 
   V_FUNCTION("crypto_kdf_keygen", sn_crypto_kdf_keygen);
   V_FUNCTION("crypto_kdf_derive_from_key", sn_crypto_kdf_derive_from_key);
-  V_UINT32(crypto_kdf_BYTES_MIN, crypto_kdf_BYTES_MIN);
-  V_UINT32(crypto_kdf_BYTES_MAX, crypto_kdf_BYTES_MAX);
-  V_UINT32(crypto_kdf_CONTEXTBYTES, crypto_kdf_CONTEXTBYTES);
-  V_UINT32(crypto_kdf_KEYBYTES, crypto_kdf_KEYBYTES);
-  V_STRING(crypto_kdf_PRIMITIVE, crypto_kdf_PRIMITIVE);
+  V_UINT32("crypto_kdf_BYTES_MIN", crypto_kdf_BYTES_MIN);
+  V_UINT32("crypto_kdf_BYTES_MAX", crypto_kdf_BYTES_MAX);
+  V_UINT32("crypto_kdf_CONTEXTBYTES", crypto_kdf_CONTEXTBYTES);
+  V_UINT32("crypto_kdf_KEYBYTES", crypto_kdf_KEYBYTES);
+  V_STRING("crypto_kdf_PRIMITIVE", crypto_kdf_PRIMITIVE);
 
   // crypto_kx
 
@@ -3903,11 +3903,11 @@ sodium_native_exports(js_env_t *env, js_value_t *exports) {
   V_FUNCTION("crypto_kx_seed_keypair", sn_crypto_kx_seed_keypair);
   V_FUNCTION("crypto_kx_client_session_keys", sn_crypto_kx_client_session_keys);
   V_FUNCTION("crypto_kx_server_session_keys", sn_crypto_kx_server_session_keys);
-  V_UINT32(crypto_kx_PUBLICKEYBYTES, crypto_kx_PUBLICKEYBYTES);
-  V_UINT32(crypto_kx_SECRETKEYBYTES, crypto_kx_SECRETKEYBYTES);
-  V_UINT32(crypto_kx_SEEDBYTES, crypto_kx_SEEDBYTES);
-  V_UINT32(crypto_kx_SESSIONKEYBYTES, crypto_kx_SESSIONKEYBYTES);
-  V_STRING(crypto_kx_PRIMITIVE, crypto_kx_PRIMITIVE);
+  V_UINT32("crypto_kx_PUBLICKEYBYTES", crypto_kx_PUBLICKEYBYTES);
+  V_UINT32("crypto_kx_SECRETKEYBYTES", crypto_kx_SECRETKEYBYTES);
+  V_UINT32("crypto_kx_SEEDBYTES", crypto_kx_SEEDBYTES);
+  V_UINT32("crypto_kx_SESSIONKEYBYTES", crypto_kx_SESSIONKEYBYTES);
+  V_STRING("crypto_kx_PRIMITIVE", crypto_kx_PRIMITIVE);
 
   // crypto_generichash
 
@@ -3919,34 +3919,34 @@ sodium_native_exports(js_env_t *env, js_value_t *exports) {
   V_FUNCTION_NOSCOPE("crypto_generichash_update", sn_crypto_generichash_update);
   V_FUNCTION_NOSCOPE("crypto_generichash_final", sn_crypto_generichash_final);
 
-  V_UINT32(crypto_generichash_STATEBYTES, sizeof(crypto_generichash_state));
-  V_STRING(crypto_generichash_PRIMITIVE, crypto_generichash_PRIMITIVE);
-  V_UINT32(crypto_generichash_BYTES_MIN, crypto_generichash_BYTES_MIN);
-  V_UINT32(crypto_generichash_BYTES_MAX, crypto_generichash_BYTES_MAX);
-  V_UINT32(crypto_generichash_BYTES, crypto_generichash_BYTES);
-  V_UINT32(crypto_generichash_KEYBYTES_MIN, crypto_generichash_KEYBYTES_MIN);
-  V_UINT32(crypto_generichash_KEYBYTES_MAX, crypto_generichash_KEYBYTES_MAX);
-  V_UINT32(crypto_generichash_KEYBYTES, crypto_generichash_KEYBYTES);
+  V_UINT32("crypto_generichash_STATEBYTES", sizeof(crypto_generichash_state));
+  V_STRING("crypto_generichash_PRIMITIVE", crypto_generichash_PRIMITIVE);
+  V_UINT32("crypto_generichash_BYTES_MIN", crypto_generichash_BYTES_MIN);
+  V_UINT32("crypto_generichash_BYTES_MAX", crypto_generichash_BYTES_MAX);
+  V_UINT32("crypto_generichash_BYTES", crypto_generichash_BYTES);
+  V_UINT32("crypto_generichash_KEYBYTES_MIN", crypto_generichash_KEYBYTES_MIN);
+  V_UINT32("crypto_generichash_KEYBYTES_MAX", crypto_generichash_KEYBYTES_MAX);
+  V_UINT32("crypto_generichash_KEYBYTES", crypto_generichash_KEYBYTES);
 
   // crypto_hash
 
   V_FUNCTION("crypto_hash", sn_crypto_hash);
-  V_UINT32(crypto_hash_BYTES, crypto_hash_BYTES);
-  V_STRING(crypto_hash_PRIMITIVE, crypto_hash_PRIMITIVE);
+  V_UINT32("crypto_hash_BYTES", crypto_hash_BYTES);
+  V_STRING("crypto_hash_PRIMITIVE", crypto_hash_PRIMITIVE);
 
   V_FUNCTION("crypto_hash_sha256", sn_crypto_hash_sha256);
   V_FUNCTION("crypto_hash_sha256_init", sn_crypto_hash_sha256_init);
   V_FUNCTION("crypto_hash_sha256_update", sn_crypto_hash_sha256_update);
   V_FUNCTION("crypto_hash_sha256_final", sn_crypto_hash_sha256_final);
-  V_UINT32(crypto_hash_sha256_STATEBYTES, sizeof(crypto_hash_sha256_state));
-  V_UINT32(crypto_hash_sha256_BYTES, crypto_hash_sha256_BYTES);
+  V_UINT32("crypto_hash_sha256_STATEBYTES", sizeof(crypto_hash_sha256_state));
+  V_UINT32("crypto_hash_sha256_BYTES", crypto_hash_sha256_BYTES);
 
   V_FUNCTION("crypto_hash_sha512", sn_crypto_hash_sha512);
   V_FUNCTION("crypto_hash_sha512_init", sn_crypto_hash_sha512_init);
   V_FUNCTION("crypto_hash_sha512_update", sn_crypto_hash_sha512_update);
   V_FUNCTION("crypto_hash_sha512_final", sn_crypto_hash_sha512_final);
-  V_UINT32(crypto_hash_sha512_STATEBYTES, sizeof(crypto_hash_sha512_state));
-  V_UINT32(crypto_hash_sha512_BYTES, crypto_hash_sha512_BYTES);
+  V_UINT32("crypto_hash_sha512_STATEBYTES", sizeof(crypto_hash_sha512_state));
+  V_UINT32("crypto_hash_sha512_BYTES", crypto_hash_sha512_BYTES);
 
   // crypto_onetimeauth
 
@@ -3955,10 +3955,10 @@ sodium_native_exports(js_env_t *env, js_value_t *exports) {
   V_FUNCTION("crypto_onetimeauth_init", sn_crypto_onetimeauth_init);
   V_FUNCTION("crypto_onetimeauth_update", sn_crypto_onetimeauth_update);
   V_FUNCTION("crypto_onetimeauth_final", sn_crypto_onetimeauth_final);
-  V_UINT32(crypto_onetimeauth_STATEBYTES, sizeof(crypto_onetimeauth_state));
-  V_UINT32(crypto_onetimeauth_BYTES, crypto_onetimeauth_BYTES);
-  V_UINT32(crypto_onetimeauth_KEYBYTES, crypto_onetimeauth_KEYBYTES);
-  V_STRING(crypto_onetimeauth_PRIMITIVE, crypto_onetimeauth_PRIMITIVE);
+  V_UINT32("crypto_onetimeauth_STATEBYTES", sizeof(crypto_onetimeauth_state));
+  V_UINT32("crypto_onetimeauth_BYTES", crypto_onetimeauth_BYTES);
+  V_UINT32("crypto_onetimeauth_KEYBYTES", crypto_onetimeauth_KEYBYTES);
+  V_STRING("crypto_onetimeauth_PRIMITIVE", crypto_onetimeauth_PRIMITIVE);
 
   // crypto_pwhash
 
@@ -3969,27 +3969,27 @@ sodium_native_exports(js_env_t *env, js_value_t *exports) {
   V_FUNCTION("crypto_pwhash_async", sn_crypto_pwhash_async);
   V_FUNCTION("crypto_pwhash_str_async", sn_crypto_pwhash_str_async);
   V_FUNCTION("crypto_pwhash_str_verify_async", sn_crypto_pwhash_str_verify_async);
-  V_UINT32(crypto_pwhash_ALG_ARGON2I13, crypto_pwhash_ALG_ARGON2I13);
-  V_UINT32(crypto_pwhash_ALG_ARGON2ID13, crypto_pwhash_ALG_ARGON2ID13);
-  V_UINT32(crypto_pwhash_ALG_DEFAULT, crypto_pwhash_ALG_DEFAULT);
-  V_UINT32(crypto_pwhash_BYTES_MIN, crypto_pwhash_BYTES_MIN);
-  V_UINT32(crypto_pwhash_BYTES_MAX, crypto_pwhash_BYTES_MAX);
-  V_UINT32(crypto_pwhash_PASSWD_MIN, crypto_pwhash_PASSWD_MIN);
-  V_UINT32(crypto_pwhash_PASSWD_MAX, crypto_pwhash_PASSWD_MAX);
-  V_UINT32(crypto_pwhash_SALTBYTES, crypto_pwhash_SALTBYTES);
-  V_UINT32(crypto_pwhash_STRBYTES, crypto_pwhash_STRBYTES);
-  V_STRING(crypto_pwhash_STRPREFIX, crypto_pwhash_STRPREFIX);
-  V_UINT32(crypto_pwhash_OPSLIMIT_MIN, crypto_pwhash_OPSLIMIT_MIN);
-  V_UINT32(crypto_pwhash_OPSLIMIT_MAX, crypto_pwhash_OPSLIMIT_MAX);
-  V_UINT64(crypto_pwhash_MEMLIMIT_MIN, crypto_pwhash_MEMLIMIT_MIN);
-  V_UINT64(crypto_pwhash_MEMLIMIT_MAX, crypto_pwhash_MEMLIMIT_MAX);
-  V_UINT32(crypto_pwhash_OPSLIMIT_INTERACTIVE, crypto_pwhash_OPSLIMIT_INTERACTIVE);
-  V_UINT64(crypto_pwhash_MEMLIMIT_INTERACTIVE, crypto_pwhash_MEMLIMIT_INTERACTIVE);
-  V_UINT32(crypto_pwhash_OPSLIMIT_MODERATE, crypto_pwhash_OPSLIMIT_MODERATE);
-  V_UINT64(crypto_pwhash_MEMLIMIT_MODERATE, crypto_pwhash_MEMLIMIT_MODERATE);
-  V_UINT32(crypto_pwhash_OPSLIMIT_SENSITIVE, crypto_pwhash_OPSLIMIT_SENSITIVE);
-  V_UINT64(crypto_pwhash_MEMLIMIT_SENSITIVE, crypto_pwhash_MEMLIMIT_SENSITIVE);
-  V_STRING(crypto_pwhash_PRIMITIVE, crypto_pwhash_PRIMITIVE);
+  V_UINT32("crypto_pwhash_ALG_ARGON2I13", crypto_pwhash_ALG_ARGON2I13);
+  V_UINT32("crypto_pwhash_ALG_ARGON2ID13", crypto_pwhash_ALG_ARGON2ID13);
+  V_UINT32("crypto_pwhash_ALG_DEFAULT", crypto_pwhash_ALG_DEFAULT);
+  V_UINT32("crypto_pwhash_BYTES_MIN", crypto_pwhash_BYTES_MIN);
+  V_UINT32("crypto_pwhash_BYTES_MAX", crypto_pwhash_BYTES_MAX);
+  V_UINT32("crypto_pwhash_PASSWD_MIN", crypto_pwhash_PASSWD_MIN);
+  V_UINT32("crypto_pwhash_PASSWD_MAX", crypto_pwhash_PASSWD_MAX);
+  V_UINT32("crypto_pwhash_SALTBYTES", crypto_pwhash_SALTBYTES);
+  V_UINT32("crypto_pwhash_STRBYTES", crypto_pwhash_STRBYTES);
+  V_STRING("crypto_pwhash_STRPREFIX", crypto_pwhash_STRPREFIX);
+  V_UINT32("crypto_pwhash_OPSLIMIT_MIN", crypto_pwhash_OPSLIMIT_MIN);
+  V_UINT32("crypto_pwhash_OPSLIMIT_MAX", crypto_pwhash_OPSLIMIT_MAX);
+  V_UINT64("crypto_pwhash_MEMLIMIT_MIN", crypto_pwhash_MEMLIMIT_MIN);
+  V_UINT64("crypto_pwhash_MEMLIMIT_MAX", crypto_pwhash_MEMLIMIT_MAX);
+  V_UINT32("crypto_pwhash_OPSLIMIT_INTERACTIVE", crypto_pwhash_OPSLIMIT_INTERACTIVE);
+  V_UINT64("crypto_pwhash_MEMLIMIT_INTERACTIVE", crypto_pwhash_MEMLIMIT_INTERACTIVE);
+  V_UINT32("crypto_pwhash_OPSLIMIT_MODERATE", crypto_pwhash_OPSLIMIT_MODERATE);
+  V_UINT64("crypto_pwhash_MEMLIMIT_MODERATE", crypto_pwhash_MEMLIMIT_MODERATE);
+  V_UINT32("crypto_pwhash_OPSLIMIT_SENSITIVE", crypto_pwhash_OPSLIMIT_SENSITIVE);
+  V_UINT64("crypto_pwhash_MEMLIMIT_SENSITIVE", crypto_pwhash_MEMLIMIT_SENSITIVE);
+  V_STRING("crypto_pwhash_PRIMITIVE", crypto_pwhash_PRIMITIVE);
 
   V_FUNCTION("crypto_pwhash_scryptsalsa208sha256", sn_crypto_pwhash_scryptsalsa208sha256);
   V_FUNCTION("crypto_pwhash_scryptsalsa208sha256_str", sn_crypto_pwhash_scryptsalsa208sha256_str);
@@ -3998,36 +3998,36 @@ sodium_native_exports(js_env_t *env, js_value_t *exports) {
   V_FUNCTION("crypto_pwhash_scryptsalsa208sha256_async", sn_crypto_pwhash_scryptsalsa208sha256_async);
   V_FUNCTION("crypto_pwhash_scryptsalsa208sha256_str_async", sn_crypto_pwhash_scryptsalsa208sha256_str_async)
   V_FUNCTION("crypto_pwhash_scryptsalsa208sha256_str_verify_async", sn_crypto_pwhash_scryptsalsa208sha256_str_verify_async);
-  V_UINT64(crypto_pwhash_scryptsalsa208sha256_BYTES_MIN, crypto_pwhash_scryptsalsa208sha256_BYTES_MIN);
-  V_UINT64(crypto_pwhash_scryptsalsa208sha256_BYTES_MAX, crypto_pwhash_scryptsalsa208sha256_BYTES_MAX);
-  V_UINT64(crypto_pwhash_scryptsalsa208sha256_PASSWD_MIN, crypto_pwhash_scryptsalsa208sha256_PASSWD_MIN);
-  V_UINT64(crypto_pwhash_scryptsalsa208sha256_PASSWD_MAX, crypto_pwhash_scryptsalsa208sha256_PASSWD_MAX);
-  V_UINT64(crypto_pwhash_scryptsalsa208sha256_SALTBYTES, crypto_pwhash_scryptsalsa208sha256_SALTBYTES);
-  V_UINT64(crypto_pwhash_scryptsalsa208sha256_STRBYTES, crypto_pwhash_scryptsalsa208sha256_STRBYTES);
-  V_STRING(crypto_pwhash_scryptsalsa208sha256_STRPREFIX, crypto_pwhash_scryptsalsa208sha256_STRPREFIX);
-  V_UINT32(crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN);
-  V_UINT32(crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX);
-  V_UINT64(crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN, crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN);
-  V_UINT64(crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX, crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX);
-  V_UINT32(crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE);
-  V_UINT64(crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE, crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE);
-  V_UINT32(crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_SENSITIVE, crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_SENSITIVE);
-  V_UINT64(crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_SENSITIVE, crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_SENSITIVE);
+  V_UINT64("crypto_pwhash_scryptsalsa208sha256_BYTES_MIN", crypto_pwhash_scryptsalsa208sha256_BYTES_MIN);
+  V_UINT64("crypto_pwhash_scryptsalsa208sha256_BYTES_MAX", crypto_pwhash_scryptsalsa208sha256_BYTES_MAX);
+  V_UINT64("crypto_pwhash_scryptsalsa208sha256_PASSWD_MIN", crypto_pwhash_scryptsalsa208sha256_PASSWD_MIN);
+  V_UINT64("crypto_pwhash_scryptsalsa208sha256_PASSWD_MAX", crypto_pwhash_scryptsalsa208sha256_PASSWD_MAX);
+  V_UINT64("crypto_pwhash_scryptsalsa208sha256_SALTBYTES", crypto_pwhash_scryptsalsa208sha256_SALTBYTES);
+  V_UINT64("crypto_pwhash_scryptsalsa208sha256_STRBYTES", crypto_pwhash_scryptsalsa208sha256_STRBYTES);
+  V_STRING("crypto_pwhash_scryptsalsa208sha256_STRPREFIX", crypto_pwhash_scryptsalsa208sha256_STRPREFIX);
+  V_UINT32("crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN", crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN);
+  V_UINT32("crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX", crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX);
+  V_UINT64("crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN", crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN);
+  V_UINT64("crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX", crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX);
+  V_UINT32("crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE", crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE);
+  V_UINT64("crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE", crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE);
+  V_UINT32("crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_SENSITIVE", crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_SENSITIVE);
+  V_UINT64("crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_SENSITIVE", crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_SENSITIVE);
 
   // crypto_scalarmult
 
   V_FUNCTION("crypto_scalarmult_base", sn_crypto_scalarmult_base);
   V_FUNCTION("crypto_scalarmult", sn_crypto_scalarmult);
-  V_STRING(crypto_scalarmult_PRIMITIVE, crypto_scalarmult_PRIMITIVE);
-  V_UINT32(crypto_scalarmult_BYTES, crypto_scalarmult_BYTES);
-  V_UINT32(crypto_scalarmult_SCALARBYTES, crypto_scalarmult_SCALARBYTES);
+  V_STRING("crypto_scalarmult_PRIMITIVE", crypto_scalarmult_PRIMITIVE);
+  V_UINT32("crypto_scalarmult_BYTES", crypto_scalarmult_BYTES);
+  V_UINT32("crypto_scalarmult_SCALARBYTES", crypto_scalarmult_SCALARBYTES);
 
   V_FUNCTION("crypto_scalarmult_ed25519_base", sn_crypto_scalarmult_ed25519_base);
   V_FUNCTION("crypto_scalarmult_ed25519", sn_crypto_scalarmult_ed25519);
   V_FUNCTION("crypto_scalarmult_ed25519_base_noclamp", sn_crypto_scalarmult_ed25519_base_noclamp);
   V_FUNCTION("crypto_scalarmult_ed25519_noclamp", sn_crypto_scalarmult_ed25519_noclamp);
-  V_UINT32(crypto_scalarmult_ed25519_BYTES, crypto_scalarmult_ed25519_BYTES);
-  V_UINT32(crypto_scalarmult_ed25519_SCALARBYTES, crypto_scalarmult_ed25519_SCALARBYTES);
+  V_UINT32("crypto_scalarmult_ed25519_BYTES", crypto_scalarmult_ed25519_BYTES);
+  V_UINT32("crypto_scalarmult_ed25519_SCALARBYTES", crypto_scalarmult_ed25519_SCALARBYTES);
 
   // crypto_secretbox
 
@@ -4035,10 +4035,10 @@ sodium_native_exports(js_env_t *env, js_value_t *exports) {
   V_FUNCTION("crypto_secretbox_open_easy", sn_crypto_secretbox_open_easy);
   V_FUNCTION("crypto_secretbox_detached", sn_crypto_secretbox_detached);
   V_FUNCTION("crypto_secretbox_open_detached", sn_crypto_secretbox_open_detached);
-  V_UINT32(crypto_secretbox_KEYBYTES, crypto_secretbox_KEYBYTES);
-  V_UINT32(crypto_secretbox_NONCEBYTES, crypto_secretbox_NONCEBYTES);
-  V_UINT32(crypto_secretbox_MACBYTES, crypto_secretbox_MACBYTES);
-  V_STRING(crypto_secretbox_PRIMITIVE, crypto_secretbox_PRIMITIVE);
+  V_UINT32("crypto_secretbox_KEYBYTES", crypto_secretbox_KEYBYTES);
+  V_UINT32("crypto_secretbox_NONCEBYTES", crypto_secretbox_NONCEBYTES);
+  V_UINT32("crypto_secretbox_MACBYTES", crypto_secretbox_MACBYTES);
+  V_STRING("crypto_secretbox_PRIMITIVE", crypto_secretbox_PRIMITIVE);
 
   // crypto_secretstream
 
@@ -4049,23 +4049,23 @@ sodium_native_exports(js_env_t *env, js_value_t *exports) {
   V_FUNCTION_NOSCOPE("crypto_secretstream_xchacha20poly1305_pull", sn_crypto_secretstream_xchacha20poly1305_pull);
   V_FUNCTION_NOSCOPE("crypto_secretstream_xchacha20poly1305_rekey", sn_crypto_secretstream_xchacha20poly1305_rekey);
 
-  V_UINT32(crypto_secretstream_xchacha20poly1305_STATEBYTES, sizeof(crypto_secretstream_xchacha20poly1305_state));
-  V_UINT32(crypto_secretstream_xchacha20poly1305_ABYTES, crypto_secretstream_xchacha20poly1305_ABYTES);
-  V_UINT32(crypto_secretstream_xchacha20poly1305_HEADERBYTES, crypto_secretstream_xchacha20poly1305_HEADERBYTES);
-  V_UINT32(crypto_secretstream_xchacha20poly1305_KEYBYTES, crypto_secretstream_xchacha20poly1305_KEYBYTES);
-  V_UINT32(crypto_secretstream_xchacha20poly1305_TAGBYTES, 1);
-  V_UINT64(crypto_secretstream_xchacha20poly1305_MESSAGEBYTES_MAX, crypto_secretstream_xchacha20poly1305_MESSAGEBYTES_MAX);
-  V_UINT32(crypto_secretstream_xchacha20poly1305_TAG_MESSAGE, crypto_secretstream_xchacha20poly1305_TAG_MESSAGE);
-  V_UINT32(crypto_secretstream_xchacha20poly1305_TAG_PUSH, crypto_secretstream_xchacha20poly1305_TAG_PUSH);
-  V_UINT32(crypto_secretstream_xchacha20poly1305_TAG_REKEY, crypto_secretstream_xchacha20poly1305_TAG_REKEY);
-  V_UINT32(crypto_secretstream_xchacha20poly1305_TAG_FINAL, crypto_secretstream_xchacha20poly1305_TAG_FINAL);
+  V_UINT32("crypto_secretstream_xchacha20poly1305_STATEBYTES", sizeof(crypto_secretstream_xchacha20poly1305_state));
+  V_UINT32("crypto_secretstream_xchacha20poly1305_ABYTES", crypto_secretstream_xchacha20poly1305_ABYTES);
+  V_UINT32("crypto_secretstream_xchacha20poly1305_HEADERBYTES", crypto_secretstream_xchacha20poly1305_HEADERBYTES);
+  V_UINT32("crypto_secretstream_xchacha20poly1305_KEYBYTES", crypto_secretstream_xchacha20poly1305_KEYBYTES);
+  V_UINT32("crypto_secretstream_xchacha20poly1305_TAGBYTES", 1);
+  V_UINT64("crypto_secretstream_xchacha20poly1305_MESSAGEBYTES_MAX", crypto_secretstream_xchacha20poly1305_MESSAGEBYTES_MAX);
+  V_UINT32("crypto_secretstream_xchacha20poly1305_TAG_MESSAGE", crypto_secretstream_xchacha20poly1305_TAG_MESSAGE);
+  V_UINT32("crypto_secretstream_xchacha20poly1305_TAG_PUSH", crypto_secretstream_xchacha20poly1305_TAG_PUSH);
+  V_UINT32("crypto_secretstream_xchacha20poly1305_TAG_REKEY", crypto_secretstream_xchacha20poly1305_TAG_REKEY);
+  V_UINT32("crypto_secretstream_xchacha20poly1305_TAG_FINAL", crypto_secretstream_xchacha20poly1305_TAG_FINAL);
 
   // crypto_shorthash
 
   V_FUNCTION("crypto_shorthash", sn_crypto_shorthash);
-  V_UINT32(crypto_shorthash_BYTES, crypto_shorthash_BYTES);
-  V_UINT32(crypto_shorthash_KEYBYTES, crypto_shorthash_KEYBYTES);
-  V_STRING(crypto_shorthash_PRIMITIVE, crypto_shorthash_PRIMITIVE);
+  V_UINT32("crypto_shorthash_BYTES", crypto_shorthash_BYTES);
+  V_UINT32("crypto_shorthash_KEYBYTES", crypto_shorthash_KEYBYTES);
+  V_STRING("crypto_shorthash_PRIMITIVE", crypto_shorthash_PRIMITIVE);
 
   // crypto_sign
 
@@ -4079,41 +4079,41 @@ sodium_native_exports(js_env_t *env, js_value_t *exports) {
   V_FUNCTION("crypto_sign_ed25519_pk_to_curve25519", sn_crypto_sign_ed25519_pk_to_curve25519);
   V_FUNCTION("crypto_sign_ed25519_sk_to_curve25519", sn_crypto_sign_ed25519_sk_to_curve25519);
 
-  V_UINT32(crypto_sign_SEEDBYTES, crypto_sign_SEEDBYTES);
-  V_UINT32(crypto_sign_PUBLICKEYBYTES, crypto_sign_PUBLICKEYBYTES);
-  V_UINT32(crypto_sign_SECRETKEYBYTES, crypto_sign_SECRETKEYBYTES);
-  V_UINT32(crypto_sign_BYTES, crypto_sign_BYTES);
+  V_UINT32("crypto_sign_SEEDBYTES", crypto_sign_SEEDBYTES);
+  V_UINT32("crypto_sign_PUBLICKEYBYTES", crypto_sign_PUBLICKEYBYTES);
+  V_UINT32("crypto_sign_SECRETKEYBYTES", crypto_sign_SECRETKEYBYTES);
+  V_UINT32("crypto_sign_BYTES", crypto_sign_BYTES);
 
   // crypto_stream
 
   V_FUNCTION("crypto_stream", sn_crypto_stream);
-  V_UINT32(crypto_stream_KEYBYTES, crypto_stream_KEYBYTES);
-  V_UINT32(crypto_stream_NONCEBYTES, crypto_stream_NONCEBYTES);
-  V_STRING(crypto_stream_PRIMITIVE, crypto_stream_PRIMITIVE);
+  V_UINT32("crypto_stream_KEYBYTES", crypto_stream_KEYBYTES);
+  V_UINT32("crypto_stream_NONCEBYTES", crypto_stream_NONCEBYTES);
+  V_STRING("crypto_stream_PRIMITIVE", crypto_stream_PRIMITIVE);
 
   V_FUNCTION_NOSCOPE("crypto_stream_xor", sn_crypto_stream_xor);
   V_FUNCTION("crypto_stream_xor_init", sn_crypto_stream_xor_wrap_init);
   V_FUNCTION("crypto_stream_xor_update", sn_crypto_stream_xor_wrap_update);
   V_FUNCTION("crypto_stream_xor_final", sn_crypto_stream_xor_wrap_final);
-  V_UINT32(crypto_stream_xor_STATEBYTES, sizeof(sn_crypto_stream_xor_state));
+  V_UINT32("crypto_stream_xor_STATEBYTES", sizeof(sn_crypto_stream_xor_state));
 
   V_FUNCTION("crypto_stream_chacha20", sn_crypto_stream_chacha20);
-  V_UINT32(crypto_stream_chacha20_KEYBYTES, crypto_stream_chacha20_KEYBYTES);
-  V_UINT32(crypto_stream_chacha20_NONCEBYTES, crypto_stream_chacha20_NONCEBYTES);
-  V_UINT64(crypto_stream_chacha20_MESSAGEBYTES_MAX, crypto_stream_chacha20_MESSAGEBYTES_MAX);
+  V_UINT32("crypto_stream_chacha20_KEYBYTES", crypto_stream_chacha20_KEYBYTES);
+  V_UINT32("crypto_stream_chacha20_NONCEBYTES", crypto_stream_chacha20_NONCEBYTES);
+  V_UINT64("crypto_stream_chacha20_MESSAGEBYTES_MAX", crypto_stream_chacha20_MESSAGEBYTES_MAX);
 
   V_FUNCTION("crypto_stream_chacha20_xor", sn_crypto_stream_chacha20_xor);
   V_FUNCTION("crypto_stream_chacha20_xor_ic", sn_crypto_stream_chacha20_xor_ic);
   V_FUNCTION("crypto_stream_chacha20_xor_init", sn_crypto_stream_chacha20_xor_wrap_init);
   V_FUNCTION("crypto_stream_chacha20_xor_update", sn_crypto_stream_chacha20_xor_wrap_update);
   V_FUNCTION("crypto_stream_chacha20_xor_final", sn_crypto_stream_chacha20_xor_wrap_final);
-  V_UINT32(crypto_stream_chacha20_xor_STATEBYTES, sizeof(sn_crypto_stream_chacha20_xor_state));
+  V_UINT32("crypto_stream_chacha20_xor_STATEBYTES", sizeof(sn_crypto_stream_chacha20_xor_state));
 
   V_FUNCTION("crypto_stream_chacha20_ietf", sn_crypto_stream_chacha20_ietf);
-  V_UINT32(crypto_stream_chacha20_ietf_KEYBYTES, crypto_stream_chacha20_ietf_KEYBYTES);
-  V_UINT32(crypto_stream_chacha20_ietf_NONCEBYTES, crypto_stream_chacha20_ietf_NONCEBYTES);
-  V_UINT64(crypto_stream_chacha20_ietf_MESSAGEBYTES_MAX, crypto_stream_chacha20_ietf_MESSAGEBYTES_MAX);
-  V_UINT32(crypto_stream_chacha20_ietf_xor_STATEBYTES, sizeof(sn_crypto_stream_chacha20_ietf_xor_state));
+  V_UINT32("crypto_stream_chacha20_ietf_KEYBYTES", crypto_stream_chacha20_ietf_KEYBYTES);
+  V_UINT32("crypto_stream_chacha20_ietf_NONCEBYTES", crypto_stream_chacha20_ietf_NONCEBYTES);
+  V_UINT64("crypto_stream_chacha20_ietf_MESSAGEBYTES_MAX", crypto_stream_chacha20_ietf_MESSAGEBYTES_MAX);
+  V_UINT32("crypto_stream_chacha20_ietf_xor_STATEBYTES", sizeof(sn_crypto_stream_chacha20_ietf_xor_state));
 
   V_FUNCTION("crypto_stream_chacha20_ietf_xor", sn_crypto_stream_chacha20_ietf_xor);
   V_FUNCTION("crypto_stream_chacha20_ietf_xor_ic", sn_crypto_stream_chacha20_ietf_xor_ic);
@@ -4122,9 +4122,9 @@ sodium_native_exports(js_env_t *env, js_value_t *exports) {
   V_FUNCTION("crypto_stream_chacha20_ietf_xor_final", sn_crypto_stream_chacha20_ietf_xor_wrap_final);
 
   V_FUNCTION("crypto_stream_xchacha20", sn_crypto_stream_xchacha20);
-  V_UINT32(crypto_stream_xchacha20_KEYBYTES, crypto_stream_xchacha20_KEYBYTES);
-  V_UINT32(crypto_stream_xchacha20_NONCEBYTES, crypto_stream_xchacha20_NONCEBYTES);
-  V_UINT64(crypto_stream_xchacha20_MESSAGEBYTES_MAX, crypto_stream_xchacha20_MESSAGEBYTES_MAX);
+  V_UINT32("crypto_stream_xchacha20_KEYBYTES", crypto_stream_xchacha20_KEYBYTES);
+  V_UINT32("crypto_stream_xchacha20_NONCEBYTES", crypto_stream_xchacha20_NONCEBYTES);
+  V_UINT64("crypto_stream_xchacha20_MESSAGEBYTES_MAX", crypto_stream_xchacha20_MESSAGEBYTES_MAX);
 
   V_FUNCTION("crypto_stream_xchacha20_xor", sn_crypto_stream_xchacha20_xor);
   V_FUNCTION("crypto_stream_xchacha20_xor_ic", sn_crypto_stream_xchacha20_xor_ic);
@@ -4132,19 +4132,19 @@ sodium_native_exports(js_env_t *env, js_value_t *exports) {
   V_FUNCTION("crypto_stream_xchacha20_xor_update", sn_crypto_stream_xchacha20_xor_wrap_update);
   V_FUNCTION("crypto_stream_xchacha20_xor_final", sn_crypto_stream_xchacha20_xor_wrap_final);
   V_FUNCTION("crypto_stream_xchacha20", sn_crypto_stream_xchacha20);
-  V_UINT32(crypto_stream_xchacha20_xor_STATEBYTES, sizeof(sn_crypto_stream_xchacha20_xor_state));
+  V_UINT32("crypto_stream_xchacha20_xor_STATEBYTES", sizeof(sn_crypto_stream_xchacha20_xor_state));
 
   V_FUNCTION("crypto_stream_salsa20", sn_crypto_stream_salsa20);
-  V_UINT32(crypto_stream_salsa20_KEYBYTES, crypto_stream_salsa20_KEYBYTES);
-  V_UINT32(crypto_stream_salsa20_NONCEBYTES, crypto_stream_salsa20_NONCEBYTES);
-  V_UINT64(crypto_stream_salsa20_MESSAGEBYTES_MAX, crypto_stream_salsa20_MESSAGEBYTES_MAX);
+  V_UINT32("crypto_stream_salsa20_KEYBYTES", crypto_stream_salsa20_KEYBYTES);
+  V_UINT32("crypto_stream_salsa20_NONCEBYTES", crypto_stream_salsa20_NONCEBYTES);
+  V_UINT64("crypto_stream_salsa20_MESSAGEBYTES_MAX", crypto_stream_salsa20_MESSAGEBYTES_MAX);
 
   V_FUNCTION("crypto_stream_salsa20_xor", sn_crypto_stream_salsa20_xor);
   V_FUNCTION("crypto_stream_salsa20_xor_ic", sn_crypto_stream_salsa20_xor_ic);
   V_FUNCTION("crypto_stream_salsa20_xor_init", sn_crypto_stream_salsa20_xor_wrap_init);
   V_FUNCTION("crypto_stream_salsa20_xor_update", sn_crypto_stream_salsa20_xor_wrap_update);
   V_FUNCTION("crypto_stream_salsa20_xor_final", sn_crypto_stream_salsa20_xor_wrap_final);
-  V_UINT32(crypto_stream_salsa20_xor_STATEBYTES, sizeof(sn_crypto_stream_salsa20_xor_state));
+  V_UINT32("crypto_stream_salsa20_xor_STATEBYTES", sizeof(sn_crypto_stream_salsa20_xor_state));
 
   // extensions
 
@@ -4159,17 +4159,17 @@ sodium_native_exports(js_env_t *env, js_value_t *exports) {
   V_FUNCTION("extension_tweak_ed25519_scalar_add", sn_extension_tweak_ed25519_scalar_add);
   V_FUNCTION("extension_tweak_ed25519_pk_add", sn_extension_tweak_ed25519_pk_add);
   V_FUNCTION("extension_tweak_ed25519_keypair_add", sn_extension_tweak_ed25519_keypair_add);
-  V_UINT32(extension_tweak_ed25519_BYTES, sn__extension_tweak_ed25519_BYTES);
-  V_UINT32(extension_tweak_ed25519_SCALARBYTES, sn__extension_tweak_ed25519_SCALARBYTES);
+  V_UINT32("extension_tweak_ed25519_BYTES", sn__extension_tweak_ed25519_BYTES);
+  V_UINT32("extension_tweak_ed25519_SCALARBYTES", sn__extension_tweak_ed25519_SCALARBYTES);
 
   // pbkdf2
 
   V_FUNCTION("extension_pbkdf2_sha512", sn_extension_pbkdf2_sha512);
   V_FUNCTION("extension_pbkdf2_sha512_async", sn_extension_pbkdf2_sha512_async);
-  V_UINT32(extension_pbkdf2_sha512_SALTBYTES, sn__extension_pbkdf2_sha512_SALTBYTES);
-  V_UINT32(extension_pbkdf2_sha512_HASHBYTES, sn__extension_pbkdf2_sha512_HASHBYTES);
-  V_UINT32(extension_pbkdf2_sha512_ITERATIONS_MIN, sn__extension_pbkdf2_sha512_ITERATIONS_MIN);
-  V_UINT64(extension_pbkdf2_sha512_BYTES_MAX, sn__extension_pbkdf2_sha512_BYTES_MAX);
+  V_UINT32("extension_pbkdf2_sha512_SALTBYTES", sn__extension_pbkdf2_sha512_SALTBYTES);
+  V_UINT32("extension_pbkdf2_sha512_HASHBYTES", sn__extension_pbkdf2_sha512_HASHBYTES);
+  V_UINT32("extension_pbkdf2_sha512_ITERATIONS_MIN", sn__extension_pbkdf2_sha512_ITERATIONS_MIN);
+  V_UINT64("extension_pbkdf2_sha512_BYTES_MAX", sn__extension_pbkdf2_sha512_BYTES_MAX);
 
 #undef V_FUNCTION
 #undef V_FUNCTION_NOSCOPE

@@ -214,7 +214,6 @@ target_sources(
   ${sodium_native_bare}
   PRIVATE
     binding.cc
-    macros.h
     extensions/tweak/tweak.c
     extensions/tweak/tweak.h
     extensions/pbkdf2/pbkdf2.c
@@ -236,7 +235,6 @@ target_sources(
   ${sodium_native_node}
   PRIVATE
     binding.cc
-    macros.h
     extensions/tweak/tweak.c
     extensions/tweak/tweak.h
     extensions/pbkdf2/pbkdf2.c
