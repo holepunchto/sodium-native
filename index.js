@@ -353,7 +353,7 @@ exports.crypto_generichash = function (output, input, key = OPTIONAL) {
 }
 
 exports.crypto_generichash_batch = function (output, batch, key) {
-  if (isNode || batch.length < 12) { // TODO: re-tune min-batch-size
+  if (isNode || batch.length < 4) {
     // iterate batch from native
     const res = binding.crypto_generichash_batch(output, batch, !!key, key || OPTIONAL)
     if (res !== 0) throw new Error('status: ' + res)
