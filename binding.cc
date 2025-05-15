@@ -3629,13 +3629,7 @@ sn_extension_pbkdf2_sha512(
   );
 }
 
-struct sn_async_pbkdf2_sha512_request {
-  uv_work_t task;
-
-  js_persistent_t<js_function_t<void, int>> cb;
-  int code;
-  js_env_t *env;
-
+struct sn_async_pbkdf2_sha512_request : sn_async_task_t {
   js_persistent_t<js_arraybuffer_t> out_ref;
   std::span<uint8_t> out;
 
@@ -4175,6 +4169,7 @@ sodium_native_exports(js_env_t *env, js_value_t *exports) {
 #undef V_FUNCTION_NOSCOPE
 #undef V_UINT32
 #undef V_UINT64
+#undef V_STRING
 
   return exports;
 }
