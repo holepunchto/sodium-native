@@ -97,6 +97,7 @@ test('fastcall: crypto_generichash_batch', t => {
 
 test('fastcall: crypto_stream_xor', t => {
   const message = Buffer.alloc(4096).fill(0xaa)
+  const plain = Buffer.alloc(4096).fill(0xaa)
   const nonce = random(sodium.crypto_stream_NONCEBYTES)
   const key = random(sodium.crypto_stream_KEYBYTES)
 
@@ -104,10 +105,10 @@ test('fastcall: crypto_stream_xor', t => {
 
   for (let i = 0; i < N.stream_xor_calls; i++) {
     sodium.crypto_stream_xor(message, message, nonce, key)
-    if (message[0] === 0xaa) throw new Error('encryption failed')
+    if (message.equals(plain)) throw new Error('encryption failed')
 
     sodium.crypto_stream_xor(message, message, nonce, key)
-    if (message[0] !== 0xaa) throw new Error('decryption failed')
+    if (!message.equals(plain)) throw new Error('decryption failed')
     bpush(2)
   }
 
