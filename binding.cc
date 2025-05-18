@@ -1085,8 +1085,8 @@ sn_crypto_pwhash(
   js_typedarray_span_t<> out,
   js_typedarray_span_t<> passwd,
   js_typedarray_span_t<> salt,
-  int64_t opslimit,
-  int64_t memlimit,
+  uint64_t opslimit,
+  uint64_t memlimit,
   int32_t alg
 ) {
   assert(out.size_bytes() >= crypto_pwhash_BYTES_MIN);
@@ -1116,8 +1116,8 @@ sn_crypto_pwhash_str(
   js_receiver_t,
   js_typedarray_span_t<> out,
   js_typedarray_span_t<> passwd,
-  int64_t opslimit,
-  int64_t memlimit
+  uint64_t opslimit,
+  uint64_t memlimit
 ) {
   assert(out.size_bytes() == crypto_pwhash_STRBYTES);
   assert(opslimit >= crypto_pwhash_OPSLIMIT_MIN);
@@ -1158,14 +1158,14 @@ sn_crypto_pwhash_str_needs_rehash(
   js_env_t *,
   js_receiver_t,
   js_typedarray_span_t<> str,
-  int64_t opslimit,
-  int64_t memlimit
+  uint64_t opslimit,
+  uint64_t memlimit
 ) {
   assert(str.size_bytes() == crypto_pwhash_STRBYTES);
   assert(opslimit >= crypto_pwhash_OPSLIMIT_MIN);
   assert(opslimit <= crypto_pwhash_OPSLIMIT_MAX);
   assert(memlimit >= crypto_pwhash_MEMLIMIT_MIN);
-  assert(memlimit <= static_cast<int64_t>(crypto_pwhash_MEMLIMIT_MAX));
+  assert(memlimit <= crypto_pwhash_MEMLIMIT_MAX);
 
   int res = crypto_pwhash_str_needs_rehash(
     reinterpret_cast<const char *>(str.data()),
@@ -1184,8 +1184,8 @@ sn_crypto_pwhash_scryptsalsa208sha256(
   js_typedarray_span_t<> out,
   js_typedarray_span_t<> passwd,
   js_typedarray_span_t<> salt,
-  int64_t opslimit,
-  int64_t memlimit
+  uint64_t opslimit,
+  uint64_t memlimit
 ) {
   assert(out.size_bytes() >= crypto_pwhash_scryptsalsa208sha256_BYTES_MIN);
   assert(out.size_bytes() <= crypto_pwhash_scryptsalsa208sha256_BYTES_MAX);
@@ -1193,7 +1193,7 @@ sn_crypto_pwhash_scryptsalsa208sha256(
   assert(opslimit >= crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN);
   assert(opslimit <= crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX);
   assert(memlimit >= crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN);
-  assert(memlimit <= static_cast<int64_t>(crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX));
+  assert(memlimit <= crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX);
 
   return crypto_pwhash_scryptsalsa208sha256(
     out.data(),
@@ -1212,14 +1212,14 @@ sn_crypto_pwhash_scryptsalsa208sha256_str(
   js_receiver_t,
   js_typedarray_span_t<> out,
   js_typedarray_span_t<> passwd,
-  int64_t opslimit,
-  int64_t memlimit
+  uint64_t opslimit,
+  uint64_t memlimit
 ) {
   assert(out.size_bytes() == crypto_pwhash_scryptsalsa208sha256_STRBYTES);
   assert(opslimit >= crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN);
   assert(opslimit <= crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX);
   assert(memlimit >= crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN);
-  assert(memlimit <= static_cast<int64_t>(crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX));
+  assert(memlimit <= crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX);
 
   return crypto_pwhash_scryptsalsa208sha256_str(
     reinterpret_cast<char *>(out.data()),
@@ -1253,14 +1253,14 @@ sn_crypto_pwhash_scryptsalsa208sha256_str_needs_rehash(
   js_env_t *,
   js_receiver_t,
   js_typedarray_span_t<> str,
-  int64_t opslimit,
-  int64_t memlimit
+  uint64_t opslimit,
+  uint64_t memlimit
 ) {
   assert(str.size_bytes() == crypto_pwhash_scryptsalsa208sha256_STRBYTES);
   assert(opslimit >= crypto_pwhash_OPSLIMIT_MIN);
   assert(opslimit <= crypto_pwhash_OPSLIMIT_MAX);
   assert(memlimit >= crypto_pwhash_MEMLIMIT_MIN);
-  assert(memlimit <= static_cast<int64_t>(crypto_pwhash_MEMLIMIT_MAX));
+  assert(memlimit <= crypto_pwhash_MEMLIMIT_MAX);
 
   int res = crypto_pwhash_scryptsalsa208sha256_str_needs_rehash(
     reinterpret_cast<const char *>(str.data()),
@@ -1616,7 +1616,7 @@ sn_crypto_kdf_derive_from_key(
   js_env_t *,
   js_receiver_t,
   js_typedarray_span_t<> subkey,
-  int64_t subkey_id,
+  uint64_t subkey_id,
   js_typedarray_span_t<> ctx,
   js_typedarray_span_t<> key
 ) {
@@ -1628,7 +1628,7 @@ sn_crypto_kdf_derive_from_key(
   return crypto_kdf_derive_from_key(
     subkey.data(),
     subkey.size_bytes(),
-    static_cast<uint64_t>(subkey_id),
+    subkey_id,
     reinterpret_cast<const char *>(ctx.data()),
     key.data()
   );
@@ -1743,7 +1743,7 @@ sn_crypto_aead_xchacha20poly1305_ietf_keygen(
   crypto_aead_xchacha20poly1305_ietf_keygen(k.data());
 }
 
-static inline int64_t
+static inline uint64_t
 sn_crypto_aead_xchacha20poly1305_ietf_encrypt(
   js_env_t *,
   js_receiver_t,
@@ -1780,10 +1780,10 @@ sn_crypto_aead_xchacha20poly1305_ietf_encrypt(
 
   if (status < 0) return status;
 
-  return static_cast<int64_t>(clen);
+  return clen;
 }
 
-static inline int64_t
+static inline uint64_t
 sn_crypto_aead_xchacha20poly1305_ietf_decrypt(
   js_env_t *,
   js_receiver_t,
@@ -1820,10 +1820,10 @@ sn_crypto_aead_xchacha20poly1305_ietf_decrypt(
 
   if (status < 0) return status;
 
-  return static_cast<int64_t>(mlen);
+  return mlen;
 }
 
-static inline int64_t
+static inline uint64_t
 sn_crypto_aead_xchacha20poly1305_ietf_encrypt_detached(
   js_env_t *,
   js_receiver_t,
@@ -1862,7 +1862,7 @@ sn_crypto_aead_xchacha20poly1305_ietf_encrypt_detached(
 
   if (status < 0) return status;
 
-  return static_cast<int64_t>(maclen);
+  return maclen;
 }
 
 static inline int
@@ -1914,7 +1914,7 @@ sn_crypto_aead_chacha20poly1305_ietf_keygen(
   crypto_aead_chacha20poly1305_ietf_keygen(k.data());
 }
 
-static inline int64_t
+static inline uint64_t
 sn_crypto_aead_chacha20poly1305_ietf_encrypt(
   js_env_t *,
   js_receiver_t,
@@ -1951,10 +1951,10 @@ sn_crypto_aead_chacha20poly1305_ietf_encrypt(
 
   if (status < 0) return status;
 
-  return static_cast<int64_t>(clen);
+  return clen;
 }
 
-static inline int64_t
+static inline uint64_t
 sn_crypto_aead_chacha20poly1305_ietf_decrypt(
   js_env_t *,
   js_receiver_t,
@@ -1991,10 +1991,10 @@ sn_crypto_aead_chacha20poly1305_ietf_decrypt(
 
   if (status < 0) return status;
 
-  return static_cast<int64_t>(mlen);
+  return mlen;
 }
 
-static inline int64_t
+static inline uint64_t
 sn_crypto_aead_chacha20poly1305_ietf_encrypt_detached(
   js_env_t *,
   js_receiver_t,
@@ -2033,7 +2033,7 @@ sn_crypto_aead_chacha20poly1305_ietf_encrypt_detached(
 
   if (status < 0) return status;
 
-  return static_cast<int64_t>(maclen);
+  return maclen;
 }
 
 static inline int
@@ -2117,7 +2117,7 @@ sn_crypto_secretstream_xchacha20poly1305_init_push(
   return crypto_secretstream_xchacha20poly1305_init_push(state_data, &header[header_offset], &k[k_offset]);
 }
 
-static inline int64_t
+static inline uint64_t
 sn_crypto_secretstream_xchacha20poly1305_push(
   js_env_t *env,
   js_receiver_t,
@@ -2202,7 +2202,7 @@ sn_crypto_secretstream_xchacha20poly1305_init_pull(
   return crypto_secretstream_xchacha20poly1305_init_pull(state_data, &header[header_offset], &k[k_offset]);
 }
 
-static inline int64_t
+static inline uint64_t
 sn_crypto_secretstream_xchacha20poly1305_pull(
   js_env_t *env,
   js_receiver_t,
@@ -2354,8 +2354,8 @@ sn_crypto_pwhash_async(
   uint32_t salt_offset,
   uint32_t salt_len,
 
-  int64_t opslimit,
-  int64_t memlimit,
+  uint64_t opslimit,
+  uint64_t memlimit,
   uint32_t alg,
 
   js_function_t<void, int> callback
@@ -2468,8 +2468,8 @@ sn_crypto_pwhash_str_async(
   uint32_t pwd_offset,
   uint32_t pwd_len,
 
-  int64_t opslimit,
-  int64_t memlimit,
+  uint64_t opslimit,
+  uint64_t memlimit,
   js_function_t<void, int> callback
 ) {
   int err;
@@ -2670,8 +2670,8 @@ sn_crypto_pwhash_scryptsalsa208sha256_async(
   uint32_t salt_offset,
   uint32_t salt_len,
 
-  int64_t opslimit,
-  int64_t memlimit,
+  uint64_t opslimit,
+  uint64_t memlimit,
 
   js_function_t<void, int> callback
 ) {
@@ -2783,8 +2783,8 @@ sn_crypto_pwhash_scryptsalsa208sha256_str_async(
   uint32_t pwd_offset,
   uint32_t pwd_len,
 
-  int64_t opslimit,
-  int64_t memlimit,
+  uint64_t opslimit,
+  uint64_t memlimit,
 
   js_function_t<void, int> callback
 ) {
@@ -2910,6 +2910,7 @@ sn_crypto_pwhash_scryptsalsa208sha256_str_verify_async(
   assert(err == 0);
 
   err = js_create_reference(env, callback, req->cb);
+  assert(err == 0);
 
   uv_loop_t *loop;
   err = js_get_env_loop(env, &loop);
@@ -3376,7 +3377,6 @@ sn_crypto_stream_salsa20_xor_wrap_final(
   js_typedarray_span_of_t<sn_crypto_stream_salsa20_xor_state> state
 ) {
   assert(state.size_bytes() == sizeof(sn_crypto_stream_salsa20_xor_state));
-  auto state_data = reinterpret_cast<sn_crypto_stream_salsa20_xor_state *>(state.data());
 
   sodium_memzero(state.data()->n, sizeof(state.data()->n));
   sodium_memzero(state.data()->k, sizeof(state.data()->k));
@@ -3550,12 +3550,12 @@ sn_extension_pbkdf2_sha512(
   js_typedarray_span_t<> out,
   js_typedarray_span_t<> passwd,
   js_typedarray_span_t<> salt,
-  int64_t iter,
-  int64_t outlen
+  uint64_t iter,
+  uint64_t outlen
 ) {
 
-  assert(static_cast<uint64_t>(iter) >= sn__extension_pbkdf2_sha512_ITERATIONS_MIN);
-  assert(static_cast<uint64_t>(outlen) <= sn__extension_pbkdf2_sha512_BYTES_MAX);
+  assert(iter >= sn__extension_pbkdf2_sha512_ITERATIONS_MIN);
+  assert(outlen <= sn__extension_pbkdf2_sha512_BYTES_MAX);
   assert(out.size_bytes() >= static_cast<size_t>(outlen));
 
   return sn__extension_pbkdf2_sha512(
@@ -3563,9 +3563,9 @@ sn_extension_pbkdf2_sha512(
     passwd.size_bytes(),
     salt.data(),
     salt.size_bytes(),
-    static_cast<uint64_t>(iter),
+    iter,
     out.data(),
-    static_cast<uint64_t>(outlen)
+    outlen
   );
 }
 
@@ -3639,8 +3639,8 @@ sn_extension_pbkdf2_sha512_async(
   uint32_t salt_offset,
   uint32_t salt_len,
 
-  int64_t iter,
-  int64_t outlen,
+  uint64_t iter,
+  uint64_t outlen,
 
   js_function_t<void, int> callback
 ) {
