@@ -363,7 +363,7 @@ sn_crypto_generichash_batch(
   js_env_t *env,
   js_receiver_t,
   js_typedarray_t<uint8_t> out,
-  std::vector<js_typedarray_t<uint8_t>> batch,
+  std::vector<js_typedarray_span_t<>> batch,
   bool use_key,
   js_typedarray_t<uint8_t> key
 ) {
@@ -394,16 +394,7 @@ sn_crypto_generichash_batch(
   if (err != 0) return err;
 
   for (auto &buf : batch) {
-    bool is_typedarray = false;
-
-    int err = js_is_typedarray(env, static_cast<js_handle_t &>(buf), is_typedarray);
-    assert(err == 0);
-
-    std::span<uint8_t> view;
-    err = js_get_typedarray_info<uint8_t>(env, buf, view);
-    assert(err == 0);
-
-    err = crypto_generichash_update(&state, view.data(), view.size());
+    err = crypto_generichash_update(&state, buf.data(), buf.size());
     if (err != 0) return err;
   }
 
