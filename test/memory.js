@@ -3,8 +3,6 @@ const sodium = require('..')
 const { isBare, isNode } = require('which-runtime')
 const fork = isNode ? require('child_process').fork : () => { throw new Error('fork() not supported on runtime') }
 
-const isNodeV10 = isNode && process.version.startsWith('v10')
-
 test('sodium_mprotect_noaccess', { skip: isBare }, function (t) {
   t.plan(1)
   const p = fork(require.resolve('./fixtures/mprotect_noaccess'))
@@ -105,14 +103,14 @@ test('sodium_malloc', function (t) {
   t.ok(large.length === 1e8, 'retained correct size')
 })
 
-test('sodium_free', { skip: isNodeV10 }, function (t) {
+test('sodium_free', function (t) {
   const buf = sodium.sodium_malloc(1)
   t.ok(buf.byteLength === 1)
   sodium.sodium_free(buf)
   t.ok(buf.byteLength === 0)
 })
 
-test('sodium_free, double free', { skip: isNodeV10 }, function (t) {
+test('sodium_free, double free', function (t) {
   const buf = sodium.sodium_malloc(1)
   t.ok(buf.byteLength === 1)
   sodium.sodium_free(buf)
