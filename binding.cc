@@ -43,70 +43,50 @@ sn_sodium_munlock(
 }
 
 static void
-sn_external_arraybuffer_finalize(js_env_t *env, void *finalise_data, void *finalise_hint) {
-  sodium_free(finalise_data);
+sn_external_arraybuffer_finalize(js_env_t *env, uint8_t *ptr) {
+  sodium_free(ptr);
 }
 
 static js_arraybuffer_t
 sn_sodium_malloc(js_env_t *env, js_receiver_t, uint32_t len) {
-  void *ptr = sodium_malloc(len);
+  auto ptr = reinterpret_cast<uint8_t *>(sodium_malloc(len));
   assert(ptr != nullptr);
 
-  js_value_t *buffer;
-  int err = js_create_external_arraybuffer(env, ptr, len, sn_external_arraybuffer_finalize, NULL, &buffer);
+  js_arraybuffer_t buffer;
+
+  int err = js_create_external_arraybuffer<sn_external_arraybuffer_finalize>(env, ptr, len, buffer);
   assert(err == 0);
 
-  return static_cast<js_arraybuffer_t>(buffer);
+  return buffer;
 }
 
 static void
 sn_sodium_free(js_env_t *env, js_receiver_t, js_arraybuffer_t buf) {
   int err;
 
-  js_value_t *handle = static_cast<js_value_t *>(buf);
-
-  bool is_detached;
-  err = js_is_detached_arraybuffer(env, handle, &is_detached);
-  assert(err == 0);
-
   std::span<uint8_t> view;
   err = js_get_arraybuffer_info(env, buf, view);
   assert(err == 0);
 
-  if (is_detached || view.data() == nullptr) return;
+  if (view.empty()) return;
 
-  err = js_detach_arraybuffer(env, handle);
+  err = js_detach_arraybuffer(env, buf);
   assert(err == 0);
 }
 
 static inline int
-sn_sodium_mprotect_noaccess(js_env_t *env, js_receiver_t, js_arraybuffer_t buf) {
-  std::span<uint8_t> view;
-
-  int err = js_get_arraybuffer_info(env, buf, view);
-  assert(err == 0);
-
-  return sodium_mprotect_noaccess(view.data());
+sn_sodium_mprotect_noaccess(js_env_t *env, js_receiver_t, js_arraybuffer_span_t buf) {
+  return sodium_mprotect_noaccess(buf.data());
 }
 
 static inline int
-sn_sodium_mprotect_readonly(js_env_t *env, js_receiver_t, js_arraybuffer_t buf) {
-  std::span<uint8_t> view;
-
-  int err = js_get_arraybuffer_info(env, buf, view);
-  assert(err == 0);
-
-  return sodium_mprotect_readonly(view.data());
+sn_sodium_mprotect_readonly(js_env_t *env, js_receiver_t, js_arraybuffer_span_t buf) {
+  return sodium_mprotect_readonly(buf.data());
 }
 
 static inline int
-sn_sodium_mprotect_readwrite(js_env_t *env, js_receiver_t, js_arraybuffer_t buf) {
-  std::span<uint8_t> view;
-
-  int err = js_get_arraybuffer_info(env, buf, view);
-  assert(err == 0);
-
-  return sodium_mprotect_readwrite(view.data());
+sn_sodium_mprotect_readwrite(js_env_t *env, js_receiver_t, js_arraybuffer_span_t buf) {
+  return sodium_mprotect_readwrite(buf.data());
 }
 
 static inline uint32_t // TODO: test envless
@@ -1020,33 +1000,33 @@ static inline int
 sn_crypto_onetimeauth_init(
   js_env_t *,
   js_receiver_t,
-  js_typedarray_span_of_t<crypto_onetimeauth_state> state,
+  js_typedarray_span_of_t<crypto_onetimeauth_state, 1> state,
   js_typedarray_span_t<> k
 ) {
   assert(k.size_bytes() == crypto_onetimeauth_KEYBYTES);
-  return crypto_onetimeauth_init(state.data(), k.data());
+  return crypto_onetimeauth_init(&*state, k.data());
 }
 
 static inline int
 sn_crypto_onetimeauth_update(
   js_env_t *,
   js_receiver_t,
-  js_typedarray_span_of_t<crypto_onetimeauth_state> state,
+  js_typedarray_span_of_t<crypto_onetimeauth_state, 1> state,
   js_typedarray_span_t<> in
 ) {
-  return crypto_onetimeauth_update(state.data(), in.data(), in.size_bytes());
+  return crypto_onetimeauth_update(&*state, in.data(), in.size_bytes());
 }
 
 static inline int
 sn_crypto_onetimeauth_final(
   js_env_t *,
   js_receiver_t,
-  js_typedarray_span_of_t<crypto_onetimeauth_state> state,
+  js_typedarray_span_of_t<crypto_onetimeauth_state, 1> state,
   js_typedarray_span_t<> out
 ) {
   assert(out.size_bytes() == crypto_onetimeauth_BYTES);
 
-  return crypto_onetimeauth_final(state.data(), out.data());
+  return crypto_onetimeauth_final(&*state, out.data());
 }
 
 static inline bool
@@ -1648,31 +1628,31 @@ static inline int
 sn_crypto_hash_sha256_init(
   js_env_t *,
   js_receiver_t,
-  js_typedarray_span_of_t<crypto_hash_sha256_state> state
+  js_typedarray_span_of_t<crypto_hash_sha256_state, 1> state
 ) {
-  return crypto_hash_sha256_init(state.data());
+  return crypto_hash_sha256_init(&*state);
 }
 
 static inline int
 sn_crypto_hash_sha256_update(
   js_env_t *,
   js_receiver_t,
-  js_typedarray_span_of_t<crypto_hash_sha256_state> state,
+  js_typedarray_span_of_t<crypto_hash_sha256_state, 1> state,
   js_typedarray_span_t<> in
 ) {
-  return crypto_hash_sha256_update(state.data(), in.data(), in.size_bytes());
+  return crypto_hash_sha256_update(&*state, in.data(), in.size_bytes());
 }
 
 static inline int
 sn_crypto_hash_sha256_final(
   js_env_t *,
   js_receiver_t,
-  js_typedarray_span_of_t<crypto_hash_sha256_state> state,
+  js_typedarray_span_of_t<crypto_hash_sha256_state, 1> state,
   js_typedarray_span_t<> out
 ) {
   assert(out.size_bytes() == crypto_hash_sha256_BYTES);
 
-  return crypto_hash_sha256_final(state.data(), out.data());
+  return crypto_hash_sha256_final(&*state, out.data());
 }
 
 static inline int
@@ -1691,31 +1671,31 @@ static inline int
 sn_crypto_hash_sha512_init(
   js_env_t *,
   js_receiver_t,
-  js_typedarray_span_of_t<crypto_hash_sha512_state> state
+  js_typedarray_span_of_t<crypto_hash_sha512_state, 1> state
 ) {
-  return crypto_hash_sha512_init(state.data());
+  return crypto_hash_sha512_init(&*state);
 }
 
 static inline int
 sn_crypto_hash_sha512_update(
   js_env_t *,
   js_receiver_t,
-  js_typedarray_span_of_t<crypto_hash_sha512_state> state,
+  js_typedarray_span_of_t<crypto_hash_sha512_state, 1> state,
   js_typedarray_span_t<> in
 ) {
-  return crypto_hash_sha512_update(state.data(), in.data(), in.size_bytes());
+  return crypto_hash_sha512_update(&*state, in.data(), in.size_bytes());
 }
 
 static inline int
 sn_crypto_hash_sha512_final(
   js_env_t *,
   js_receiver_t,
-  js_typedarray_span_of_t<crypto_hash_sha512_state> state,
+  js_typedarray_span_of_t<crypto_hash_sha512_state, 1> state,
   js_typedarray_span_t<> out
 ) {
   assert(out.size_bytes() == crypto_hash_sha512_BYTES);
 
-  return crypto_hash_sha512_final(state.data(), out.data());
+  return crypto_hash_sha512_final(&*state, out.data());
 }
 
 static inline void
@@ -2906,38 +2886,38 @@ static inline void
 sn_crypto_stream_xor_wrap_init(
   js_env_t *,
   js_receiver_t,
-  js_typedarray_span_of_t<sn_crypto_stream_xor_state> state,
+  js_typedarray_span_of_t<sn_crypto_stream_xor_state, 1> state,
   js_typedarray_span_t<> n,
   js_typedarray_span_t<> k
 ) {
   assert(n.size_bytes() == crypto_stream_NONCEBYTES);
   assert(k.size_bytes() == crypto_stream_KEYBYTES);
 
-  state.data()->remainder = 0;
-  state.data()->block_counter = 0;
-  memcpy(state.data()->n, n.data(), crypto_stream_NONCEBYTES);
-  memcpy(state.data()->k, k.data(), crypto_stream_KEYBYTES);
+  state->remainder = 0;
+  state->block_counter = 0;
+  memcpy(state->n, n.data(), crypto_stream_NONCEBYTES);
+  memcpy(state->k, k.data(), crypto_stream_KEYBYTES);
 }
 
 static inline void
 sn_crypto_stream_xor_wrap_update(
   js_env_t *,
   js_receiver_t,
-  js_typedarray_span_of_t<sn_crypto_stream_xor_state> state,
+  js_typedarray_span_of_t<sn_crypto_stream_xor_state, 1> state,
   js_typedarray_span_t<> c,
   js_typedarray_span_t<> m
 ) {
   assert(c.size_bytes() == m.size_bytes());
 
-  auto next_block = state.data()->next_block;
+  auto next_block = state->next_block;
 
   size_t m_size = m.size_bytes();
   auto *c_ptr = c.data();
   auto *m_ptr = m.data();
 
-  if (state.data()->remainder) {
+  if (state->remainder) {
     uint64_t offset = 0;
-    int rem = state.data()->remainder;
+    int rem = state->remainder;
 
     while (rem < 64 && offset < m_size) {
       c_ptr[offset] = next_block[rem] ^ m_ptr[offset];
@@ -2948,27 +2928,27 @@ sn_crypto_stream_xor_wrap_update(
     c_ptr += offset;
     m_ptr += offset;
     m_size -= offset;
-    state.data()->remainder = (rem == 64) ? 0 : rem;
+    state->remainder = (rem == 64) ? 0 : rem;
 
     if (m_size == 0) return;
   }
 
-  state.data()->remainder = m_size & 63;
-  size_t main_len = m_size - state.data()->remainder;
+  state->remainder = m_size & 63;
+  size_t main_len = m_size - state->remainder;
 
-  crypto_stream_xsalsa20_xor_ic(c_ptr, m_ptr, main_len, state.data()->n, state.data()->block_counter, state.data()->k);
-  state.data()->block_counter += main_len / 64;
+  crypto_stream_xsalsa20_xor_ic(c_ptr, m_ptr, main_len, state->n, state->block_counter, state->k);
+  state->block_counter += main_len / 64;
 
-  if (state.data()->remainder) {
-    sodium_memzero(next_block + state.data()->remainder, 64 - state.data()->remainder);
-    memcpy(next_block, m_ptr + main_len, state.data()->remainder);
+  if (state->remainder) {
+    sodium_memzero(next_block + state->remainder, 64 - state->remainder);
+    memcpy(next_block, m_ptr + main_len, state->remainder);
 
     crypto_stream_xsalsa20_xor_ic(
-      next_block, next_block, 64, state.data()->n, state.data()->block_counter, state.data()->k
+      next_block, next_block, 64, state->n, state->block_counter, state->k
     );
-    memcpy(c_ptr + main_len, next_block, state.data()->remainder);
+    memcpy(c_ptr + main_len, next_block, state->remainder);
 
-    state.data()->block_counter++;
+    state->block_counter++;
   }
 }
 
@@ -2976,12 +2956,12 @@ static inline void
 sn_crypto_stream_xor_wrap_final(
   js_env_t *,
   js_receiver_t,
-  js_typedarray_span_of_t<sn_crypto_stream_xor_state> state
+  js_typedarray_span_of_t<sn_crypto_stream_xor_state, 1> state
 ) {
-  sodium_memzero(state.data()->n, sizeof(state.data()->n));
-  sodium_memzero(state.data()->k, sizeof(state.data()->k));
-  sodium_memzero(state.data()->next_block, sizeof(state.data()->next_block));
-  state.data()->remainder = 0;
+  sodium_memzero(state->n, sizeof(state->n));
+  sodium_memzero(state->k, sizeof(state->k));
+  sodium_memzero(state->next_block, sizeof(state->next_block));
+  state->remainder = 0;
 }
 
 typedef struct sn_crypto_stream_chacha20_xor_state {
@@ -2996,38 +2976,38 @@ static inline void
 sn_crypto_stream_chacha20_xor_wrap_init(
   js_env_t *,
   js_receiver_t,
-  js_typedarray_span_of_t<sn_crypto_stream_chacha20_xor_state> state,
+  js_typedarray_span_of_t<sn_crypto_stream_chacha20_xor_state, 1> state,
   js_typedarray_span_t<> n,
   js_typedarray_span_t<> k
 ) {
   assert(n.size_bytes() == crypto_stream_chacha20_NONCEBYTES);
   assert(k.size_bytes() == crypto_stream_chacha20_KEYBYTES);
 
-  state.data()->remainder = 0;
-  state.data()->block_counter = 0;
-  memcpy(state.data()->n, n.data(), crypto_stream_chacha20_NONCEBYTES);
-  memcpy(state.data()->k, k.data(), crypto_stream_chacha20_KEYBYTES);
+  state->remainder = 0;
+  state->block_counter = 0;
+  memcpy(state->n, n.data(), crypto_stream_chacha20_NONCEBYTES);
+  memcpy(state->k, k.data(), crypto_stream_chacha20_KEYBYTES);
 }
 
 static inline void
 sn_crypto_stream_chacha20_xor_wrap_update(
   js_env_t *,
   js_receiver_t,
-  js_typedarray_span_of_t<sn_crypto_stream_chacha20_xor_state> state,
+  js_typedarray_span_of_t<sn_crypto_stream_chacha20_xor_state, 1> state,
   js_typedarray_span_t<> c,
   js_typedarray_span_t<> m
 ) {
   assert(c.size_bytes() == m.size_bytes());
 
-  auto *next_block = state.data()->next_block;
+  auto *next_block = state->next_block;
 
   size_t m_size = m.size_bytes();
   auto *c_ptr = c.data();
   auto *m_ptr = m.data();
 
-  if (state.data()->remainder) {
+  if (state->remainder) {
     uint64_t offset = 0;
-    int rem = state.data()->remainder;
+    int rem = state->remainder;
 
     while (rem < 64 && offset < m_size) {
       c_ptr[offset] = next_block[rem] ^ m_ptr[offset];
@@ -3038,30 +3018,30 @@ sn_crypto_stream_chacha20_xor_wrap_update(
     c_ptr += offset;
     m_ptr += offset;
     m_size -= offset;
-    state.data()->remainder = (rem == 64) ? 0 : rem;
+    state->remainder = (rem == 64) ? 0 : rem;
 
     if (m_size == 0) return;
   }
 
-  state.data()->remainder = m_size & 63;
-  size_t main_len = m_size - state.data()->remainder;
+  state->remainder = m_size & 63;
+  size_t main_len = m_size - state->remainder;
 
   crypto_stream_chacha20_xor_ic(
-    c_ptr, m_ptr, main_len, state.data()->n, state.data()->block_counter, state.data()->k
+    c_ptr, m_ptr, main_len, state->n, state->block_counter, state->k
   );
 
-  state.data()->block_counter += main_len / 64;
+  state->block_counter += main_len / 64;
 
-  if (state.data()->remainder) {
-    sodium_memzero(next_block + state.data()->remainder, 64 - state.data()->remainder);
-    memcpy(next_block, m_ptr + main_len, state.data()->remainder);
+  if (state->remainder) {
+    sodium_memzero(next_block + state->remainder, 64 - state->remainder);
+    memcpy(next_block, m_ptr + main_len, state->remainder);
 
     crypto_stream_chacha20_xor_ic(
-      next_block, next_block, 64, state.data()->n, state.data()->block_counter, state.data()->k
+      next_block, next_block, 64, state->n, state->block_counter, state->k
     );
-    memcpy(c_ptr + main_len, next_block, state.data()->remainder);
+    memcpy(c_ptr + main_len, next_block, state->remainder);
 
-    state.data()->block_counter++;
+    state->block_counter++;
   }
 }
 
@@ -3069,12 +3049,12 @@ static inline void
 sn_crypto_stream_chacha20_xor_wrap_final(
   js_env_t *,
   js_receiver_t,
-  js_typedarray_span_of_t<sn_crypto_stream_chacha20_xor_state> state
+  js_typedarray_span_of_t<sn_crypto_stream_chacha20_xor_state, 1> state
 ) {
-  sodium_memzero(state.data()->n, sizeof(state.data()->n));
-  sodium_memzero(state.data()->k, sizeof(state.data()->k));
-  sodium_memzero(state.data()->next_block, sizeof(state.data()->next_block));
-  state.data()->remainder = 0;
+  sodium_memzero(state->n, sizeof(state->n));
+  sodium_memzero(state->k, sizeof(state->k));
+  sodium_memzero(state->next_block, sizeof(state->next_block));
+  state->remainder = 0;
 }
 
 typedef struct sn_crypto_stream_chacha20_ietf_xor_state {
@@ -3089,38 +3069,38 @@ static inline void
 sn_crypto_stream_chacha20_ietf_xor_wrap_init(
   js_env_t *,
   js_receiver_t,
-  js_typedarray_span_of_t<sn_crypto_stream_chacha20_ietf_xor_state> state,
+  js_typedarray_span_of_t<sn_crypto_stream_chacha20_ietf_xor_state, 1> state,
   js_typedarray_span_t<> n,
   js_typedarray_span_t<> k
 ) {
   assert(n.size_bytes() == crypto_stream_chacha20_ietf_NONCEBYTES);
   assert(k.size_bytes() == crypto_stream_chacha20_ietf_KEYBYTES);
 
-  state.data()->remainder = 0;
-  state.data()->block_counter = 0;
-  memcpy(state.data()->n, n.data(), crypto_stream_chacha20_ietf_NONCEBYTES);
-  memcpy(state.data()->k, k.data(), crypto_stream_chacha20_ietf_KEYBYTES);
+  state->remainder = 0;
+  state->block_counter = 0;
+  memcpy(state->n, n.data(), crypto_stream_chacha20_ietf_NONCEBYTES);
+  memcpy(state->k, k.data(), crypto_stream_chacha20_ietf_KEYBYTES);
 }
 
 static inline void
 sn_crypto_stream_chacha20_ietf_xor_wrap_update(
   js_env_t *,
   js_receiver_t,
-  js_typedarray_span_of_t<sn_crypto_stream_chacha20_ietf_xor_state> state,
+  js_typedarray_span_of_t<sn_crypto_stream_chacha20_ietf_xor_state, 1> state,
   js_typedarray_span_t<> c,
   js_typedarray_span_t<> m
 ) {
   assert(c.size_bytes() == m.size_bytes());
 
-  auto *next_block = state.data()->next_block;
+  auto *next_block = state->next_block;
 
   size_t m_size = m.size_bytes();
   auto *c_ptr = c.data();
   auto *m_ptr = m.data();
 
-  if (state.data()->remainder) {
+  if (state->remainder) {
     uint64_t offset = 0;
-    int rem = state.data()->remainder;
+    int rem = state->remainder;
 
     while (rem < 64 && offset < m_size) {
       c_ptr[offset] = next_block[rem] ^ m_ptr[offset];
@@ -3131,30 +3111,30 @@ sn_crypto_stream_chacha20_ietf_xor_wrap_update(
     c_ptr += offset;
     m_ptr += offset;
     m_size -= offset;
-    state.data()->remainder = (rem == 64) ? 0 : rem;
+    state->remainder = (rem == 64) ? 0 : rem;
 
     if (m_size == 0) return;
   }
 
-  state.data()->remainder = m_size & 63;
-  size_t main_len = m_size - state.data()->remainder;
+  state->remainder = m_size & 63;
+  size_t main_len = m_size - state->remainder;
 
   crypto_stream_chacha20_ietf_xor_ic(
-    c_ptr, m_ptr, main_len, state.data()->n, state.data()->block_counter, state.data()->k
+    c_ptr, m_ptr, main_len, state->n, state->block_counter, state->k
   );
 
-  state.data()->block_counter += main_len / 64;
+  state->block_counter += main_len / 64;
 
-  if (state.data()->remainder) {
-    sodium_memzero(next_block + state.data()->remainder, 64 - state.data()->remainder);
-    memcpy(next_block, m_ptr + main_len, state.data()->remainder);
+  if (state->remainder) {
+    sodium_memzero(next_block + state->remainder, 64 - state->remainder);
+    memcpy(next_block, m_ptr + main_len, state->remainder);
 
     crypto_stream_chacha20_ietf_xor_ic(
-      next_block, next_block, 64, state.data()->n, state.data()->block_counter, state.data()->k
+      next_block, next_block, 64, state->n, state->block_counter, state->k
     );
-    memcpy(c_ptr + main_len, next_block, state.data()->remainder);
+    memcpy(c_ptr + main_len, next_block, state->remainder);
 
-    state.data()->block_counter++;
+    state->block_counter++;
   }
 }
 
@@ -3162,12 +3142,12 @@ static inline void
 sn_crypto_stream_chacha20_ietf_xor_wrap_final(
   js_env_t *,
   js_receiver_t,
-  js_typedarray_span_of_t<sn_crypto_stream_chacha20_ietf_xor_state> state
+  js_typedarray_span_of_t<sn_crypto_stream_chacha20_ietf_xor_state, 1> state
 ) {
-  sodium_memzero(state.data()->n, sizeof(state.data()->n));
-  sodium_memzero(state.data()->k, sizeof(state.data()->k));
-  sodium_memzero(state.data()->next_block, sizeof(state.data()->next_block));
-  state.data()->remainder = 0;
+  sodium_memzero(state->n, sizeof(state->n));
+  sodium_memzero(state->k, sizeof(state->k));
+  sodium_memzero(state->next_block, sizeof(state->next_block));
+  state->remainder = 0;
 }
 
 typedef struct sn_crypto_stream_xchacha20_xor_state {
@@ -3182,38 +3162,38 @@ static inline void
 sn_crypto_stream_xchacha20_xor_wrap_init(
   js_env_t *,
   js_receiver_t,
-  js_typedarray_span_of_t<sn_crypto_stream_xchacha20_xor_state> state,
+  js_typedarray_span_of_t<sn_crypto_stream_xchacha20_xor_state, 1> state,
   js_typedarray_span_t<> n,
   js_typedarray_span_t<> k
 ) {
   assert(n.size_bytes() == crypto_stream_xchacha20_NONCEBYTES);
   assert(k.size_bytes() == crypto_stream_xchacha20_KEYBYTES);
 
-  state.data()->remainder = 0;
-  state.data()->block_counter = 0;
-  memcpy(state.data()->n, n.data(), crypto_stream_xchacha20_NONCEBYTES);
-  memcpy(state.data()->k, k.data(), crypto_stream_xchacha20_KEYBYTES);
+  state->remainder = 0;
+  state->block_counter = 0;
+  memcpy(state->n, n.data(), crypto_stream_xchacha20_NONCEBYTES);
+  memcpy(state->k, k.data(), crypto_stream_xchacha20_KEYBYTES);
 }
 
 static inline void
 sn_crypto_stream_xchacha20_xor_wrap_update(
   js_env_t *,
   js_receiver_t,
-  js_typedarray_span_of_t<sn_crypto_stream_xchacha20_xor_state> state,
+  js_typedarray_span_of_t<sn_crypto_stream_xchacha20_xor_state, 1> state,
   js_typedarray_span_t<> c,
   js_typedarray_span_t<> m
 ) {
   assert(c.size_bytes() == m.size_bytes());
 
-  auto *next_block = state.data()->next_block;
+  auto *next_block = state->next_block;
 
   size_t m_size = m.size_bytes();
   auto *c_ptr = c.data();
   auto *m_ptr = m.data();
 
-  if (state.data()->remainder) {
+  if (state->remainder) {
     uint64_t offset = 0;
-    int rem = state.data()->remainder;
+    int rem = state->remainder;
 
     while (rem < 64 && offset < m_size) {
       c_ptr[offset] = next_block[rem] ^ m_ptr[offset];
@@ -3224,30 +3204,30 @@ sn_crypto_stream_xchacha20_xor_wrap_update(
     c_ptr += offset;
     m_ptr += offset;
     m_size -= offset;
-    state.data()->remainder = (rem == 64) ? 0 : rem;
+    state->remainder = (rem == 64) ? 0 : rem;
 
     if (m_size == 0) return;
   }
 
-  state.data()->remainder = m_size & 63;
-  size_t main_len = m_size - state.data()->remainder;
+  state->remainder = m_size & 63;
+  size_t main_len = m_size - state->remainder;
 
   crypto_stream_xchacha20_xor_ic(
-    c_ptr, m_ptr, main_len, state.data()->n, state.data()->block_counter, state.data()->k
+    c_ptr, m_ptr, main_len, state->n, state->block_counter, state->k
   );
 
-  state.data()->block_counter += main_len / 64;
+  state->block_counter += main_len / 64;
 
-  if (state.data()->remainder) {
-    sodium_memzero(next_block + state.data()->remainder, 64 - state.data()->remainder);
-    memcpy(next_block, m_ptr + main_len, state.data()->remainder);
+  if (state->remainder) {
+    sodium_memzero(next_block + state->remainder, 64 - state->remainder);
+    memcpy(next_block, m_ptr + main_len, state->remainder);
 
     crypto_stream_xchacha20_xor_ic(
-      next_block, next_block, 64, state.data()->n, state.data()->block_counter, state.data()->k
+      next_block, next_block, 64, state->n, state->block_counter, state->k
     );
-    memcpy(c_ptr + main_len, next_block, state.data()->remainder);
+    memcpy(c_ptr + main_len, next_block, state->remainder);
 
-    state.data()->block_counter++;
+    state->block_counter++;
   }
 }
 
@@ -3255,12 +3235,12 @@ static inline void
 sn_crypto_stream_xchacha20_xor_wrap_final(
   js_env_t *,
   js_receiver_t,
-  js_typedarray_span_of_t<sn_crypto_stream_xchacha20_xor_state> state
+  js_typedarray_span_of_t<sn_crypto_stream_xchacha20_xor_state, 1> state
 ) {
-  sodium_memzero(state.data()->n, sizeof(state.data()->n));
-  sodium_memzero(state.data()->k, sizeof(state.data()->k));
-  sodium_memzero(state.data()->next_block, sizeof(state.data()->next_block));
-  state.data()->remainder = 0;
+  sodium_memzero(state->n, sizeof(state->n));
+  sodium_memzero(state->k, sizeof(state->k));
+  sodium_memzero(state->next_block, sizeof(state->next_block));
+  state->remainder = 0;
 }
 
 typedef struct sn_crypto_stream_salsa20_xor_state {
@@ -3275,38 +3255,38 @@ static inline void
 sn_crypto_stream_salsa20_xor_wrap_init(
   js_env_t *,
   js_receiver_t,
-  js_typedarray_span_of_t<sn_crypto_stream_salsa20_xor_state> state,
+  js_typedarray_span_of_t<sn_crypto_stream_salsa20_xor_state, 1> state,
   js_typedarray_span_t<> n,
   js_typedarray_span_t<> k
 ) {
   assert(n.size_bytes() == crypto_stream_salsa20_NONCEBYTES);
   assert(k.size_bytes() == crypto_stream_salsa20_KEYBYTES);
 
-  state.data()->remainder = 0;
-  state.data()->block_counter = 0;
-  memcpy(state.data()->n, n.data(), crypto_stream_salsa20_NONCEBYTES);
-  memcpy(state.data()->k, k.data(), crypto_stream_salsa20_KEYBYTES);
+  state->remainder = 0;
+  state->block_counter = 0;
+  memcpy(state->n, n.data(), crypto_stream_salsa20_NONCEBYTES);
+  memcpy(state->k, k.data(), crypto_stream_salsa20_KEYBYTES);
 }
 
 static inline void
 sn_crypto_stream_salsa20_xor_wrap_update(
   js_env_t *,
   js_receiver_t,
-  js_typedarray_span_of_t<sn_crypto_stream_salsa20_xor_state> state,
+  js_typedarray_span_of_t<sn_crypto_stream_salsa20_xor_state, 1> state,
   js_typedarray_span_t<> c,
   js_typedarray_span_t<> m
 ) {
   assert(c.size_bytes() == m.size_bytes());
 
-  auto *next_block = state.data()->next_block;
+  auto *next_block = state->next_block;
 
   size_t m_size = m.size_bytes();
   auto *c_ptr = c.data();
   auto *m_ptr = m.data();
 
-  if (state.data()->remainder) {
+  if (state->remainder) {
     uint64_t offset = 0;
-    int rem = state.data()->remainder;
+    int rem = state->remainder;
 
     while (rem < 64 && offset < m_size) {
       c_ptr[offset] = next_block[rem] ^ m_ptr[offset];
@@ -3317,30 +3297,30 @@ sn_crypto_stream_salsa20_xor_wrap_update(
     c_ptr += offset;
     m_ptr += offset;
     m_size -= offset;
-    state.data()->remainder = (rem == 64) ? 0 : rem;
+    state->remainder = (rem == 64) ? 0 : rem;
 
     if (m_size == 0) return;
   }
 
-  state.data()->remainder = m_size & 63;
-  size_t main_len = m_size - state.data()->remainder;
+  state->remainder = m_size & 63;
+  size_t main_len = m_size - state->remainder;
 
   crypto_stream_salsa20_xor_ic(
-    c_ptr, m_ptr, main_len, state.data()->n, state.data()->block_counter, state.data()->k
+    c_ptr, m_ptr, main_len, state->n, state->block_counter, state->k
   );
 
-  state.data()->block_counter += main_len / 64;
+  state->block_counter += main_len / 64;
 
-  if (state.data()->remainder) {
-    sodium_memzero(next_block + state.data()->remainder, 64 - state.data()->remainder);
-    memcpy(next_block, m_ptr + main_len, state.data()->remainder);
+  if (state->remainder) {
+    sodium_memzero(next_block + state->remainder, 64 - state->remainder);
+    memcpy(next_block, m_ptr + main_len, state->remainder);
 
     crypto_stream_salsa20_xor_ic(
-      next_block, next_block, 64, state.data()->n, state.data()->block_counter, state.data()->k
+      next_block, next_block, 64, state->n, state->block_counter, state->k
     );
-    memcpy(c_ptr + main_len, next_block, state.data()->remainder);
+    memcpy(c_ptr + main_len, next_block, state->remainder);
 
-    state.data()->block_counter++;
+    state->block_counter++;
   }
 }
 
@@ -3348,14 +3328,12 @@ static inline void
 sn_crypto_stream_salsa20_xor_wrap_final(
   js_env_t *,
   js_receiver_t,
-  js_typedarray_span_of_t<sn_crypto_stream_salsa20_xor_state> state
+  js_typedarray_span_of_t<sn_crypto_stream_salsa20_xor_state, 1> state
 ) {
-  assert(state.size_bytes() == sizeof(sn_crypto_stream_salsa20_xor_state));
-
-  sodium_memzero(state.data()->n, sizeof(state.data()->n));
-  sodium_memzero(state.data()->k, sizeof(state.data()->k));
-  sodium_memzero(state.data()->next_block, sizeof(state.data()->next_block));
-  state.data()->remainder = 0;
+  sodium_memzero(state->n, sizeof(state->n));
+  sodium_memzero(state->k, sizeof(state->k));
+  sodium_memzero(state->next_block, sizeof(state->next_block));
+  state->remainder = 0;
 }
 
 // Experimental API
