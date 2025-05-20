@@ -3655,9 +3655,10 @@ sodium_native_exports(js_env_t *env, js_value_t *exports) {
   err = js_set_property(env, _exports, name, static_cast<uint32_t>(constant)); \
   assert(err == 0);
 
+  // clamp to max safe integer
 #define V_UINT64(name, constant) \
   assert(constant >= 0); \
-  err = js_set_property(env, _exports, name, static_cast<int64_t>(std::min<uint64_t>(constant, 0x1fffffffffffffULL))); \
+  err = js_set_property(env, _exports, name, static_cast<int64_t>(std::min<uint64_t>(constant, js_max_safe_integer))); \
   assert(err == 0);
 
 #define V_STRING(name, str) \
