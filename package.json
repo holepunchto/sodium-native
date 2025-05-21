@@ -7,7 +7,6 @@
     "index.js",
     "binding.cc",
     "binding.js",
-    "macros.h",
     "extensions",
     "prebuilds",
     "CMakeLists.txt"
