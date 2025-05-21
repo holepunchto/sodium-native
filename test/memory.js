@@ -103,23 +103,18 @@ test('sodium_malloc', function (t) {
   t.ok(large.length === 1e8, 'retained correct size')
 })
 
-test('sodium_free, double free', function (t) {
+test('sodium_free', function (t) {
   const buf = sodium.sodium_malloc(1)
-  t.comment('exiting dummy test')
   t.ok(buf.byteLength === 1)
-  sodium.sodium_free(buf)
-  t.ok(buf.byteLength === 0)
   sodium.sodium_free(buf)
   t.ok(buf.byteLength === 0)
 })
 
-test('sodium_free', function (t) {
-  if (isNode && process.version.startsWith('v10')) {
-    t.comment('Skipping free test on v10')
-    return
-  }
+test('sodium_free, double free', function (t) {
   const buf = sodium.sodium_malloc(1)
   t.ok(buf.byteLength === 1)
+  sodium.sodium_free(buf)
+  t.ok(buf.byteLength === 0)
   sodium.sodium_free(buf)
   t.ok(buf.byteLength === 0)
 })
