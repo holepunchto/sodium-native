@@ -3791,7 +3791,7 @@ sodium_native_exports(js_env_t *env, js_value_t *exports) {
 
   V_FUNCTION_NOSCOPE("crypto_generichash", sn_crypto_generichash);
   V_FUNCTION("crypto_generichash_batch", sn_crypto_generichash_batch);
-  V_FUNCTION_NOSCOPE("crypto_generichash_batch", sn_crypto_generichash_batch);
+  V_FUNCTION("crypto_generichash_batch", sn_crypto_generichash_batch);
   V_FUNCTION_NOSCOPE("crypto_generichash_keygen", sn_crypto_generichash_keygen);
   V_FUNCTION_NOSCOPE("crypto_generichash_init", sn_crypto_generichash_init);
   V_FUNCTION_NOSCOPE("crypto_generichash_update", sn_crypto_generichash_update);
