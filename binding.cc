@@ -3641,28 +3641,26 @@ sodium_native_exports(js_env_t *env, js_value_t *exports) {
   err = sodium_init();
   assert(err == 0 && "sodium init");
 
-  js_object_t _exports = static_cast<js_object_t>(exports);
-
 #define V_FUNCTION(name, fn) \
-  err = js_set_property<fn>(env, _exports, name); \
+  err = js_set_property<fn>(env, exports, name); \
   assert(err == 0);
 
 #define V_FUNCTION_NOSCOPE(name, fn) \
-  err = js_set_property<fn, js_function_options_t{.scoped = false}>(env, _exports, name); \
+  err = js_set_property<fn, js_function_options_t{.scoped = false}>(env, exports, name); \
   assert(err == 0);
 
 #define V_UINT32(name, constant) \
-  err = js_set_property(env, _exports, name, static_cast<uint32_t>(constant)); \
+  err = js_set_property(env, exports, name, static_cast<uint32_t>(constant)); \
   assert(err == 0);
 
   // clamp to max safe integer
 #define V_UINT64(name, constant) \
   assert(constant >= 0); \
-  err = js_set_property(env, _exports, name, static_cast<int64_t>(std::min<uint64_t>(constant, js_max_safe_integer))); \
+  err = js_set_property(env, exports, name, static_cast<int64_t>(std::min<uint64_t>(constant, js_max_safe_integer))); \
   assert(err == 0);
 
 #define V_STRING(name, str) \
-  err = js_set_property(env, _exports, name, str); \
+  err = js_set_property(env, exports, name, str); \
   assert(err == 0);
 
   // memory
