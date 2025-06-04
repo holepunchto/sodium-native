@@ -241,6 +241,12 @@ target_sources(
     extensions/pbkdf2/pbkdf2.h
 )
 
+target_compile_definitions(
+  ${sodium_native_node}
+  PRIVATE
+    NAPI_VERSION=9
+)
+
 target_link_libraries(
   ${sodium_native_node}
   PRIVATE
