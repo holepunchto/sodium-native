@@ -5,7 +5,9 @@ find_package(cmake-napi REQUIRED PATHS node_modules/cmake-napi)
 find_package(cmake-npm REQUIRED PATHS node_modules/cmake-npm)
 find_package(cmake-ports REQUIRED PATHS node_modules/cmake-ports)
 
-project(sodium_native C)
+project(sodium_native C CXX ASM)
+
+fetch_package("github:holepunchto/libjstl#d92f140c")
 
 find_port(libsodium)
 
@@ -14,8 +16,7 @@ add_bare_module(sodium_native_bare)
 target_sources(
   ${sodium_native_bare}
   PRIVATE
-    binding.c
-    macros.h
+    binding.cc
     extensions/tweak/tweak.c
     extensions/tweak/tweak.h
     extensions/pbkdf2/pbkdf2.c
@@ -24,6 +25,8 @@ target_sources(
 
 target_link_libraries(
   ${sodium_native_bare}
+  PRIVATE
+    jstl
   PUBLIC
     sodium
 )
@@ -33,16 +36,23 @@ add_napi_module(sodium_native_node)
 target_sources(
   ${sodium_native_node}
   PRIVATE
-    binding.c
-    macros.h
+    binding.cc
     extensions/tweak/tweak.c
     extensions/tweak/tweak.h
     extensions/pbkdf2/pbkdf2.c
     extensions/pbkdf2/pbkdf2.h
 )
 
+target_compile_definitions(
+  ${sodium_native_node}
+  PRIVATE
+    NAPI_VERSION=9
+)
+
 target_link_libraries(
   ${sodium_native_node}
+  PRIVATE
+    jstl
   PUBLIC
     sodium
 )

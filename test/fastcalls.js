@@ -1,28 +1,19 @@
 const test = require('brittle')
 const sodium = require('..')
-const { isBare } = require('which-runtime')
 
-/* benchmark call counts */
-let N = {
-  hash_calls: 92e6,
-  verify_calls: 2e6,
-  unseal_calls: 4e5,
-  hash_batch_len: 4096,
-  hash_batch_calls: 1e5,
-  stream_xor_calls: 2e6,
-  stream_xchacha20_calls: 1e6
+const _e = 1e2
+/* call counts */
+const N = {
+  hash_calls: 1 * _e,
+  verify_calls: 1 * _e,
+  unseal_calls: 1 * _e, // 2xunseal per loop
+  hash_batch_len: 64,
+  hash_batch_calls: 1 * _e,
+  stream_xor_calls: 1 * _e,
+  stream_xchacha20_calls: 1 * _e // 2 calls per loop
 }
 
-/* CI call counts */
-N = {
-  ...N,
-  hash_calls: 2e6,
-  verify_calls: 2e5,
-  unseal_calls: 1e5, // 2xunseal per loop
-  hash_batch_calls: 1e5
-}
-
-test('bench: crypto_generichash', { skip: !isBare }, t => {
+test('fastcall: crypto_generichash', t => {
   const buf = Buffer.alloc(1024).fill(0xAA)
   const out = Buffer.alloc(sodium.crypto_generichash_BYTES)
   const bpush = benchmark(t)
@@ -35,7 +26,7 @@ test('bench: crypto_generichash', { skip: !isBare }, t => {
   bpush(-1)
 })
 
-test('bench: crypto_sign_verify_detached', { skip: !isBare }, function (t) {
+test('fastcall: crypto_sign_verify_detached', function (t) {
   const fixtures = require('./fixtures/crypto_sign.json')
 
   const publicKey = new Uint8Array(fixtures[0][1])
@@ -53,7 +44,7 @@ test('bench: crypto_sign_verify_detached', { skip: !isBare }, function (t) {
   bpush(-1)
 })
 
-test('bench: crypto_box_unseal', { skip: !isBare }, function (t) {
+test('fastcall: crypto_box_unseal', function (t) {
   const pk = Buffer.alloc(sodium.crypto_box_PUBLICKEYBYTES)
   const sk = Buffer.alloc(sodium.crypto_box_SECRETKEYBYTES)
 
@@ -87,7 +78,7 @@ test('bench: crypto_box_unseal', { skip: !isBare }, function (t) {
   bpush(-1)
 })
 
-test('bench: crypto_generichash_batch', { skip: !isBare }, t => {
+test('fastcall: crypto_generichash_batch', t => {
   const buf = Buffer.from('Hej, Verden')
   const batch = []
   for (let i = 0; i < N.hash_batch_len; i++) batch.push(buf)
@@ -104,8 +95,9 @@ test('bench: crypto_generichash_batch', { skip: !isBare }, t => {
   bpush(-1)
 })
 
-test('bench: crypto_stream_xor', { skip: !isBare }, t => {
+test('fastcall: crypto_stream_xor', t => {
   const message = Buffer.alloc(4096).fill(0xaa)
+  const plain = Buffer.alloc(4096).fill(0xaa)
   const nonce = random(sodium.crypto_stream_NONCEBYTES)
   const key = random(sodium.crypto_stream_KEYBYTES)
 
@@ -113,10 +105,10 @@ test('bench: crypto_stream_xor', { skip: !isBare }, t => {
 
   for (let i = 0; i < N.stream_xor_calls; i++) {
     sodium.crypto_stream_xor(message, message, nonce, key)
-    if (message[0] === 0xaa) throw new Error('encryption failed')
+    if (message.equals(plain)) throw new Error('encryption failed')
 
     sodium.crypto_stream_xor(message, message, nonce, key)
-    if (message[0] !== 0xaa) throw new Error('decryption failed')
+    if (!message.equals(plain)) throw new Error('decryption failed')
     bpush(2)
   }
 
@@ -129,7 +121,7 @@ test('bench: crypto_stream_xor', { skip: !isBare }, t => {
   }
 })
 
-test('bench: crypto_secretstream_xchacha20poly1305_push & pull', { skip: !isBare }, t => {
+test('fastcall: crypto_secretstream_xchacha20poly1305_push & pull', t => {
   const {
     crypto_secretstream_xchacha20poly1305_TAG_MESSAGE: TAG_MESSAGE,
     crypto_secretstream_xchacha20poly1305_ABYTES: ABYTES,
