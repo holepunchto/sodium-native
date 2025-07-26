@@ -3634,7 +3634,7 @@ sn_extension_pbkdf2_sha512_async(
   assert(err == 0);
 }
 
-js_value_t *
+static js_value_t *
 sodium_native_exports(js_env_t *env, js_value_t *exports) {
   int err;
 
