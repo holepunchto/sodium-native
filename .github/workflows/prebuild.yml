@@ -39,7 +39,7 @@ jobs:
           arch: arm64
           tags: -musl
           flags: --environment musl
-          musl: x86_64-linux-musl-cross-aarch64-linux
+          musl: aarch64-linux-musl-cross-aarch64-linux
         - os: macos-14
           platform: darwin
           arch: x64
