@@ -237,6 +237,7 @@ target_link_libraries(
   ${sodium_native_bare}
   PRIVATE
     $<TARGET_OBJECTS:sodium>
+    $<TARGET_OBJECTS:sodium_extensions>
     jstl
   PUBLIC
     sodium
@@ -261,6 +262,7 @@ target_link_libraries(
   ${sodium_native_node}
   PRIVATE
     $<TARGET_OBJECTS:sodium>
+    $<TARGET_OBJECTS:sodium_extensions>
     jstl
   PUBLIC
     sodium
