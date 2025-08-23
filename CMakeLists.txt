@@ -208,16 +208,29 @@ if(target MATCHES "linux|android")
   )
 endif()
 
+add_library(sodium_extensions OBJECT)
+
+target_sources(
+  sodium_extensions
+  PRIVATE
+    extensions/tweak/tweak.c
+    extensions/tweak/tweak.h
+    extensions/pbkdf2/pbkdf2.c
+    extensions/pbkdf2/pbkdf2.h
+)
+
+target_link_libraries(
+  sodium_extensions
+  PUBLIC
+    sodium
+)
+
 add_bare_module(sodium_native_bare)
 
 target_sources(
   ${sodium_native_bare}
   PRIVATE
     binding.cc
-    extensions/tweak/tweak.c
-    extensions/tweak/tweak.h
-    extensions/pbkdf2/pbkdf2.c
-    extensions/pbkdf2/pbkdf2.h
 )
 
 target_link_libraries(
@@ -227,6 +240,7 @@ target_link_libraries(
     jstl
   PUBLIC
     sodium
+    sodium_extensions
 )
 
 add_napi_module(sodium_native_node)
@@ -235,10 +249,6 @@ target_sources(
   ${sodium_native_node}
   PRIVATE
     binding.cc
-    extensions/tweak/tweak.c
-    extensions/tweak/tweak.h
-    extensions/pbkdf2/pbkdf2.c
-    extensions/pbkdf2/pbkdf2.h
 )
 
 target_compile_definitions(
@@ -254,6 +264,7 @@ target_link_libraries(
     jstl
   PUBLIC
     sodium
+    sodium_extensions
 )
 
 resolve_node_module(bare-compat-napi compat)
