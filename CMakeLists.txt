@@ -11,12 +11,11 @@ fetch_package("github:holepunchto/libjstl#d92f140c")
 
 find_port(libsodium)
 
-add_bare_module(sodium_native_bare)
+add_library(sodium_extensions OBJECT)
 
 target_sources(
-  ${sodium_native_bare}
+  sodium_extensions
   PRIVATE
-    binding.cc
     extensions/tweak/tweak.c
     extensions/tweak/tweak.h
     extensions/pbkdf2/pbkdf2.c
@@ -24,11 +23,28 @@ target_sources(
 )
 
 target_link_libraries(
+  sodium_extensions
+  PUBLIC
+    sodium
+)
+
+add_bare_module(sodium_native_bare)
+
+target_sources(
   ${sodium_native_bare}
   PRIVATE
+    binding.cc
+)
+
+target_link_libraries(
+  ${sodium_native_bare}
+  PRIVATE
+    $<TARGET_OBJECTS:sodium>
+    $<TARGET_OBJECTS:sodium_extensions>
     jstl
   PUBLIC
     sodium
+    sodium_extensions
 )
 
 add_napi_module(sodium_native_node)
@@ -37,10 +53,6 @@ target_sources(
   ${sodium_native_node}
   PRIVATE
     binding.cc
-    extensions/tweak/tweak.c
-    extensions/tweak/tweak.h
-    extensions/pbkdf2/pbkdf2.c
-    extensions/pbkdf2/pbkdf2.h
 )
 
 target_compile_definitions(
@@ -52,9 +64,12 @@ target_compile_definitions(
 target_link_libraries(
   ${sodium_native_node}
   PRIVATE
+    $<TARGET_OBJECTS:sodium>
+    $<TARGET_OBJECTS:sodium_extensions>
     jstl
   PUBLIC
     sodium
+    sodium_extensions
 )
 
 resolve_node_module(bare-compat-napi compat)
