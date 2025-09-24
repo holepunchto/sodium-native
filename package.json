@@ -26,7 +26,7 @@
     "cmake-napi": "^1.2.1"
   },
   "scripts": {
-    "test": "standard && npm run test:node && npm run test:bare",
+    "test": "prettier . --check && npm run test:node && npm run test:bare",
     "test:node": "node test/all.js",
     "test:bare": "bare test/all.js"
   },
