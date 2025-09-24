@@ -2257,6 +2257,8 @@ struct sn_async_pwhash_request : sn_async_task {
   uint64_t opslimit;
   size_t memlimit;
   int alg;
+
+  sn_async_pwhash_request(js_env_t *env) : sn_async_task(env) {}
 };
 
 static void
@@ -2381,6 +2383,8 @@ struct sn_async_pwhash_str_request : sn_async_task {
 
   uint64_t opslimit;
   size_t memlimit;
+
+  sn_async_pwhash_str_request(js_env_t *env) : sn_async_task(env) {}
 };
 
 static void
@@ -2482,6 +2486,8 @@ struct sn_async_pwhash_str_verify_request : sn_async_task {
 
   js_persistent_t<js_arraybuffer_t> pwd_ref;
   std::span<char> pwd;
+
+  sn_async_pwhash_str_verify_request(js_env_t *env) : sn_async_task(env) {}
 };
 
 static void
@@ -2578,6 +2584,8 @@ struct sn_async_pwhash_scryptsalsa208sha256_request : sn_async_task {
 
   uint64_t opslimit;
   size_t memlimit;
+
+  sn_async_pwhash_scryptsalsa208sha256_request(js_env_t *env) : sn_async_task(env) {}
 };
 
 static void
@@ -2700,6 +2708,8 @@ struct sn_async_pwhash_scryptsalsa208sha256_str_request : sn_async_task {
 
   uint64_t opslimit;
   size_t memlimit;
+
+  sn_async_pwhash_scryptsalsa208sha256_str_request(js_env_t *env) : sn_async_task(env) {}
 };
 
 static void
@@ -2802,6 +2812,8 @@ struct sn_async_pwhash_scryptsalsa208sha256_str_verify_request : sn_async_task {
 
   js_persistent_t<js_arraybuffer_t> pwd_ref;
   std::span<char> pwd;
+
+  sn_async_pwhash_scryptsalsa208sha256_str_verify_request(js_env_t *env) : sn_async_task(env) {}
 };
 
 static void
@@ -3546,6 +3558,8 @@ struct sn_async_pbkdf2_sha512_request : sn_async_task {
   std::span<uint8_t> salt;
 
   uint64_t iter;
+
+  sn_async_pbkdf2_sha512_request(js_env_t *env) : sn_async_task(env) {}
 };
 
 static void
