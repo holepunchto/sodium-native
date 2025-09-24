@@ -2222,8 +2222,8 @@ struct sn_async_task {
   js_env_t *env;
   js_persistent_t<js_function_t<void, int>> cb;
   js_deferred_teardown_t *teardown;
-  int code;
-  bool exiting;
+  int code = 0;
+  bool exiting = false;
 
   sn_async_task(js_env_t *env) : env(env) {
     int err;
