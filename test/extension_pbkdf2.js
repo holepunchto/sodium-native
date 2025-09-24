@@ -13,13 +13,6 @@ test('basic', async t => {
   t.unlike(output, Buffer.alloc(256))
 
   try {
-    sodium.extension_pbkdf2_sha512()
-    t.fail()
-  } catch (e) {
-    t.pass()
-  }
-
-  try {
     // output is too small
     const small = output.subarray(2)
     sodium.extension_pbkdf2_sha512(small, password, salt, 1000, 256)

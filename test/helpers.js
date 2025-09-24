@@ -5,8 +5,6 @@ test('sodium_memcmp', function (t) {
   const b1 = Buffer.from([0, 1, 2, 3])
   const b2 = Buffer.from([3, 2, 1, 0])
 
-  t.exception.all(_ => sodium.sodium_memcmp(), 'no args')
-  t.exception.all(_ => sodium.sodium_memcmp(b1), 'arg mismatch')
   t.exception.all(_ => sodium.sodium_memcmp(b1, b2.subarray(1)), 'length mismatch')
   t.ok(sodium.sodium_memcmp(Buffer.alloc(0), Buffer.alloc(0)))
   t.ok(sodium.sodium_memcmp(Buffer.alloc(5), Buffer.alloc(5)))

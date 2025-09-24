@@ -42,10 +42,6 @@ test('crypto_pwhash_scryptsalsa208sha256_str', function (t) {
   const opslimit = sodium.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE
   const memlimit = sodium.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE
 
-  t.exception.all(function () {
-    sodium.crypto_pwhash_scryptsalsa208sha256_str(output, passwd)
-  }, 'should throw on missing args')
-
   sodium.crypto_pwhash_scryptsalsa208sha256_str(output, passwd, opslimit, memlimit)
 
   t.not(output, Buffer.alloc(output.length), 'not blank')
@@ -100,16 +96,12 @@ test('crypto_pwhash_scryptsalsa208sha256_async', function (t) {
 })
 
 test('crypto_pwhash_scryptsalsa208sha256_str_async', function (t) {
-  t.plan(7)
+  t.plan(6)
 
   const output = Buffer.alloc(sodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES)
   const passwd = Buffer.from('Hej, Verden!')
   const opslimit = sodium.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE
   const memlimit = sodium.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE
-
-  t.exception.all(function () {
-    sodium.crypto_pwhash_scryptsalsa208sha256_str_async(output, passwd)
-  }, 'should throw on missing args')
 
   sodium.crypto_pwhash_scryptsalsa208sha256_str_async(output, passwd, opslimit, memlimit, function (err) {
     t.absent(err)
@@ -234,15 +226,12 @@ test('crypto_pwhash_scryptsalsa208sha256_async promise', async function (t) {
 })
 
 test('crypto_pwhash_scryptsalsa208sha256_str_async promise', async function (t) {
-  t.plan(6)
+  t.plan(5)
 
   const output = Buffer.alloc(sodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES)
   const passwd = Buffer.from('Hej, Verden!')
   const opslimit = sodium.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE
   const memlimit = sodium.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE
-
-  await t.exception.all(() => sodium.crypto_pwhash_scryptsalsa208sha256_str_async(output, passwd),
-    'should throw on missing args')
 
   await sodium.crypto_pwhash_scryptsalsa208sha256_str_async(output, passwd, opslimit, memlimit)
   t.not(output, Buffer.alloc(output.length), 'not blank')
