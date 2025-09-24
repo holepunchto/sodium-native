@@ -92,13 +92,11 @@ exports.sodium_sub = function (a, b) {
   binding.sodium_sub(a, b)
 }
 
-/** @returns {number} */
 exports.sodium_compare = function (a, b) {
   if (a?.byteLength !== b?.byteLength) throw new Error('buffers must be of same length"')
   return binding.sodium_compare(a, b)
 }
 
-/** @returns {boolean} */
 exports.sodium_is_zero = function (buffer, length) {
   if (!buffer) throw new Error('invalid buffer')
   length ??= buffer.byteLength
@@ -107,7 +105,6 @@ exports.sodium_is_zero = function (buffer, length) {
   return binding.sodium_is_zero(buffer, length)
 }
 
-/** @returns {number} padded buffer length */
 exports.sodium_pad = function (buffer, unpaddedBuflen, blockSize) {
   if (unpaddedBuflen > buffer.byteLength) throw new Error('unpadded length cannot exceed buffer length')
   if (blockSize > buffer.byteLength) throw new Error('block size cannot exceed buffer length')
@@ -117,7 +114,6 @@ exports.sodium_pad = function (buffer, unpaddedBuflen, blockSize) {
   return binding.sodium_pad(buffer, unpaddedBuflen, blockSize)
 }
 
-/** @returns {number} unpadded buffer length */
 exports.sodium_unpad = function (buffer, paddedBuflen, blockSize) {
   if (paddedBuflen > buffer.byteLength) throw new Error('unpadded length cannot exceed buffer length')
   if (blockSize > buffer.byteLength) throw new Error('block size cannot exceed buffer length')
@@ -163,7 +159,6 @@ exports.crypto_sign_open = function (m, sm, pk) {
   if (res !== 0) throw new Error('status: ' + res)
 }
 
-/** @returns {boolean} */
 exports.crypto_sign_open = function (m, sm, pk) {
   if (sm?.byteLength < binding.crypto_sign_BYTES) throw new Error('sm')
   if (m?.byteLength !== sm.byteLength - binding.crypto_sign_BYTES) throw new Error('m must be "sm.byteLength - crypto_sign_BYTES" bytes')
@@ -181,7 +176,6 @@ exports.crypto_sign_detached = function (sig, m, sk) {
   if (res !== 0) throw new Error('status: ' + res)
 }
 
-/** @returns {boolean} */
 exports.crypto_sign_verify_detached = function (sig, m, pk) {
   return binding.crypto_sign_verify_detached(
     sig.buffer,
@@ -268,7 +262,6 @@ exports.crypto_box_seal = function (c, m, pk) {
   if (res !== 0) throw new Error('status: ' + res)
 }
 
-/** @returns {boolean} */
 exports.crypto_box_seal_open = function (m, c, pk, sk) {
   return binding.crypto_box_seal_open(
     m.buffer,
@@ -301,7 +294,6 @@ exports.crypto_secretbox_easy = function (c, m, n, k) {
   if (res !== 0) throw new Error('status: ' + res)
 }
 
-/** @returns {boolean} */
 exports.crypto_secretbox_open_easy = function (m, c, n, k) {
   if (m?.byteLength !== c.byteLength - binding.crypto_secretbox_MACBYTES) throw new Error('m must be "c - crypto_secretbox_MACBYTES" bytes')
   if (c?.byteLength < binding.crypto_secretbox_MACBYTES) throw new Error('c')
@@ -322,7 +314,6 @@ exports.crypto_secretbox_detached = function (c, mac, m, n, k) {
   if (res !== 0) throw new Error('status: ' + res)
 }
 
-/** @returns {boolean} */
 exports.crypto_secretbox_open_detached = function (m, c, mac, n, k) {
   if (m?.byteLength !== c.byteLength) throw new Error('m must be "c.byteLength" bytes')
   if (mac?.byteLength !== binding.crypto_secretbox_MACBYTES) throw new Error('mac')
@@ -354,11 +345,9 @@ exports.crypto_generichash = function (output, input, key = OPTIONAL) {
 
 exports.crypto_generichash_batch = function (output, batch, key) {
   if (isNode || batch.length < 4) {
-    // iterate batch from native
     const res = binding.crypto_generichash_batch(output, batch, !!key, key || OPTIONAL)
     if (res !== 0) throw new Error('status: ' + res)
   } else {
-    // iterate batch through fastcalls
     const state = Buffer.alloc(binding.crypto_generichash_STATEBYTES)
 
     exports.crypto_generichash_init(state, key, output.byteLength)
@@ -466,7 +455,6 @@ exports.crypto_secretstream_xchacha20poly1305_init_pull = function (state, heade
   if (res !== 0) throw new Error('status: ' + res)
 }
 
-/** @returns {number} */
 exports.crypto_secretstream_xchacha20poly1305_push = function (state, c, m, ad, tag) {
   ad ||= OPTIONAL
 
@@ -495,7 +483,6 @@ exports.crypto_secretstream_xchacha20poly1305_push = function (state, c, m, ad, 
   return res
 }
 
-/** @returns {number} */
 exports.crypto_secretstream_xchacha20poly1305_pull = function (state, m, tag, c, ad) {
   ad ||= OPTIONAL
 
@@ -693,7 +680,6 @@ exports.crypto_auth = function (out, input, k) {
   if (res !== 0) throw new Error('status: ' + res)
 }
 
-/** @returns {boolean} */
 exports.crypto_auth_verify = function (h, input, k) {
   if (h?.byteLength !== binding.crypto_auth_BYTES) throw new Error('h')
   if (k?.byteLength !== binding.crypto_auth_KEYBYTES) throw new Error('k')
@@ -738,7 +724,6 @@ exports.crypto_onetimeauth_final = function (state, out) {
   if (res !== 0) throw new Error('status: ' + res)
 }
 
-/** @returns {boolean} */
 exports.crypto_onetimeauth_verify = function (h, input, k) {
   if (h?.byteLength !== binding.crypto_onetimeauth_BYTES) throw new Error('h')
   if (k?.byteLength !== binding.crypto_onetimeauth_KEYBYTES) throw new Error('k')
@@ -763,7 +748,6 @@ exports.crypto_pwhash = function (out, passwd, salt, opslimit, memlimit, alg) {
   if (res !== 0) throw new Error('status: ' + res)
 }
 
-/** @returns {Promise<void>|undefined} */
 exports.crypto_pwhash_async = function (out, passwd, salt, opslimit, memlimit, alg, callback = undefined) {
   if (out?.byteLength < binding.crypto_pwhash_BYTES_MIN) throw new Error('out')
   if (out?.byteLength > binding.crypto_pwhash_BYTES_MAX) throw new Error('out')
@@ -813,7 +797,6 @@ exports.crypto_pwhash_str = function (out, passwd, opslimit, memlimit) {
   if (res !== 0) throw new Error('status: ' + res)
 }
 
-/** @returns {Promise<void>|undefined} */
 exports.crypto_pwhash_str_async = function (out, passwd, opslimit, memlimit, callback = undefined) {
   if (out?.byteLength !== binding.crypto_pwhash_STRBYTES) throw new Error('out')
   if (!passwd?.byteLength) throw new Error('passwd')
@@ -844,14 +827,12 @@ exports.crypto_pwhash_str_async = function (out, passwd, opslimit, memlimit, cal
   return promise
 }
 
-/** @returns {boolean} */
 exports.crypto_pwhash_str_verify = function (str, passwd) {
   if (str?.byteLength !== binding.crypto_pwhash_STRBYTES) throw new Error('str')
 
   return binding.crypto_pwhash_str_verify(str, passwd)
 }
 
-/** @returns {Promise<boolean>|undefined} */
 exports.crypto_pwhash_str_verify_async = function (str, passwd, callback = undefined) {
   if (str?.byteLength !== binding.crypto_pwhash_STRBYTES) throw new Error('str')
   if (!passwd?.byteLength) throw new Error('passwd')
@@ -873,7 +854,6 @@ exports.crypto_pwhash_str_verify_async = function (str, passwd, callback = undef
   return promise
 }
 
-/** @returns {boolean} */
 exports.crypto_pwhash_str_needs_rehash = function (str, opslimit, memlimit) {
   if (str?.byteLength !== binding.crypto_pwhash_STRBYTES) throw new Error('str')
   if (opslimit < binding.crypto_pwhash_OPSLIMIT_MIN) throw new Error('opslimit')
@@ -898,7 +878,6 @@ exports.crypto_pwhash_scryptsalsa208sha256 = function (out, passwd, salt, opslim
   if (res !== 0) throw new Error('status: ' + res)
 }
 
-/** @returns {Promise<void>|undefined} */
 exports.crypto_pwhash_scryptsalsa208sha256_async = function (out, passwd, salt, opslimit, memlimit, callback = undefined) {
   if (out?.byteLength < binding.crypto_pwhash_scryptsalsa208sha256_BYTES_MIN) throw new Error('out')
   if (out?.byteLength > binding.crypto_pwhash_scryptsalsa208sha256_BYTES_MAX) throw new Error('out')
@@ -933,7 +912,6 @@ exports.crypto_pwhash_scryptsalsa208sha256_async = function (out, passwd, salt, 
   return promise
 }
 
-/** @returns {Promise<void>|undefined} */
 exports.crypto_pwhash_scryptsalsa208sha256_str_async = function (out, passwd, opslimit, memlimit, callback = undefined) {
   if (out?.byteLength !== binding.crypto_pwhash_scryptsalsa208sha256_STRBYTES) throw new Error('out')
   if (!passwd?.byteLength) throw new Error('passwd')
@@ -975,7 +953,6 @@ exports.crypto_pwhash_scryptsalsa208sha256_str = function (out, passwd, opslimit
   if (res !== 0) throw new Error('status: ' + res)
 }
 
-/** @returns {Promise<boolean>|undefined} */
 exports.crypto_pwhash_scryptsalsa208sha256_str_verify_async = function (str, passwd, callback = undefined) {
   if (str?.byteLength !== binding.crypto_pwhash_scryptsalsa208sha256_STRBYTES) throw new Error('str')
   if (!passwd?.byteLength) throw new Error('passwd')
@@ -997,7 +974,6 @@ exports.crypto_pwhash_scryptsalsa208sha256_str_verify_async = function (str, pas
   return promise
 }
 
-/** @returns {boolean} */
 exports.crypto_pwhash_scryptsalsa208sha256_str_verify = function (str, passwd) {
   if (str?.byteLength !== binding.crypto_pwhash_scryptsalsa208sha256_STRBYTES) throw new Error('str')
   if (!passwd?.byteLength) throw new Error('passwd')
@@ -1005,7 +981,6 @@ exports.crypto_pwhash_scryptsalsa208sha256_str_verify = function (str, passwd) {
   return binding.crypto_pwhash_scryptsalsa208sha256_str_verify(str, passwd)
 }
 
-/** @returns {boolean} */
 exports.crypto_pwhash_scryptsalsa208sha256_str_needs_rehash = function (str, opslimit, memlimit) {
   if (str?.byteLength !== binding.crypto_pwhash_scryptsalsa208sha256_STRBYTES) throw new Error('str')
   if (opslimit < binding.crypto_pwhash_OPSLIMIT_MIN) throw new Error('opslimit')
@@ -1060,7 +1035,6 @@ exports.crypto_kx_client_session_keys = function (rx, tx, clientPk, clientSk, se
 }
 
 exports.crypto_kx_server_session_keys = function (rx, tx, serverPk, serverSk, clientPk) {
-  // match `std::optional` by coercing null to undefined
   rx ??= undefined
   tx ??= undefined
 
@@ -1121,7 +1095,6 @@ exports.crypto_scalarmult_ed25519 = function (q, n, p) {
   if (res !== 0) throw new Error('status: ' + res)
 }
 
-/** @returns {boolean} */
 exports.crypto_core_ed25519_is_valid_point = function (p) {
   if (p?.byteLength !== binding.crypto_core_ed25519_BYTES) throw new Error('p')
 
@@ -1354,7 +1327,6 @@ exports.crypto_aead_xchacha20poly1305_ietf_keygen = function (k) {
   binding.crypto_aead_xchacha20poly1305_ietf_keygen(k)
 }
 
-/** @returns {number} */
 exports.crypto_aead_xchacha20poly1305_ietf_encrypt = function (c, m, ad, nsec = null, npub, k) {
   ad ??= undefined
   if (nsec !== null) throw new Error('nsec must always be set to null')
@@ -1369,7 +1341,6 @@ exports.crypto_aead_xchacha20poly1305_ietf_encrypt = function (c, m, ad, nsec = 
   return res
 }
 
-/** @returns {number} */
 exports.crypto_aead_xchacha20poly1305_ietf_decrypt = function (m, nsec = null, c, ad, npub, k) {
   ad ??= undefined
   if (nsec !== null) throw new Error('nsec must always be set to null')
@@ -1384,7 +1355,6 @@ exports.crypto_aead_xchacha20poly1305_ietf_decrypt = function (m, nsec = null, c
   return res
 }
 
-/** @returns {number} */
 exports.crypto_aead_xchacha20poly1305_ietf_encrypt_detached = function (c, mac, m, ad, nsec = null, npub, k) {
   ad ??= undefined
   if (nsec !== null) throw new Error('nsec must always be set to null')
@@ -1417,7 +1387,6 @@ exports.crypto_aead_chacha20poly1305_ietf_keygen = function (k) {
   binding.crypto_aead_chacha20poly1305_ietf_keygen(k)
 }
 
-/** @returns {number} */
 exports.crypto_aead_chacha20poly1305_ietf_encrypt = function (c, m, ad, nsec = null, npub, k) {
   ad ??= undefined
   if (nsec !== null) throw new Error('nsec must always be set to null')
@@ -1432,7 +1401,6 @@ exports.crypto_aead_chacha20poly1305_ietf_encrypt = function (c, m, ad, nsec = n
   return res
 }
 
-/** @returns {number} */
 exports.crypto_aead_chacha20poly1305_ietf_decrypt = function (m, nsec = null, c, ad, npub, k) {
   ad ??= undefined
   if (nsec !== null) throw new Error('nsec must always be set to null')
@@ -1447,7 +1415,6 @@ exports.crypto_aead_chacha20poly1305_ietf_decrypt = function (m, nsec = null, c,
   return res
 }
 
-/** @returns {number} */
 exports.crypto_aead_chacha20poly1305_ietf_encrypt_detached = function (c, mac, m, ad, nsec = null, npub, k) {
   ad ??= undefined
   if (nsec !== null) throw new Error('nsec must always be set to null')
@@ -1686,7 +1653,6 @@ exports.extension_tweak_ed25519_keypair_add = function (pk, scalarOut, scalarIn,
   if (res !== 0) throw new Error('failed to add tweak to keypair')
 }
 
-/** @returns {Promise<void>|undefined} */
 exports.extension_pbkdf2_sha512_async = function (out, passwd, salt, iter, outlen, callback = undefined) {
   if (iter < binding.extension_pbkdf2_sha512_ITERATIONS_MIN) throw new Error('iterations')
   if (outlen > binding.extension_pbkdf2_sha512_BYTES_MAX) throw new Error('outlen')
@@ -1729,7 +1695,6 @@ exports.extension_pbkdf2_sha512 = function (out, passwd, salt, iter, outlen) {
   if (res !== 0) throw new Error('failed to add tweak to public key')
 }
 
-// mimic 4.x public api
 function checkStatus (callback, booleanResult = false) {
   let done, promise
 
