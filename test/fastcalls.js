@@ -13,8 +13,8 @@ const N = {
   stream_xchacha20_calls: 1 * _e // 2 calls per loop
 }
 
-test('fastcall: crypto_generichash', t => {
-  const buf = Buffer.alloc(1024).fill(0xAA)
+test('fastcall: crypto_generichash', (t) => {
+  const buf = Buffer.alloc(1024).fill(0xaa)
   const out = Buffer.alloc(sodium.crypto_generichash_BYTES)
   const bpush = benchmark(t)
 
@@ -36,7 +36,11 @@ test('fastcall: crypto_sign_verify_detached', function (t) {
   const bpush = benchmark(t)
 
   for (let i = 0; i < N.verify_calls; i++) {
-    const valid = sodium.crypto_sign_verify_detached(signature, message, publicKey)
+    const valid = sodium.crypto_sign_verify_detached(
+      signature,
+      message,
+      publicKey
+    )
     if (!valid) throw new Error('Unexpected verification failure')
     bpush(1)
   }
@@ -78,7 +82,7 @@ test('fastcall: crypto_box_unseal', function (t) {
   bpush(-1)
 })
 
-test('fastcall: crypto_generichash_batch', t => {
+test('fastcall: crypto_generichash_batch', (t) => {
   const buf = Buffer.from('Hej, Verden')
   const batch = []
   for (let i = 0; i < N.hash_batch_len; i++) batch.push(buf)
@@ -95,7 +99,7 @@ test('fastcall: crypto_generichash_batch', t => {
   bpush(-1)
 })
 
-test('fastcall: crypto_stream_xor', t => {
+test('fastcall: crypto_stream_xor', (t) => {
   const message = Buffer.alloc(4096).fill(0xaa)
   const plain = Buffer.alloc(4096).fill(0xaa)
   const nonce = random(sodium.crypto_stream_NONCEBYTES)
@@ -114,14 +118,14 @@ test('fastcall: crypto_stream_xor', t => {
 
   bpush(-1)
 
-  function random (n) {
+  function random(n) {
     const buf = Buffer.alloc(n)
     sodium.randombytes_buf(buf)
     return buf
   }
 })
 
-test('fastcall: crypto_secretstream_xchacha20poly1305_push & pull', t => {
+test('fastcall: crypto_secretstream_xchacha20poly1305_push & pull', (t) => {
   const {
     crypto_secretstream_xchacha20poly1305_TAG_MESSAGE: TAG_MESSAGE,
     crypto_secretstream_xchacha20poly1305_ABYTES: ABYTES,
@@ -153,10 +157,22 @@ test('fastcall: crypto_secretstream_xchacha20poly1305_push & pull', t => {
   const bpush = benchmark(t)
 
   for (let i = 0; i < N.stream_xchacha20_calls; i++) {
-    let ret = sodium.crypto_secretstream_xchacha20poly1305_push(stateEnc, cipher, message, adIn, TAG_MESSAGE)
+    let ret = sodium.crypto_secretstream_xchacha20poly1305_push(
+      stateEnc,
+      cipher,
+      message,
+      adIn,
+      TAG_MESSAGE
+    )
     if (ret !== message.byteLength + ABYTES) t.fail('invalid amount written')
 
-    ret = sodium.crypto_secretstream_xchacha20poly1305_pull(stateDec, plain, tag, cipher, adOut)
+    ret = sodium.crypto_secretstream_xchacha20poly1305_pull(
+      stateDec,
+      plain,
+      tag,
+      cipher,
+      adOut
+    )
 
     if (ret !== cipher.byteLength - ABYTES) t.fail('invalid amount read')
     if (tag[0] !== TAG_MESSAGE) t.fail('bad tag decoded')
@@ -169,13 +185,13 @@ test('fastcall: crypto_secretstream_xchacha20poly1305_push & pull', t => {
   bpush(-1)
 })
 
-function benchmark (t, interval = 2000) {
+function benchmark(t, interval = 2000) {
   let prev
-  const start = prev = Date.now()
+  const start = (prev = Date.now())
   let n = 0
   let total = n
 
-  return function measure (qty = 1) {
+  return function measure(qty = 1) {
     const now = Date.now()
     const delta = now - prev
 
@@ -188,7 +204,16 @@ function benchmark (t, interval = 2000) {
       const ops = (n / delta) * 1000
       const runtime = now - start
       const avg = (total / runtime) * 1000
-      t.comment('ops', ops.toExponential(2), 'avg', Math.round(avg), 'total', total, 'runtime', runtime)
+      t.comment(
+        'ops',
+        ops.toExponential(2),
+        'avg',
+        Math.round(avg),
+        'total',
+        total,
+        'runtime',
+        runtime
+      )
       prev = now
       n = 0
     }

@@ -21,7 +21,7 @@ const sodium = require('..')
  * LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
  * OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN
  * THE SOFTWARE.
-*/
+ */
 
 const vectors = [
   [
@@ -38,15 +38,9 @@ const vectors = [
   ],
   [
     'crypto_hash_sha256',
-    [
-      'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=',
-      'dHJ1c3RubzE='
-    ],
+    ['AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=', 'dHJ1c3RubzE='],
     null,
-    [
-      'IDtwta6IOTIWG70L3tk1fnY+Y6/OmLFiML4z8LlMLMU=',
-      'dHJ1c3RubzE='
-    ]
+    ['IDtwta6IOTIWG70L3tk1fnY+Y6/OmLFiML4z8LlMLMU=', 'dHJ1c3RubzE=']
   ],
   [
     'crypto_sign_seed_keypair',
@@ -1225,6 +1219,6 @@ vectors.forEach(function (vector, i) {
   })
 })
 
-function fromBase64 (s) {
+function fromBase64(s) {
   return Buffer.from(s, 'base64')
 }

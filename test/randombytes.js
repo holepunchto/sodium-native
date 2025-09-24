@@ -2,7 +2,11 @@ const test = require('brittle')
 const sodium = require('..')
 
 test('constants', function (t) {
-  t.alike(typeof sodium.randombytes_SEEDBYTES, 'number', 'randombytes_SEEDBYTES is number')
+  t.alike(
+    typeof sodium.randombytes_SEEDBYTES,
+    'number',
+    'randombytes_SEEDBYTES is number'
+  )
 })
 
 test('randombytes_random', function (t) {
@@ -101,8 +105,8 @@ test('Exceed quota', function (t) {
   }
 
   scores
-    .map(cnt => cnt / 256)
-    .forEach(cnt => {
+    .map((cnt) => cnt / 256)
+    .forEach((cnt) => {
       if (cnt < 1 && cnt > 3) t.fail('Statistically unreasonable')
     })
 

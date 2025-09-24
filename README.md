@@ -17,7 +17,7 @@ This also makes this library useful as a foundation for more high level crypto a
 
 ## Usage
 
-``` js
+```js
 var sodium = require('sodium-native')
 
 var nonce = Buffer.alloc(sodium.crypto_secretbox_NONCEBYTES)
@@ -26,14 +26,16 @@ var message = Buffer.from('Hello, World!')
 var ciphertext = Buffer.alloc(message.length + sodium.crypto_secretbox_MACBYTES)
 
 sodium.randombytes_buf(nonce) // insert random data into nonce
-sodium.randombytes_buf(key)  // insert random data into key
+sodium.randombytes_buf(key) // insert random data into key
 
 // encrypted message is stored in ciphertext.
 sodium.crypto_secretbox_easy(ciphertext, message, nonce, key)
 
 console.log('Encrypted message:', ciphertext)
 
-var plainText = Buffer.alloc(ciphertext.length - sodium.crypto_secretbox_MACBYTES)
+var plainText = Buffer.alloc(
+  ciphertext.length - sodium.crypto_secretbox_MACBYTES
+)
 
 if (!sodium.crypto_secretbox_open_easy(plainText, ciphertext, nonce, key)) {
   console.log('Decryption failed!')

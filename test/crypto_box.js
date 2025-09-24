@@ -11,7 +11,11 @@ test('crypto_box_seed_keypair', function (t) {
   }, 'should validate input')
 
   t.exception.all(function () {
-    sodium.crypto_box_seed_keypair(Buffer.alloc(0), Buffer.alloc(0), Buffer.alloc(0))
+    sodium.crypto_box_seed_keypair(
+      Buffer.alloc(0),
+      Buffer.alloc(0),
+      Buffer.alloc(0)
+    )
   }, 'should validate input length')
 
   sodium.crypto_box_seed_keypair(pk, sk, seed)
@@ -57,8 +61,21 @@ test('crypto_box_detached', function (t) {
   t.not(cipher, Buffer.alloc(cipher.length), 'not blank')
 
   const plain = Buffer.alloc(cipher.length)
-  t.absent(sodium.crypto_box_open_detached(plain, cipher, Buffer.alloc(mac.length), nonce, pk, sk), 'does not decrypt')
-  t.ok(sodium.crypto_box_open_detached(plain, cipher, mac, nonce, pk, sk), 'decrypts')
+  t.absent(
+    sodium.crypto_box_open_detached(
+      plain,
+      cipher,
+      Buffer.alloc(mac.length),
+      nonce,
+      pk,
+      sk
+    ),
+    'does not decrypt'
+  )
+  t.ok(
+    sodium.crypto_box_open_detached(plain, cipher, mac, nonce, pk, sk),
+    'decrypts'
+  )
   t.alike(plain, message, 'same message')
 })
 
@@ -77,7 +94,16 @@ test('crypto_box_easy', function (t) {
   t.not(cipher, Buffer.alloc(cipher.length), 'not blank')
 
   const plain = Buffer.alloc(cipher.length - sodium.crypto_box_MACBYTES)
-  t.absent(sodium.crypto_box_open_easy(plain, Buffer.alloc(cipher.length), nonce, pk, sk), 'does not decrypt')
+  t.absent(
+    sodium.crypto_box_open_easy(
+      plain,
+      Buffer.alloc(cipher.length),
+      nonce,
+      pk,
+      sk
+    ),
+    'does not decrypt'
+  )
   t.ok(sodium.crypto_box_open_easy(plain, cipher, nonce, pk, sk), 'decrypts')
   t.alike(plain, message, 'same message')
 })
@@ -102,7 +128,10 @@ test('crypto_box_seal', function (t) {
   t.not(cipher, Buffer.alloc(cipher.length), 'not blank')
 
   const plain = Buffer.alloc(cipher.length - sodium.crypto_box_SEALBYTES)
-  t.absent(sodium.crypto_box_seal_open(plain, cipher, pk2, sk2), 'does not decrypt')
+  t.absent(
+    sodium.crypto_box_seal_open(plain, cipher, pk2, sk2),
+    'does not decrypt'
+  )
   t.ok(sodium.crypto_box_seal_open(plain, cipher, pk, sk), 'decrypts')
   t.alike(plain, message, 'same message')
 })
@@ -125,14 +154,20 @@ test('crypto_box_seal/crypto_box_seal_open self-decrypt', function (t) {
 
 test('crypto_box_seal_open cross-decrypt', function (t) {
   const pubKey = Buffer.from(
-    'e0bb844ae3f48bb04323c8dfe7c34cf86608db2e2112f927953060c80506287f', 'hex')
+    'e0bb844ae3f48bb04323c8dfe7c34cf86608db2e2112f927953060c80506287f',
+    'hex'
+  )
   const secret = Buffer.from(
-    '036a9de1ecc9d152cf39fed1b3e15bf761ae39a299031adc011cc9809041abfa', 'hex')
+    '036a9de1ecc9d152cf39fed1b3e15bf761ae39a299031adc011cc9809041abfa',
+    'hex'
+  )
   const cipher = Buffer.from(
     '249912e916ad8bcf96a3f9b750da2703' +
-    '2eccdf83b5cff0d6a59a8bbe0bcd5823' +
-    '5de9fbca55bd5416c754e5e0e0fe2f0c' +
-    '4e50df0cb302f1c4378f80', 'hex')
+      '2eccdf83b5cff0d6a59a8bbe0bcd5823' +
+      '5de9fbca55bd5416c754e5e0e0fe2f0c' +
+      '4e50df0cb302f1c4378f80',
+    'hex'
+  )
 
   const out = Buffer.alloc(cipher.length - sodium.crypto_box_SEALBYTES)
   sodium.crypto_box_seal_open(out, cipher, pubKey, secret)
@@ -142,24 +177,20 @@ test('crypto_box_seal_open cross-decrypt', function (t) {
 
 test('crypto_box_seed_keypair', function (t) {
   const seed = Buffer.from([
-    0x77, 0x07, 0x6d, 0x0a, 0x73, 0x18, 0xa5,
-    0x7d, 0x3c, 0x16, 0xc1, 0x72, 0x51, 0xb2,
-    0x66, 0x45, 0xdf, 0x4c, 0x2f, 0x87, 0xeb,
-    0xc0, 0x99, 0x2a, 0xb1, 0x77, 0xfb, 0xa5,
-    0x1d, 0xb9, 0x2c, 0x2a
+    0x77, 0x07, 0x6d, 0x0a, 0x73, 0x18, 0xa5, 0x7d, 0x3c, 0x16, 0xc1, 0x72,
+    0x51, 0xb2, 0x66, 0x45, 0xdf, 0x4c, 0x2f, 0x87, 0xeb, 0xc0, 0x99, 0x2a,
+    0xb1, 0x77, 0xfb, 0xa5, 0x1d, 0xb9, 0x2c, 0x2a
   ])
 
   const expPk = Buffer.from([
-    0xed, 0x77, 0x49, 0xb4, 0xd9, 0x89, 0xf6, 0x95,
-    0x7f, 0x3b, 0xfd, 0xe6, 0xc5, 0x67, 0x67, 0xe9,
-    0x88, 0xe2, 0x1c, 0x9f, 0x87, 0x84, 0xd9, 0x1d,
+    0xed, 0x77, 0x49, 0xb4, 0xd9, 0x89, 0xf6, 0x95, 0x7f, 0x3b, 0xfd, 0xe6,
+    0xc5, 0x67, 0x67, 0xe9, 0x88, 0xe2, 0x1c, 0x9f, 0x87, 0x84, 0xd9, 0x1d,
     0x61, 0x00, 0x11, 0xcd, 0x55, 0x3f, 0x9b, 0x06
   ])
 
   const expSk = Buffer.from([
-    0xac, 0xcd, 0x44, 0xeb, 0x8e, 0x93, 0x31, 0x9c,
-    0x05, 0x70, 0xbc, 0x11, 0x00, 0x5c, 0x0e, 0x01,
-    0x89, 0xd3, 0x4f, 0xf0, 0x2f, 0x6c, 0x17, 0x77,
+    0xac, 0xcd, 0x44, 0xeb, 0x8e, 0x93, 0x31, 0x9c, 0x05, 0x70, 0xbc, 0x11,
+    0x00, 0x5c, 0x0e, 0x01, 0x89, 0xd3, 0x4f, 0xf0, 0x2f, 0x6c, 0x17, 0x77,
     0x34, 0x11, 0xad, 0x19, 0x12, 0x93, 0xc9, 0x8f
   ])
 
@@ -232,13 +263,15 @@ test('crypto_box_easy', (t) => {
 
   const guardPage = new Uint8Array(0)
 
-  t.execution(() => sodium.crypto_box_easy(
-    c.subarray(0, sodium.crypto_box_MACBYTES),
-    guardPage,
-    nonce,
-    bobpk,
-    alicesk
-  ))
+  t.execution(() =>
+    sodium.crypto_box_easy(
+      c.subarray(0, sodium.crypto_box_MACBYTES),
+      guardPage,
+      nonce,
+      bobpk,
+      alicesk
+    )
+  )
 
   const expected2 = new Uint8Array([
     0x25, 0x39, 0x12, 0x1d, 0x8e, 0x23, 0x4e, 0x65, 0x2d, 0x65, 0x1f, 0xa4,
@@ -247,23 +280,33 @@ test('crypto_box_easy', (t) => {
 
   t.alike(c.subarray(0, expected2.length), expected2)
 
-  t.ok(sodium.crypto_box_open_easy(
-    new Uint8Array(0),
-    c.subarray(0, sodium.crypto_box_MACBYTES),
-    nonce,
-    bobpk,
-    alicesk
-  ))
+  t.ok(
+    sodium.crypto_box_open_easy(
+      new Uint8Array(0),
+      c.subarray(0, sodium.crypto_box_MACBYTES),
+      nonce,
+      bobpk,
+      alicesk
+    )
+  )
 
   c[Math.floor(Math.random() * sodium.crypto_box_MACBYTES)] += 1
 
-  t.absent(sodium.crypto_box_open_easy(new Uint8Array(0), c.subarray(0, sodium.crypto_box_MACBYTES), nonce, bobpk, alicesk))
+  t.absent(
+    sodium.crypto_box_open_easy(
+      new Uint8Array(0),
+      c.subarray(0, sodium.crypto_box_MACBYTES),
+      nonce,
+      bobpk,
+      alicesk
+    )
+  )
 
   t.end()
 })
 
 /* eslint-disable camelcase */
-test('crypto_box_easy2', t => {
+test('crypto_box_easy2', (t) => {
   const alicepk = new Uint8Array(sodium.crypto_box_PUBLICKEYBYTES)
   const alicesk = new Uint8Array(sodium.crypto_box_SECRETKEYBYTES)
   const bobpk = new Uint8Array(sodium.crypto_box_PUBLICKEYBYTES)
@@ -281,24 +324,71 @@ test('crypto_box_easy2', t => {
   sodium.randombytes_buf(m.subarray(0, mlen))
   sodium.randombytes_buf(nonce.subarray(0, sodium.crypto_box_NONCEBYTES))
 
-  t.execution(() => sodium.crypto_box_easy(c.subarray(0, mlen + sodium.crypto_box_MACBYTES), m.subarray(0, mlen), nonce, bobpk, alicesk))
+  t.execution(() =>
+    sodium.crypto_box_easy(
+      c.subarray(0, mlen + sodium.crypto_box_MACBYTES),
+      m.subarray(0, mlen),
+      nonce,
+      bobpk,
+      alicesk
+    )
+  )
 
-  t.ok(sodium.crypto_box_open_easy(m2.subarray(0, mlen), c.subarray(0, mlen + sodium.crypto_box_MACBYTES), nonce, alicepk, bobsk))
+  t.ok(
+    sodium.crypto_box_open_easy(
+      m2.subarray(0, mlen),
+      c.subarray(0, mlen + sodium.crypto_box_MACBYTES),
+      nonce,
+      alicepk,
+      bobsk
+    )
+  )
   t.alike(m.subarray(0, mlen), m2.subarray(0, mlen))
 
-  for (let i = sodium.crypto_box_MACBYTES; i < mlen + sodium.crypto_box_MACBYTES - 1; i++) {
-    if (sodium.crypto_box_open_easy(m2.subarray(0, i - sodium.crypto_box_MACBYTES), c.subarray(0, i), nonce, alicepk, bobsk)) {
+  for (
+    let i = sodium.crypto_box_MACBYTES;
+    i < mlen + sodium.crypto_box_MACBYTES - 1;
+    i++
+  ) {
+    if (
+      sodium.crypto_box_open_easy(
+        m2.subarray(0, i - sodium.crypto_box_MACBYTES),
+        c.subarray(0, i),
+        nonce,
+        alicepk,
+        bobsk
+      )
+    ) {
       t.fail('short open() should fail.')
     }
   }
 
   c.set(m.subarray(0, mlen))
-  t.execution(() => sodium.crypto_box_easy(c.subarray(0, mlen + sodium.crypto_box_MACBYTES), c.subarray(0, mlen), nonce, bobpk, alicesk))
+  t.execution(() =>
+    sodium.crypto_box_easy(
+      c.subarray(0, mlen + sodium.crypto_box_MACBYTES),
+      c.subarray(0, mlen),
+      nonce,
+      bobpk,
+      alicesk
+    )
+  )
 
   t.unlike(m.subarray(0, mlen), c.subarray(0, mlen))
-  t.unlike(m.subarray(0, mlen), c.subarray(sodium.crypto_box_MACBYTES, sodium.crypto_box_MACBYTES + mlen))
+  t.unlike(
+    m.subarray(0, mlen),
+    c.subarray(sodium.crypto_box_MACBYTES, sodium.crypto_box_MACBYTES + mlen)
+  )
 
-  t.ok(sodium.crypto_box_open_easy(c.subarray(0, mlen), c.subarray(0, mlen + sodium.crypto_box_MACBYTES), nonce, alicepk, bobsk))
+  t.ok(
+    sodium.crypto_box_open_easy(
+      c.subarray(0, mlen),
+      c.subarray(0, mlen + sodium.crypto_box_MACBYTES),
+      nonce,
+      alicepk,
+      bobsk
+    )
+  )
 
   t.end()
 })

@@ -11,7 +11,11 @@ test('sodium_pad / sodium_unpad', function (t) {
     sodium.randombytes_buf(binPaddedLen)
 
     const smallThrow = didThrow(function () {
-      sodium.sodium_pad(binPaddedLen.subarray(0, binPaddedMaxlen - 1), binLen, blocksize)
+      sodium.sodium_pad(
+        binPaddedLen.subarray(0, binPaddedMaxlen - 1),
+        binLen,
+        blocksize
+      )
     })
     if (smallThrow === false) t.fail('did not throw')
 
@@ -22,7 +26,8 @@ test('sodium_pad / sodium_unpad', function (t) {
 
     sodium.sodium_pad(bingPaddedLong, binLen, blocksize)
     const binUnpaddedLen = sodium.sodium_pad(binPaddedLen, binLen, blocksize)
-    if (binUnpaddedLen !== binPaddedMaxlen) t.fail('binUnpaddedLen was not same')
+    if (binUnpaddedLen !== binPaddedMaxlen)
+      t.fail('binUnpaddedLen was not same')
 
     const largeThrow = didThrow(function () {
       sodium.sodium_unpad(binPaddedLen, binUnpaddedLen, binPaddedMaxlen + 1)
@@ -41,7 +46,7 @@ test('sodium_pad / sodium_unpad', function (t) {
   t.pass()
 })
 
-function didThrow (fn) {
+function didThrow(fn) {
   try {
     fn()
     return false

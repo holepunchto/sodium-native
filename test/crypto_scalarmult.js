@@ -4,8 +4,16 @@ const sodium = require('..')
 test('crypto_scalarmult_base', function (t) {
   const keys = keyPair()
 
-  t.not(keys.secretKey, Buffer.alloc(keys.secretKey.length), 'secret key not blank')
-  t.not(keys.publicKey, Buffer.alloc(keys.publicKey.length), 'public key not blank')
+  t.not(
+    keys.secretKey,
+    Buffer.alloc(keys.secretKey.length),
+    'secret key not blank'
+  )
+  t.not(
+    keys.publicKey,
+    Buffer.alloc(keys.publicKey.length),
+    'public key not blank'
+  )
 })
 
 test('crypto_scalarmult', function (t) {
@@ -24,7 +32,7 @@ test('crypto_scalarmult', function (t) {
   t.alike(shared1, shared2, 'same shared secret')
 })
 
-function keyPair () {
+function keyPair() {
   const secretKey = Buffer.alloc(sodium.crypto_scalarmult_SCALARBYTES)
   sodium.randombytes_buf(secretKey)
 
