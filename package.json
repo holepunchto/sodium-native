@@ -13,8 +13,6 @@
   ],
   "addon": true,
   "dependencies": {
-    "prettier": "^3.6.2",
-    "prettier-config-holepunch": "^1.0.0",
     "require-addon": "^1.1.0",
     "which-runtime": "^1.2.1"
   },
@@ -23,7 +21,9 @@
     "brittle": "^3.16.2",
     "cmake-bare": "^1.6.1",
     "cmake-fetch": "^1.4.3",
-    "cmake-napi": "^1.2.1"
+    "cmake-napi": "^1.2.1",
+    "prettier": "^3.6.2",
+    "prettier-config-holepunch": "^1.0.0"
   },
   "scripts": {
     "test": "prettier . --check && npm run test:node && npm run test:bare",
