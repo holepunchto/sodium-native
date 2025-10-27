@@ -14,6 +14,7 @@ jobs:
           - os: ubuntu-latest
             platform: linux
             arch: x64
+            flags: --sanitize undefined
           - os: macos-latest
             platform: darwin
             arch: arm64
@@ -37,7 +38,7 @@ jobs:
         if: ${{ matrix.platform == 'win32' }}
       - run: npm install -g bare-runtime bare-make
       - run: npm install
-      - run: bare-make generate --platform ${{ matrix.platform }} --arch ${{ matrix.arch }} --debug
+      - run: bare-make generate --platform ${{ matrix.platform }} --arch ${{ matrix.arch }} --debug ${{ matrix.flags }}
       - run: bare-make build
       - run: bare-make install
       - run: npm test
