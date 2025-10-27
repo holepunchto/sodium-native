@@ -66,6 +66,8 @@ jobs:
         if: ${{ matrix.platform == 'darwin' }}
       - run: choco install zig
         if: ${{ matrix.platform == 'win32' }}
+      - run: choco upgrade llvm
+        if: ${{ matrix.platform == 'win32' }}
       - run: npm install -g bare-make
       - run: npm install
       - run: bare-make generate --platform ${{ matrix.platform }} --arch ${{ matrix.arch }} ${{ matrix.flags }}
