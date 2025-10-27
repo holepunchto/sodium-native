@@ -2939,6 +2939,8 @@ sn_crypto_stream_xor_wrap_update(
   auto *c_ptr = c.data();
   auto *m_ptr = m.data();
 
+  if (c_ptr == nullptr) return;
+
   if (state->remainder) {
     uint64_t offset = 0;
     int rem = state->remainder;
