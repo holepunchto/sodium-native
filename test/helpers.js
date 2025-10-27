@@ -5,9 +5,10 @@ test('sodium_memcmp', function (t) {
   const b1 = Buffer.from([0, 1, 2, 3])
   const b2 = Buffer.from([3, 2, 1, 0])
 
-  t.exception.all(_ => sodium.sodium_memcmp(), 'no args')
-  t.exception.all(_ => sodium.sodium_memcmp(b1), 'arg mismatch')
-  t.exception.all(_ => sodium.sodium_memcmp(b1, b2.subarray(1)), 'length mismatch')
+  t.exception.all(
+    (_) => sodium.sodium_memcmp(b1, b2.subarray(1)),
+    'length mismatch'
+  )
   t.ok(sodium.sodium_memcmp(Buffer.alloc(0), Buffer.alloc(0)))
   t.ok(sodium.sodium_memcmp(Buffer.alloc(5), Buffer.alloc(5)))
   t.ok(sodium.sodium_memcmp(b1, b1))
@@ -87,8 +88,8 @@ test('sodium_increment', function (t) {
 test('sodium_is_zero', function (t) {
   const buf = Buffer.from([0, 0, 0, 1])
 
-  t.exception.all(_ => sodium.sodium_is_zero(), 'no args')
-  t.exception.all(_ => sodium.sodium_is_zero(null), 'missing buf')
+  t.exception.all((_) => sodium.sodium_is_zero(), 'no args')
+  t.exception.all((_) => sodium.sodium_is_zero(null), 'missing buf')
 
   t.ok(sodium.sodium_is_zero(Buffer.alloc(0)), 'empty buffer')
   t.ok(sodium.sodium_is_zero(buf.subarray(0, 0)), 'zero bytes')

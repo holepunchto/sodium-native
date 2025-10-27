@@ -1,6 +1,6 @@
 const test = require('brittle')
 const sodium = require('..')
-const fixtures = require('./fixtures/crypto_tweak_ed25519_sign.js')
+const fixtures = require('./fixtures/crypto_tweak_ed25519_sign.json')
 
 test('crypto_tweak', function (t) {
   const pk = Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES)
@@ -86,7 +86,7 @@ test('extension_tweak_sign', function (t) {
   t.ok(sodium.crypto_sign_verify_detached(sig, m, tpk))
 })
 
-test('crypto_tweak sign fixtures', t => {
+test('crypto_tweak sign fixtures', (t) => {
   for (const f of fixtures) {
     const [sk, n, m, sig, tweak, tpk, tn] = f.map(Buffer.from)
 

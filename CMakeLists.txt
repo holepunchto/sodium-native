@@ -7,7 +7,7 @@ find_package(cmake-ports REQUIRED PATHS node_modules/cmake-ports)
 
 project(sodium_native C CXX ASM)
 
-fetch_package("github:holepunchto/libjstl#d92f140c")
+fetch_package("github:holepunchto/libjstl#098664c")
 
 find_port(libsodium)
 

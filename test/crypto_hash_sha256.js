@@ -11,7 +11,8 @@ test('crypto_hash_sha256', function (t) {
 
   sodium.crypto_hash_sha256(out, inp)
 
-  const result = 'f0704b1e832b05d01223952fb2512181af4f843ce7bb6b443afd5ea028010e6c'
+  const result =
+    'f0704b1e832b05d01223952fb2512181af4f843ce7bb6b443afd5ea028010e6c'
   t.alike(out.toString('hex'), result, 'hashed the string')
 })
 
@@ -26,6 +27,7 @@ test('crypto_hash_sha256_state', function (t) {
   const out = Buffer.alloc(sodium.crypto_hash_sha256_BYTES)
   sodium.crypto_hash_sha256_final(state, out)
 
-  const result = '14207db33c6ac7d39ca5fe0e74432fa7a2ed15caf7f6ab5ef68d24017a899974'
+  const result =
+    '14207db33c6ac7d39ca5fe0e74432fa7a2ed15caf7f6ab5ef68d24017a899974'
   t.alike(out.toString('hex'), result, 'hashed the string')
 })

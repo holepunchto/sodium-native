@@ -23,12 +23,17 @@ test('crypto_sign_seed_keypair', function (t) {
   }, 'should validate input')
 
   t.exception.all(function () {
-    sodium.crypto_sign_seed_keypair(Buffer.alloc(0), Buffer.alloc(0), Buffer.alloc(0))
+    sodium.crypto_sign_seed_keypair(
+      Buffer.alloc(0),
+      Buffer.alloc(0),
+      Buffer.alloc(0)
+    )
   }, 'should validate input length')
 
   sodium.crypto_sign_seed_keypair(pk, sk, seed)
 
-  const eSk = '6c6f6c6f6c6f6c6f6c6f6c6f6c6f6c6f6c6f6c6f6c6f6c6f6c6f6c6f6c6f6c6f41eb5b4dba29b19e391d9a4d1a4a879b27958ff3734e10cfbf1f46d68f4d3038'
+  const eSk =
+    '6c6f6c6f6c6f6c6f6c6f6c6f6c6f6c6f6c6f6c6f6c6f6c6f6c6f6c6f6c6f6c6f41eb5b4dba29b19e391d9a4d1a4a879b27958ff3734e10cfbf1f46d68f4d3038'
   const ePk = '41eb5b4dba29b19e391d9a4d1a4a879b27958ff3734e10cfbf1f46d68f4d3038'
 
   t.alike(pk.toString('hex'), ePk, 'seeded public key')
@@ -68,7 +73,10 @@ test('crypto_sign', function (t) {
 
   const output = Buffer.alloc(message.length)
 
-  t.absent(sodium.crypto_sign_open(output, Buffer.alloc(signedMessage.length), pk), 'was not signed')
+  t.absent(
+    sodium.crypto_sign_open(output, Buffer.alloc(signedMessage.length), pk),
+    'was not signed'
+  )
   t.ok(sodium.crypto_sign_open(output, signedMessage, pk), 'was signed')
 
   t.alike(output, message, 'same message')
@@ -85,7 +93,14 @@ test('crypto_sign_detached', function (t) {
 
   sodium.crypto_sign_detached(signature, message, sk)
 
-  t.absent(sodium.crypto_sign_verify_detached(Buffer.concat([Buffer.alloc(1), signature]), message, pk), 'was not signed')
+  t.absent(
+    sodium.crypto_sign_verify_detached(
+      Buffer.concat([Buffer.alloc(1), signature]),
+      message,
+      pk
+    ),
+    'was not signed'
+  )
   t.ok(sodium.crypto_sign_verify_detached(signature, message, pk), 'was signed')
 })
 
@@ -194,7 +209,11 @@ test('libsodium', function (t) {
 
     smlen = sodium.crypto_sign_BYTES + test.m.byteLength
 
-    sodium.crypto_sign(sm.subarray(0, test.m.byteLength + sodium.crypto_sign_BYTES), test.m, skpk)
+    sodium.crypto_sign(
+      sm.subarray(0, test.m.byteLength + sodium.crypto_sign_BYTES),
+      test.m,
+      skpk
+    )
     pass &= Buffer.compare(test.sig, sm.subarray(0, 64)) === 0
     pass &= sodium.crypto_sign_open(test.m, sm.subarray(0, smlen), test.pk)
 
@@ -202,18 +221,24 @@ test('libsodium', function (t) {
 
     pass &= sig.byteLength !== 0 && sig.byteLength <= sodium.crypto_sign_BYTES
     pass &= Buffer.compare(test.sig, sig) === 0
-    pass &= sodium.crypto_sign_verify_detached(sig, test.m.subarray(0, i), test.pk)
+    pass &= sodium.crypto_sign_verify_detached(
+      sig,
+      test.m.subarray(0, i),
+      test.pk
+    )
 
     if (!pass) t.fail('failed on fixture #' + i)
   }
   t.pass('passed all fixtures')
 
   for (let j = 1; j < 8; j++) {
-    sig[63] ^= (j << 5)
+    sig[63] ^= j << 5
 
-    t.absent(sodium.crypto_sign_verify_detached(sig, test.m.subarray(0, i), test.pk))
+    t.absent(
+      sodium.crypto_sign_verify_detached(sig, test.m.subarray(0, i), test.pk)
+    )
 
-    sig[63] ^= (j << 5)
+    sig[63] ^= j << 5
   }
 
   pk.fill(0)
@@ -225,19 +250,28 @@ test('libsodium', function (t) {
   t.absent(sodium.crypto_sign_verify_detached(sig, test.m.subarray(0, i), pk))
   sodium.crypto_sign_detached(sig, test.m.subarray(0, i), skpk)
 
-  hex2bin(pk, '3eee494fb9eac773144e34b0c755affaf33ea782c0722e5ea8b150e61209ab36')
+  hex2bin(
+    pk,
+    '3eee494fb9eac773144e34b0c755affaf33ea782c0722e5ea8b150e61209ab36'
+  )
   t.absent(sodium.crypto_sign_verify_detached(sig, test.m.subarray(0, i), pk))
 
-  hex2bin(pk, '0200000000000000000000000000000000000000000000000000000000000000')
+  hex2bin(
+    pk,
+    '0200000000000000000000000000000000000000000000000000000000000000'
+  )
   t.absent(sodium.crypto_sign_verify_detached(sig, test.m.subarray(0, i), pk))
 
-  hex2bin(pk, '0500000000000000000000000000000000000000000000000000000000000000')
+  hex2bin(
+    pk,
+    '0500000000000000000000000000000000000000000000000000000000000000'
+  )
   t.absent(sodium.crypto_sign_verify_detached(sig, test.m.subarray(0, i), pk))
 
   const keypair_seed = new Uint8Array([
-    0x42, 0x11, 0x51, 0xa4, 0x59, 0xfa, 0xea, 0xde, 0x3d, 0x24, 0x71,
-    0x15, 0xf9, 0x4a, 0xed, 0xae, 0x42, 0x31, 0x81, 0x24, 0x09, 0x5a,
-    0xfa, 0xbe, 0x4d, 0x14, 0x51, 0xa5, 0x59, 0xfa, 0xed, 0xee
+    0x42, 0x11, 0x51, 0xa4, 0x59, 0xfa, 0xea, 0xde, 0x3d, 0x24, 0x71, 0x15,
+    0xf9, 0x4a, 0xed, 0xae, 0x42, 0x31, 0x81, 0x24, 0x09, 0x5a, 0xfa, 0xbe,
+    0x4d, 0x14, 0x51, 0xa5, 0x59, 0xfa, 0xed, 0xee
   ])
 
   t.execution(() => sodium.crypto_sign_seed_keypair(pk, sk, keypair_seed))
@@ -257,9 +291,9 @@ test('libsodium', function (t) {
 
 test('ed25519 convert', function (t) {
   const keypair_seed = new Uint8Array([
-    0x42, 0x11, 0x51, 0xa4, 0x59, 0xfa, 0xea, 0xde, 0x3d, 0x24, 0x71,
-    0x15, 0xf9, 0x4a, 0xed, 0xae, 0x42, 0x31, 0x81, 0x24, 0x09, 0x5a,
-    0xfa, 0xbe, 0x4d, 0x14, 0x51, 0xa5, 0x59, 0xfa, 0xed, 0xee
+    0x42, 0x11, 0x51, 0xa4, 0x59, 0xfa, 0xea, 0xde, 0x3d, 0x24, 0x71, 0x15,
+    0xf9, 0x4a, 0xed, 0xae, 0x42, 0x31, 0x81, 0x24, 0x09, 0x5a, 0xfa, 0xbe,
+    0x4d, 0x14, 0x51, 0xa5, 0x59, 0xfa, 0xed, 0xee
   ])
 
   const ed25519_pk = new Uint8Array(sodium.crypto_sign_PUBLICKEYBYTES)
@@ -317,7 +351,7 @@ test('ed25519 convert', function (t) {
   t.end()
 })
 
-function parseTest (t) {
+function parseTest(t) {
   return {
     sk: new Uint8Array(t[0]),
     pk: new Uint8Array(t[1]),
@@ -326,7 +360,7 @@ function parseTest (t) {
   }
 }
 
-function hex2bin (buf, hex) {
+function hex2bin(buf, hex) {
   for (let i = 0; i < hex.length / 2; i++) {
     buf[i] = Number('0x' + hex.slice(2 * i, 2 * i + 1))
   }

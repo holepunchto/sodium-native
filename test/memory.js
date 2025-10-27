@@ -1,7 +1,11 @@
 const test = require('brittle')
 const sodium = require('..')
 const { isBare, isNode } = require('which-runtime')
-const fork = isNode ? require('child_process').fork : () => { throw new Error('fork() not supported on runtime') }
+const fork = isNode
+  ? require('child_process').fork
+  : () => {
+      throw new Error('fork() not supported on runtime')
+    }
 
 test('sodium_mprotect_noaccess', { skip: isBare }, function (t) {
   t.plan(1)
@@ -33,15 +37,20 @@ test('sodium_mprotect_readwrite', { skip: isBare }, function (t) {
 
   p.on('message', function (msg) {
     switch (msg) {
-      case 'read': t.pass()
+      case 'read':
+        t.pass()
         break
-      case 'write': t.pass()
+      case 'write':
+        t.pass()
         break
-      case 'did_write': t.pass()
+      case 'did_write':
+        t.pass()
         break
-      case 'did_not_write': t.fail()
+      case 'did_not_write':
+        t.fail()
         break
-      default: t.fail()
+      default:
+        t.fail()
         break
     }
   })

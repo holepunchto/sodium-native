@@ -10,7 +10,10 @@ test('crypto_onetimeauth', function (t) {
   sodium.crypto_onetimeauth(mac, value, key)
 
   t.not(mac, Buffer.alloc(mac.length), 'not blank')
-  t.absent(sodium.crypto_onetimeauth_verify(Buffer.alloc(mac.length), value, key), 'does not verify')
+  t.absent(
+    sodium.crypto_onetimeauth_verify(Buffer.alloc(mac.length), value, key),
+    'does not verify'
+  )
   t.ok(sodium.crypto_onetimeauth_verify(mac, value, key), 'verifies')
 })
 
@@ -32,5 +35,9 @@ test('crypto_onetimeauth_state', function (t) {
   const mac = Buffer.alloc(sodium.crypto_onetimeauth_BYTES)
   sodium.crypto_onetimeauth_final(state, mac)
 
-  t.alike(mac.toString('hex'), 'ac35df70e6b95051e015de11a6cbf4ab', 'streaming mac')
+  t.alike(
+    mac.toString('hex'),
+    'ac35df70e6b95051e015de11a6cbf4ab',
+    'streaming mac'
+  )
 })
