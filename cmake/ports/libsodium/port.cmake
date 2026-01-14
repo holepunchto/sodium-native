@@ -1,7 +1,7 @@
 include_guard(GLOBAL)
 
 declare_port(
-  "github:jedisct1/libsodium#stable"
+  "github:jedisct1/libsodium#a937222"
   sodium
   ZIG
   BYPRODUCTS lib/libsodium.a
