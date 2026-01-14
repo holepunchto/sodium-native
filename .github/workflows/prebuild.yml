@@ -60,6 +60,12 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
+      - run: sudo snap install zig --classic --beta
+        if: ${{ matrix.platform == 'linux' || matrix.platform == 'android' }}
+      - run: brew install zig
+        if: ${{ matrix.platform == 'darwin' || matrix.platform == 'ios' }}
+      - run: choco install zig
+        if: ${{ matrix.platform == 'win32' }}
       - run: choco upgrade llvm
         if: ${{ matrix.platform == 'win32' }}
       - run: npm install -g bare-make

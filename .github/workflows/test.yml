@@ -27,11 +27,17 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
+      - run: sudo snap install zig --classic --beta
+        if: ${{ matrix.platform == 'linux' }}
+      - run: brew install zig
+        if: ${{ matrix.platform == 'darwin' }}
+      - run: choco install zig
+        if: ${{ matrix.platform == 'win32' }}
       - run: choco upgrade llvm
         if: ${{ matrix.platform == 'win32' }}
       - run: npm install -g bare-runtime bare-make
       - run: npm install
-      - run: bare-make generate --platform ${{ matrix.platform }} --arch ${{ matrix.arch }} --debug
+      - run: bare-make generate --platform ${{ matrix.platform }} --arch ${{ matrix.arch }}
       - run: bare-make build
       - run: bare-make install
       - run: npm test
