@@ -61,9 +61,9 @@ jobs:
         with:
           node-version: lts/*
       - run: sudo snap install zig --classic --beta
-        if: ${{ matrix.platform == 'linux' }}
+        if: ${{ matrix.platform == 'linux' || matrix.platform == 'android' }}
       - run: brew install zig
-        if: ${{ matrix.platform == 'darwin' }}
+        if: ${{ matrix.platform == 'darwin' || matrix.platform == 'ios' }}
       - run: choco install zig
         if: ${{ matrix.platform == 'win32' }}
       - run: choco upgrade llvm
