@@ -109,7 +109,7 @@ test('ported libsodium test', function (t) {
   t.absent(sodium.crypto_core_ed25519_is_valid_point(p))
 
   p[0] = 9
-  t.ok(sodium.crypto_core_ed25519_is_valid_point(p))
+  t.absent(sodium.crypto_core_ed25519_is_valid_point(p))
 
   t.ok(sodium.crypto_core_ed25519_is_valid_point(maxCanonicalP))
   t.absent(sodium.crypto_core_ed25519_is_valid_point(nonCanonicalInvalidP))

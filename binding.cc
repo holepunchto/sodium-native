@@ -3679,7 +3679,7 @@ sodium_native_exports(js_env_t *env, js_value_t *exports) {
   int err;
 
   err = sodium_init();
-  assert(err == 0 && "sodium init");
+  assert(err >= 0);
 
 #define V_FUNCTION(name, fn) \
   err = js_set_property<fn>(env, exports, name); \
