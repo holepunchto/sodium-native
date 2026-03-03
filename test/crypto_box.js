@@ -305,6 +305,68 @@ test('crypto_box_easy', (t) => {
   t.end()
 })
 
+test('crypto_box_easy - bad nonce size', function (t) {
+  const message = Buffer.from('Hello, World!')
+  const cipher = Buffer.alloc(message.length + sodium.crypto_box_MACBYTES)
+
+  t.exception(function () {
+    sodium.crypto_box_easy(
+      cipher,
+      message,
+      Buffer.alloc(1),
+      Buffer.alloc(sodium.crypto_box_PUBLICKEYBYTES),
+      Buffer.alloc(sodium.crypto_box_SECRETKEYBYTES)
+    )
+  }, 'should throw on bad nonce size')
+})
+
+test('crypto_box_easy - bad pk size', function (t) {
+  const message = Buffer.from('Hello, World!')
+  const cipher = Buffer.alloc(message.length + sodium.crypto_box_MACBYTES)
+  const nonce = Buffer.alloc(sodium.crypto_box_NONCEBYTES)
+
+  t.exception(function () {
+    sodium.crypto_box_easy(
+      cipher,
+      message,
+      nonce,
+      Buffer.alloc(1),
+      Buffer.alloc(sodium.crypto_box_SECRETKEYBYTES)
+    )
+  }, 'should throw on bad pk size')
+})
+
+test('crypto_box_easy - bad sk size', function (t) {
+  const message = Buffer.from('Hello, World!')
+  const cipher = Buffer.alloc(message.length + sodium.crypto_box_MACBYTES)
+  const nonce = Buffer.alloc(sodium.crypto_box_NONCEBYTES)
+
+  t.exception(function () {
+    sodium.crypto_box_easy(
+      cipher,
+      message,
+      nonce,
+      Buffer.alloc(sodium.crypto_box_PUBLICKEYBYTES),
+      Buffer.alloc(1)
+    )
+  }, 'should throw on bad sk size')
+})
+
+test('crypto_box_easy - bad cipher size', function (t) {
+  const message = Buffer.from('Hello, World!')
+  const nonce = Buffer.alloc(sodium.crypto_box_NONCEBYTES)
+
+  t.exception(function () {
+    sodium.crypto_box_easy(
+      Buffer.alloc(1),
+      message,
+      nonce,
+      Buffer.alloc(sodium.crypto_box_PUBLICKEYBYTES),
+      Buffer.alloc(sodium.crypto_box_SECRETKEYBYTES)
+    )
+  }, 'should throw on bad cipher size')
+})
+
 /* eslint-disable camelcase */
 test('crypto_box_easy2', (t) => {
   const alicepk = new Uint8Array(sodium.crypto_box_PUBLICKEYBYTES)
