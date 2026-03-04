@@ -576,6 +576,21 @@ exports.crypto_secretstream_xchacha20poly1305_init_push = function (
   header,
   k
 ) {
+  assert(
+    state.byteLength ===
+      binding.crypto_secretstream_xchacha20poly1305_STATEBYTES,
+    "state must be 'crypto_secretstream_xchacha20poly1305_STATEBYTES' bytes"
+  )
+  assert(
+    header.byteLength ===
+      binding.crypto_secretstream_xchacha20poly1305_HEADERBYTES,
+    "header must be 'crypto_secretstream_xchacha20poly1305_HEADERBYTES' bytes"
+  )
+  assert(
+    k.byteLength === binding.crypto_secretstream_xchacha20poly1305_KEYBYTES,
+    "k must be 'crypto_secretstream_xchacha20poly1305_KEYBYTES' bytes"
+  )
+
   const res = binding.crypto_secretstream_xchacha20poly1305_init_push(
     state.buffer,
     state.byteOffset,
