@@ -613,6 +613,21 @@ exports.crypto_secretstream_xchacha20poly1305_init_pull = function (
   header,
   k
 ) {
+  assert(
+    state.byteLength ===
+      binding.crypto_secretstream_xchacha20poly1305_STATEBYTES,
+    "state must be 'crypto_secretstream_xchacha20poly1305_STATEBYTES' bytes"
+  )
+  assert(
+    header.byteLength ===
+      binding.crypto_secretstream_xchacha20poly1305_HEADERBYTES,
+    "header must be 'crypto_secretstream_xchacha20poly1305_HEADERBYTES' bytes"
+  )
+  assert(
+    k.byteLength === binding.crypto_secretstream_xchacha20poly1305_KEYBYTES,
+    "k must be 'crypto_secretstream_xchacha20poly1305_KEYBYTES' bytes"
+  )
+
   const res = binding.crypto_secretstream_xchacha20poly1305_init_pull(
     state.buffer,
     state.byteOffset,
@@ -637,6 +652,17 @@ exports.crypto_secretstream_xchacha20poly1305_push = function (
   ad,
   tag
 ) {
+  assert(
+    state.byteLength ===
+      binding.crypto_secretstream_xchacha20poly1305_STATEBYTES,
+    "state must be 'crypto_secretstream_xchacha20poly1305_STATEBYTES' bytes"
+  )
+  assert(
+    c.byteLength ===
+      m.byteLength + binding.crypto_secretstream_xchacha20poly1305_ABYTES,
+    "c must be 'm.byteLength + crypto_secretstream_xchacha20poly1305_ABYTES' bytes"
+  )
+
   ad ||= OPTIONAL
 
   const res = binding.crypto_secretstream_xchacha20poly1305_push(
@@ -671,6 +697,13 @@ exports.crypto_secretstream_xchacha20poly1305_pull = function (
   c,
   ad
 ) {
+  assert(
+    state.byteLength ===
+      binding.crypto_secretstream_xchacha20poly1305_STATEBYTES,
+    "state must be 'crypto_secretstream_xchacha20poly1305_STATEBYTES' bytes"
+  )
+  assert(tag.byteLength === 1, 'tag must be 1 byte')
+
   ad ||= OPTIONAL
 
   if (c?.byteLength < binding.crypto_secretstream_xchacha20poly1305_ABYTES)
@@ -709,6 +742,12 @@ exports.crypto_secretstream_xchacha20poly1305_pull = function (
 }
 
 exports.crypto_secretstream_xchacha20poly1305_rekey = function (state) {
+  assert(
+    state.byteLength ===
+      binding.crypto_secretstream_xchacha20poly1305_STATEBYTES,
+    "state must be 'crypto_secretstream_xchacha20poly1305_STATEBYTES' bytes"
+  )
+
   binding.crypto_secretstream_xchacha20poly1305_rekey(
     state.buffer,
     state.byteOffset,
