@@ -140,10 +140,14 @@ exports.sodium_unpad = function (buffer, paddedBuflen, blockSize) {
 // crypto_sign
 
 exports.crypto_sign_keypair = function (pk, sk) {
-  if (pk?.byteLength !== binding.crypto_sign_PUBLICKEYBYTES)
-    throw new Error('pk')
+  assert(ArrayBuffer.isView(pk), 'pk must be a typed array')
+  assert(ArrayBuffer.isView(sk), 'sk must be a typed array')
   assert(
-    sk?.byteLength === binding.crypto_sign_SECRETKEYBYTES,
+    pk.byteLength === binding.crypto_sign_PUBLICKEYBYTES,
+    "pk must be 'crypto_sign_PUBLICKEYBYTES' bytes"
+  )
+  assert(
+    sk.byteLength === binding.crypto_sign_SECRETKEYBYTES,
     "sk must be 'crypto_sign_SECRETKEYBYTES' bytes"
   )
 
@@ -153,14 +157,19 @@ exports.crypto_sign_keypair = function (pk, sk) {
 }
 
 exports.crypto_sign_seed_keypair = function (pk, sk, seed) {
-  if (pk?.byteLength !== binding.crypto_sign_PUBLICKEYBYTES)
-    throw new Error('pk')
+  assert(ArrayBuffer.isView(pk), 'pk must be a typed array')
+  assert(ArrayBuffer.isView(sk), 'sk must be a typed array')
+  assert(ArrayBuffer.isView(seed), 'seed must be a typed array')
   assert(
-    sk?.byteLength === binding.crypto_sign_SECRETKEYBYTES,
+    pk.byteLength === binding.crypto_sign_PUBLICKEYBYTES,
+    "pk must be 'crypto_sign_PUBLICKEYBYTES' bytes"
+  )
+  assert(
+    sk.byteLength === binding.crypto_sign_SECRETKEYBYTES,
     "sk must be 'crypto_sign_SECRETKEYBYTES' bytes"
   )
   assert(
-    seed?.byteLength === binding.crypto_sign_SEEDBYTES,
+    seed.byteLength === binding.crypto_sign_SEEDBYTES,
     "seed must be 'crypto_sign_SEEDBYTES' bytes"
   )
 
@@ -170,10 +179,17 @@ exports.crypto_sign_seed_keypair = function (pk, sk, seed) {
 }
 
 exports.crypto_sign = function (sm, m, sk) {
-  if (sm?.byteLength !== binding.crypto_sign_BYTES + m.byteLength)
-    throw new Error('sm must be "m.byteLength + crypto_sign_BYTES" bytes')
-  if (sk?.byteLength !== binding.crypto_sign_SECRETKEYBYTES)
-    throw new Error('sk')
+  assert(ArrayBuffer.isView(sm), 'sm must be a typed array')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
+  assert(ArrayBuffer.isView(sk), 'sk must be a typed array')
+  assert(
+    sm.byteLength === binding.crypto_sign_BYTES + m.byteLength,
+    "sm must be 'm.byteLength + crypto_sign_BYTES' bytes"
+  )
+  assert(
+    sk.byteLength === binding.crypto_sign_SECRETKEYBYTES,
+    "sk must be 'crypto_sign_SECRETKEYBYTES' bytes"
+  )
 
   const res = binding.crypto_sign(sm, m, sk)
 
@@ -181,11 +197,21 @@ exports.crypto_sign = function (sm, m, sk) {
 }
 
 exports.crypto_sign_open = function (m, sm, pk) {
-  if (sm?.byteLength < binding.crypto_sign_BYTES) throw new Error('sm')
-  if (m?.byteLength !== sm.byteLength - binding.crypto_sign_BYTES)
-    throw new Error('m must be "sm.byteLength - crypto_sign_BYTES" bytes')
-  if (pk?.byteLength !== binding.crypto_sign_PUBLICKEYBYTES)
-    throw new Error('pk')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
+  assert(ArrayBuffer.isView(sm), 'sm must be a typed array')
+  assert(ArrayBuffer.isView(pk), 'pk must be a typed array')
+  assert(
+    sm.byteLength >= binding.crypto_sign_BYTES,
+    "sm must be at least 'crypto_sign_BYTES' bytes"
+  )
+  assert(
+    m.byteLength === sm.byteLength - binding.crypto_sign_BYTES,
+    "m must be 'sm.byteLength - crypto_sign_BYTES' bytes"
+  )
+  assert(
+    pk.byteLength === binding.crypto_sign_PUBLICKEYBYTES,
+    "pk must be 'crypto_sign_PUBLICKEYBYTES' bytes"
+  )
 
   const res = binding.crypto_sign_open(m, sm, pk)
 
@@ -193,19 +219,37 @@ exports.crypto_sign_open = function (m, sm, pk) {
 }
 
 exports.crypto_sign_open = function (m, sm, pk) {
-  if (sm?.byteLength < binding.crypto_sign_BYTES) throw new Error('sm')
-  if (m?.byteLength !== sm.byteLength - binding.crypto_sign_BYTES)
-    throw new Error('m must be "sm.byteLength - crypto_sign_BYTES" bytes')
-  if (pk?.byteLength !== binding.crypto_sign_PUBLICKEYBYTES)
-    throw new Error('pk')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
+  assert(ArrayBuffer.isView(sm), 'sm must be a typed array')
+  assert(ArrayBuffer.isView(pk), 'pk must be a typed array')
+  assert(
+    sm.byteLength >= binding.crypto_sign_BYTES,
+    "sm must be at least 'crypto_sign_BYTES' bytes"
+  )
+  assert(
+    m.byteLength === sm.byteLength - binding.crypto_sign_BYTES,
+    "m must be 'sm.byteLength - crypto_sign_BYTES' bytes"
+  )
+  assert(
+    pk.byteLength === binding.crypto_sign_PUBLICKEYBYTES,
+    "pk must be 'crypto_sign_PUBLICKEYBYTES' bytes"
+  )
 
   return binding.crypto_sign_open(m, sm, pk)
 }
 
 exports.crypto_sign_detached = function (sig, m, sk) {
-  if (sig?.byteLength !== binding.crypto_sign_BYTES) throw new Error('sig')
-  if (sk?.byteLength !== binding.crypto_sign_SECRETKEYBYTES)
-    throw new Error('sk')
+  assert(ArrayBuffer.isView(sig), 'sig must be a typed array')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
+  assert(ArrayBuffer.isView(sk), 'sk must be a typed array')
+  assert(
+    sig.byteLength === binding.crypto_sign_BYTES,
+    "sig must be 'crypto_sign_BYTES' bytes"
+  )
+  assert(
+    sk.byteLength === binding.crypto_sign_SECRETKEYBYTES,
+    "sk must be 'crypto_sign_SECRETKEYBYTES' bytes"
+  )
 
   const res = binding.crypto_sign_detached(sig, m, sk)
 
@@ -213,12 +257,15 @@ exports.crypto_sign_detached = function (sig, m, sk) {
 }
 
 exports.crypto_sign_verify_detached = function (sig, m, pk) {
+  assert(ArrayBuffer.isView(sig), 'sig must be a typed array')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
+  assert(ArrayBuffer.isView(pk), 'pk must be a typed array')
   assert(
-    sig?.byteLength >= binding.crypto_sign_BYTES,
+    sig.byteLength >= binding.crypto_sign_BYTES,
     "sig must be at least 'crypto_sign_BYTES' bytes"
   )
   assert(
-    pk?.byteLength === binding.crypto_sign_PUBLICKEYBYTES,
+    pk.byteLength === binding.crypto_sign_PUBLICKEYBYTES,
     "pk must be 'crypto_sign_PUBLICKEYBYTES' bytes"
   )
 
@@ -238,10 +285,16 @@ exports.crypto_sign_verify_detached = function (sig, m, pk) {
 }
 
 exports.crypto_sign_ed25519_sk_to_pk = function (pk, sk) {
-  if (pk?.byteLength !== binding.crypto_sign_PUBLICKEYBYTES)
-    throw new Error('pk')
-  if (sk?.byteLength !== binding.crypto_sign_SECRETKEYBYTES)
-    throw new Error('sk')
+  assert(ArrayBuffer.isView(pk), 'pk must be a typed array')
+  assert(ArrayBuffer.isView(sk), 'sk must be a typed array')
+  assert(
+    pk.byteLength === binding.crypto_sign_PUBLICKEYBYTES,
+    "pk must be 'crypto_sign_PUBLICKEYBYTES' bytes"
+  )
+  assert(
+    sk.byteLength === binding.crypto_sign_SECRETKEYBYTES,
+    "sk must be 'crypto_sign_SECRETKEYBYTES' bytes"
+  )
 
   const res = binding.crypto_sign_ed25519_sk_to_pk(pk, sk)
 
@@ -249,10 +302,16 @@ exports.crypto_sign_ed25519_sk_to_pk = function (pk, sk) {
 }
 
 exports.crypto_sign_ed25519_pk_to_curve25519 = function (x25519pk, ed25519pk) {
-  if (x25519pk?.byteLength !== binding.crypto_box_PUBLICKEYBYTES)
-    throw new Error('x25519_pk')
-  if (ed25519pk?.byteLength !== binding.crypto_sign_PUBLICKEYBYTES)
-    throw new Error('ed25519_pk')
+  assert(ArrayBuffer.isView(x25519pk), 'x25519pk must be a typed array')
+  assert(ArrayBuffer.isView(ed25519pk), 'ed25519pk must be a typed array')
+  assert(
+    x25519pk.byteLength === binding.crypto_box_PUBLICKEYBYTES,
+    "x25519pk must be 'crypto_box_PUBLICKEYBYTES' bytes"
+  )
+  assert(
+    ed25519pk.byteLength === binding.crypto_sign_PUBLICKEYBYTES,
+    "ed25519pk must be 'crypto_sign_PUBLICKEYBYTES' bytes"
+  )
 
   const res = binding.crypto_sign_ed25519_pk_to_curve25519(x25519pk, ed25519pk)
 
@@ -260,19 +319,20 @@ exports.crypto_sign_ed25519_pk_to_curve25519 = function (x25519pk, ed25519pk) {
 }
 
 exports.crypto_sign_ed25519_sk_to_curve25519 = function (x25519sk, ed25519sk) {
-  if (x25519sk?.byteLength !== binding.crypto_box_SECRETKEYBYTES)
-    throw new Error('x25519_sk')
+  assert(ArrayBuffer.isView(x25519sk), 'x25519sk must be a typed array')
+  assert(ArrayBuffer.isView(ed25519sk), 'ed25519sk must be a typed array')
+  assert(
+    x25519sk.byteLength === binding.crypto_box_SECRETKEYBYTES,
+    "x25519sk must be 'crypto_box_SECRETKEYBYTES' bytes"
+  )
 
   const edLen = ed25519sk.byteLength
 
-  if (
-    edLen !== binding.crypto_sign_SECRETKEYBYTES &&
-    edLen !== binding.crypto_box_SECRETKEYBYTES
-  ) {
-    throw new Error(
-      "ed25519_sk should either be 'crypto_sign_SECRETKEYBYTES' bytes or 'crypto_sign_SECRETKEYBYTES - crypto_sign_PUBLICKEYBYTES' bytes"
-    )
-  }
+  assert(
+    edLen === binding.crypto_sign_SECRETKEYBYTES ||
+      edLen === binding.crypto_box_SECRETKEYBYTES,
+    "ed25519sk must be 'crypto_sign_SECRETKEYBYTES' or 'crypto_sign_SECRETKEYBYTES - crypto_sign_PUBLICKEYBYTES' bytes"
+  )
 
   const res = binding.crypto_sign_ed25519_sk_to_curve25519(x25519sk, ed25519sk)
 
