@@ -370,6 +370,23 @@ exports.crypto_box_seal = function (c, m, pk) {
 }
 
 exports.crypto_box_seal_open = function (m, c, pk, sk) {
+  assert(
+    c.byteLength >= exports.crypto_box_SEALBYTES,
+    "c must be at least 'crypto_box_SEALBYTES' bytes"
+  )
+  assert(
+    m.byteLength === c.byteLength - exports.crypto_box_SEALBYTES,
+    "m must be 'c.byteLength - crypto_box_SEALBYTES' bytes"
+  )
+  assert(
+    pk.byteLength === exports.crypto_box_PUBLICKEYBYTES,
+    "pk must be 'crypto_box_PUBLICKEYBYTES' bytes"
+  )
+  assert(
+    sk.byteLength === exports.crypto_box_SECRETKEYBYTES,
+    "sk must be 'crypto_box_SECRETKEYBYTES' bytes"
+  )
+
   return binding.crypto_box_seal_open(
     m.buffer,
     m.byteOffset,
