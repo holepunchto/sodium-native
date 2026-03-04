@@ -512,6 +512,131 @@ test('crypto_box_easy - bad cipher size', function (t) {
   }, 'should throw on bad cipher size')
 })
 
+test('crypto_box_open_easy - bad c size', function (t) {
+  t.exception(function () {
+    sodium.crypto_box_open_easy(
+      Buffer.alloc(5),
+      Buffer.alloc(1),
+      Buffer.alloc(sodium.crypto_box_NONCEBYTES),
+      Buffer.alloc(sodium.crypto_box_PUBLICKEYBYTES),
+      Buffer.alloc(sodium.crypto_box_SECRETKEYBYTES)
+    )
+  }, 'should throw on bad c size')
+})
+
+test('crypto_box_open_easy - bad m size', function (t) {
+  t.exception(function () {
+    sodium.crypto_box_open_easy(
+      Buffer.alloc(1),
+      Buffer.alloc(sodium.crypto_box_MACBYTES + 5),
+      Buffer.alloc(sodium.crypto_box_NONCEBYTES),
+      Buffer.alloc(sodium.crypto_box_PUBLICKEYBYTES),
+      Buffer.alloc(sodium.crypto_box_SECRETKEYBYTES)
+    )
+  }, 'should throw on bad m size')
+})
+
+test('crypto_box_open_easy - bad nonce size', function (t) {
+  t.exception(function () {
+    sodium.crypto_box_open_easy(
+      Buffer.alloc(5),
+      Buffer.alloc(sodium.crypto_box_MACBYTES + 5),
+      Buffer.alloc(1),
+      Buffer.alloc(sodium.crypto_box_PUBLICKEYBYTES),
+      Buffer.alloc(sodium.crypto_box_SECRETKEYBYTES)
+    )
+  }, 'should throw on bad nonce size')
+})
+
+test('crypto_box_open_easy - bad pk size', function (t) {
+  t.exception(function () {
+    sodium.crypto_box_open_easy(
+      Buffer.alloc(5),
+      Buffer.alloc(sodium.crypto_box_MACBYTES + 5),
+      Buffer.alloc(sodium.crypto_box_NONCEBYTES),
+      Buffer.alloc(1),
+      Buffer.alloc(sodium.crypto_box_SECRETKEYBYTES)
+    )
+  }, 'should throw on bad pk size')
+})
+
+test('crypto_box_open_easy - bad sk size', function (t) {
+  t.exception(function () {
+    sodium.crypto_box_open_easy(
+      Buffer.alloc(5),
+      Buffer.alloc(sodium.crypto_box_MACBYTES + 5),
+      Buffer.alloc(sodium.crypto_box_NONCEBYTES),
+      Buffer.alloc(sodium.crypto_box_PUBLICKEYBYTES),
+      Buffer.alloc(1)
+    )
+  }, 'should throw on bad sk size')
+})
+
+test('crypto_box_open_detached - bad m size', function (t) {
+  t.exception(function () {
+    sodium.crypto_box_open_detached(
+      Buffer.alloc(1),
+      Buffer.alloc(5),
+      Buffer.alloc(sodium.crypto_box_MACBYTES),
+      Buffer.alloc(sodium.crypto_box_NONCEBYTES),
+      Buffer.alloc(sodium.crypto_box_PUBLICKEYBYTES),
+      Buffer.alloc(sodium.crypto_box_SECRETKEYBYTES)
+    )
+  }, 'should throw on bad m size')
+})
+
+test('crypto_box_open_detached - bad mac size', function (t) {
+  t.exception(function () {
+    sodium.crypto_box_open_detached(
+      Buffer.alloc(5),
+      Buffer.alloc(5),
+      Buffer.alloc(1),
+      Buffer.alloc(sodium.crypto_box_NONCEBYTES),
+      Buffer.alloc(sodium.crypto_box_PUBLICKEYBYTES),
+      Buffer.alloc(sodium.crypto_box_SECRETKEYBYTES)
+    )
+  }, 'should throw on bad mac size')
+})
+
+test('crypto_box_open_detached - bad nonce size', function (t) {
+  t.exception(function () {
+    sodium.crypto_box_open_detached(
+      Buffer.alloc(5),
+      Buffer.alloc(5),
+      Buffer.alloc(sodium.crypto_box_MACBYTES),
+      Buffer.alloc(1),
+      Buffer.alloc(sodium.crypto_box_PUBLICKEYBYTES),
+      Buffer.alloc(sodium.crypto_box_SECRETKEYBYTES)
+    )
+  }, 'should throw on bad nonce size')
+})
+
+test('crypto_box_open_detached - bad pk size', function (t) {
+  t.exception(function () {
+    sodium.crypto_box_open_detached(
+      Buffer.alloc(5),
+      Buffer.alloc(5),
+      Buffer.alloc(sodium.crypto_box_MACBYTES),
+      Buffer.alloc(sodium.crypto_box_NONCEBYTES),
+      Buffer.alloc(1),
+      Buffer.alloc(sodium.crypto_box_SECRETKEYBYTES)
+    )
+  }, 'should throw on bad pk size')
+})
+
+test('crypto_box_open_detached - bad sk size', function (t) {
+  t.exception(function () {
+    sodium.crypto_box_open_detached(
+      Buffer.alloc(5),
+      Buffer.alloc(5),
+      Buffer.alloc(sodium.crypto_box_MACBYTES),
+      Buffer.alloc(sodium.crypto_box_NONCEBYTES),
+      Buffer.alloc(sodium.crypto_box_PUBLICKEYBYTES),
+      Buffer.alloc(1)
+    )
+  }, 'should throw on bad sk size')
+})
+
 /* eslint-disable camelcase */
 test('crypto_box_easy2', (t) => {
   const alicepk = new Uint8Array(sodium.crypto_box_PUBLICKEYBYTES)

@@ -354,6 +354,53 @@ exports.crypto_box_detached = function (c, mac, m, n, pk, sk) {
   if (res !== 0) throw new Error('status: ' + res)
 }
 
+exports.crypto_box_open_easy = function (m, c, n, pk, sk) {
+  assert(
+    c.byteLength >= exports.crypto_box_MACBYTES,
+    "c must be at least 'crypto_box_MACBYTES' bytes"
+  )
+  assert(
+    m.byteLength === c.byteLength - exports.crypto_box_MACBYTES,
+    "m must be 'c.byteLength - crypto_box_MACBYTES' bytes"
+  )
+  assert(
+    n.byteLength === exports.crypto_box_NONCEBYTES,
+    "n must be 'crypto_box_NONCEBYTES' bytes"
+  )
+  assert(
+    pk.byteLength === exports.crypto_box_PUBLICKEYBYTES,
+    "pk must be 'crypto_box_PUBLICKEYBYTES' bytes"
+  )
+  assert(
+    sk.byteLength === exports.crypto_box_SECRETKEYBYTES,
+    "sk must be 'crypto_box_SECRETKEYBYTES' bytes"
+  )
+
+  return binding.crypto_box_open_easy(m, c, n, pk, sk)
+}
+
+exports.crypto_box_open_detached = function (m, c, mac, n, pk, sk) {
+  assert(m.byteLength === c.byteLength, "m must be 'c.byteLength' bytes")
+  assert(
+    mac.byteLength === exports.crypto_box_MACBYTES,
+    "mac must be 'crypto_box_MACBYTES' bytes"
+  )
+  assert(
+    n.byteLength === exports.crypto_box_NONCEBYTES,
+    "n must be 'crypto_box_NONCEBYTES' bytes"
+  )
+  assert(
+    pk.byteLength === exports.crypto_box_PUBLICKEYBYTES,
+    "pk must be 'crypto_box_PUBLICKEYBYTES' bytes"
+  )
+  assert(
+    sk.byteLength === exports.crypto_box_SECRETKEYBYTES,
+    "sk must be 'crypto_box_SECRETKEYBYTES' bytes"
+  )
+
+  return binding.crypto_box_open_detached(m, c, mac, n, pk, sk)
+}
+
 exports.crypto_box_seal = function (c, m, pk) {
   assert(
     c.byteLength === m.byteLength + exports.crypto_box_SEALBYTES,
