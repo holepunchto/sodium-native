@@ -150,6 +150,14 @@ exports.crypto_sign_keypair = function (pk, sk) {
 exports.crypto_sign_seed_keypair = function (pk, sk, seed) {
   if (pk?.byteLength !== binding.crypto_sign_PUBLICKEYBYTES)
     throw new Error('pk')
+  assert(
+    sk?.byteLength === binding.crypto_sign_SECRETKEYBYTES,
+    "sk must be 'crypto_sign_SECRETKEYBYTES' bytes"
+  )
+  assert(
+    seed?.byteLength === binding.crypto_sign_SEEDBYTES,
+    "seed must be 'crypto_sign_SEEDBYTES' bytes"
+  )
 
   const res = binding.crypto_sign_seed_keypair(pk, sk, seed)
 

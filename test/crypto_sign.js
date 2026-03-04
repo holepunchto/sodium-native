@@ -40,6 +40,26 @@ test('crypto_sign_seed_keypair', function (t) {
   t.alike(sk.toString('hex'), eSk, 'seeded secret key')
 })
 
+test('crypto_sign_seed_keypair - bad sk size', function (t) {
+  t.exception(function () {
+    sodium.crypto_sign_seed_keypair(
+      Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES),
+      Buffer.alloc(1),
+      Buffer.alloc(sodium.crypto_sign_SEEDBYTES)
+    )
+  }, 'should throw on bad sk size')
+})
+
+test('crypto_sign_seed_keypair - bad seed size', function (t) {
+  t.exception(function () {
+    sodium.crypto_sign_seed_keypair(
+      Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES),
+      Buffer.alloc(sodium.crypto_sign_SECRETKEYBYTES),
+      Buffer.alloc(1)
+    )
+  }, 'should throw on bad seed size')
+})
+
 test('crypto_sign_keypair', function (t) {
   const pk = Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES)
   const sk = Buffer.alloc(sodium.crypto_sign_SECRETKEYBYTES)
