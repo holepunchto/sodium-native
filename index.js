@@ -61,6 +61,11 @@ exports.randombytes_buf = function (buffer) {
 }
 
 exports.randombytes_buf_deterministic = function (buffer, seed) {
+  assert(
+    seed?.byteLength === binding.randombytes_SEEDBYTES,
+    "seed must be 'randombytes_SEEDBYTES' bytes"
+  )
+
   binding.randombytes_buf_deterministic(
     buffer.buffer,
     buffer.byteOffset,
@@ -137,6 +142,10 @@ exports.sodium_unpad = function (buffer, paddedBuflen, blockSize) {
 exports.crypto_sign_keypair = function (pk, sk) {
   if (pk?.byteLength !== binding.crypto_sign_PUBLICKEYBYTES)
     throw new Error('pk')
+  assert(
+    sk?.byteLength === binding.crypto_sign_SECRETKEYBYTES,
+    "sk must be 'crypto_sign_SECRETKEYBYTES' bytes"
+  )
 
   const res = binding.crypto_sign_keypair(pk, sk)
 
@@ -146,6 +155,14 @@ exports.crypto_sign_keypair = function (pk, sk) {
 exports.crypto_sign_seed_keypair = function (pk, sk, seed) {
   if (pk?.byteLength !== binding.crypto_sign_PUBLICKEYBYTES)
     throw new Error('pk')
+  assert(
+    sk?.byteLength === binding.crypto_sign_SECRETKEYBYTES,
+    "sk must be 'crypto_sign_SECRETKEYBYTES' bytes"
+  )
+  assert(
+    seed?.byteLength === binding.crypto_sign_SEEDBYTES,
+    "seed must be 'crypto_sign_SEEDBYTES' bytes"
+  )
 
   const res = binding.crypto_sign_seed_keypair(pk, sk, seed)
 
@@ -196,6 +213,15 @@ exports.crypto_sign_detached = function (sig, m, sk) {
 }
 
 exports.crypto_sign_verify_detached = function (sig, m, pk) {
+  assert(
+    sig?.byteLength >= binding.crypto_sign_BYTES,
+    "sig must be at least 'crypto_sign_BYTES' bytes"
+  )
+  assert(
+    pk?.byteLength === binding.crypto_sign_PUBLICKEYBYTES,
+    "pk must be 'crypto_sign_PUBLICKEYBYTES' bytes"
+  )
+
   return binding.crypto_sign_verify_detached(
     sig.buffer,
     sig.byteOffset,
@@ -271,6 +297,10 @@ exports.crypto_box_seed_keypair = function (pk, sk, seed) {
     throw new Error('pk')
   if (sk?.byteLength !== binding.crypto_box_SECRETKEYBYTES)
     throw new Error('sk')
+  assert(
+    seed?.byteLength === binding.crypto_box_SEEDBYTES,
+    "seed must be 'crypto_box_SEEDBYTES' bytes"
+  )
 
   const res = binding.crypto_box_seed_keypair(pk, sk, seed)
 
@@ -301,18 +331,109 @@ exports.crypto_box_easy = function (c, m, n, pk, sk) {
 }
 
 exports.crypto_box_detached = function (c, mac, m, n, pk, sk) {
+  assert(c.byteLength === m.byteLength, "c must be 'm.byteLength' bytes")
+  assert(
+    mac.byteLength === exports.crypto_box_MACBYTES,
+    "mac must be 'crypto_box_MACBYTES' bytes"
+  )
+  assert(
+    n.byteLength === exports.crypto_box_NONCEBYTES,
+    "n must be 'crypto_box_NONCEBYTES' bytes"
+  )
+  assert(
+    pk.byteLength === exports.crypto_box_PUBLICKEYBYTES,
+    "pk must be 'crypto_box_PUBLICKEYBYTES' bytes"
+  )
+  assert(
+    sk.byteLength === exports.crypto_box_SECRETKEYBYTES,
+    "sk must be 'crypto_box_SECRETKEYBYTES' bytes"
+  )
+
   const res = binding.crypto_box_detached(c, mac, m, n, pk, sk)
 
   if (res !== 0) throw new Error('status: ' + res)
 }
 
+exports.crypto_box_open_easy = function (m, c, n, pk, sk) {
+  assert(
+    c.byteLength >= exports.crypto_box_MACBYTES,
+    "c must be at least 'crypto_box_MACBYTES' bytes"
+  )
+  assert(
+    m.byteLength === c.byteLength - exports.crypto_box_MACBYTES,
+    "m must be 'c.byteLength - crypto_box_MACBYTES' bytes"
+  )
+  assert(
+    n.byteLength === exports.crypto_box_NONCEBYTES,
+    "n must be 'crypto_box_NONCEBYTES' bytes"
+  )
+  assert(
+    pk.byteLength === exports.crypto_box_PUBLICKEYBYTES,
+    "pk must be 'crypto_box_PUBLICKEYBYTES' bytes"
+  )
+  assert(
+    sk.byteLength === exports.crypto_box_SECRETKEYBYTES,
+    "sk must be 'crypto_box_SECRETKEYBYTES' bytes"
+  )
+
+  return binding.crypto_box_open_easy(m, c, n, pk, sk)
+}
+
+exports.crypto_box_open_detached = function (m, c, mac, n, pk, sk) {
+  assert(m.byteLength === c.byteLength, "m must be 'c.byteLength' bytes")
+  assert(
+    mac.byteLength === exports.crypto_box_MACBYTES,
+    "mac must be 'crypto_box_MACBYTES' bytes"
+  )
+  assert(
+    n.byteLength === exports.crypto_box_NONCEBYTES,
+    "n must be 'crypto_box_NONCEBYTES' bytes"
+  )
+  assert(
+    pk.byteLength === exports.crypto_box_PUBLICKEYBYTES,
+    "pk must be 'crypto_box_PUBLICKEYBYTES' bytes"
+  )
+  assert(
+    sk.byteLength === exports.crypto_box_SECRETKEYBYTES,
+    "sk must be 'crypto_box_SECRETKEYBYTES' bytes"
+  )
+
+  return binding.crypto_box_open_detached(m, c, mac, n, pk, sk)
+}
+
 exports.crypto_box_seal = function (c, m, pk) {
+  assert(
+    c.byteLength === m.byteLength + exports.crypto_box_SEALBYTES,
+    "c must be 'm.byteLength + crypto_box_SEALBYTES' bytes"
+  )
+  assert(
+    pk.byteLength === exports.crypto_box_PUBLICKEYBYTES,
+    "pk must be 'crypto_box_PUBLICKEYBYTES' bytes"
+  )
+
   const res = binding.crypto_box_seal(c, m, pk)
 
   if (res !== 0) throw new Error('status: ' + res)
 }
 
 exports.crypto_box_seal_open = function (m, c, pk, sk) {
+  assert(
+    c.byteLength >= exports.crypto_box_SEALBYTES,
+    "c must be at least 'crypto_box_SEALBYTES' bytes"
+  )
+  assert(
+    m.byteLength === c.byteLength - exports.crypto_box_SEALBYTES,
+    "m must be 'c.byteLength - crypto_box_SEALBYTES' bytes"
+  )
+  assert(
+    pk.byteLength === exports.crypto_box_PUBLICKEYBYTES,
+    "pk must be 'crypto_box_PUBLICKEYBYTES' bytes"
+  )
+  assert(
+    sk.byteLength === exports.crypto_box_SECRETKEYBYTES,
+    "sk must be 'crypto_box_SECRETKEYBYTES' bytes"
+  )
+
   return binding.crypto_box_seal_open(
     m.buffer,
     m.byteOffset,
@@ -388,6 +509,18 @@ exports.crypto_secretbox_open_detached = function (m, c, mac, n, k) {
 // crypto_generichash
 
 exports.crypto_generichash = function (output, input, key = OPTIONAL) {
+  assert(
+    output.byteLength >= binding.crypto_generichash_BYTES_MIN &&
+      output.byteLength <= binding.crypto_generichash_BYTES_MAX,
+    'output must be between crypto_generichash_BYTES_MIN and crypto_generichash_BYTES_MAX bytes'
+  )
+  if (key !== OPTIONAL)
+    assert(
+      key.byteLength >= binding.crypto_generichash_KEYBYTES_MIN &&
+        key.byteLength <= binding.crypto_generichash_KEYBYTES_MAX,
+      'key must be between crypto_generichash_KEYBYTES_MIN and crypto_generichash_KEYBYTES_MAX bytes'
+    )
+
   const res = binding.crypto_generichash(
     output.buffer,
     output.byteOffset,
@@ -428,6 +561,11 @@ exports.crypto_generichash_batch = function (output, batch, key) {
 }
 
 exports.crypto_generichash_keygen = function (key) {
+  assert(
+    key.byteLength === binding.crypto_generichash_KEYBYTES,
+    "key must be 'crypto_generichash_KEYBYTES' bytes"
+  )
+
   const res = binding.crypto_generichash_keygen(
     key.buffer,
     key.byteOffset,
@@ -437,6 +575,11 @@ exports.crypto_generichash_keygen = function (key) {
 }
 
 exports.crypto_generichash_init = function (state, key, outputLength) {
+  assert(
+    state.byteLength === binding.crypto_generichash_STATEBYTES,
+    "state must be 'crypto_generichash_STATEBYTES' bytes"
+  )
+
   key ||= OPTIONAL
 
   const res = binding.crypto_generichash_init(
@@ -455,6 +598,11 @@ exports.crypto_generichash_init = function (state, key, outputLength) {
 }
 
 exports.crypto_generichash_update = function (state, input) {
+  assert(
+    state.byteLength === binding.crypto_generichash_STATEBYTES,
+    "state must be 'crypto_generichash_STATEBYTES' bytes"
+  )
+
   const res = binding.crypto_generichash_update(
     state.buffer,
     state.byteOffset,
@@ -469,6 +617,11 @@ exports.crypto_generichash_update = function (state, input) {
 }
 
 exports.crypto_generichash_final = function (state, output) {
+  assert(
+    state.byteLength === binding.crypto_generichash_STATEBYTES,
+    "state must be 'crypto_generichash_STATEBYTES' bytes"
+  )
+
   const res = binding.crypto_generichash_final(
     state.buffer,
     state.byteOffset,
@@ -485,6 +638,11 @@ exports.crypto_generichash_final = function (state, output) {
 // secretstream
 
 exports.crypto_secretstream_xchacha20poly1305_keygen = function (k) {
+  assert(
+    k.byteLength === binding.crypto_secretstream_xchacha20poly1305_KEYBYTES,
+    "k must be 'crypto_secretstream_xchacha20poly1305_KEYBYTES' bytes"
+  )
+
   binding.crypto_secretstream_xchacha20poly1305_keygen(
     k.buffer,
     k.byteOffset,
@@ -497,6 +655,21 @@ exports.crypto_secretstream_xchacha20poly1305_init_push = function (
   header,
   k
 ) {
+  assert(
+    state.byteLength ===
+      binding.crypto_secretstream_xchacha20poly1305_STATEBYTES,
+    "state must be 'crypto_secretstream_xchacha20poly1305_STATEBYTES' bytes"
+  )
+  assert(
+    header.byteLength ===
+      binding.crypto_secretstream_xchacha20poly1305_HEADERBYTES,
+    "header must be 'crypto_secretstream_xchacha20poly1305_HEADERBYTES' bytes"
+  )
+  assert(
+    k.byteLength === binding.crypto_secretstream_xchacha20poly1305_KEYBYTES,
+    "k must be 'crypto_secretstream_xchacha20poly1305_KEYBYTES' bytes"
+  )
+
   const res = binding.crypto_secretstream_xchacha20poly1305_init_push(
     state.buffer,
     state.byteOffset,
@@ -519,6 +692,21 @@ exports.crypto_secretstream_xchacha20poly1305_init_pull = function (
   header,
   k
 ) {
+  assert(
+    state.byteLength ===
+      binding.crypto_secretstream_xchacha20poly1305_STATEBYTES,
+    "state must be 'crypto_secretstream_xchacha20poly1305_STATEBYTES' bytes"
+  )
+  assert(
+    header.byteLength ===
+      binding.crypto_secretstream_xchacha20poly1305_HEADERBYTES,
+    "header must be 'crypto_secretstream_xchacha20poly1305_HEADERBYTES' bytes"
+  )
+  assert(
+    k.byteLength === binding.crypto_secretstream_xchacha20poly1305_KEYBYTES,
+    "k must be 'crypto_secretstream_xchacha20poly1305_KEYBYTES' bytes"
+  )
+
   const res = binding.crypto_secretstream_xchacha20poly1305_init_pull(
     state.buffer,
     state.byteOffset,
@@ -543,6 +731,17 @@ exports.crypto_secretstream_xchacha20poly1305_push = function (
   ad,
   tag
 ) {
+  assert(
+    state.byteLength ===
+      binding.crypto_secretstream_xchacha20poly1305_STATEBYTES,
+    "state must be 'crypto_secretstream_xchacha20poly1305_STATEBYTES' bytes"
+  )
+  assert(
+    c.byteLength ===
+      m.byteLength + binding.crypto_secretstream_xchacha20poly1305_ABYTES,
+    "c must be 'm.byteLength + crypto_secretstream_xchacha20poly1305_ABYTES' bytes"
+  )
+
   ad ||= OPTIONAL
 
   const res = binding.crypto_secretstream_xchacha20poly1305_push(
@@ -577,6 +776,13 @@ exports.crypto_secretstream_xchacha20poly1305_pull = function (
   c,
   ad
 ) {
+  assert(
+    state.byteLength ===
+      binding.crypto_secretstream_xchacha20poly1305_STATEBYTES,
+    "state must be 'crypto_secretstream_xchacha20poly1305_STATEBYTES' bytes"
+  )
+  assert(tag.byteLength === 1, 'tag must be 1 byte')
+
   ad ||= OPTIONAL
 
   if (c?.byteLength < binding.crypto_secretstream_xchacha20poly1305_ABYTES)
@@ -615,6 +821,12 @@ exports.crypto_secretstream_xchacha20poly1305_pull = function (
 }
 
 exports.crypto_secretstream_xchacha20poly1305_rekey = function (state) {
+  assert(
+    state.byteLength ===
+      binding.crypto_secretstream_xchacha20poly1305_STATEBYTES,
+    "state must be 'crypto_secretstream_xchacha20poly1305_STATEBYTES' bytes"
+  )
+
   binding.crypto_secretstream_xchacha20poly1305_rekey(
     state.buffer,
     state.byteOffset,
@@ -634,6 +846,16 @@ exports.crypto_stream = function (c, n, k) {
 }
 
 exports.crypto_stream_xor = function (c, m, n, k) {
+  assert(c.byteLength === m.byteLength, "c must be 'm.byteLength' bytes")
+  assert(
+    n.byteLength === binding.crypto_stream_NONCEBYTES,
+    "n must be 'crypto_stream_NONCEBYTES' bytes"
+  )
+  assert(
+    k.byteLength === binding.crypto_stream_KEYBYTES,
+    "k must be 'crypto_stream_KEYBYTES' bytes"
+  )
+
   const res = binding.crypto_stream_xor(
     c.buffer,
     c.byteOffset,
@@ -1263,17 +1485,16 @@ exports.crypto_kx_client_session_keys = function (
 
   if (!rx && !tx) throw new Error('at least one session key must be specified')
 
-  if (rx) {
-    if (rx?.byteLength !== binding.crypto_kx_SESSIONKEYBYTES)
-      throw new Error(
-        'receiving key buffer must be "crypto_kx_SESSIONKEYBYTES" bytes or null'
-      )
-  } else {
-    if (tx?.byteLength !== binding.crypto_kx_SESSIONKEYBYTES)
-      throw new Error(
-        'transmitting key buffer must be "crypto_kx_SESSIONKEYBYTES" bytes or null'
-      )
-  }
+  if (rx)
+    assert(
+      rx.byteLength === binding.crypto_kx_SESSIONKEYBYTES,
+      'receiving key buffer must be "crypto_kx_SESSIONKEYBYTES" bytes or null'
+    )
+  if (tx)
+    assert(
+      tx.byteLength === binding.crypto_kx_SESSIONKEYBYTES,
+      'transmitting key buffer must be "crypto_kx_SESSIONKEYBYTES" bytes or null'
+    )
 
   if (clientPk?.byteLength !== binding.crypto_kx_PUBLICKEYBYTES)
     throw new Error('client_pk')
@@ -1305,17 +1526,16 @@ exports.crypto_kx_server_session_keys = function (
 
   if (!rx && !tx) throw new Error('at least one session key must be specified')
 
-  if (rx) {
-    if (rx?.byteLength !== binding.crypto_kx_SESSIONKEYBYTES)
-      throw new Error(
-        'receiving key buffer must be "crypto_kx_SESSIONKEYBYTES" bytes or null'
-      )
-  } else {
-    if (tx?.byteLength !== binding.crypto_kx_SESSIONKEYBYTES)
-      throw new Error(
-        'transmitting key buffer must be "crypto_kx_SESSIONKEYBYTES" bytes or null'
-      )
-  }
+  if (rx)
+    assert(
+      rx.byteLength === binding.crypto_kx_SESSIONKEYBYTES,
+      'receiving key buffer must be "crypto_kx_SESSIONKEYBYTES" bytes or null'
+    )
+  if (tx)
+    assert(
+      tx.byteLength === binding.crypto_kx_SESSIONKEYBYTES,
+      'transmitting key buffer must be "crypto_kx_SESSIONKEYBYTES" bytes or null'
+    )
 
   if (serverPk?.byteLength !== binding.crypto_kx_PUBLICKEYBYTES)
     throw new Error('server_pk')

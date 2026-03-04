@@ -42,6 +42,126 @@ test('constants', function (t) {
   )
 })
 
+test('crypto_secretstream_xchacha20poly1305_keygen - bad k size', function (t) {
+  t.exception(function () {
+    sodium.crypto_secretstream_xchacha20poly1305_keygen(Buffer.alloc(1))
+  }, 'should throw on bad k size')
+})
+
+test('crypto_secretstream_xchacha20poly1305_init_push - bad state size', function (t) {
+  t.exception(function () {
+    sodium.crypto_secretstream_xchacha20poly1305_init_push(
+      Buffer.alloc(1),
+      Buffer.alloc(sodium.crypto_secretstream_xchacha20poly1305_HEADERBYTES),
+      Buffer.alloc(sodium.crypto_secretstream_xchacha20poly1305_KEYBYTES)
+    )
+  }, 'should throw on bad state size')
+})
+
+test('crypto_secretstream_xchacha20poly1305_init_push - bad header size', function (t) {
+  t.exception(function () {
+    sodium.crypto_secretstream_xchacha20poly1305_init_push(
+      Buffer.alloc(sodium.crypto_secretstream_xchacha20poly1305_STATEBYTES),
+      Buffer.alloc(1),
+      Buffer.alloc(sodium.crypto_secretstream_xchacha20poly1305_KEYBYTES)
+    )
+  }, 'should throw on bad header size')
+})
+
+test('crypto_secretstream_xchacha20poly1305_init_push - bad k size', function (t) {
+  t.exception(function () {
+    sodium.crypto_secretstream_xchacha20poly1305_init_push(
+      Buffer.alloc(sodium.crypto_secretstream_xchacha20poly1305_STATEBYTES),
+      Buffer.alloc(sodium.crypto_secretstream_xchacha20poly1305_HEADERBYTES),
+      Buffer.alloc(1)
+    )
+  }, 'should throw on bad k size')
+})
+
+test('crypto_secretstream_xchacha20poly1305_init_pull - bad state size', function (t) {
+  t.exception(function () {
+    sodium.crypto_secretstream_xchacha20poly1305_init_pull(
+      Buffer.alloc(1),
+      Buffer.alloc(sodium.crypto_secretstream_xchacha20poly1305_HEADERBYTES),
+      Buffer.alloc(sodium.crypto_secretstream_xchacha20poly1305_KEYBYTES)
+    )
+  }, 'should throw on bad state size')
+})
+
+test('crypto_secretstream_xchacha20poly1305_init_pull - bad header size', function (t) {
+  t.exception(function () {
+    sodium.crypto_secretstream_xchacha20poly1305_init_pull(
+      Buffer.alloc(sodium.crypto_secretstream_xchacha20poly1305_STATEBYTES),
+      Buffer.alloc(1),
+      Buffer.alloc(sodium.crypto_secretstream_xchacha20poly1305_KEYBYTES)
+    )
+  }, 'should throw on bad header size')
+})
+
+test('crypto_secretstream_xchacha20poly1305_init_pull - bad k size', function (t) {
+  t.exception(function () {
+    sodium.crypto_secretstream_xchacha20poly1305_init_pull(
+      Buffer.alloc(sodium.crypto_secretstream_xchacha20poly1305_STATEBYTES),
+      Buffer.alloc(sodium.crypto_secretstream_xchacha20poly1305_HEADERBYTES),
+      Buffer.alloc(1)
+    )
+  }, 'should throw on bad k size')
+})
+
+test('crypto_secretstream_xchacha20poly1305_push - bad state size', function (t) {
+  t.exception(function () {
+    sodium.crypto_secretstream_xchacha20poly1305_push(
+      Buffer.alloc(1),
+      Buffer.alloc(5 + sodium.crypto_secretstream_xchacha20poly1305_ABYTES),
+      Buffer.alloc(5),
+      null,
+      0
+    )
+  }, 'should throw on bad state size')
+})
+
+test('crypto_secretstream_xchacha20poly1305_push - bad c size', function (t) {
+  t.exception(function () {
+    sodium.crypto_secretstream_xchacha20poly1305_push(
+      Buffer.alloc(sodium.crypto_secretstream_xchacha20poly1305_STATEBYTES),
+      Buffer.alloc(1),
+      Buffer.alloc(5),
+      null,
+      0
+    )
+  }, 'should throw on bad c size')
+})
+
+test('crypto_secretstream_xchacha20poly1305_pull - bad state size', function (t) {
+  t.exception(function () {
+    sodium.crypto_secretstream_xchacha20poly1305_pull(
+      Buffer.alloc(1),
+      Buffer.alloc(5),
+      Buffer.alloc(1),
+      Buffer.alloc(5 + sodium.crypto_secretstream_xchacha20poly1305_ABYTES),
+      null
+    )
+  }, 'should throw on bad state size')
+})
+
+test('crypto_secretstream_xchacha20poly1305_pull - bad tag size', function (t) {
+  t.exception(function () {
+    sodium.crypto_secretstream_xchacha20poly1305_pull(
+      Buffer.alloc(sodium.crypto_secretstream_xchacha20poly1305_STATEBYTES),
+      Buffer.alloc(5),
+      Buffer.alloc(2),
+      Buffer.alloc(5 + sodium.crypto_secretstream_xchacha20poly1305_ABYTES),
+      null
+    )
+  }, 'should throw on bad tag size')
+})
+
+test('crypto_secretstream_xchacha20poly1305_rekey - bad state size', function (t) {
+  t.exception(function () {
+    sodium.crypto_secretstream_xchacha20poly1305_rekey(Buffer.alloc(1))
+  }, 'should throw on bad state size')
+})
+
 test('crypto_secretstream', function (t) {
   const state = Buffer.alloc(
     sodium.crypto_secretstream_xchacha20poly1305_STATEBYTES

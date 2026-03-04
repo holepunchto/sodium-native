@@ -164,6 +164,44 @@ test('crypto_kx_client_session_keys one NULL', function (t) {
   t.alike(clientTx, serverRx)
 })
 
+test('crypto_kx_client_session_keys - bad tx size when both provided', function (t) {
+  const pk = Buffer.alloc(sodium.crypto_kx_PUBLICKEYBYTES)
+  const sk = Buffer.alloc(sodium.crypto_kx_SECRETKEYBYTES)
+  sodium.crypto_kx_keypair(pk, sk)
+  const serverPk = Buffer.alloc(sodium.crypto_kx_PUBLICKEYBYTES)
+  const serverSk = Buffer.alloc(sodium.crypto_kx_SECRETKEYBYTES)
+  sodium.crypto_kx_keypair(serverPk, serverSk)
+
+  t.exception(function () {
+    sodium.crypto_kx_client_session_keys(
+      Buffer.alloc(sodium.crypto_kx_SESSIONKEYBYTES),
+      Buffer.alloc(1),
+      pk,
+      sk,
+      serverPk
+    )
+  }, 'should throw on bad tx size')
+})
+
+test('crypto_kx_server_session_keys - bad tx size when both provided', function (t) {
+  const pk = Buffer.alloc(sodium.crypto_kx_PUBLICKEYBYTES)
+  const sk = Buffer.alloc(sodium.crypto_kx_SECRETKEYBYTES)
+  sodium.crypto_kx_keypair(pk, sk)
+  const clientPk = Buffer.alloc(sodium.crypto_kx_PUBLICKEYBYTES)
+  const clientSk = Buffer.alloc(sodium.crypto_kx_SECRETKEYBYTES)
+  sodium.crypto_kx_keypair(clientPk, clientSk)
+
+  t.exception(function () {
+    sodium.crypto_kx_server_session_keys(
+      Buffer.alloc(sodium.crypto_kx_SESSIONKEYBYTES),
+      Buffer.alloc(1),
+      pk,
+      sk,
+      clientPk
+    )
+  }, 'should throw on bad tx size')
+})
+
 test('crypto_kx constants', function (t) {
   t.alike(typeof sodium.crypto_kx_SESSIONKEYBYTES, 'number')
   t.alike(typeof sodium.crypto_kx_PUBLICKEYBYTES, 'number')

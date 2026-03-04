@@ -40,6 +40,26 @@ test('crypto_sign_seed_keypair', function (t) {
   t.alike(sk.toString('hex'), eSk, 'seeded secret key')
 })
 
+test('crypto_sign_seed_keypair - bad sk size', function (t) {
+  t.exception(function () {
+    sodium.crypto_sign_seed_keypair(
+      Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES),
+      Buffer.alloc(1),
+      Buffer.alloc(sodium.crypto_sign_SEEDBYTES)
+    )
+  }, 'should throw on bad sk size')
+})
+
+test('crypto_sign_seed_keypair - bad seed size', function (t) {
+  t.exception(function () {
+    sodium.crypto_sign_seed_keypair(
+      Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES),
+      Buffer.alloc(sodium.crypto_sign_SECRETKEYBYTES),
+      Buffer.alloc(1)
+    )
+  }, 'should throw on bad seed size')
+})
+
 test('crypto_sign_keypair', function (t) {
   const pk = Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES)
   const sk = Buffer.alloc(sodium.crypto_sign_SECRETKEYBYTES)
@@ -56,6 +76,15 @@ test('crypto_sign_keypair', function (t) {
   t.exception.all(function () {
     sodium.crypto_sign_keypair(Buffer.alloc(0), Buffer.alloc(0))
   }, 'should validate input length')
+})
+
+test('crypto_sign_keypair - bad sk size', function (t) {
+  t.exception(function () {
+    sodium.crypto_sign_keypair(
+      Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES),
+      Buffer.alloc(1)
+    )
+  }, 'should throw on bad sk size')
 })
 
 test('crypto_sign', function (t) {
@@ -80,6 +109,26 @@ test('crypto_sign', function (t) {
   t.ok(sodium.crypto_sign_open(output, signedMessage, pk), 'was signed')
 
   t.alike(output, message, 'same message')
+})
+
+test('crypto_sign_verify_detached - bad sig size', function (t) {
+  t.exception(function () {
+    sodium.crypto_sign_verify_detached(
+      Buffer.alloc(1),
+      Buffer.from('hello'),
+      Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES)
+    )
+  }, 'should throw on bad sig size')
+})
+
+test('crypto_sign_verify_detached - bad pk size', function (t) {
+  t.exception(function () {
+    sodium.crypto_sign_verify_detached(
+      Buffer.alloc(sodium.crypto_sign_BYTES),
+      Buffer.from('hello'),
+      Buffer.alloc(1)
+    )
+  }, 'should throw on bad pk size')
 })
 
 test('crypto_sign_detached', function (t) {

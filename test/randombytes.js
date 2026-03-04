@@ -64,6 +64,12 @@ test('randombytes_deterministic', function (t) {
   }
 })
 
+test('randombytes_buf_deterministic - bad seed size', function (t) {
+  t.exception(function () {
+    sodium.randombytes_buf_deterministic(Buffer.alloc(16), Buffer.alloc(1))
+  }, 'should throw on bad seed size')
+})
+
 test.skip('Various test cases', function (t) {
   sodium.randombytes_buf(Buffer.alloc(0))
   sodium.randombytes_buf(new Uint8Array(16))
