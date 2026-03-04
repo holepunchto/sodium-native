@@ -89,6 +89,71 @@ test('crypto_box_detached', function (t) {
   t.alike(plain, message, 'same message')
 })
 
+test('crypto_box_detached - bad c size', function (t) {
+  t.exception(function () {
+    sodium.crypto_box_detached(
+      Buffer.alloc(1),
+      Buffer.alloc(sodium.crypto_box_MACBYTES),
+      Buffer.alloc(5),
+      Buffer.alloc(sodium.crypto_box_NONCEBYTES),
+      Buffer.alloc(sodium.crypto_box_PUBLICKEYBYTES),
+      Buffer.alloc(sodium.crypto_box_SECRETKEYBYTES)
+    )
+  }, 'should throw on bad c size')
+})
+
+test('crypto_box_detached - bad mac size', function (t) {
+  t.exception(function () {
+    sodium.crypto_box_detached(
+      Buffer.alloc(5),
+      Buffer.alloc(1),
+      Buffer.alloc(5),
+      Buffer.alloc(sodium.crypto_box_NONCEBYTES),
+      Buffer.alloc(sodium.crypto_box_PUBLICKEYBYTES),
+      Buffer.alloc(sodium.crypto_box_SECRETKEYBYTES)
+    )
+  }, 'should throw on bad mac size')
+})
+
+test('crypto_box_detached - bad nonce size', function (t) {
+  t.exception(function () {
+    sodium.crypto_box_detached(
+      Buffer.alloc(5),
+      Buffer.alloc(sodium.crypto_box_MACBYTES),
+      Buffer.alloc(5),
+      Buffer.alloc(1),
+      Buffer.alloc(sodium.crypto_box_PUBLICKEYBYTES),
+      Buffer.alloc(sodium.crypto_box_SECRETKEYBYTES)
+    )
+  }, 'should throw on bad nonce size')
+})
+
+test('crypto_box_detached - bad pk size', function (t) {
+  t.exception(function () {
+    sodium.crypto_box_detached(
+      Buffer.alloc(5),
+      Buffer.alloc(sodium.crypto_box_MACBYTES),
+      Buffer.alloc(5),
+      Buffer.alloc(sodium.crypto_box_NONCEBYTES),
+      Buffer.alloc(1),
+      Buffer.alloc(sodium.crypto_box_SECRETKEYBYTES)
+    )
+  }, 'should throw on bad pk size')
+})
+
+test('crypto_box_detached - bad sk size', function (t) {
+  t.exception(function () {
+    sodium.crypto_box_detached(
+      Buffer.alloc(5),
+      Buffer.alloc(sodium.crypto_box_MACBYTES),
+      Buffer.alloc(5),
+      Buffer.alloc(sodium.crypto_box_NONCEBYTES),
+      Buffer.alloc(sodium.crypto_box_PUBLICKEYBYTES),
+      Buffer.alloc(1)
+    )
+  }, 'should throw on bad sk size')
+})
+
 test('crypto_box_easy', function (t) {
   const pk = Buffer.alloc(sodium.crypto_box_PUBLICKEYBYTES)
   const sk = Buffer.alloc(sodium.crypto_box_SECRETKEYBYTES)

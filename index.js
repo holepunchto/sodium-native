@@ -331,6 +331,24 @@ exports.crypto_box_easy = function (c, m, n, pk, sk) {
 }
 
 exports.crypto_box_detached = function (c, mac, m, n, pk, sk) {
+  assert(c.byteLength === m.byteLength, "c must be 'm.byteLength' bytes")
+  assert(
+    mac.byteLength === exports.crypto_box_MACBYTES,
+    "mac must be 'crypto_box_MACBYTES' bytes"
+  )
+  assert(
+    n.byteLength === exports.crypto_box_NONCEBYTES,
+    "n must be 'crypto_box_NONCEBYTES' bytes"
+  )
+  assert(
+    pk.byteLength === exports.crypto_box_PUBLICKEYBYTES,
+    "pk must be 'crypto_box_PUBLICKEYBYTES' bytes"
+  )
+  assert(
+    sk.byteLength === exports.crypto_box_SECRETKEYBYTES,
+    "sk must be 'crypto_box_SECRETKEYBYTES' bytes"
+  )
+
   const res = binding.crypto_box_detached(c, mac, m, n, pk, sk)
 
   if (res !== 0) throw new Error('status: ' + res)
