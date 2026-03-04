@@ -11,8 +11,15 @@
     "prebuilds",
     "CMakeLists.txt"
   ],
+  "imports": {
+    "assert": {
+      "bare": "bare-assert",
+      "node": "assert"
+    }
+  },
   "addon": true,
   "dependencies": {
+    "bare-assert": "^1.2.0",
     "require-addon": "^1.1.0",
     "which-runtime": "^1.2.1"
   },

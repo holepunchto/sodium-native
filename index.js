@@ -1,3 +1,4 @@
+const assert = require('assert')
 const binding = require('./binding')
 const { isNode } = require('which-runtime')
 
@@ -277,6 +278,23 @@ exports.crypto_box_seed_keypair = function (pk, sk, seed) {
 }
 
 exports.crypto_box_easy = function (c, m, n, pk, sk) {
+  assert(
+    c.byteLength === m.byteLength + exports.crypto_box_MACBYTES,
+    "c must be 'm.byteLength + crypto_box_MACBYTES' bytes"
+  )
+  assert(
+    n.byteLength === exports.crypto_box_NONCEBYTES,
+    "n must be 'crypto_box_NONCEBYTES' bytes"
+  )
+  assert(
+    pk.byteLength === exports.crypto_box_PUBLICKEYBYTES,
+    "pk must be 'crypto_box_PUBLICKEYBYTES' bytes"
+  )
+  assert(
+    sk.byteLength === exports.crypto_box_SECRETKEYBYTES,
+    "sk must be 'crypto_box_SECRETKEYBYTES' bytes"
+  )
+
   const res = binding.crypto_box_easy(c, m, n, pk, sk)
 
   if (res !== 0) throw new Error('status: ' + res)
