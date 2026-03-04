@@ -559,6 +559,11 @@ exports.crypto_generichash_final = function (state, output) {
 // secretstream
 
 exports.crypto_secretstream_xchacha20poly1305_keygen = function (k) {
+  assert(
+    k.byteLength === binding.crypto_secretstream_xchacha20poly1305_KEYBYTES,
+    "k must be 'crypto_secretstream_xchacha20poly1305_KEYBYTES' bytes"
+  )
+
   binding.crypto_secretstream_xchacha20poly1305_keygen(
     k.buffer,
     k.byteOffset,

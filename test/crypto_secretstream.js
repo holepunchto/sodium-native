@@ -42,6 +42,12 @@ test('constants', function (t) {
   )
 })
 
+test('crypto_secretstream_xchacha20poly1305_keygen - bad k size', function (t) {
+  t.exception(function () {
+    sodium.crypto_secretstream_xchacha20poly1305_keygen(Buffer.alloc(1))
+  }, 'should throw on bad k size')
+})
+
 test('crypto_secretstream', function (t) {
   const state = Buffer.alloc(
     sodium.crypto_secretstream_xchacha20poly1305_STATEBYTES
