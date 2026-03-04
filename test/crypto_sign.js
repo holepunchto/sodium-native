@@ -111,6 +111,26 @@ test('crypto_sign', function (t) {
   t.alike(output, message, 'same message')
 })
 
+test('crypto_sign_verify_detached - bad sig size', function (t) {
+  t.exception(function () {
+    sodium.crypto_sign_verify_detached(
+      Buffer.alloc(1),
+      Buffer.from('hello'),
+      Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES)
+    )
+  }, 'should throw on bad sig size')
+})
+
+test('crypto_sign_verify_detached - bad pk size', function (t) {
+  t.exception(function () {
+    sodium.crypto_sign_verify_detached(
+      Buffer.alloc(sodium.crypto_sign_BYTES),
+      Buffer.from('hello'),
+      Buffer.alloc(1)
+    )
+  }, 'should throw on bad pk size')
+})
+
 test('crypto_sign_detached', function (t) {
   const pk = Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES)
   const sk = Buffer.alloc(sodium.crypto_sign_SECRETKEYBYTES)

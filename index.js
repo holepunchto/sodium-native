@@ -208,6 +208,15 @@ exports.crypto_sign_detached = function (sig, m, sk) {
 }
 
 exports.crypto_sign_verify_detached = function (sig, m, pk) {
+  assert(
+    sig?.byteLength >= binding.crypto_sign_BYTES,
+    "sig must be at least 'crypto_sign_BYTES' bytes"
+  )
+  assert(
+    pk?.byteLength === binding.crypto_sign_PUBLICKEYBYTES,
+    "pk must be 'crypto_sign_PUBLICKEYBYTES' bytes"
+  )
+
   return binding.crypto_sign_verify_detached(
     sig.buffer,
     sig.byteOffset,
