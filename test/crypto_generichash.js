@@ -1,6 +1,62 @@
 const test = require('brittle')
 const sodium = require('..')
 
+test('crypto_generichash - bad output size (too small)', function (t) {
+  t.exception(function () {
+    sodium.crypto_generichash(Buffer.alloc(0), Buffer.from('hello'))
+  }, 'should throw on output too small')
+})
+
+test('crypto_generichash - bad output size (too large)', function (t) {
+  t.exception(function () {
+    sodium.crypto_generichash(Buffer.alloc(65), Buffer.from('hello'))
+  }, 'should throw on output too large')
+})
+
+test('crypto_generichash - bad key size (too small)', function (t) {
+  t.exception(function () {
+    sodium.crypto_generichash(
+      Buffer.alloc(32),
+      Buffer.from('hello'),
+      Buffer.alloc(1)
+    )
+  }, 'should throw on key too small')
+})
+
+test('crypto_generichash - bad key size (too large)', function (t) {
+  t.exception(function () {
+    sodium.crypto_generichash(
+      Buffer.alloc(32),
+      Buffer.from('hello'),
+      Buffer.alloc(65)
+    )
+  }, 'should throw on key too large')
+})
+
+test('crypto_generichash_keygen - bad key size', function (t) {
+  t.exception(function () {
+    sodium.crypto_generichash_keygen(Buffer.alloc(1))
+  }, 'should throw on bad key size')
+})
+
+test('crypto_generichash_init - bad state size', function (t) {
+  t.exception(function () {
+    sodium.crypto_generichash_init(Buffer.alloc(1), null, 32)
+  }, 'should throw on bad state size')
+})
+
+test('crypto_generichash_update - bad state size', function (t) {
+  t.exception(function () {
+    sodium.crypto_generichash_update(Buffer.alloc(1), Buffer.from('hello'))
+  }, 'should throw on bad state size')
+})
+
+test('crypto_generichash_final - bad state size', function (t) {
+  t.exception(function () {
+    sodium.crypto_generichash_final(Buffer.alloc(1), Buffer.alloc(32))
+  }, 'should throw on bad state size')
+})
+
 test('crypto_generichash', function (t) {
   const buf = Buffer.from('Hello, World!')
 

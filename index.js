@@ -462,6 +462,18 @@ exports.crypto_secretbox_open_detached = function (m, c, mac, n, k) {
 // crypto_generichash
 
 exports.crypto_generichash = function (output, input, key = OPTIONAL) {
+  assert(
+    output.byteLength >= binding.crypto_generichash_BYTES_MIN &&
+      output.byteLength <= binding.crypto_generichash_BYTES_MAX,
+    'output must be between crypto_generichash_BYTES_MIN and crypto_generichash_BYTES_MAX bytes'
+  )
+  if (key !== OPTIONAL)
+    assert(
+      key.byteLength >= binding.crypto_generichash_KEYBYTES_MIN &&
+        key.byteLength <= binding.crypto_generichash_KEYBYTES_MAX,
+      'key must be between crypto_generichash_KEYBYTES_MIN and crypto_generichash_KEYBYTES_MAX bytes'
+    )
+
   const res = binding.crypto_generichash(
     output.buffer,
     output.byteOffset,
@@ -502,6 +514,11 @@ exports.crypto_generichash_batch = function (output, batch, key) {
 }
 
 exports.crypto_generichash_keygen = function (key) {
+  assert(
+    key.byteLength === binding.crypto_generichash_KEYBYTES,
+    "key must be 'crypto_generichash_KEYBYTES' bytes"
+  )
+
   const res = binding.crypto_generichash_keygen(
     key.buffer,
     key.byteOffset,
@@ -511,6 +528,11 @@ exports.crypto_generichash_keygen = function (key) {
 }
 
 exports.crypto_generichash_init = function (state, key, outputLength) {
+  assert(
+    state.byteLength === binding.crypto_generichash_STATEBYTES,
+    "state must be 'crypto_generichash_STATEBYTES' bytes"
+  )
+
   key ||= OPTIONAL
 
   const res = binding.crypto_generichash_init(
@@ -529,6 +551,11 @@ exports.crypto_generichash_init = function (state, key, outputLength) {
 }
 
 exports.crypto_generichash_update = function (state, input) {
+  assert(
+    state.byteLength === binding.crypto_generichash_STATEBYTES,
+    "state must be 'crypto_generichash_STATEBYTES' bytes"
+  )
+
   const res = binding.crypto_generichash_update(
     state.buffer,
     state.byteOffset,
@@ -543,6 +570,11 @@ exports.crypto_generichash_update = function (state, input) {
 }
 
 exports.crypto_generichash_final = function (state, output) {
+  assert(
+    state.byteLength === binding.crypto_generichash_STATEBYTES,
+    "state must be 'crypto_generichash_STATEBYTES' bytes"
+  )
+
   const res = binding.crypto_generichash_final(
     state.buffer,
     state.byteOffset,
