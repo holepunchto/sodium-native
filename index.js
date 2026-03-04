@@ -271,6 +271,7 @@ exports.crypto_box_seed_keypair = function (pk, sk, seed) {
     throw new Error('pk')
   if (sk?.byteLength !== binding.crypto_box_SECRETKEYBYTES)
     throw new Error('sk')
+  assert(seed?.byteLength === binding.crypto_box_SEEDBYTES, "seed must be 'crypto_box_SEEDBYTES' bytes")
 
   const res = binding.crypto_box_seed_keypair(pk, sk, seed)
 
