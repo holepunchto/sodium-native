@@ -137,6 +137,10 @@ exports.sodium_unpad = function (buffer, paddedBuflen, blockSize) {
 exports.crypto_sign_keypair = function (pk, sk) {
   if (pk?.byteLength !== binding.crypto_sign_PUBLICKEYBYTES)
     throw new Error('pk')
+  assert(
+    sk?.byteLength === binding.crypto_sign_SECRETKEYBYTES,
+    "sk must be 'crypto_sign_SECRETKEYBYTES' bytes"
+  )
 
   const res = binding.crypto_sign_keypair(pk, sk)
 
@@ -271,7 +275,10 @@ exports.crypto_box_seed_keypair = function (pk, sk, seed) {
     throw new Error('pk')
   if (sk?.byteLength !== binding.crypto_box_SECRETKEYBYTES)
     throw new Error('sk')
-  assert(seed?.byteLength === binding.crypto_box_SEEDBYTES, "seed must be 'crypto_box_SEEDBYTES' bytes")
+  assert(
+    seed?.byteLength === binding.crypto_box_SEEDBYTES,
+    "seed must be 'crypto_box_SEEDBYTES' bytes"
+  )
 
   const res = binding.crypto_box_seed_keypair(pk, sk, seed)
 

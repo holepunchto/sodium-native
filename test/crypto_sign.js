@@ -58,6 +58,15 @@ test('crypto_sign_keypair', function (t) {
   }, 'should validate input length')
 })
 
+test('crypto_sign_keypair - bad sk size', function (t) {
+  t.exception(function () {
+    sodium.crypto_sign_keypair(
+      Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES),
+      Buffer.alloc(1)
+    )
+  }, 'should throw on bad sk size')
+})
+
 test('crypto_sign', function (t) {
   const pk = Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES)
   const sk = Buffer.alloc(sodium.crypto_sign_SECRETKEYBYTES)
