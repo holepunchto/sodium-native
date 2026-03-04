@@ -211,6 +211,28 @@ test('crypto_box_seal', function (t) {
   t.alike(plain, message, 'same message')
 })
 
+test('crypto_box_seal - bad c size', function (t) {
+  t.exception(function () {
+    sodium.crypto_box_seal(
+      Buffer.alloc(1),
+      Buffer.alloc(5),
+      Buffer.alloc(sodium.crypto_box_PUBLICKEYBYTES)
+    )
+  }, 'should throw on bad c size')
+})
+
+test('crypto_box_seal - bad pk size', function (t) {
+  const m = Buffer.alloc(5)
+
+  t.exception(function () {
+    sodium.crypto_box_seal(
+      Buffer.alloc(m.length + sodium.crypto_box_SEALBYTES),
+      m,
+      Buffer.alloc(1)
+    )
+  }, 'should throw on bad pk size')
+})
+
 test('crypto_box_seal/crypto_box_seal_open self-decrypt', function (t) {
   const pubKey = Buffer.alloc(sodium.crypto_box_PUBLICKEYBYTES)
   const secret = Buffer.alloc(sodium.crypto_box_SECRETKEYBYTES)

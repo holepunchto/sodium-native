@@ -355,6 +355,15 @@ exports.crypto_box_detached = function (c, mac, m, n, pk, sk) {
 }
 
 exports.crypto_box_seal = function (c, m, pk) {
+  assert(
+    c.byteLength === m.byteLength + exports.crypto_box_SEALBYTES,
+    "c must be 'm.byteLength + crypto_box_SEALBYTES' bytes"
+  )
+  assert(
+    pk.byteLength === exports.crypto_box_PUBLICKEYBYTES,
+    "pk must be 'crypto_box_PUBLICKEYBYTES' bytes"
+  )
+
   const res = binding.crypto_box_seal(c, m, pk)
 
   if (res !== 0) throw new Error('status: ' + res)
