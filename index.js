@@ -61,6 +61,11 @@ exports.randombytes_buf = function (buffer) {
 }
 
 exports.randombytes_buf_deterministic = function (buffer, seed) {
+  assert(
+    seed?.byteLength === binding.randombytes_SEEDBYTES,
+    "seed must be 'randombytes_SEEDBYTES' bytes"
+  )
+
   binding.randombytes_buf_deterministic(
     buffer.buffer,
     buffer.byteOffset,
