@@ -1485,17 +1485,16 @@ exports.crypto_kx_client_session_keys = function (
 
   if (!rx && !tx) throw new Error('at least one session key must be specified')
 
-  if (rx) {
-    if (rx?.byteLength !== binding.crypto_kx_SESSIONKEYBYTES)
-      throw new Error(
-        'receiving key buffer must be "crypto_kx_SESSIONKEYBYTES" bytes or null'
-      )
-  } else {
-    if (tx?.byteLength !== binding.crypto_kx_SESSIONKEYBYTES)
-      throw new Error(
-        'transmitting key buffer must be "crypto_kx_SESSIONKEYBYTES" bytes or null'
-      )
-  }
+  if (rx)
+    assert(
+      rx.byteLength === binding.crypto_kx_SESSIONKEYBYTES,
+      'receiving key buffer must be "crypto_kx_SESSIONKEYBYTES" bytes or null'
+    )
+  if (tx)
+    assert(
+      tx.byteLength === binding.crypto_kx_SESSIONKEYBYTES,
+      'transmitting key buffer must be "crypto_kx_SESSIONKEYBYTES" bytes or null'
+    )
 
   if (clientPk?.byteLength !== binding.crypto_kx_PUBLICKEYBYTES)
     throw new Error('client_pk')
@@ -1527,17 +1526,16 @@ exports.crypto_kx_server_session_keys = function (
 
   if (!rx && !tx) throw new Error('at least one session key must be specified')
 
-  if (rx) {
-    if (rx?.byteLength !== binding.crypto_kx_SESSIONKEYBYTES)
-      throw new Error(
-        'receiving key buffer must be "crypto_kx_SESSIONKEYBYTES" bytes or null'
-      )
-  } else {
-    if (tx?.byteLength !== binding.crypto_kx_SESSIONKEYBYTES)
-      throw new Error(
-        'transmitting key buffer must be "crypto_kx_SESSIONKEYBYTES" bytes or null'
-      )
-  }
+  if (rx)
+    assert(
+      rx.byteLength === binding.crypto_kx_SESSIONKEYBYTES,
+      'receiving key buffer must be "crypto_kx_SESSIONKEYBYTES" bytes or null'
+    )
+  if (tx)
+    assert(
+      tx.byteLength === binding.crypto_kx_SESSIONKEYBYTES,
+      'transmitting key buffer must be "crypto_kx_SESSIONKEYBYTES" bytes or null'
+    )
 
   if (serverPk?.byteLength !== binding.crypto_kx_PUBLICKEYBYTES)
     throw new Error('server_pk')
