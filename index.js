@@ -708,6 +708,16 @@ exports.crypto_stream = function (c, n, k) {
 }
 
 exports.crypto_stream_xor = function (c, m, n, k) {
+  assert(c.byteLength === m.byteLength, "c must be 'm.byteLength' bytes")
+  assert(
+    n.byteLength === binding.crypto_stream_NONCEBYTES,
+    "n must be 'crypto_stream_NONCEBYTES' bytes"
+  )
+  assert(
+    k.byteLength === binding.crypto_stream_KEYBYTES,
+    "k must be 'crypto_stream_KEYBYTES' bytes"
+  )
+
   const res = binding.crypto_stream_xor(
     c.buffer,
     c.byteOffset,

@@ -30,6 +30,39 @@ test('crypto_stream_xor', function (t) {
   t.alike(message, Buffer.from('Hello, World!'), 'decrypted')
 })
 
+test('crypto_stream_xor - bad c size', function (t) {
+  t.exception(function () {
+    sodium.crypto_stream_xor(
+      Buffer.alloc(1),
+      Buffer.alloc(5),
+      Buffer.alloc(sodium.crypto_stream_NONCEBYTES),
+      Buffer.alloc(sodium.crypto_stream_KEYBYTES)
+    )
+  }, 'should throw on bad c size')
+})
+
+test('crypto_stream_xor - bad nonce size', function (t) {
+  t.exception(function () {
+    sodium.crypto_stream_xor(
+      Buffer.alloc(5),
+      Buffer.alloc(5),
+      Buffer.alloc(1),
+      Buffer.alloc(sodium.crypto_stream_KEYBYTES)
+    )
+  }, 'should throw on bad nonce size')
+})
+
+test('crypto_stream_xor - bad key size', function (t) {
+  t.exception(function () {
+    sodium.crypto_stream_xor(
+      Buffer.alloc(5),
+      Buffer.alloc(5),
+      Buffer.alloc(sodium.crypto_stream_NONCEBYTES),
+      Buffer.alloc(1)
+    )
+  }, 'should throw on bad key size')
+})
+
 test('crypto_stream_xor state', function (t) {
   const message = Buffer.from('Hello, world!')
   const nonce = random(sodium.crypto_stream_NONCEBYTES)
