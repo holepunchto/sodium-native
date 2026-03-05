@@ -110,7 +110,7 @@ exports.sodium_compare = function (a, b) {
 
 exports.sodium_is_zero = function (buffer, length) {
   assert(ArrayBuffer.isView(buffer), 'buffer must be a typed array')
-  if (length == null) length = buffer.byteLength
+  if (length === undefined) length = buffer.byteLength
   assert(length >= 0 && length <= buffer.byteLength, 'invalid length')
 
   return binding.sodium_is_zero(buffer, length)
@@ -1966,8 +1966,8 @@ exports.crypto_kx_client_session_keys = function (
   serverPk
 ) {
   // match `std::optional` by coercing null to undefined
-  if (rx == null) rx = undefined
-  if (tx == null) tx = undefined
+  if (rx === null) rx = undefined
+  if (tx === null) tx = undefined
 
   assert(rx || tx, 'at least one session key must be specified')
 
@@ -2020,8 +2020,8 @@ exports.crypto_kx_server_session_keys = function (
   serverSk,
   clientPk
 ) {
-  if (rx == null) rx = undefined
-  if (tx == null) tx = undefined
+  if (rx === null) rx = undefined
+  if (tx === null) tx = undefined
 
   assert(rx || tx, 'at least one session key must be specified')
 
@@ -2566,7 +2566,7 @@ exports.crypto_aead_xchacha20poly1305_ietf_encrypt = function (
   npub,
   k
 ) {
-  if (ad == null) ad = undefined
+  if (ad === null) ad = undefined
   assert(nsec === null, 'nsec must always be set to null')
   assert(ArrayBuffer.isView(c), 'c must be a typed array')
   assert(
@@ -2606,7 +2606,7 @@ exports.crypto_aead_xchacha20poly1305_ietf_decrypt = function (
   npub,
   k
 ) {
-  if (ad == null) ad = undefined
+  if (ad === null) ad = undefined
   assert(nsec === null, 'nsec must always be set to null')
   assert(ArrayBuffer.isView(m), 'm must be a typed array')
   assert(
@@ -2647,7 +2647,7 @@ exports.crypto_aead_xchacha20poly1305_ietf_encrypt_detached = function (
   npub,
   k
 ) {
-  if (ad == null) ad = undefined
+  if (ad === null) ad = undefined
   assert(nsec === null, 'nsec must always be set to null')
   assert(ArrayBuffer.isView(c), 'c must be a typed array')
   assert(c.byteLength === m.byteLength, "c must be 'm.byteLength' bytes")
@@ -2689,7 +2689,7 @@ exports.crypto_aead_xchacha20poly1305_ietf_decrypt_detached = function (
   npub,
   k
 ) {
-  if (ad == null) ad = undefined
+  if (ad === null) ad = undefined
   assert(nsec === null, 'nsec must always be set to null')
   assert(ArrayBuffer.isView(m), 'm must be a typed array')
   assert(m.byteLength === c.byteLength, "m must be 'c.byteLength' bytes")
@@ -2738,7 +2738,7 @@ exports.crypto_aead_chacha20poly1305_ietf_encrypt = function (
   npub,
   k
 ) {
-  if (ad == null) ad = undefined
+  if (ad === null) ad = undefined
   assert(nsec === null, 'nsec must always be set to null')
   assert(ArrayBuffer.isView(c), 'c must be a typed array')
   assert(
@@ -2778,7 +2778,7 @@ exports.crypto_aead_chacha20poly1305_ietf_decrypt = function (
   npub,
   k
 ) {
-  if (ad == null) ad = undefined
+  if (ad === null) ad = undefined
   assert(nsec === null, 'nsec must always be set to null')
   assert(ArrayBuffer.isView(m), 'm must be a typed array')
   assert(
@@ -2819,7 +2819,7 @@ exports.crypto_aead_chacha20poly1305_ietf_encrypt_detached = function (
   npub,
   k
 ) {
-  if (ad == null) ad = undefined
+  if (ad === null) ad = undefined
   assert(nsec === null, 'nsec must always be set to null')
   assert(ArrayBuffer.isView(c), 'c must be a typed array')
   assert(c.byteLength === m.byteLength, "c must be 'm.byteLength' bytes")
@@ -2861,7 +2861,7 @@ exports.crypto_aead_chacha20poly1305_ietf_decrypt_detached = function (
   npub,
   k
 ) {
-  if (ad == null) ad = undefined
+  if (ad === null) ad = undefined
   assert(nsec === null, 'nsec must always be set to null')
   assert(ArrayBuffer.isView(m), 'm must be a typed array')
   assert(m.byteLength === c.byteLength, "m must be 'c.byteLength' bytes")
