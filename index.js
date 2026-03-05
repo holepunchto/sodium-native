@@ -23,7 +23,7 @@ exports.sodium_munlock = function (buf) {
 }
 
 exports.sodium_malloc = function (size) {
-  if (size < 0) throw new Error('invalid size')
+  assert(size >= 0, 'invalid size')
   const buf = Buffer.from(binding.sodium_malloc(size))
   buf.secure = true
 
@@ -61,8 +61,9 @@ exports.randombytes_buf = function (buffer) {
 }
 
 exports.randombytes_buf_deterministic = function (buffer, seed) {
+  assert(ArrayBuffer.isView(seed), 'seed must be a typed array')
   assert(
-    seed?.byteLength === binding.randombytes_SEEDBYTES,
+    seed.byteLength === binding.randombytes_SEEDBYTES,
     "seed must be 'randombytes_SEEDBYTES' bytes"
   )
 
@@ -80,59 +81,72 @@ exports.randombytes_buf_deterministic = function (buffer, seed) {
 // sodium_helpers
 
 exports.sodium_memcmp = function (a, b) {
-  if (a?.byteLength !== b?.byteLength)
-    throw new Error('buffers must be of same length"')
+  assert(ArrayBuffer.isView(a), 'a must be a typed array')
+  assert(ArrayBuffer.isView(b), 'b must be a typed array')
+  assert(a.byteLength === b.byteLength, 'buffers must be of same length')
   return binding.sodium_memcmp(a, b)
 }
 
 exports.sodium_add = function (a, b) {
-  if (a?.byteLength !== b?.byteLength)
-    throw new Error('buffers must be of same length"')
+  assert(ArrayBuffer.isView(a), 'a must be a typed array')
+  assert(ArrayBuffer.isView(b), 'b must be a typed array')
+  assert(a.byteLength === b.byteLength, 'buffers must be of same length')
   binding.sodium_add(a, b)
 }
 
 exports.sodium_sub = function (a, b) {
-  if (a?.byteLength !== b?.byteLength)
-    throw new Error('buffers must be of same length"')
+  assert(ArrayBuffer.isView(a), 'a must be a typed array')
+  assert(ArrayBuffer.isView(b), 'b must be a typed array')
+  assert(a.byteLength === b.byteLength, 'buffers must be of same length')
   binding.sodium_sub(a, b)
 }
 
 exports.sodium_compare = function (a, b) {
-  if (a?.byteLength !== b?.byteLength)
-    throw new Error('buffers must be of same length"')
+  assert(ArrayBuffer.isView(a), 'a must be a typed array')
+  assert(ArrayBuffer.isView(b), 'b must be a typed array')
+  assert(a.byteLength === b.byteLength, 'buffers must be of same length')
   return binding.sodium_compare(a, b)
 }
 
 exports.sodium_is_zero = function (buffer, length) {
-  if (!buffer) throw new Error('invalid buffer')
+  assert(ArrayBuffer.isView(buffer), 'buffer must be a typed array')
   length ??= buffer.byteLength
-  if (length > buffer.byteLength || length < 0)
-    throw new Error('invalid length')
+  assert(length >= 0 && length <= buffer.byteLength, 'invalid length')
 
   return binding.sodium_is_zero(buffer, length)
 }
 
 exports.sodium_pad = function (buffer, unpaddedBuflen, blockSize) {
-  if (unpaddedBuflen > buffer.byteLength)
-    throw new Error('unpadded length cannot exceed buffer length')
-  if (blockSize > buffer.byteLength)
-    throw new Error('block size cannot exceed buffer length')
-  if (blockSize < 1) throw new Error('block sizemust be at least 1 byte')
-  if (
-    buffer?.byteLength <
-    unpaddedBuflen + (blockSize - (unpaddedBuflen % blockSize))
+  assert(ArrayBuffer.isView(buffer), 'buffer must be a typed array')
+  assert(
+    unpaddedBuflen <= buffer.byteLength,
+    'unpadded length cannot exceed buffer length'
   )
-    throw new Error('buf not long enough')
+  assert(
+    blockSize <= buffer.byteLength,
+    'block size cannot exceed buffer length'
+  )
+  assert(blockSize >= 1, 'block size must be at least 1 byte')
+  assert(
+    buffer.byteLength >=
+      unpaddedBuflen + (blockSize - (unpaddedBuflen % blockSize)),
+    'buf not long enough'
+  )
 
   return binding.sodium_pad(buffer, unpaddedBuflen, blockSize)
 }
 
 exports.sodium_unpad = function (buffer, paddedBuflen, blockSize) {
-  if (paddedBuflen > buffer.byteLength)
-    throw new Error('unpadded length cannot exceed buffer length')
-  if (blockSize > buffer.byteLength)
-    throw new Error('block size cannot exceed buffer length')
-  if (blockSize < 1) throw new Error('block size must be at least 1 byte')
+  assert(ArrayBuffer.isView(buffer), 'buffer must be a typed array')
+  assert(
+    paddedBuflen <= buffer.byteLength,
+    'unpadded length cannot exceed buffer length'
+  )
+  assert(
+    blockSize <= buffer.byteLength,
+    'block size cannot exceed buffer length'
+  )
+  assert(blockSize >= 1, 'block size must be at least 1 byte')
 
   return binding.sodium_unpad(buffer, paddedBuflen, blockSize)
 }
@@ -342,10 +356,16 @@ exports.crypto_sign_ed25519_sk_to_curve25519 = function (x25519sk, ed25519sk) {
 // crypto_box
 
 exports.crypto_box_keypair = function (pk, sk) {
-  if (pk?.byteLength !== binding.crypto_box_PUBLICKEYBYTES)
-    throw new Error('pk')
-  if (sk?.byteLength !== binding.crypto_box_SECRETKEYBYTES)
-    throw new Error('sk')
+  assert(ArrayBuffer.isView(pk), 'pk must be a typed array')
+  assert(
+    pk.byteLength === binding.crypto_box_PUBLICKEYBYTES,
+    "pk must be 'crypto_box_PUBLICKEYBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(sk), 'sk must be a typed array')
+  assert(
+    sk.byteLength === binding.crypto_box_SECRETKEYBYTES,
+    "sk must be 'crypto_box_SECRETKEYBYTES' bytes"
+  )
 
   const res = binding.crypto_box_keypair(pk, sk)
 
@@ -353,12 +373,18 @@ exports.crypto_box_keypair = function (pk, sk) {
 }
 
 exports.crypto_box_seed_keypair = function (pk, sk, seed) {
-  if (pk?.byteLength !== binding.crypto_box_PUBLICKEYBYTES)
-    throw new Error('pk')
-  if (sk?.byteLength !== binding.crypto_box_SECRETKEYBYTES)
-    throw new Error('sk')
+  assert(ArrayBuffer.isView(pk), 'pk must be a typed array')
   assert(
-    seed?.byteLength === binding.crypto_box_SEEDBYTES,
+    pk.byteLength === binding.crypto_box_PUBLICKEYBYTES,
+    "pk must be 'crypto_box_PUBLICKEYBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(sk), 'sk must be a typed array')
+  assert(
+    sk.byteLength === binding.crypto_box_SECRETKEYBYTES,
+    "sk must be 'crypto_box_SECRETKEYBYTES' bytes"
+  )
+  assert(
+    seed.byteLength === binding.crypto_box_SEEDBYTES,
     "seed must be 'crypto_box_SEEDBYTES' bytes"
   )
 
@@ -516,13 +542,22 @@ exports.crypto_box_seal_open = function (m, c, pk, sk) {
 // crypto_secretbox
 
 exports.crypto_secretbox_easy = function (c, m, n, k) {
-  if (c?.byteLength !== m.byteLength + binding.crypto_secretbox_MACBYTES)
-    throw new Error(
-      'c must be "m.byteLength + crypto_secretbox_MACBYTES" bytes'
-    )
-  if (n?.byteLength !== binding.crypto_secretbox_NONCEBYTES)
-    throw new Error('n')
-  if (k?.byteLength !== binding.crypto_secretbox_KEYBYTES) throw new Error('k')
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(
+    c.byteLength === m.byteLength + binding.crypto_secretbox_MACBYTES,
+    "c must be 'm.byteLength + crypto_secretbox_MACBYTES' bytes"
+  )
+  assert(
+    n.byteLength === binding.crypto_secretbox_NONCEBYTES,
+    "n must be 'crypto_secretbox_NONCEBYTES' bytes"
+  )
+  assert(
+    k.byteLength === binding.crypto_secretbox_KEYBYTES,
+    "k must be 'crypto_secretbox_KEYBYTES' bytes"
+  )
 
   const res = binding.crypto_secretbox_easy(c, m, n, k)
 
@@ -530,24 +565,49 @@ exports.crypto_secretbox_easy = function (c, m, n, k) {
 }
 
 exports.crypto_secretbox_open_easy = function (m, c, n, k) {
-  if (m?.byteLength !== c.byteLength - binding.crypto_secretbox_MACBYTES)
-    throw new Error('m must be "c - crypto_secretbox_MACBYTES" bytes')
-  if (c?.byteLength < binding.crypto_secretbox_MACBYTES) throw new Error('c')
-  if (n?.byteLength !== binding.crypto_secretbox_NONCEBYTES)
-    throw new Error('n')
-  if (k?.byteLength !== binding.crypto_secretbox_KEYBYTES) throw new Error('k')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(
+    c.byteLength >= binding.crypto_secretbox_MACBYTES,
+    "c must be at least 'crypto_secretbox_MACBYTES' bytes"
+  )
+  assert(
+    m.byteLength === c.byteLength - binding.crypto_secretbox_MACBYTES,
+    "m must be 'c.byteLength - crypto_secretbox_MACBYTES' bytes"
+  )
+  assert(
+    n.byteLength === binding.crypto_secretbox_NONCEBYTES,
+    "n must be 'crypto_secretbox_NONCEBYTES' bytes"
+  )
+  assert(
+    k.byteLength === binding.crypto_secretbox_KEYBYTES,
+    "k must be 'crypto_secretbox_KEYBYTES' bytes"
+  )
 
   return binding.crypto_secretbox_open_easy(m, c, n, k)
 }
 
 exports.crypto_secretbox_detached = function (c, mac, m, n, k) {
-  if (c?.byteLength !== m.byteLength)
-    throw new Error('c must "m.byteLength" bytes')
-  if (mac?.byteLength !== binding.crypto_secretbox_MACBYTES)
-    throw new Error('mac')
-  if (n?.byteLength !== binding.crypto_secretbox_NONCEBYTES)
-    throw new Error('n')
-  if (k?.byteLength !== binding.crypto_secretbox_KEYBYTES) throw new Error('k')
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(mac), 'mac must be a typed array')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(c.byteLength === m.byteLength, "c must be 'm.byteLength' bytes")
+  assert(
+    mac.byteLength === binding.crypto_secretbox_MACBYTES,
+    "mac must be 'crypto_secretbox_MACBYTES' bytes"
+  )
+  assert(
+    n.byteLength === binding.crypto_secretbox_NONCEBYTES,
+    "n must be 'crypto_secretbox_NONCEBYTES' bytes"
+  )
+  assert(
+    k.byteLength === binding.crypto_secretbox_KEYBYTES,
+    "k must be 'crypto_secretbox_KEYBYTES' bytes"
+  )
 
   const res = binding.crypto_secretbox_detached(c, mac, m, n, k)
 
@@ -555,13 +615,24 @@ exports.crypto_secretbox_detached = function (c, mac, m, n, k) {
 }
 
 exports.crypto_secretbox_open_detached = function (m, c, mac, n, k) {
-  if (m?.byteLength !== c.byteLength)
-    throw new Error('m must be "c.byteLength" bytes')
-  if (mac?.byteLength !== binding.crypto_secretbox_MACBYTES)
-    throw new Error('mac')
-  if (n?.byteLength !== binding.crypto_secretbox_NONCEBYTES)
-    throw new Error('n')
-  if (k?.byteLength !== binding.crypto_secretbox_KEYBYTES) throw new Error('k')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(mac), 'mac must be a typed array')
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(m.byteLength === c.byteLength, "m must be 'c.byteLength' bytes")
+  assert(
+    mac.byteLength === binding.crypto_secretbox_MACBYTES,
+    "mac must be 'crypto_secretbox_MACBYTES' bytes"
+  )
+  assert(
+    n.byteLength === binding.crypto_secretbox_NONCEBYTES,
+    "n must be 'crypto_secretbox_NONCEBYTES' bytes"
+  )
+  assert(
+    k.byteLength === binding.crypto_secretbox_KEYBYTES,
+    "k must be 'crypto_secretbox_KEYBYTES' bytes"
+  )
 
   return binding.crypto_secretbox_open_detached(m, c, mac, n, k)
 }
@@ -845,13 +916,17 @@ exports.crypto_secretstream_xchacha20poly1305_pull = function (
 
   ad ||= OPTIONAL
 
-  if (c?.byteLength < binding.crypto_secretstream_xchacha20poly1305_ABYTES)
-    throw new Error('invalid cipher length')
-  if (
-    m?.byteLength !==
-    c.byteLength - binding.crypto_secretstream_xchacha20poly1305_ABYTES
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(
+    c.byteLength >= binding.crypto_secretstream_xchacha20poly1305_ABYTES,
+    "c must be at least 'crypto_secretstream_xchacha20poly1305_ABYTES' bytes"
   )
-    throw new Error('invalid message length')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
+  assert(
+    m.byteLength ===
+      c.byteLength - binding.crypto_secretstream_xchacha20poly1305_ABYTES,
+    "m must be 'c.byteLength - crypto_secretstream_xchacha20poly1305_ABYTES' bytes"
+  )
 
   const res = binding.crypto_secretstream_xchacha20poly1305_pull(
     state.buffer,
@@ -897,8 +972,17 @@ exports.crypto_secretstream_xchacha20poly1305_rekey = function (state) {
 // crypto_stream
 
 exports.crypto_stream = function (c, n, k) {
-  if (n?.byteLength !== binding.crypto_stream_NONCEBYTES) throw new Error('n')
-  if (k?.byteLength !== binding.crypto_stream_KEYBYTES) throw new Error('k')
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(
+    n.byteLength === binding.crypto_stream_NONCEBYTES,
+    "n must be 'crypto_stream_NONCEBYTES' bytes"
+  )
+  assert(
+    k.byteLength === binding.crypto_stream_KEYBYTES,
+    "k must be 'crypto_stream_KEYBYTES' bytes"
+  )
 
   const res = binding.crypto_stream(c, n, k)
 
@@ -906,6 +990,10 @@ exports.crypto_stream = function (c, n, k) {
 }
 
 exports.crypto_stream_xor = function (c, m, n, k) {
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
   assert(c.byteLength === m.byteLength, "c must be 'm.byteLength' bytes")
   assert(
     n.byteLength === binding.crypto_stream_NONCEBYTES,
@@ -938,10 +1026,17 @@ exports.crypto_stream_xor = function (c, m, n, k) {
 }
 
 exports.crypto_stream_chacha20 = function (c, n, k) {
-  if (n?.byteLength !== binding.crypto_stream_chacha20_NONCEBYTES)
-    throw new Error('n')
-  if (k?.byteLength !== binding.crypto_stream_chacha20_KEYBYTES)
-    throw new Error('k')
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(
+    n.byteLength === binding.crypto_stream_chacha20_NONCEBYTES,
+    "n must be 'crypto_stream_chacha20_NONCEBYTES' bytes"
+  )
+  assert(
+    k.byteLength === binding.crypto_stream_chacha20_KEYBYTES,
+    "k must be 'crypto_stream_chacha20_KEYBYTES' bytes"
+  )
 
   const res = binding.crypto_stream_chacha20(c, n, k)
 
@@ -949,12 +1044,19 @@ exports.crypto_stream_chacha20 = function (c, n, k) {
 }
 
 exports.crypto_stream_chacha20_xor = function (c, m, n, k) {
-  if (c?.byteLength !== m.byteLength)
-    throw new Error('m must be "c.byteLength" bytes')
-  if (n?.byteLength !== binding.crypto_stream_chacha20_NONCEBYTES)
-    throw new Error('n')
-  if (k?.byteLength !== binding.crypto_stream_chacha20_KEYBYTES)
-    throw new Error('k')
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(c.byteLength === m.byteLength, "c must be 'm.byteLength' bytes")
+  assert(
+    n.byteLength === binding.crypto_stream_chacha20_NONCEBYTES,
+    "n must be 'crypto_stream_chacha20_NONCEBYTES' bytes"
+  )
+  assert(
+    k.byteLength === binding.crypto_stream_chacha20_KEYBYTES,
+    "k must be 'crypto_stream_chacha20_KEYBYTES' bytes"
+  )
 
   const res = binding.crypto_stream_chacha20_xor(c, m, n, k)
 
@@ -962,12 +1064,19 @@ exports.crypto_stream_chacha20_xor = function (c, m, n, k) {
 }
 
 exports.crypto_stream_chacha20_xor_ic = function (c, m, n, ic, k) {
-  if (c?.byteLength !== m.byteLength)
-    throw new Error('m must be "c.byteLength" bytes')
-  if (n?.byteLength !== binding.crypto_stream_chacha20_NONCEBYTES)
-    throw new Error('n')
-  if (k?.byteLength !== binding.crypto_stream_chacha20_KEYBYTES)
-    throw new Error('k')
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(c.byteLength === m.byteLength, "c must be 'm.byteLength' bytes")
+  assert(
+    n.byteLength === binding.crypto_stream_chacha20_NONCEBYTES,
+    "n must be 'crypto_stream_chacha20_NONCEBYTES' bytes"
+  )
+  assert(
+    k.byteLength === binding.crypto_stream_chacha20_KEYBYTES,
+    "k must be 'crypto_stream_chacha20_KEYBYTES' bytes"
+  )
 
   const res = binding.crypto_stream_chacha20_xor_ic(c, m, n, ic, k)
 
@@ -975,10 +1084,17 @@ exports.crypto_stream_chacha20_xor_ic = function (c, m, n, ic, k) {
 }
 
 exports.crypto_stream_chacha20_ietf = function (c, n, k) {
-  if (n?.byteLength !== binding.crypto_stream_chacha20_ietf_NONCEBYTES)
-    throw new Error('n')
-  if (k?.byteLength !== binding.crypto_stream_chacha20_ietf_KEYBYTES)
-    throw new Error('k')
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(
+    n.byteLength === binding.crypto_stream_chacha20_ietf_NONCEBYTES,
+    "n must be 'crypto_stream_chacha20_ietf_NONCEBYTES' bytes"
+  )
+  assert(
+    k.byteLength === binding.crypto_stream_chacha20_ietf_KEYBYTES,
+    "k must be 'crypto_stream_chacha20_ietf_KEYBYTES' bytes"
+  )
 
   const res = binding.crypto_stream_chacha20_ietf(c, n, k)
 
@@ -986,12 +1102,19 @@ exports.crypto_stream_chacha20_ietf = function (c, n, k) {
 }
 
 exports.crypto_stream_chacha20_ietf_xor = function (c, m, n, k) {
-  if (c?.byteLength !== m.byteLength)
-    throw new Error('m must be "c.byteLength" bytes')
-  if (n?.byteLength !== binding.crypto_stream_chacha20_ietf_NONCEBYTES)
-    throw new Error('n')
-  if (k?.byteLength !== binding.crypto_stream_chacha20_ietf_KEYBYTES)
-    throw new Error('k')
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(c.byteLength === m.byteLength, "c must be 'm.byteLength' bytes")
+  assert(
+    n.byteLength === binding.crypto_stream_chacha20_ietf_NONCEBYTES,
+    "n must be 'crypto_stream_chacha20_ietf_NONCEBYTES' bytes"
+  )
+  assert(
+    k.byteLength === binding.crypto_stream_chacha20_ietf_KEYBYTES,
+    "k must be 'crypto_stream_chacha20_ietf_KEYBYTES' bytes"
+  )
 
   const res = binding.crypto_stream_chacha20_ietf_xor(c, m, n, k)
 
@@ -999,12 +1122,19 @@ exports.crypto_stream_chacha20_ietf_xor = function (c, m, n, k) {
 }
 
 exports.crypto_stream_chacha20_ietf_xor_ic = function (c, m, n, ic, k) {
-  if (c?.byteLength !== m.byteLength)
-    throw new Error('m must be "c.byteLength" bytes')
-  if (n?.byteLength !== binding.crypto_stream_chacha20_ietf_NONCEBYTES)
-    throw new Error('n')
-  if (k?.byteLength !== binding.crypto_stream_chacha20_ietf_KEYBYTES)
-    throw new Error('k')
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(c.byteLength === m.byteLength, "c must be 'm.byteLength' bytes")
+  assert(
+    n.byteLength === binding.crypto_stream_chacha20_ietf_NONCEBYTES,
+    "n must be 'crypto_stream_chacha20_ietf_NONCEBYTES' bytes"
+  )
+  assert(
+    k.byteLength === binding.crypto_stream_chacha20_ietf_KEYBYTES,
+    "k must be 'crypto_stream_chacha20_ietf_KEYBYTES' bytes"
+  )
 
   const res = binding.crypto_stream_chacha20_ietf_xor_ic(c, m, n, ic, k)
 
@@ -1012,10 +1142,17 @@ exports.crypto_stream_chacha20_ietf_xor_ic = function (c, m, n, ic, k) {
 }
 
 exports.crypto_stream_xchacha20 = function (c, n, k) {
-  if (n?.byteLength !== binding.crypto_stream_xchacha20_NONCEBYTES)
-    throw new Error('n')
-  if (k?.byteLength !== binding.crypto_stream_xchacha20_KEYBYTES)
-    throw new Error('k')
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(
+    n.byteLength === binding.crypto_stream_xchacha20_NONCEBYTES,
+    "n must be 'crypto_stream_xchacha20_NONCEBYTES' bytes"
+  )
+  assert(
+    k.byteLength === binding.crypto_stream_xchacha20_KEYBYTES,
+    "k must be 'crypto_stream_xchacha20_KEYBYTES' bytes"
+  )
 
   const res = binding.crypto_stream_xchacha20(c, n, k)
 
@@ -1023,12 +1160,19 @@ exports.crypto_stream_xchacha20 = function (c, n, k) {
 }
 
 exports.crypto_stream_xchacha20_xor = function (c, m, n, k) {
-  if (c?.byteLength !== m.byteLength)
-    throw new Error('m must be "c.byteLength" bytes')
-  if (n?.byteLength !== binding.crypto_stream_xchacha20_NONCEBYTES)
-    throw new Error('n')
-  if (k?.byteLength !== binding.crypto_stream_xchacha20_KEYBYTES)
-    throw new Error('k')
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(c.byteLength === m.byteLength, "c must be 'm.byteLength' bytes")
+  assert(
+    n.byteLength === binding.crypto_stream_xchacha20_NONCEBYTES,
+    "n must be 'crypto_stream_xchacha20_NONCEBYTES' bytes"
+  )
+  assert(
+    k.byteLength === binding.crypto_stream_xchacha20_KEYBYTES,
+    "k must be 'crypto_stream_xchacha20_KEYBYTES' bytes"
+  )
 
   const res = binding.crypto_stream_xchacha20_xor(c, m, n, k)
 
@@ -1036,12 +1180,19 @@ exports.crypto_stream_xchacha20_xor = function (c, m, n, k) {
 }
 
 exports.crypto_stream_xchacha20_xor_ic = function (c, m, n, ic, k) {
-  if (c?.byteLength !== m.byteLength)
-    throw new Error('m must be "c.byteLength" bytes')
-  if (n?.byteLength !== binding.crypto_stream_xchacha20_NONCEBYTES)
-    throw new Error('n')
-  if (k?.byteLength !== binding.crypto_stream_xchacha20_KEYBYTES)
-    throw new Error('k')
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(c.byteLength === m.byteLength, "c must be 'm.byteLength' bytes")
+  assert(
+    n.byteLength === binding.crypto_stream_xchacha20_NONCEBYTES,
+    "n must be 'crypto_stream_xchacha20_NONCEBYTES' bytes"
+  )
+  assert(
+    k.byteLength === binding.crypto_stream_xchacha20_KEYBYTES,
+    "k must be 'crypto_stream_xchacha20_KEYBYTES' bytes"
+  )
 
   const res = binding.crypto_stream_xchacha20_xor_ic(c, m, n, ic, k)
 
@@ -1049,10 +1200,17 @@ exports.crypto_stream_xchacha20_xor_ic = function (c, m, n, ic, k) {
 }
 
 exports.crypto_stream_salsa20 = function (c, n, k) {
-  if (n?.byteLength !== binding.crypto_stream_salsa20_NONCEBYTES)
-    throw new Error('n')
-  if (k?.byteLength !== binding.crypto_stream_salsa20_KEYBYTES)
-    throw new Error('k')
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(
+    n.byteLength === binding.crypto_stream_salsa20_NONCEBYTES,
+    "n must be 'crypto_stream_salsa20_NONCEBYTES' bytes"
+  )
+  assert(
+    k.byteLength === binding.crypto_stream_salsa20_KEYBYTES,
+    "k must be 'crypto_stream_salsa20_KEYBYTES' bytes"
+  )
 
   const res = binding.crypto_stream_salsa20(c, n, k)
 
@@ -1060,12 +1218,19 @@ exports.crypto_stream_salsa20 = function (c, n, k) {
 }
 
 exports.crypto_stream_salsa20_xor = function (c, m, n, k) {
-  if (c?.byteLength !== m.byteLength)
-    throw new Error('m must be "c.byteLength" bytes')
-  if (n?.byteLength !== binding.crypto_stream_salsa20_NONCEBYTES)
-    throw new Error('n')
-  if (k?.byteLength !== binding.crypto_stream_salsa20_KEYBYTES)
-    throw new Error('k')
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(c.byteLength === m.byteLength, "c must be 'm.byteLength' bytes")
+  assert(
+    n.byteLength === binding.crypto_stream_salsa20_NONCEBYTES,
+    "n must be 'crypto_stream_salsa20_NONCEBYTES' bytes"
+  )
+  assert(
+    k.byteLength === binding.crypto_stream_salsa20_KEYBYTES,
+    "k must be 'crypto_stream_salsa20_KEYBYTES' bytes"
+  )
 
   const res = binding.crypto_stream_salsa20_xor(c, m, n, k)
 
@@ -1073,12 +1238,19 @@ exports.crypto_stream_salsa20_xor = function (c, m, n, k) {
 }
 
 exports.crypto_stream_salsa20_xor_ic = function (c, m, n, ic, k) {
-  if (c?.byteLength !== m.byteLength)
-    throw new Error('m must be "c.byteLength" bytes')
-  if (n?.byteLength !== binding.crypto_stream_salsa20_NONCEBYTES)
-    throw new Error('n')
-  if (k?.byteLength !== binding.crypto_stream_salsa20_KEYBYTES)
-    throw new Error('k')
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(c.byteLength === m.byteLength, "c must be 'm.byteLength' bytes")
+  assert(
+    n.byteLength === binding.crypto_stream_salsa20_NONCEBYTES,
+    "n must be 'crypto_stream_salsa20_NONCEBYTES' bytes"
+  )
+  assert(
+    k.byteLength === binding.crypto_stream_salsa20_KEYBYTES,
+    "k must be 'crypto_stream_salsa20_KEYBYTES' bytes"
+  )
 
   const res = binding.crypto_stream_salsa20_xor_ic(c, m, n, ic, k)
 
@@ -1088,8 +1260,17 @@ exports.crypto_stream_salsa20_xor_ic = function (c, m, n, ic, k) {
 // crypto_auth
 
 exports.crypto_auth = function (out, input, k) {
-  if (out?.byteLength !== binding.crypto_auth_BYTES) throw new Error('out')
-  if (k?.byteLength !== binding.crypto_auth_KEYBYTES) throw new Error('k')
+  assert(ArrayBuffer.isView(out), 'out must be a typed array')
+  assert(ArrayBuffer.isView(input), 'input must be a typed array')
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(
+    out.byteLength === binding.crypto_auth_BYTES,
+    "out must be 'crypto_auth_BYTES' bytes"
+  )
+  assert(
+    k.byteLength === binding.crypto_auth_KEYBYTES,
+    "k must be 'crypto_auth_KEYBYTES' bytes"
+  )
 
   const res = binding.crypto_auth(out, input, k)
 
@@ -1097,8 +1278,17 @@ exports.crypto_auth = function (out, input, k) {
 }
 
 exports.crypto_auth_verify = function (h, input, k) {
-  if (h?.byteLength !== binding.crypto_auth_BYTES) throw new Error('h')
-  if (k?.byteLength !== binding.crypto_auth_KEYBYTES) throw new Error('k')
+  assert(ArrayBuffer.isView(h), 'h must be a typed array')
+  assert(ArrayBuffer.isView(input), 'input must be a typed array')
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(
+    h.byteLength === binding.crypto_auth_BYTES,
+    "h must be 'crypto_auth_BYTES' bytes"
+  )
+  assert(
+    k.byteLength === binding.crypto_auth_KEYBYTES,
+    "k must be 'crypto_auth_KEYBYTES' bytes"
+  )
 
   return binding.crypto_auth_verify(h, input, k)
 }
@@ -1106,10 +1296,17 @@ exports.crypto_auth_verify = function (h, input, k) {
 // crypto_onetimeauth
 
 exports.crypto_onetimeauth = function (out, input, k) {
-  if (out?.byteLength !== binding.crypto_onetimeauth_BYTES)
-    throw new Error('out')
-  if (k?.byteLength !== binding.crypto_onetimeauth_KEYBYTES)
-    throw new Error('k')
+  assert(ArrayBuffer.isView(out), 'out must be a typed array')
+  assert(ArrayBuffer.isView(input), 'input must be a typed array')
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(
+    out.byteLength === binding.crypto_onetimeauth_BYTES,
+    "out must be 'crypto_onetimeauth_BYTES' bytes"
+  )
+  assert(
+    k.byteLength === binding.crypto_onetimeauth_KEYBYTES,
+    "k must be 'crypto_onetimeauth_KEYBYTES' bytes"
+  )
 
   const res = binding.crypto_onetimeauth(out, input, k)
 
@@ -1117,10 +1314,16 @@ exports.crypto_onetimeauth = function (out, input, k) {
 }
 
 exports.crypto_onetimeauth_init = function (state, k) {
-  if (state?.byteLength !== binding.crypto_onetimeauth_STATEBYTES)
-    throw new Error("state must be 'crypto_onetimeauth_STATEBYTES' bytes")
-  if (k?.byteLength !== binding.crypto_onetimeauth_KEYBYTES)
-    throw new Error('k')
+  assert(ArrayBuffer.isView(state), 'state must be a typed array')
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(
+    state.byteLength === binding.crypto_onetimeauth_STATEBYTES,
+    "state must be 'crypto_onetimeauth_STATEBYTES' bytes"
+  )
+  assert(
+    k.byteLength === binding.crypto_onetimeauth_KEYBYTES,
+    "k must be 'crypto_onetimeauth_KEYBYTES' bytes"
+  )
 
   const res = binding.crypto_onetimeauth_init(state, k)
 
@@ -1128,8 +1331,12 @@ exports.crypto_onetimeauth_init = function (state, k) {
 }
 
 exports.crypto_onetimeauth_update = function (state, input) {
-  if (state?.byteLength !== binding.crypto_onetimeauth_STATEBYTES)
-    throw new Error("state must be 'crypto_onetimeauth_STATEBYTES' bytes")
+  assert(ArrayBuffer.isView(state), 'state must be a typed array')
+  assert(ArrayBuffer.isView(input), 'input must be a typed array')
+  assert(
+    state.byteLength === binding.crypto_onetimeauth_STATEBYTES,
+    "state must be 'crypto_onetimeauth_STATEBYTES' bytes"
+  )
 
   const res = binding.crypto_onetimeauth_update(state, input)
 
@@ -1137,10 +1344,16 @@ exports.crypto_onetimeauth_update = function (state, input) {
 }
 
 exports.crypto_onetimeauth_final = function (state, out) {
-  if (state?.byteLength !== binding.crypto_onetimeauth_STATEBYTES)
-    throw new Error("state must be 'crypto_onetimeauth_STATEBYTES' bytes")
-  if (out?.byteLength !== binding.crypto_onetimeauth_BYTES)
-    throw new Error('out')
+  assert(ArrayBuffer.isView(state), 'state must be a typed array')
+  assert(ArrayBuffer.isView(out), 'out must be a typed array')
+  assert(
+    state.byteLength === binding.crypto_onetimeauth_STATEBYTES,
+    "state must be 'crypto_onetimeauth_STATEBYTES' bytes"
+  )
+  assert(
+    out.byteLength === binding.crypto_onetimeauth_BYTES,
+    "out must be 'crypto_onetimeauth_BYTES' bytes"
+  )
 
   const res = binding.crypto_onetimeauth_final(state, out)
 
@@ -1148,9 +1361,17 @@ exports.crypto_onetimeauth_final = function (state, out) {
 }
 
 exports.crypto_onetimeauth_verify = function (h, input, k) {
-  if (h?.byteLength !== binding.crypto_onetimeauth_BYTES) throw new Error('h')
-  if (k?.byteLength !== binding.crypto_onetimeauth_KEYBYTES)
-    throw new Error('k')
+  assert(ArrayBuffer.isView(h), 'h must be a typed array')
+  assert(ArrayBuffer.isView(input), 'input must be a typed array')
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(
+    h.byteLength === binding.crypto_onetimeauth_BYTES,
+    "h must be 'crypto_onetimeauth_BYTES' bytes"
+  )
+  assert(
+    k.byteLength === binding.crypto_onetimeauth_KEYBYTES,
+    "k must be 'crypto_onetimeauth_KEYBYTES' bytes"
+  )
 
   return binding.crypto_onetimeauth_verify(h, input, k)
 }
@@ -1158,16 +1379,38 @@ exports.crypto_onetimeauth_verify = function (h, input, k) {
 // crypto_pwhash
 
 exports.crypto_pwhash = function (out, passwd, salt, opslimit, memlimit, alg) {
-  if (out?.byteLength < binding.crypto_pwhash_BYTES_MIN) throw new Error('out')
-  if (out?.byteLength > binding.crypto_pwhash_BYTES_MAX) throw new Error('out')
-  if (salt?.byteLength !== binding.crypto_pwhash_SALTBYTES)
-    throw new Error('salt')
-  if (opslimit < binding.crypto_pwhash_OPSLIMIT_MIN) throw new Error('opslimit')
-  if (opslimit > binding.crypto_pwhash_OPSLIMIT_MAX) throw new Error('opslimit')
-  if (memlimit < binding.crypto_pwhash_MEMLIMIT_MIN) throw new Error('memlimit')
-  if (memlimit > binding.crypto_pwhash_MEMLIMIT_MAX) throw new Error('memlimit')
-  if (alg < 1 || alg > 2)
-    throw new Error('alg must be either Argon2i 1.3 or Argon2id 1.3')
+  assert(ArrayBuffer.isView(out), 'out must be a typed array')
+  assert(ArrayBuffer.isView(passwd), 'passwd must be a typed array')
+  assert(ArrayBuffer.isView(salt), 'salt must be a typed array')
+  assert(
+    out.byteLength >= binding.crypto_pwhash_BYTES_MIN,
+    "out must be at least 'crypto_pwhash_BYTES_MIN' bytes"
+  )
+  assert(
+    out.byteLength <= binding.crypto_pwhash_BYTES_MAX,
+    "out must be at most 'crypto_pwhash_BYTES_MAX' bytes"
+  )
+  assert(
+    salt.byteLength === binding.crypto_pwhash_SALTBYTES,
+    "salt must be 'crypto_pwhash_SALTBYTES' bytes"
+  )
+  assert(
+    opslimit >= binding.crypto_pwhash_OPSLIMIT_MIN,
+    "opslimit must be at least 'crypto_pwhash_OPSLIMIT_MIN'"
+  )
+  assert(
+    opslimit <= binding.crypto_pwhash_OPSLIMIT_MAX,
+    "opslimit must be at most 'crypto_pwhash_OPSLIMIT_MAX'"
+  )
+  assert(
+    memlimit >= binding.crypto_pwhash_MEMLIMIT_MIN,
+    "memlimit must be at least 'crypto_pwhash_MEMLIMIT_MIN'"
+  )
+  assert(
+    memlimit <= binding.crypto_pwhash_MEMLIMIT_MAX,
+    "memlimit must be at most 'crypto_pwhash_MEMLIMIT_MAX'"
+  )
+  assert(alg >= 1 && alg <= 2, 'alg must be either Argon2i 1.3 or Argon2id 1.3')
 
   const res = binding.crypto_pwhash(out, passwd, salt, opslimit, memlimit, alg)
 
@@ -1183,16 +1426,38 @@ exports.crypto_pwhash_async = function (
   alg,
   callback = undefined
 ) {
-  if (out?.byteLength < binding.crypto_pwhash_BYTES_MIN) throw new Error('out')
-  if (out?.byteLength > binding.crypto_pwhash_BYTES_MAX) throw new Error('out')
-  if (salt?.byteLength !== binding.crypto_pwhash_SALTBYTES)
-    throw new Error('salt')
-  if (opslimit < binding.crypto_pwhash_OPSLIMIT_MIN) throw new Error('opslimit')
-  if (opslimit > binding.crypto_pwhash_OPSLIMIT_MAX) throw new Error('opslimit')
-  if (memlimit < binding.crypto_pwhash_MEMLIMIT_MIN) throw new Error('memlimit')
-  if (memlimit > binding.crypto_pwhash_MEMLIMIT_MAX) throw new Error('memlimit')
-  if (alg < 1 || alg > 2)
-    throw new Error('alg must be either Argon2i 1.3 or Argon2id 1.3')
+  assert(ArrayBuffer.isView(out), 'out must be a typed array')
+  assert(ArrayBuffer.isView(passwd), 'passwd must be a typed array')
+  assert(ArrayBuffer.isView(salt), 'salt must be a typed array')
+  assert(
+    out.byteLength >= binding.crypto_pwhash_BYTES_MIN,
+    "out must be at least 'crypto_pwhash_BYTES_MIN' bytes"
+  )
+  assert(
+    out.byteLength <= binding.crypto_pwhash_BYTES_MAX,
+    "out must be at most 'crypto_pwhash_BYTES_MAX' bytes"
+  )
+  assert(
+    salt.byteLength === binding.crypto_pwhash_SALTBYTES,
+    "salt must be 'crypto_pwhash_SALTBYTES' bytes"
+  )
+  assert(
+    opslimit >= binding.crypto_pwhash_OPSLIMIT_MIN,
+    "opslimit must be at least 'crypto_pwhash_OPSLIMIT_MIN'"
+  )
+  assert(
+    opslimit <= binding.crypto_pwhash_OPSLIMIT_MAX,
+    "opslimit must be at most 'crypto_pwhash_OPSLIMIT_MAX'"
+  )
+  assert(
+    memlimit >= binding.crypto_pwhash_MEMLIMIT_MIN,
+    "memlimit must be at least 'crypto_pwhash_MEMLIMIT_MIN'"
+  )
+  assert(
+    memlimit <= binding.crypto_pwhash_MEMLIMIT_MAX,
+    "memlimit must be at most 'crypto_pwhash_MEMLIMIT_MAX'"
+  )
+  assert(alg >= 1 && alg <= 2, 'alg must be either Argon2i 1.3 or Argon2id 1.3')
 
   const [done, promise] = checkStatus(callback)
 
@@ -1220,13 +1485,30 @@ exports.crypto_pwhash_async = function (
 }
 
 exports.crypto_pwhash_str = function (out, passwd, opslimit, memlimit) {
-  if (out?.byteLength !== binding.crypto_pwhash_STRBYTES) throw new Error('out')
-  if (typeof opslimit !== 'number') throw new Error('opslimit')
-  if (opslimit < binding.crypto_pwhash_OPSLIMIT_MIN) throw new Error('opslimit')
-  if (opslimit > binding.crypto_pwhash_OPSLIMIT_MAX) throw new Error('opslimit')
-  if (typeof memlimit !== 'number') throw new Error('memlimit')
-  if (memlimit < binding.crypto_pwhash_MEMLIMIT_MIN) throw new Error('memlimit')
-  if (memlimit > binding.crypto_pwhash_MEMLIMIT_MAX) throw new Error('memlimit')
+  assert(ArrayBuffer.isView(out), 'out must be a typed array')
+  assert(ArrayBuffer.isView(passwd), 'passwd must be a typed array')
+  assert(
+    out.byteLength === binding.crypto_pwhash_STRBYTES,
+    "out must be 'crypto_pwhash_STRBYTES' bytes"
+  )
+  assert(typeof opslimit === 'number', 'opslimit must be a number')
+  assert(
+    opslimit >= binding.crypto_pwhash_OPSLIMIT_MIN,
+    "opslimit must be at least 'crypto_pwhash_OPSLIMIT_MIN'"
+  )
+  assert(
+    opslimit <= binding.crypto_pwhash_OPSLIMIT_MAX,
+    "opslimit must be at most 'crypto_pwhash_OPSLIMIT_MAX'"
+  )
+  assert(typeof memlimit === 'number', 'memlimit must be a number')
+  assert(
+    memlimit >= binding.crypto_pwhash_MEMLIMIT_MIN,
+    "memlimit must be at least 'crypto_pwhash_MEMLIMIT_MIN'"
+  )
+  assert(
+    memlimit <= binding.crypto_pwhash_MEMLIMIT_MAX,
+    "memlimit must be at most 'crypto_pwhash_MEMLIMIT_MAX'"
+  )
 
   const res = binding.crypto_pwhash_str(out, passwd, opslimit, memlimit)
 
@@ -1240,14 +1522,31 @@ exports.crypto_pwhash_str_async = function (
   memlimit,
   callback = undefined
 ) {
-  if (out?.byteLength !== binding.crypto_pwhash_STRBYTES) throw new Error('out')
-  if (!passwd?.byteLength) throw new Error('passwd')
-  if (typeof opslimit !== 'number') throw new Error('opslimit')
-  if (opslimit < binding.crypto_pwhash_OPSLIMIT_MIN) throw new Error('opslimit')
-  if (opslimit > binding.crypto_pwhash_OPSLIMIT_MAX) throw new Error('opslimit')
-  if (typeof memlimit !== 'number') throw new Error('memlimit')
-  if (memlimit < binding.crypto_pwhash_MEMLIMIT_MIN) throw new Error('memlimit')
-  if (memlimit > binding.crypto_pwhash_MEMLIMIT_MAX) throw new Error('memlimit')
+  assert(ArrayBuffer.isView(out), 'out must be a typed array')
+  assert(ArrayBuffer.isView(passwd), 'passwd must be a typed array')
+  assert(
+    out.byteLength === binding.crypto_pwhash_STRBYTES,
+    "out must be 'crypto_pwhash_STRBYTES' bytes"
+  )
+  assert(passwd.byteLength > 0, 'passwd must not be empty')
+  assert(typeof opslimit === 'number', 'opslimit must be a number')
+  assert(
+    opslimit >= binding.crypto_pwhash_OPSLIMIT_MIN,
+    "opslimit must be at least 'crypto_pwhash_OPSLIMIT_MIN'"
+  )
+  assert(
+    opslimit <= binding.crypto_pwhash_OPSLIMIT_MAX,
+    "opslimit must be at most 'crypto_pwhash_OPSLIMIT_MAX'"
+  )
+  assert(typeof memlimit === 'number', 'memlimit must be a number')
+  assert(
+    memlimit >= binding.crypto_pwhash_MEMLIMIT_MIN,
+    "memlimit must be at least 'crypto_pwhash_MEMLIMIT_MIN'"
+  )
+  assert(
+    memlimit <= binding.crypto_pwhash_MEMLIMIT_MAX,
+    "memlimit must be at most 'crypto_pwhash_MEMLIMIT_MAX'"
+  )
 
   const [done, promise] = checkStatus(callback)
 
@@ -1270,7 +1569,12 @@ exports.crypto_pwhash_str_async = function (
 }
 
 exports.crypto_pwhash_str_verify = function (str, passwd) {
-  if (str?.byteLength !== binding.crypto_pwhash_STRBYTES) throw new Error('str')
+  assert(ArrayBuffer.isView(str), 'str must be a typed array')
+  assert(ArrayBuffer.isView(passwd), 'passwd must be a typed array')
+  assert(
+    str.byteLength === binding.crypto_pwhash_STRBYTES,
+    "str must be 'crypto_pwhash_STRBYTES' bytes"
+  )
 
   return binding.crypto_pwhash_str_verify(str, passwd)
 }
@@ -1280,8 +1584,13 @@ exports.crypto_pwhash_str_verify_async = function (
   passwd,
   callback = undefined
 ) {
-  if (str?.byteLength !== binding.crypto_pwhash_STRBYTES) throw new Error('str')
-  if (!passwd?.byteLength) throw new Error('passwd')
+  assert(ArrayBuffer.isView(str), 'str must be a typed array')
+  assert(ArrayBuffer.isView(passwd), 'passwd must be a typed array')
+  assert(
+    str.byteLength === binding.crypto_pwhash_STRBYTES,
+    "str must be 'crypto_pwhash_STRBYTES' bytes"
+  )
+  assert(passwd.byteLength > 0, 'passwd must not be empty')
 
   const [done, promise] = checkStatus(callback, true)
 
@@ -1301,11 +1610,27 @@ exports.crypto_pwhash_str_verify_async = function (
 }
 
 exports.crypto_pwhash_str_needs_rehash = function (str, opslimit, memlimit) {
-  if (str?.byteLength !== binding.crypto_pwhash_STRBYTES) throw new Error('str')
-  if (opslimit < binding.crypto_pwhash_OPSLIMIT_MIN) throw new Error('opslimit')
-  if (opslimit > binding.crypto_pwhash_OPSLIMIT_MAX) throw new Error('opslimit')
-  if (memlimit < binding.crypto_pwhash_MEMLIMIT_MIN) throw new Error('memlimit')
-  if (memlimit > binding.crypto_pwhash_MEMLIMIT_MAX) throw new Error('memlimit')
+  assert(ArrayBuffer.isView(str), 'str must be a typed array')
+  assert(
+    str.byteLength === binding.crypto_pwhash_STRBYTES,
+    "str must be 'crypto_pwhash_STRBYTES' bytes"
+  )
+  assert(
+    opslimit >= binding.crypto_pwhash_OPSLIMIT_MIN,
+    "opslimit must be at least 'crypto_pwhash_OPSLIMIT_MIN'"
+  )
+  assert(
+    opslimit <= binding.crypto_pwhash_OPSLIMIT_MAX,
+    "opslimit must be at most 'crypto_pwhash_OPSLIMIT_MAX'"
+  )
+  assert(
+    memlimit >= binding.crypto_pwhash_MEMLIMIT_MIN,
+    "memlimit must be at least 'crypto_pwhash_MEMLIMIT_MIN'"
+  )
+  assert(
+    memlimit <= binding.crypto_pwhash_MEMLIMIT_MAX,
+    "memlimit must be at most 'crypto_pwhash_MEMLIMIT_MAX'"
+  )
 
   return binding.crypto_pwhash_str_needs_rehash(str, opslimit, memlimit)
 }
@@ -1317,20 +1642,37 @@ exports.crypto_pwhash_scryptsalsa208sha256 = function (
   opslimit,
   memlimit
 ) {
-  if (out?.byteLength < binding.crypto_pwhash_scryptsalsa208sha256_BYTES_MIN)
-    throw new Error('out')
-  if (out?.byteLength > binding.crypto_pwhash_scryptsalsa208sha256_BYTES_MAX)
-    throw new Error('out')
-  if (salt?.byteLength !== binding.crypto_pwhash_scryptsalsa208sha256_SALTBYTES)
-    throw new Error('salt')
-  if (opslimit < binding.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN)
-    throw new Error('opslimit')
-  if (opslimit > binding.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX)
-    throw new Error('opslimit')
-  if (memlimit < binding.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN)
-    throw new Error('memlimit')
-  if (memlimit > binding.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX)
-    throw new Error('memlimit')
+  assert(ArrayBuffer.isView(out), 'out must be a typed array')
+  assert(ArrayBuffer.isView(passwd), 'passwd must be a typed array')
+  assert(ArrayBuffer.isView(salt), 'salt must be a typed array')
+  assert(
+    out.byteLength >= binding.crypto_pwhash_scryptsalsa208sha256_BYTES_MIN,
+    "out must be at least 'crypto_pwhash_scryptsalsa208sha256_BYTES_MIN' bytes"
+  )
+  assert(
+    out.byteLength <= binding.crypto_pwhash_scryptsalsa208sha256_BYTES_MAX,
+    "out must be at most 'crypto_pwhash_scryptsalsa208sha256_BYTES_MAX' bytes"
+  )
+  assert(
+    salt.byteLength === binding.crypto_pwhash_scryptsalsa208sha256_SALTBYTES,
+    "salt must be 'crypto_pwhash_scryptsalsa208sha256_SALTBYTES' bytes"
+  )
+  assert(
+    opslimit >= binding.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN,
+    "opslimit must be at least 'crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN'"
+  )
+  assert(
+    opslimit <= binding.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX,
+    "opslimit must be at most 'crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX'"
+  )
+  assert(
+    memlimit >= binding.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN,
+    "memlimit must be at least 'crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN'"
+  )
+  assert(
+    memlimit <= binding.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX,
+    "memlimit must be at most 'crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX'"
+  )
 
   const res = binding.crypto_pwhash_scryptsalsa208sha256(
     out,
@@ -1351,21 +1693,38 @@ exports.crypto_pwhash_scryptsalsa208sha256_async = function (
   memlimit,
   callback = undefined
 ) {
-  if (out?.byteLength < binding.crypto_pwhash_scryptsalsa208sha256_BYTES_MIN)
-    throw new Error('out')
-  if (out?.byteLength > binding.crypto_pwhash_scryptsalsa208sha256_BYTES_MAX)
-    throw new Error('out')
-  if (!passwd?.byteLength) throw new Error('passwd')
-  if (salt?.byteLength !== binding.crypto_pwhash_scryptsalsa208sha256_SALTBYTES)
-    throw new Error('salt')
-  if (opslimit < binding.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN)
-    throw new Error('opslimit')
-  if (opslimit > binding.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX)
-    throw new Error('opslimit')
-  if (memlimit < binding.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN)
-    throw new Error('memlimit')
-  if (memlimit > binding.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX)
-    throw new Error('memlimit')
+  assert(ArrayBuffer.isView(out), 'out must be a typed array')
+  assert(ArrayBuffer.isView(passwd), 'passwd must be a typed array')
+  assert(ArrayBuffer.isView(salt), 'salt must be a typed array')
+  assert(
+    out.byteLength >= binding.crypto_pwhash_scryptsalsa208sha256_BYTES_MIN,
+    "out must be at least 'crypto_pwhash_scryptsalsa208sha256_BYTES_MIN' bytes"
+  )
+  assert(
+    out.byteLength <= binding.crypto_pwhash_scryptsalsa208sha256_BYTES_MAX,
+    "out must be at most 'crypto_pwhash_scryptsalsa208sha256_BYTES_MAX' bytes"
+  )
+  assert(passwd.byteLength > 0, 'passwd must not be empty')
+  assert(
+    salt.byteLength === binding.crypto_pwhash_scryptsalsa208sha256_SALTBYTES,
+    "salt must be 'crypto_pwhash_scryptsalsa208sha256_SALTBYTES' bytes"
+  )
+  assert(
+    opslimit >= binding.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN,
+    "opslimit must be at least 'crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN'"
+  )
+  assert(
+    opslimit <= binding.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX,
+    "opslimit must be at most 'crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX'"
+  )
+  assert(
+    memlimit >= binding.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN,
+    "memlimit must be at least 'crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN'"
+  )
+  assert(
+    memlimit <= binding.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX,
+    "memlimit must be at most 'crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX'"
+  )
 
   const [done, promise] = checkStatus(callback)
 
@@ -1398,17 +1757,29 @@ exports.crypto_pwhash_scryptsalsa208sha256_str_async = function (
   memlimit,
   callback = undefined
 ) {
-  if (out?.byteLength !== binding.crypto_pwhash_scryptsalsa208sha256_STRBYTES)
-    throw new Error('out')
-  if (!passwd?.byteLength) throw new Error('passwd')
-  if (opslimit < binding.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN)
-    throw new Error('opslimit')
-  if (opslimit > binding.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX)
-    throw new Error('opslimit')
-  if (memlimit < binding.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN)
-    throw new Error('memlimit')
-  if (memlimit > binding.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX)
-    throw new Error('memlimit')
+  assert(ArrayBuffer.isView(out), 'out must be a typed array')
+  assert(ArrayBuffer.isView(passwd), 'passwd must be a typed array')
+  assert(
+    out.byteLength === binding.crypto_pwhash_scryptsalsa208sha256_STRBYTES,
+    "out must be 'crypto_pwhash_scryptsalsa208sha256_STRBYTES' bytes"
+  )
+  assert(passwd.byteLength > 0, 'passwd must not be empty')
+  assert(
+    opslimit >= binding.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN,
+    "opslimit must be at least 'crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN'"
+  )
+  assert(
+    opslimit <= binding.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX,
+    "opslimit must be at most 'crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX'"
+  )
+  assert(
+    memlimit >= binding.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN,
+    "memlimit must be at least 'crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN'"
+  )
+  assert(
+    memlimit <= binding.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX,
+    "memlimit must be at most 'crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX'"
+  )
 
   const [done, promise] = checkStatus(callback)
 
@@ -1436,17 +1807,29 @@ exports.crypto_pwhash_scryptsalsa208sha256_str = function (
   opslimit,
   memlimit
 ) {
-  if (out?.byteLength !== binding.crypto_pwhash_scryptsalsa208sha256_STRBYTES)
-    throw new Error('out')
-  if (!passwd?.byteLength) throw new Error('passwd')
-  if (opslimit < binding.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN)
-    throw new Error('opslimit')
-  if (opslimit > binding.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX)
-    throw new Error('opslimit')
-  if (memlimit < binding.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN)
-    throw new Error('memlimit')
-  if (memlimit > binding.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX)
-    throw new Error('memlimit')
+  assert(ArrayBuffer.isView(out), 'out must be a typed array')
+  assert(ArrayBuffer.isView(passwd), 'passwd must be a typed array')
+  assert(
+    out.byteLength === binding.crypto_pwhash_scryptsalsa208sha256_STRBYTES,
+    "out must be 'crypto_pwhash_scryptsalsa208sha256_STRBYTES' bytes"
+  )
+  assert(passwd.byteLength > 0, 'passwd must not be empty')
+  assert(
+    opslimit >= binding.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN,
+    "opslimit must be at least 'crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN'"
+  )
+  assert(
+    opslimit <= binding.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX,
+    "opslimit must be at most 'crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX'"
+  )
+  assert(
+    memlimit >= binding.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN,
+    "memlimit must be at least 'crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN'"
+  )
+  assert(
+    memlimit <= binding.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX,
+    "memlimit must be at most 'crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX'"
+  )
 
   const res = binding.crypto_pwhash_scryptsalsa208sha256_str(
     out,
@@ -1463,9 +1846,13 @@ exports.crypto_pwhash_scryptsalsa208sha256_str_verify_async = function (
   passwd,
   callback = undefined
 ) {
-  if (str?.byteLength !== binding.crypto_pwhash_scryptsalsa208sha256_STRBYTES)
-    throw new Error('str')
-  if (!passwd?.byteLength) throw new Error('passwd')
+  assert(ArrayBuffer.isView(str), 'str must be a typed array')
+  assert(ArrayBuffer.isView(passwd), 'passwd must be a typed array')
+  assert(
+    str.byteLength === binding.crypto_pwhash_scryptsalsa208sha256_STRBYTES,
+    "str must be 'crypto_pwhash_scryptsalsa208sha256_STRBYTES' bytes"
+  )
+  assert(passwd.byteLength > 0, 'passwd must not be empty')
 
   const [done, promise] = checkStatus(callback, true)
 
@@ -1485,9 +1872,13 @@ exports.crypto_pwhash_scryptsalsa208sha256_str_verify_async = function (
 }
 
 exports.crypto_pwhash_scryptsalsa208sha256_str_verify = function (str, passwd) {
-  if (str?.byteLength !== binding.crypto_pwhash_scryptsalsa208sha256_STRBYTES)
-    throw new Error('str')
-  if (!passwd?.byteLength) throw new Error('passwd')
+  assert(ArrayBuffer.isView(str), 'str must be a typed array')
+  assert(ArrayBuffer.isView(passwd), 'passwd must be a typed array')
+  assert(
+    str.byteLength === binding.crypto_pwhash_scryptsalsa208sha256_STRBYTES,
+    "str must be 'crypto_pwhash_scryptsalsa208sha256_STRBYTES' bytes"
+  )
+  assert(passwd.byteLength > 0, 'passwd must not be empty')
 
   return binding.crypto_pwhash_scryptsalsa208sha256_str_verify(str, passwd)
 }
@@ -1497,12 +1888,27 @@ exports.crypto_pwhash_scryptsalsa208sha256_str_needs_rehash = function (
   opslimit,
   memlimit
 ) {
-  if (str?.byteLength !== binding.crypto_pwhash_scryptsalsa208sha256_STRBYTES)
-    throw new Error('str')
-  if (opslimit < binding.crypto_pwhash_OPSLIMIT_MIN) throw new Error('opslimit')
-  if (opslimit > binding.crypto_pwhash_OPSLIMIT_MAX) throw new Error('opslimit')
-  if (memlimit < binding.crypto_pwhash_MEMLIMIT_MIN) throw new Error('memlimit')
-  if (memlimit > binding.crypto_pwhash_MEMLIMIT_MAX) throw new Error('memlimit')
+  assert(ArrayBuffer.isView(str), 'str must be a typed array')
+  assert(
+    str.byteLength === binding.crypto_pwhash_scryptsalsa208sha256_STRBYTES,
+    "str must be 'crypto_pwhash_scryptsalsa208sha256_STRBYTES' bytes"
+  )
+  assert(
+    opslimit >= binding.crypto_pwhash_OPSLIMIT_MIN,
+    "opslimit must be at least 'crypto_pwhash_OPSLIMIT_MIN'"
+  )
+  assert(
+    opslimit <= binding.crypto_pwhash_OPSLIMIT_MAX,
+    "opslimit must be at most 'crypto_pwhash_OPSLIMIT_MAX'"
+  )
+  assert(
+    memlimit >= binding.crypto_pwhash_MEMLIMIT_MIN,
+    "memlimit must be at least 'crypto_pwhash_MEMLIMIT_MIN'"
+  )
+  assert(
+    memlimit <= binding.crypto_pwhash_MEMLIMIT_MAX,
+    "memlimit must be at most 'crypto_pwhash_MEMLIMIT_MAX'"
+  )
 
   return binding.crypto_pwhash_scryptsalsa208sha256_str_needs_rehash(
     str,
@@ -1514,8 +1920,16 @@ exports.crypto_pwhash_scryptsalsa208sha256_str_needs_rehash = function (
 // crypto_kx
 
 exports.crypto_kx_keypair = function (pk, sk) {
-  if (pk?.byteLength !== binding.crypto_kx_PUBLICKEYBYTES) throw new Error('pk')
-  if (sk?.byteLength !== binding.crypto_kx_SECRETKEYBYTES) throw new Error('sk')
+  assert(ArrayBuffer.isView(pk), 'pk must be a typed array')
+  assert(ArrayBuffer.isView(sk), 'sk must be a typed array')
+  assert(
+    pk.byteLength === binding.crypto_kx_PUBLICKEYBYTES,
+    "pk must be 'crypto_kx_PUBLICKEYBYTES' bytes"
+  )
+  assert(
+    sk.byteLength === binding.crypto_kx_SECRETKEYBYTES,
+    "sk must be 'crypto_kx_SECRETKEYBYTES' bytes"
+  )
 
   const res = binding.crypto_kx_keypair(pk, sk)
 
@@ -1523,9 +1937,21 @@ exports.crypto_kx_keypair = function (pk, sk) {
 }
 
 exports.crypto_kx_seed_keypair = function (pk, sk, seed) {
-  if (pk?.byteLength !== binding.crypto_kx_PUBLICKEYBYTES) throw new Error('pk')
-  if (sk?.byteLength !== binding.crypto_kx_SECRETKEYBYTES) throw new Error('sk')
-  if (seed?.byteLength !== binding.crypto_kx_SEEDBYTES) throw new Error('seed')
+  assert(ArrayBuffer.isView(pk), 'pk must be a typed array')
+  assert(ArrayBuffer.isView(sk), 'sk must be a typed array')
+  assert(ArrayBuffer.isView(seed), 'seed must be a typed array')
+  assert(
+    pk.byteLength === binding.crypto_kx_PUBLICKEYBYTES,
+    "pk must be 'crypto_kx_PUBLICKEYBYTES' bytes"
+  )
+  assert(
+    sk.byteLength === binding.crypto_kx_SECRETKEYBYTES,
+    "sk must be 'crypto_kx_SECRETKEYBYTES' bytes"
+  )
+  assert(
+    seed.byteLength === binding.crypto_kx_SEEDBYTES,
+    "seed must be 'crypto_kx_SEEDBYTES' bytes"
+  )
 
   const res = binding.crypto_kx_seed_keypair(pk, sk, seed)
 
@@ -1543,25 +1969,38 @@ exports.crypto_kx_client_session_keys = function (
   rx ??= undefined
   tx ??= undefined
 
-  if (!rx && !tx) throw new Error('at least one session key must be specified')
+  assert(rx || tx, 'at least one session key must be specified')
 
-  if (rx)
+  if (rx) {
+    assert(ArrayBuffer.isView(rx), 'rx must be a typed array')
     assert(
       rx.byteLength === binding.crypto_kx_SESSIONKEYBYTES,
-      'receiving key buffer must be "crypto_kx_SESSIONKEYBYTES" bytes or null'
+      "rx must be 'crypto_kx_SESSIONKEYBYTES' bytes"
     )
-  if (tx)
+  }
+  if (tx) {
+    assert(ArrayBuffer.isView(tx), 'tx must be a typed array')
     assert(
       tx.byteLength === binding.crypto_kx_SESSIONKEYBYTES,
-      'transmitting key buffer must be "crypto_kx_SESSIONKEYBYTES" bytes or null'
+      "tx must be 'crypto_kx_SESSIONKEYBYTES' bytes"
     )
+  }
 
-  if (clientPk?.byteLength !== binding.crypto_kx_PUBLICKEYBYTES)
-    throw new Error('client_pk')
-  if (clientSk?.byteLength !== binding.crypto_kx_SECRETKEYBYTES)
-    throw new Error('client_sk')
-  if (serverPk?.byteLength !== binding.crypto_kx_PUBLICKEYBYTES)
-    throw new Error('server_pk')
+  assert(ArrayBuffer.isView(clientPk), 'clientPk must be a typed array')
+  assert(ArrayBuffer.isView(clientSk), 'clientSk must be a typed array')
+  assert(ArrayBuffer.isView(serverPk), 'serverPk must be a typed array')
+  assert(
+    clientPk.byteLength === binding.crypto_kx_PUBLICKEYBYTES,
+    "clientPk must be 'crypto_kx_PUBLICKEYBYTES' bytes"
+  )
+  assert(
+    clientSk.byteLength === binding.crypto_kx_SECRETKEYBYTES,
+    "clientSk must be 'crypto_kx_SECRETKEYBYTES' bytes"
+  )
+  assert(
+    serverPk.byteLength === binding.crypto_kx_PUBLICKEYBYTES,
+    "serverPk must be 'crypto_kx_PUBLICKEYBYTES' bytes"
+  )
 
   const res = binding.crypto_kx_client_session_keys(
     rx,
@@ -1584,25 +2023,38 @@ exports.crypto_kx_server_session_keys = function (
   rx ??= undefined
   tx ??= undefined
 
-  if (!rx && !tx) throw new Error('at least one session key must be specified')
+  assert(rx || tx, 'at least one session key must be specified')
 
-  if (rx)
+  if (rx) {
+    assert(ArrayBuffer.isView(rx), 'rx must be a typed array')
     assert(
       rx.byteLength === binding.crypto_kx_SESSIONKEYBYTES,
-      'receiving key buffer must be "crypto_kx_SESSIONKEYBYTES" bytes or null'
+      "rx must be 'crypto_kx_SESSIONKEYBYTES' bytes"
     )
-  if (tx)
+  }
+  if (tx) {
+    assert(ArrayBuffer.isView(tx), 'tx must be a typed array')
     assert(
       tx.byteLength === binding.crypto_kx_SESSIONKEYBYTES,
-      'transmitting key buffer must be "crypto_kx_SESSIONKEYBYTES" bytes or null'
+      "tx must be 'crypto_kx_SESSIONKEYBYTES' bytes"
     )
+  }
 
-  if (serverPk?.byteLength !== binding.crypto_kx_PUBLICKEYBYTES)
-    throw new Error('server_pk')
-  if (serverSk?.byteLength !== binding.crypto_kx_SECRETKEYBYTES)
-    throw new Error('server_sk')
-  if (clientPk?.byteLength !== binding.crypto_kx_PUBLICKEYBYTES)
-    throw new Error('client_pk')
+  assert(ArrayBuffer.isView(serverPk), 'serverPk must be a typed array')
+  assert(ArrayBuffer.isView(serverSk), 'serverSk must be a typed array')
+  assert(ArrayBuffer.isView(clientPk), 'clientPk must be a typed array')
+  assert(
+    serverPk.byteLength === binding.crypto_kx_PUBLICKEYBYTES,
+    "serverPk must be 'crypto_kx_PUBLICKEYBYTES' bytes"
+  )
+  assert(
+    serverSk.byteLength === binding.crypto_kx_SECRETKEYBYTES,
+    "serverSk must be 'crypto_kx_SECRETKEYBYTES' bytes"
+  )
+  assert(
+    clientPk.byteLength === binding.crypto_kx_PUBLICKEYBYTES,
+    "clientPk must be 'crypto_kx_PUBLICKEYBYTES' bytes"
+  )
 
   const res = binding.crypto_kx_server_session_keys(
     rx,
@@ -1618,9 +2070,16 @@ exports.crypto_kx_server_session_keys = function (
 // crypto_scalarmult
 
 exports.crypto_scalarmult_base = function (q, n) {
-  if (q?.byteLength !== binding.crypto_scalarmult_BYTES) throw new Error('q')
-  if (n?.byteLength !== binding.crypto_scalarmult_SCALARBYTES)
-    throw new Error('n')
+  assert(ArrayBuffer.isView(q), 'q must be a typed array')
+  assert(
+    q.byteLength === binding.crypto_scalarmult_BYTES,
+    "q must be 'crypto_scalarmult_BYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(
+    n.byteLength === binding.crypto_scalarmult_SCALARBYTES,
+    "n must be 'crypto_scalarmult_SCALARBYTES' bytes"
+  )
 
   const res = binding.crypto_scalarmult_base(q, n)
 
@@ -1628,10 +2087,21 @@ exports.crypto_scalarmult_base = function (q, n) {
 }
 
 exports.crypto_scalarmult = function (q, n, p) {
-  if (q?.byteLength !== binding.crypto_scalarmult_BYTES) throw new Error('q')
-  if (n?.byteLength !== binding.crypto_scalarmult_SCALARBYTES)
-    throw new Error('n')
-  if (p?.byteLength !== binding.crypto_scalarmult_BYTES) throw new Error('p')
+  assert(ArrayBuffer.isView(q), 'q must be a typed array')
+  assert(
+    q.byteLength === binding.crypto_scalarmult_BYTES,
+    "q must be 'crypto_scalarmult_BYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(
+    n.byteLength === binding.crypto_scalarmult_SCALARBYTES,
+    "n must be 'crypto_scalarmult_SCALARBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(p), 'p must be a typed array')
+  assert(
+    p.byteLength === binding.crypto_scalarmult_BYTES,
+    "p must be 'crypto_scalarmult_BYTES' bytes"
+  )
 
   const res = binding.crypto_scalarmult(q, n, p)
 
@@ -1639,10 +2109,16 @@ exports.crypto_scalarmult = function (q, n, p) {
 }
 
 exports.crypto_scalarmult_ed25519_base = function (q, n) {
-  if (q?.byteLength !== binding.crypto_scalarmult_ed25519_BYTES)
-    throw new Error('q')
-  if (n?.byteLength !== binding.crypto_scalarmult_ed25519_SCALARBYTES)
-    throw new Error('n')
+  assert(ArrayBuffer.isView(q), 'q must be a typed array')
+  assert(
+    q.byteLength === binding.crypto_scalarmult_ed25519_BYTES,
+    "q must be 'crypto_scalarmult_ed25519_BYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(
+    n.byteLength === binding.crypto_scalarmult_ed25519_SCALARBYTES,
+    "n must be 'crypto_scalarmult_ed25519_SCALARBYTES' bytes"
+  )
 
   const res = binding.crypto_scalarmult_ed25519_base(q, n)
 
@@ -1650,12 +2126,21 @@ exports.crypto_scalarmult_ed25519_base = function (q, n) {
 }
 
 exports.crypto_scalarmult_ed25519 = function (q, n, p) {
-  if (q?.byteLength !== binding.crypto_scalarmult_ed25519_BYTES)
-    throw new Error('q')
-  if (n?.byteLength !== binding.crypto_scalarmult_ed25519_SCALARBYTES)
-    throw new Error('n')
-  if (p?.byteLength !== binding.crypto_scalarmult_ed25519_BYTES)
-    throw new Error('p')
+  assert(ArrayBuffer.isView(q), 'q must be a typed array')
+  assert(
+    q.byteLength === binding.crypto_scalarmult_ed25519_BYTES,
+    "q must be 'crypto_scalarmult_ed25519_BYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(
+    n.byteLength === binding.crypto_scalarmult_ed25519_SCALARBYTES,
+    "n must be 'crypto_scalarmult_ed25519_SCALARBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(p), 'p must be a typed array')
+  assert(
+    p.byteLength === binding.crypto_scalarmult_ed25519_BYTES,
+    "p must be 'crypto_scalarmult_ed25519_BYTES' bytes"
+  )
 
   const res = binding.crypto_scalarmult_ed25519(q, n, p)
 
@@ -1663,15 +2148,26 @@ exports.crypto_scalarmult_ed25519 = function (q, n, p) {
 }
 
 exports.crypto_core_ed25519_is_valid_point = function (p) {
-  if (p?.byteLength !== binding.crypto_core_ed25519_BYTES) throw new Error('p')
+  assert(ArrayBuffer.isView(p), 'p must be a typed array')
+  assert(
+    p.byteLength === binding.crypto_core_ed25519_BYTES,
+    "p must be 'crypto_core_ed25519_BYTES' bytes"
+  )
 
   return binding.crypto_core_ed25519_is_valid_point(p)
 }
 
 exports.crypto_core_ed25519_from_uniform = function (p, r) {
-  if (p?.byteLength !== binding.crypto_core_ed25519_BYTES) throw new Error('p')
-  if (r?.byteLength !== binding.crypto_core_ed25519_UNIFORMBYTES)
-    throw new Error('r')
+  assert(ArrayBuffer.isView(p), 'p must be a typed array')
+  assert(
+    p.byteLength === binding.crypto_core_ed25519_BYTES,
+    "p must be 'crypto_core_ed25519_BYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(r), 'r must be a typed array')
+  assert(
+    r.byteLength === binding.crypto_core_ed25519_UNIFORMBYTES,
+    "r must be 'crypto_core_ed25519_UNIFORMBYTES' bytes"
+  )
 
   const res = binding.crypto_core_ed25519_from_uniform(p, r)
 
@@ -1679,10 +2175,16 @@ exports.crypto_core_ed25519_from_uniform = function (p, r) {
 }
 
 exports.crypto_scalarmult_ed25519_base_noclamp = function (q, n) {
-  if (q?.byteLength !== binding.crypto_scalarmult_ed25519_BYTES)
-    throw new Error('q')
-  if (n?.byteLength !== binding.crypto_scalarmult_ed25519_SCALARBYTES)
-    throw new Error('n')
+  assert(ArrayBuffer.isView(q), 'q must be a typed array')
+  assert(
+    q.byteLength === binding.crypto_scalarmult_ed25519_BYTES,
+    "q must be 'crypto_scalarmult_ed25519_BYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(
+    n.byteLength === binding.crypto_scalarmult_ed25519_SCALARBYTES,
+    "n must be 'crypto_scalarmult_ed25519_SCALARBYTES' bytes"
+  )
 
   const res = binding.crypto_scalarmult_ed25519_base_noclamp(q, n)
 
@@ -1690,12 +2192,21 @@ exports.crypto_scalarmult_ed25519_base_noclamp = function (q, n) {
 }
 
 exports.crypto_scalarmult_ed25519_noclamp = function (q, n, p) {
-  if (q?.byteLength !== binding.crypto_scalarmult_ed25519_BYTES)
-    throw new Error('q')
-  if (n?.byteLength !== binding.crypto_scalarmult_ed25519_SCALARBYTES)
-    throw new Error('n')
-  if (p?.byteLength !== binding.crypto_scalarmult_ed25519_BYTES)
-    throw new Error('p')
+  assert(ArrayBuffer.isView(q), 'q must be a typed array')
+  assert(
+    q.byteLength === binding.crypto_scalarmult_ed25519_BYTES,
+    "q must be 'crypto_scalarmult_ed25519_BYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(
+    n.byteLength === binding.crypto_scalarmult_ed25519_SCALARBYTES,
+    "n must be 'crypto_scalarmult_ed25519_SCALARBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(p), 'p must be a typed array')
+  assert(
+    p.byteLength === binding.crypto_scalarmult_ed25519_BYTES,
+    "p must be 'crypto_scalarmult_ed25519_BYTES' bytes"
+  )
 
   const res = binding.crypto_scalarmult_ed25519_noclamp(q, n, p)
 
@@ -1705,9 +2216,21 @@ exports.crypto_scalarmult_ed25519_noclamp = function (q, n, p) {
 // crypto_core
 
 exports.crypto_core_ed25519_add = function (r, p, q) {
-  if (r?.byteLength !== binding.crypto_core_ed25519_BYTES) throw new Error('r')
-  if (p?.byteLength !== binding.crypto_core_ed25519_BYTES) throw new Error('p')
-  if (q?.byteLength !== binding.crypto_core_ed25519_BYTES) throw new Error('q')
+  assert(ArrayBuffer.isView(r), 'r must be a typed array')
+  assert(
+    r.byteLength === binding.crypto_core_ed25519_BYTES,
+    "r must be 'crypto_core_ed25519_BYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(p), 'p must be a typed array')
+  assert(
+    p.byteLength === binding.crypto_core_ed25519_BYTES,
+    "p must be 'crypto_core_ed25519_BYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(q), 'q must be a typed array')
+  assert(
+    q.byteLength === binding.crypto_core_ed25519_BYTES,
+    "q must be 'crypto_core_ed25519_BYTES' bytes"
+  )
 
   const res = binding.crypto_core_ed25519_add(r, p, q)
 
@@ -1715,9 +2238,21 @@ exports.crypto_core_ed25519_add = function (r, p, q) {
 }
 
 exports.crypto_core_ed25519_sub = function (r, p, q) {
-  if (r?.byteLength !== binding.crypto_core_ed25519_BYTES) throw new Error('r')
-  if (p?.byteLength !== binding.crypto_core_ed25519_BYTES) throw new Error('p')
-  if (q?.byteLength !== binding.crypto_core_ed25519_BYTES) throw new Error('q')
+  assert(ArrayBuffer.isView(r), 'r must be a typed array')
+  assert(
+    r.byteLength === binding.crypto_core_ed25519_BYTES,
+    "r must be 'crypto_core_ed25519_BYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(p), 'p must be a typed array')
+  assert(
+    p.byteLength === binding.crypto_core_ed25519_BYTES,
+    "p must be 'crypto_core_ed25519_BYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(q), 'q must be a typed array')
+  assert(
+    q.byteLength === binding.crypto_core_ed25519_BYTES,
+    "q must be 'crypto_core_ed25519_BYTES' bytes"
+  )
 
   const res = binding.crypto_core_ed25519_sub(r, p, q)
 
@@ -1725,66 +2260,111 @@ exports.crypto_core_ed25519_sub = function (r, p, q) {
 }
 
 exports.crypto_core_ed25519_scalar_random = function (r) {
-  if (r?.byteLength !== binding.crypto_core_ed25519_SCALARBYTES)
-    throw new Error('r')
+  assert(ArrayBuffer.isView(r), 'r must be a typed array')
+  assert(
+    r.byteLength === binding.crypto_core_ed25519_SCALARBYTES,
+    "r must be 'crypto_core_ed25519_SCALARBYTES' bytes"
+  )
 
   binding.crypto_core_ed25519_scalar_random(r)
 }
 
 exports.crypto_core_ed25519_scalar_reduce = function (r, s) {
-  if (r?.byteLength !== binding.crypto_core_ed25519_SCALARBYTES)
-    throw new Error('r')
-  if (s?.byteLength !== binding.crypto_core_ed25519_NONREDUCEDSCALARBYTES)
-    throw new Error('s')
+  assert(ArrayBuffer.isView(r), 'r must be a typed array')
+  assert(
+    r.byteLength === binding.crypto_core_ed25519_SCALARBYTES,
+    "r must be 'crypto_core_ed25519_SCALARBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(s), 's must be a typed array')
+  assert(
+    s.byteLength === binding.crypto_core_ed25519_NONREDUCEDSCALARBYTES,
+    "s must be 'crypto_core_ed25519_NONREDUCEDSCALARBYTES' bytes"
+  )
 
   binding.crypto_core_ed25519_scalar_reduce(r, s)
 }
 
 exports.crypto_core_ed25519_scalar_invert = function (recip, s) {
-  if (recip?.byteLength !== binding.crypto_core_ed25519_SCALARBYTES)
-    throw new Error('recip')
-  if (s?.byteLength !== binding.crypto_core_ed25519_SCALARBYTES)
-    throw new Error('s')
+  assert(ArrayBuffer.isView(recip), 'recip must be a typed array')
+  assert(
+    recip.byteLength === binding.crypto_core_ed25519_SCALARBYTES,
+    "recip must be 'crypto_core_ed25519_SCALARBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(s), 's must be a typed array')
+  assert(
+    s.byteLength === binding.crypto_core_ed25519_SCALARBYTES,
+    "s must be 'crypto_core_ed25519_SCALARBYTES' bytes"
+  )
 
   binding.crypto_core_ed25519_scalar_invert(recip, s)
 }
 
 exports.crypto_core_ed25519_scalar_negate = function (neg, s) {
-  if (neg?.byteLength !== binding.crypto_core_ed25519_SCALARBYTES)
-    throw new Error('neg')
-  if (s?.byteLength !== binding.crypto_core_ed25519_SCALARBYTES)
-    throw new Error('s')
+  assert(ArrayBuffer.isView(neg), 'neg must be a typed array')
+  assert(
+    neg.byteLength === binding.crypto_core_ed25519_SCALARBYTES,
+    "neg must be 'crypto_core_ed25519_SCALARBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(s), 's must be a typed array')
+  assert(
+    s.byteLength === binding.crypto_core_ed25519_SCALARBYTES,
+    "s must be 'crypto_core_ed25519_SCALARBYTES' bytes"
+  )
 
   binding.crypto_core_ed25519_scalar_negate(neg, s)
 }
 
 exports.crypto_core_ed25519_scalar_complement = function (comp, s) {
-  if (comp?.byteLength !== binding.crypto_core_ed25519_SCALARBYTES)
-    throw new Error('comp')
-  if (s?.byteLength !== binding.crypto_core_ed25519_SCALARBYTES)
-    throw new Error('s')
+  assert(ArrayBuffer.isView(comp), 'comp must be a typed array')
+  assert(
+    comp.byteLength === binding.crypto_core_ed25519_SCALARBYTES,
+    "comp must be 'crypto_core_ed25519_SCALARBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(s), 's must be a typed array')
+  assert(
+    s.byteLength === binding.crypto_core_ed25519_SCALARBYTES,
+    "s must be 'crypto_core_ed25519_SCALARBYTES' bytes"
+  )
 
   binding.crypto_core_ed25519_scalar_complement(comp, s)
 }
 
 exports.crypto_core_ed25519_scalar_add = function (z, x, y) {
-  if (z?.byteLength !== binding.crypto_core_ed25519_SCALARBYTES)
-    throw new Error('z')
-  if (x?.byteLength !== binding.crypto_core_ed25519_SCALARBYTES)
-    throw new Error('x')
-  if (y?.byteLength !== binding.crypto_core_ed25519_SCALARBYTES)
-    throw new Error('y')
+  assert(ArrayBuffer.isView(z), 'z must be a typed array')
+  assert(
+    z.byteLength === binding.crypto_core_ed25519_SCALARBYTES,
+    "z must be 'crypto_core_ed25519_SCALARBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(x), 'x must be a typed array')
+  assert(
+    x.byteLength === binding.crypto_core_ed25519_SCALARBYTES,
+    "x must be 'crypto_core_ed25519_SCALARBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(y), 'y must be a typed array')
+  assert(
+    y.byteLength === binding.crypto_core_ed25519_SCALARBYTES,
+    "y must be 'crypto_core_ed25519_SCALARBYTES' bytes"
+  )
 
   binding.crypto_core_ed25519_scalar_add(z, x, y)
 }
 
 exports.crypto_core_ed25519_scalar_sub = function (z, x, y) {
-  if (z?.byteLength !== binding.crypto_core_ed25519_SCALARBYTES)
-    throw new Error('z')
-  if (x?.byteLength !== binding.crypto_core_ed25519_SCALARBYTES)
-    throw new Error('x')
-  if (y?.byteLength !== binding.crypto_core_ed25519_SCALARBYTES)
-    throw new Error('y')
+  assert(ArrayBuffer.isView(z), 'z must be a typed array')
+  assert(
+    z.byteLength === binding.crypto_core_ed25519_SCALARBYTES,
+    "z must be 'crypto_core_ed25519_SCALARBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(x), 'x must be a typed array')
+  assert(
+    x.byteLength === binding.crypto_core_ed25519_SCALARBYTES,
+    "x must be 'crypto_core_ed25519_SCALARBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(y), 'y must be a typed array')
+  assert(
+    y.byteLength === binding.crypto_core_ed25519_SCALARBYTES,
+    "y must be 'crypto_core_ed25519_SCALARBYTES' bytes"
+  )
 
   binding.crypto_core_ed25519_scalar_sub(z, x, y)
 }
@@ -1792,8 +2372,16 @@ exports.crypto_core_ed25519_scalar_sub = function (z, x, y) {
 // crypto_shorthash
 
 exports.crypto_shorthash = function (out, input, k) {
-  if (out?.byteLength !== binding.crypto_shorthash_BYTES) throw new Error('out')
-  if (k?.byteLength !== binding.crypto_shorthash_KEYBYTES) throw new Error('k')
+  assert(ArrayBuffer.isView(out), 'out must be a typed array')
+  assert(
+    out.byteLength === binding.crypto_shorthash_BYTES,
+    "out must be 'crypto_shorthash_BYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(
+    k.byteLength === binding.crypto_shorthash_KEYBYTES,
+    "k must be 'crypto_shorthash_KEYBYTES' bytes"
+  )
 
   const res = binding.crypto_shorthash(out, input, k)
 
@@ -1803,19 +2391,35 @@ exports.crypto_shorthash = function (out, input, k) {
 // crypto_kdf
 
 exports.crypto_kdf_keygen = function (key) {
-  if (key?.byteLength !== binding.crypto_kdf_KEYBYTES) throw new Error('key')
+  assert(ArrayBuffer.isView(key), 'key must be a typed array')
+  assert(
+    key.byteLength === binding.crypto_kdf_KEYBYTES,
+    "key must be 'crypto_kdf_KEYBYTES' bytes"
+  )
 
   binding.crypto_kdf_keygen(key)
 }
 
 exports.crypto_kdf_derive_from_key = function (subkey, subkeyId, ctx, key) {
-  if (subkey?.byteLength < binding.crypto_kdf_BYTES_MIN)
-    throw new Error('subkey')
-  if (subkey?.byteLength > binding.crypto_kdf_BYTES_MAX)
-    throw new Error('subkey')
-  if (ctx?.byteLength !== binding.crypto_kdf_CONTEXTBYTES)
-    throw new Error('ctx')
-  if (key?.byteLength !== binding.crypto_kdf_KEYBYTES) throw new Error('key')
+  assert(ArrayBuffer.isView(subkey), 'subkey must be a typed array')
+  assert(
+    subkey.byteLength >= binding.crypto_kdf_BYTES_MIN,
+    "subkey must be at least 'crypto_kdf_BYTES_MIN' bytes"
+  )
+  assert(
+    subkey.byteLength <= binding.crypto_kdf_BYTES_MAX,
+    "subkey must be at most 'crypto_kdf_BYTES_MAX' bytes"
+  )
+  assert(ArrayBuffer.isView(ctx), 'ctx must be a typed array')
+  assert(
+    ctx.byteLength === binding.crypto_kdf_CONTEXTBYTES,
+    "ctx must be 'crypto_kdf_CONTEXTBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(key), 'key must be a typed array')
+  assert(
+    key.byteLength === binding.crypto_kdf_KEYBYTES,
+    "key must be 'crypto_kdf_KEYBYTES' bytes"
+  )
 
   const res = binding.crypto_kdf_derive_from_key(subkey, subkeyId, ctx, key)
 
@@ -1825,7 +2429,11 @@ exports.crypto_kdf_derive_from_key = function (subkey, subkeyId, ctx, key) {
 // crypto_hash
 
 exports.crypto_hash = function (out, input) {
-  if (out?.byteLength !== binding.crypto_hash_BYTES) throw new Error('out')
+  assert(ArrayBuffer.isView(out), 'out must be a typed array')
+  assert(
+    out.byteLength === binding.crypto_hash_BYTES,
+    "out must be 'crypto_hash_BYTES' bytes"
+  )
 
   const res = binding.crypto_hash(out, input)
 
@@ -1833,8 +2441,11 @@ exports.crypto_hash = function (out, input) {
 }
 
 exports.crypto_hash_sha256 = function (out, input) {
-  if (out?.byteLength !== binding.crypto_hash_sha256_BYTES)
-    throw new Error('out')
+  assert(ArrayBuffer.isView(out), 'out must be a typed array')
+  assert(
+    out.byteLength === binding.crypto_hash_sha256_BYTES,
+    "out must be 'crypto_hash_sha256_BYTES' bytes"
+  )
 
   const res = binding.crypto_hash_sha256(out, input)
 
@@ -1842,9 +2453,11 @@ exports.crypto_hash_sha256 = function (out, input) {
 }
 
 exports.crypto_hash_sha256_init = function (state) {
-  if (state?.byteLength !== binding.crypto_hash_sha256_STATEBYTES) {
-    throw new Error("state must be 'crypto_hash_sha256_STATEBYTES' bytes")
-  }
+  assert(ArrayBuffer.isView(state), 'state must be a typed array')
+  assert(
+    state.byteLength === binding.crypto_hash_sha256_STATEBYTES,
+    "state must be 'crypto_hash_sha256_STATEBYTES' bytes"
+  )
 
   const res = binding.crypto_hash_sha256_init(state)
 
@@ -1852,9 +2465,11 @@ exports.crypto_hash_sha256_init = function (state) {
 }
 
 exports.crypto_hash_sha256_update = function (state, input) {
-  if (state?.byteLength !== binding.crypto_hash_sha256_STATEBYTES) {
-    throw new Error("state must be 'crypto_hash_sha256_STATEBYTES' bytes")
-  }
+  assert(ArrayBuffer.isView(state), 'state must be a typed array')
+  assert(
+    state.byteLength === binding.crypto_hash_sha256_STATEBYTES,
+    "state must be 'crypto_hash_sha256_STATEBYTES' bytes"
+  )
 
   const res = binding.crypto_hash_sha256_update(state, input)
 
@@ -1862,11 +2477,16 @@ exports.crypto_hash_sha256_update = function (state, input) {
 }
 
 exports.crypto_hash_sha256_final = function (state, out) {
-  if (state?.byteLength !== binding.crypto_hash_sha256_STATEBYTES) {
-    throw new Error("state must be 'crypto_hash_sha256_STATEBYTES' bytes")
-  }
-  if (out?.byteLength !== binding.crypto_hash_sha256_BYTES)
-    throw new Error('state')
+  assert(ArrayBuffer.isView(state), 'state must be a typed array')
+  assert(
+    state.byteLength === binding.crypto_hash_sha256_STATEBYTES,
+    "state must be 'crypto_hash_sha256_STATEBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(out), 'out must be a typed array')
+  assert(
+    out.byteLength === binding.crypto_hash_sha256_BYTES,
+    "out must be 'crypto_hash_sha256_BYTES' bytes"
+  )
 
   const res = binding.crypto_hash_sha256_final(state, out)
 
@@ -1874,8 +2494,11 @@ exports.crypto_hash_sha256_final = function (state, out) {
 }
 
 exports.crypto_hash_sha512 = function (out, input) {
-  if (out?.byteLength !== binding.crypto_hash_sha512_BYTES)
-    throw new Error('out')
+  assert(ArrayBuffer.isView(out), 'out must be a typed array')
+  assert(
+    out.byteLength === binding.crypto_hash_sha512_BYTES,
+    "out must be 'crypto_hash_sha512_BYTES' bytes"
+  )
 
   const res = binding.crypto_hash_sha512(out, input)
 
@@ -1883,9 +2506,11 @@ exports.crypto_hash_sha512 = function (out, input) {
 }
 
 exports.crypto_hash_sha512_init = function (state) {
-  if (state?.byteLength !== binding.crypto_hash_sha512_STATEBYTES) {
-    throw new Error("state must be 'crypto_hash_sha512_STATEBYTES' bytes")
-  }
+  assert(ArrayBuffer.isView(state), 'state must be a typed array')
+  assert(
+    state.byteLength === binding.crypto_hash_sha512_STATEBYTES,
+    "state must be 'crypto_hash_sha512_STATEBYTES' bytes"
+  )
 
   const res = binding.crypto_hash_sha512_init(state)
 
@@ -1893,9 +2518,11 @@ exports.crypto_hash_sha512_init = function (state) {
 }
 
 exports.crypto_hash_sha512_update = function (state, input) {
-  if (state?.byteLength !== binding.crypto_hash_sha512_STATEBYTES) {
-    throw new Error("state must be 'crypto_hash_sha512_STATEBYTES' bytes")
-  }
+  assert(ArrayBuffer.isView(state), 'state must be a typed array')
+  assert(
+    state.byteLength === binding.crypto_hash_sha512_STATEBYTES,
+    "state must be 'crypto_hash_sha512_STATEBYTES' bytes"
+  )
 
   const res = binding.crypto_hash_sha512_update(state, input)
 
@@ -1903,11 +2530,16 @@ exports.crypto_hash_sha512_update = function (state, input) {
 }
 
 exports.crypto_hash_sha512_final = function (state, out) {
-  if (state?.byteLength !== binding.crypto_hash_sha512_STATEBYTES) {
-    throw new Error("state must be 'crypto_hash_sha512_STATEBYTES' bytes")
-  }
-  if (out?.byteLength !== binding.crypto_hash_sha512_BYTES)
-    throw new Error('out')
+  assert(ArrayBuffer.isView(state), 'state must be a typed array')
+  assert(
+    state.byteLength === binding.crypto_hash_sha512_STATEBYTES,
+    "state must be 'crypto_hash_sha512_STATEBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(out), 'out must be a typed array')
+  assert(
+    out.byteLength === binding.crypto_hash_sha512_BYTES,
+    "out must be 'crypto_hash_sha512_BYTES' bytes"
+  )
 
   const res = binding.crypto_hash_sha512_final(state, out)
 
@@ -1917,8 +2549,11 @@ exports.crypto_hash_sha512_final = function (state, out) {
 // crypto_aead
 
 exports.crypto_aead_xchacha20poly1305_ietf_keygen = function (k) {
-  if (k?.byteLength !== binding.crypto_aead_xchacha20poly1305_ietf_KEYBYTES)
-    throw new Error('k')
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(
+    k.byteLength === binding.crypto_aead_xchacha20poly1305_ietf_KEYBYTES,
+    "k must be 'crypto_aead_xchacha20poly1305_ietf_KEYBYTES' bytes"
+  )
 
   binding.crypto_aead_xchacha20poly1305_ietf_keygen(k)
 }
@@ -1932,20 +2567,24 @@ exports.crypto_aead_xchacha20poly1305_ietf_encrypt = function (
   k
 ) {
   ad ??= undefined
-  if (nsec !== null) throw new Error('nsec must always be set to null')
-  if (
-    c?.byteLength !==
-    m.byteLength + binding.crypto_aead_xchacha20poly1305_ietf_ABYTES
+  assert(nsec === null, 'nsec must always be set to null')
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(
+    c.byteLength ===
+      m.byteLength + binding.crypto_aead_xchacha20poly1305_ietf_ABYTES,
+    "c must be 'm.byteLength + crypto_aead_xchacha20poly1305_ietf_ABYTES' bytes"
   )
-    throw new Error(
-      'c must "m.byteLength + crypto_aead_xchacha20poly1305_ietf_ABYTES" bytes'
-    )
-  if (c?.byteLength > 0xffffffff)
-    throw new Error('c.byteLength must be a 32bit integer')
-  if (npub?.byteLength !== binding.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES)
-    throw new Error('npub')
-  if (k?.byteLength !== binding.crypto_aead_xchacha20poly1305_ietf_KEYBYTES)
-    throw new Error('k')
+  assert(c.byteLength <= 0xffffffff, 'c.byteLength must be a 32bit integer')
+  assert(ArrayBuffer.isView(npub), 'npub must be a typed array')
+  assert(
+    npub.byteLength === binding.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES,
+    "npub must be 'crypto_aead_xchacha20poly1305_ietf_NPUBBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(
+    k.byteLength === binding.crypto_aead_xchacha20poly1305_ietf_KEYBYTES,
+    "k must be 'crypto_aead_xchacha20poly1305_ietf_KEYBYTES' bytes"
+  )
 
   const res = binding.crypto_aead_xchacha20poly1305_ietf_encrypt(
     c,
@@ -1968,20 +2607,24 @@ exports.crypto_aead_xchacha20poly1305_ietf_decrypt = function (
   k
 ) {
   ad ??= undefined
-  if (nsec !== null) throw new Error('nsec must always be set to null')
-  if (
-    m?.byteLength !==
-    c.byteLength - binding.crypto_aead_xchacha20poly1305_ietf_ABYTES
+  assert(nsec === null, 'nsec must always be set to null')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
+  assert(
+    m.byteLength ===
+      c.byteLength - binding.crypto_aead_xchacha20poly1305_ietf_ABYTES,
+    "m must be 'c.byteLength - crypto_aead_xchacha20poly1305_ietf_ABYTES' bytes"
   )
-    throw new Error(
-      'm must "c.byteLength - crypto_aead_xchacha20poly1305_ietf_ABYTES" bytes'
-    )
-  if (m?.byteLength > 0xffffffff)
-    throw new Error('m.byteLength must be a 32bit integer')
-  if (npub?.byteLength !== binding.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES)
-    throw new Error('npub')
-  if (k?.byteLength !== binding.crypto_aead_xchacha20poly1305_ietf_KEYBYTES)
-    throw new Error('k')
+  assert(m.byteLength <= 0xffffffff, 'm.byteLength must be a 32bit integer')
+  assert(ArrayBuffer.isView(npub), 'npub must be a typed array')
+  assert(
+    npub.byteLength === binding.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES,
+    "npub must be 'crypto_aead_xchacha20poly1305_ietf_NPUBBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(
+    k.byteLength === binding.crypto_aead_xchacha20poly1305_ietf_KEYBYTES,
+    "k must be 'crypto_aead_xchacha20poly1305_ietf_KEYBYTES' bytes"
+  )
 
   const res = binding.crypto_aead_xchacha20poly1305_ietf_decrypt(
     m,
@@ -2005,15 +2648,24 @@ exports.crypto_aead_xchacha20poly1305_ietf_encrypt_detached = function (
   k
 ) {
   ad ??= undefined
-  if (nsec !== null) throw new Error('nsec must always be set to null')
-  if (c?.byteLength !== m.byteLength)
-    throw new Error('c must be "m.byteLength" bytes')
-  if (mac?.byteLength !== binding.crypto_aead_xchacha20poly1305_ietf_ABYTES)
-    throw new Error('mac')
-  if (npub?.byteLength !== binding.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES)
-    throw new Error('npub')
-  if (k?.byteLength !== binding.crypto_aead_xchacha20poly1305_ietf_KEYBYTES)
-    throw new Error('k')
+  assert(nsec === null, 'nsec must always be set to null')
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(c.byteLength === m.byteLength, "c must be 'm.byteLength' bytes")
+  assert(ArrayBuffer.isView(mac), 'mac must be a typed array')
+  assert(
+    mac.byteLength === binding.crypto_aead_xchacha20poly1305_ietf_ABYTES,
+    "mac must be 'crypto_aead_xchacha20poly1305_ietf_ABYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(npub), 'npub must be a typed array')
+  assert(
+    npub.byteLength === binding.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES,
+    "npub must be 'crypto_aead_xchacha20poly1305_ietf_NPUBBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(
+    k.byteLength === binding.crypto_aead_xchacha20poly1305_ietf_KEYBYTES,
+    "k must be 'crypto_aead_xchacha20poly1305_ietf_KEYBYTES' bytes"
+  )
 
   const res = binding.crypto_aead_xchacha20poly1305_ietf_encrypt_detached(
     c,
@@ -2038,15 +2690,24 @@ exports.crypto_aead_xchacha20poly1305_ietf_decrypt_detached = function (
   k
 ) {
   ad ??= undefined
-  if (nsec !== null) throw new Error('nsec must always be set to null')
-  if (m?.byteLength !== c.byteLength)
-    throw new Error('m must be "c.byteLength" bytes')
-  if (mac?.byteLength !== binding.crypto_aead_xchacha20poly1305_ietf_ABYTES)
-    throw new Error('mac')
-  if (npub?.byteLength !== binding.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES)
-    throw new Error('npub')
-  if (k?.byteLength !== binding.crypto_aead_xchacha20poly1305_ietf_KEYBYTES)
-    throw new Error('k')
+  assert(nsec === null, 'nsec must always be set to null')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
+  assert(m.byteLength === c.byteLength, "m must be 'c.byteLength' bytes")
+  assert(ArrayBuffer.isView(mac), 'mac must be a typed array')
+  assert(
+    mac.byteLength === binding.crypto_aead_xchacha20poly1305_ietf_ABYTES,
+    "mac must be 'crypto_aead_xchacha20poly1305_ietf_ABYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(npub), 'npub must be a typed array')
+  assert(
+    npub.byteLength === binding.crypto_aead_xchacha20poly1305_ietf_NPUBBYTES,
+    "npub must be 'crypto_aead_xchacha20poly1305_ietf_NPUBBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(
+    k.byteLength === binding.crypto_aead_xchacha20poly1305_ietf_KEYBYTES,
+    "k must be 'crypto_aead_xchacha20poly1305_ietf_KEYBYTES' bytes"
+  )
 
   const res = binding.crypto_aead_xchacha20poly1305_ietf_decrypt_detached(
     m,
@@ -2060,8 +2721,11 @@ exports.crypto_aead_xchacha20poly1305_ietf_decrypt_detached = function (
 }
 
 exports.crypto_aead_chacha20poly1305_ietf_keygen = function (k) {
-  if (k?.byteLength !== binding.crypto_aead_chacha20poly1305_ietf_KEYBYTES)
-    throw new Error('k')
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(
+    k.byteLength === binding.crypto_aead_chacha20poly1305_ietf_KEYBYTES,
+    "k must be 'crypto_aead_chacha20poly1305_ietf_KEYBYTES' bytes"
+  )
 
   binding.crypto_aead_chacha20poly1305_ietf_keygen(k)
 }
@@ -2075,20 +2739,24 @@ exports.crypto_aead_chacha20poly1305_ietf_encrypt = function (
   k
 ) {
   ad ??= undefined
-  if (nsec !== null) throw new Error('nsec must always be set to null')
-  if (
-    c?.byteLength !==
-    m.byteLength + binding.crypto_aead_chacha20poly1305_ietf_ABYTES
+  assert(nsec === null, 'nsec must always be set to null')
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(
+    c.byteLength ===
+      m.byteLength + binding.crypto_aead_chacha20poly1305_ietf_ABYTES,
+    "c must be 'm.byteLength + crypto_aead_chacha20poly1305_ietf_ABYTES' bytes"
   )
-    throw new Error(
-      'c must "m.byteLength + crypto_aead_chacha20poly1305_ietf_ABYTES" bytes'
-    )
-  if (c?.byteLength > 0xffffffff)
-    throw new Error('c.byteLength must be a 32bit integer')
-  if (npub?.byteLength !== binding.crypto_aead_chacha20poly1305_ietf_NPUBBYTES)
-    throw new Error('npub')
-  if (k?.byteLength !== binding.crypto_aead_chacha20poly1305_ietf_KEYBYTES)
-    throw new Error('k')
+  assert(c.byteLength <= 0xffffffff, 'c.byteLength must be a 32bit integer')
+  assert(ArrayBuffer.isView(npub), 'npub must be a typed array')
+  assert(
+    npub.byteLength === binding.crypto_aead_chacha20poly1305_ietf_NPUBBYTES,
+    "npub must be 'crypto_aead_chacha20poly1305_ietf_NPUBBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(
+    k.byteLength === binding.crypto_aead_chacha20poly1305_ietf_KEYBYTES,
+    "k must be 'crypto_aead_chacha20poly1305_ietf_KEYBYTES' bytes"
+  )
 
   const res = binding.crypto_aead_chacha20poly1305_ietf_encrypt(
     c,
@@ -2111,20 +2779,24 @@ exports.crypto_aead_chacha20poly1305_ietf_decrypt = function (
   k
 ) {
   ad ??= undefined
-  if (nsec !== null) throw new Error('nsec must always be set to null')
-  if (
-    m?.byteLength !==
-    c.byteLength - binding.crypto_aead_chacha20poly1305_ietf_ABYTES
+  assert(nsec === null, 'nsec must always be set to null')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
+  assert(
+    m.byteLength ===
+      c.byteLength - binding.crypto_aead_chacha20poly1305_ietf_ABYTES,
+    "m must be 'c.byteLength - crypto_aead_chacha20poly1305_ietf_ABYTES' bytes"
   )
-    throw new Error(
-      'm must "c.byteLength - crypto_aead_chacha20poly1305_ietf_ABYTES" bytes'
-    )
-  if (m?.byteLength > 0xffffffff)
-    throw new Error('m.byteLength must be a 32bit integer')
-  if (npub?.byteLength !== binding.crypto_aead_chacha20poly1305_ietf_NPUBBYTES)
-    throw new Error('npub')
-  if (k?.byteLength !== binding.crypto_aead_chacha20poly1305_ietf_KEYBYTES)
-    throw new Error('k')
+  assert(m.byteLength <= 0xffffffff, 'm.byteLength must be a 32bit integer')
+  assert(ArrayBuffer.isView(npub), 'npub must be a typed array')
+  assert(
+    npub.byteLength === binding.crypto_aead_chacha20poly1305_ietf_NPUBBYTES,
+    "npub must be 'crypto_aead_chacha20poly1305_ietf_NPUBBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(
+    k.byteLength === binding.crypto_aead_chacha20poly1305_ietf_KEYBYTES,
+    "k must be 'crypto_aead_chacha20poly1305_ietf_KEYBYTES' bytes"
+  )
 
   const res = binding.crypto_aead_chacha20poly1305_ietf_decrypt(
     m,
@@ -2148,15 +2820,24 @@ exports.crypto_aead_chacha20poly1305_ietf_encrypt_detached = function (
   k
 ) {
   ad ??= undefined
-  if (nsec !== null) throw new Error('nsec must always be set to null')
-  if (c?.byteLength !== m.byteLength)
-    throw new Error('c must be "m.byteLength" bytes')
-  if (mac?.byteLength !== binding.crypto_aead_chacha20poly1305_ietf_ABYTES)
-    throw new Error('mac')
-  if (npub?.byteLength !== binding.crypto_aead_chacha20poly1305_ietf_NPUBBYTES)
-    throw new Error('npub')
-  if (k?.byteLength !== binding.crypto_aead_chacha20poly1305_ietf_KEYBYTES)
-    throw new Error('k')
+  assert(nsec === null, 'nsec must always be set to null')
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(c.byteLength === m.byteLength, "c must be 'm.byteLength' bytes")
+  assert(ArrayBuffer.isView(mac), 'mac must be a typed array')
+  assert(
+    mac.byteLength === binding.crypto_aead_chacha20poly1305_ietf_ABYTES,
+    "mac must be 'crypto_aead_chacha20poly1305_ietf_ABYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(npub), 'npub must be a typed array')
+  assert(
+    npub.byteLength === binding.crypto_aead_chacha20poly1305_ietf_NPUBBYTES,
+    "npub must be 'crypto_aead_chacha20poly1305_ietf_NPUBBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(
+    k.byteLength === binding.crypto_aead_chacha20poly1305_ietf_KEYBYTES,
+    "k must be 'crypto_aead_chacha20poly1305_ietf_KEYBYTES' bytes"
+  )
 
   const res = binding.crypto_aead_chacha20poly1305_ietf_encrypt_detached(
     c,
@@ -2181,15 +2862,24 @@ exports.crypto_aead_chacha20poly1305_ietf_decrypt_detached = function (
   k
 ) {
   ad ??= undefined
-  if (nsec !== null) throw new Error('nsec must always be set to null')
-  if (m?.byteLength !== c.byteLength)
-    throw new Error('m must be "c.byteLength" bytes')
-  if (mac?.byteLength !== binding.crypto_aead_chacha20poly1305_ietf_ABYTES)
-    throw new Error('mac')
-  if (npub?.byteLength !== binding.crypto_aead_chacha20poly1305_ietf_NPUBBYTES)
-    throw new Error('npub')
-  if (k?.byteLength !== binding.crypto_aead_chacha20poly1305_ietf_KEYBYTES)
-    throw new Error('k')
+  assert(nsec === null, 'nsec must always be set to null')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
+  assert(m.byteLength === c.byteLength, "m must be 'c.byteLength' bytes")
+  assert(ArrayBuffer.isView(mac), 'mac must be a typed array')
+  assert(
+    mac.byteLength === binding.crypto_aead_chacha20poly1305_ietf_ABYTES,
+    "mac must be 'crypto_aead_chacha20poly1305_ietf_ABYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(npub), 'npub must be a typed array')
+  assert(
+    npub.byteLength === binding.crypto_aead_chacha20poly1305_ietf_NPUBBYTES,
+    "npub must be 'crypto_aead_chacha20poly1305_ietf_NPUBBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(
+    k.byteLength === binding.crypto_aead_chacha20poly1305_ietf_KEYBYTES,
+    "k must be 'crypto_aead_chacha20poly1305_ietf_KEYBYTES' bytes"
+  )
 
   const res = binding.crypto_aead_chacha20poly1305_ietf_decrypt_detached(
     m,
@@ -2205,179 +2895,211 @@ exports.crypto_aead_chacha20poly1305_ietf_decrypt_detached = function (
 // crypto_stream
 
 exports.crypto_stream_xor_wrap_init = function (state, n, k) {
-  if (state?.byteLength !== binding.sn_crypto_stream_xor_STATEBYTES) {
-    throw new Error("state must be 'sn_crypto_stream_xor_STATEBYTES' bytes")
-  }
-  if (n?.byteLength !== binding.crypto_stream_NONCEBYTES) throw new Error('n')
-  if (k?.byteLength !== binding.crypto_stream_KEYBYTES) throw new Error('k')
+  assert(ArrayBuffer.isView(state), 'state must be a typed array')
+  assert(
+    state.byteLength === binding.sn_crypto_stream_xor_STATEBYTES,
+    "state must be 'sn_crypto_stream_xor_STATEBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(
+    n.byteLength === binding.crypto_stream_NONCEBYTES,
+    "n must be 'crypto_stream_NONCEBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(
+    k.byteLength === binding.crypto_stream_KEYBYTES,
+    "k must be 'crypto_stream_KEYBYTES' bytes"
+  )
 
   binding.crypto_stream_xor_wrap_init(state, n, k)
 }
 
 exports.crypto_stream_xor_wrap_update = function (state, c, m) {
-  if (state?.byteLength !== binding.sn_crypto_stream_xor_STATEBYTES) {
-    throw new Error("state must be 'sn_crypto_stream_xor_STATEBYTES' bytes")
-  }
-  if (c?.byteLength !== m.byteLength)
-    throw new Error('c must be "m.byteLength" bytes')
+  assert(ArrayBuffer.isView(state), 'state must be a typed array')
+  assert(
+    state.byteLength === binding.sn_crypto_stream_xor_STATEBYTES,
+    "state must be 'sn_crypto_stream_xor_STATEBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(c.byteLength === m.byteLength, "c must be 'm.byteLength' bytes")
 
   binding.crypto_stream_xor_wrap_update(state, c, m)
 }
 
 exports.crypto_stream_xor_wrap_final = function (state) {
-  if (state?.byteLength !== binding.sn_crypto_stream_xor_STATEBYTES) {
-    throw new Error("state must be 'sn_crypto_stream_xor_STATEBYTES' bytes")
-  }
+  assert(ArrayBuffer.isView(state), 'state must be a typed array')
+  assert(
+    state.byteLength === binding.sn_crypto_stream_xor_STATEBYTES,
+    "state must be 'sn_crypto_stream_xor_STATEBYTES' bytes"
+  )
 
   binding.crypto_stream_xor_wrap_final(state)
 }
 
 exports.crypto_stream_chacha20_xor_wrap_init = function (state, n, k) {
-  if (state?.byteLength !== binding.crypto_stream_chacha20_xor_STATEBYTES) {
-    throw new Error(
-      "state must be 'crypto_stream_chacha20_xor_STATEBYTES' bytes"
-    )
-  }
-  if (n?.byteLength !== binding.crypto_stream_chacha20_NONCEBYTES)
-    throw new Error('n')
-  if (k?.byteLength !== binding.crypto_stream_chacha20_KEYBYTES)
-    throw new Error('k')
+  assert(ArrayBuffer.isView(state), 'state must be a typed array')
+  assert(
+    state.byteLength === binding.crypto_stream_chacha20_xor_STATEBYTES,
+    "state must be 'crypto_stream_chacha20_xor_STATEBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(
+    n.byteLength === binding.crypto_stream_chacha20_NONCEBYTES,
+    "n must be 'crypto_stream_chacha20_NONCEBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(
+    k.byteLength === binding.crypto_stream_chacha20_KEYBYTES,
+    "k must be 'crypto_stream_chacha20_KEYBYTES' bytes"
+  )
 
   binding.crypto_stream_chacha20_xor_wrap_init(state, n, k)
 }
 
 exports.crypto_stream_chacha20_xor_wrap_update = function (state, c, m) {
-  if (state?.byteLength !== binding.crypto_stream_chacha20_xor_STATEBYTES) {
-    throw new Error(
-      "state must be 'crypto_stream_chacha20_xor_STATEBYTES' bytes"
-    )
-  }
-  if (c?.byteLength !== m.byteLength)
-    throw new Error('c must be "m.byteLength" bytes')
+  assert(ArrayBuffer.isView(state), 'state must be a typed array')
+  assert(
+    state.byteLength === binding.crypto_stream_chacha20_xor_STATEBYTES,
+    "state must be 'crypto_stream_chacha20_xor_STATEBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(c.byteLength === m.byteLength, "c must be 'm.byteLength' bytes")
 
   binding.crypto_stream_chacha20_xor_wrap_update(state, c, m)
 }
 
 exports.crypto_stream_chacha20_xor_wrap_final = function (state) {
-  if (state?.byteLength !== binding.crypto_stream_chacha20_xor_STATEBYTES) {
-    throw new Error(
-      "state must be 'crypto_stream_chacha20_xor_STATEBYTES' bytes"
-    )
-  }
+  assert(ArrayBuffer.isView(state), 'state must be a typed array')
+  assert(
+    state.byteLength === binding.crypto_stream_chacha20_xor_STATEBYTES,
+    "state must be 'crypto_stream_chacha20_xor_STATEBYTES' bytes"
+  )
 
   binding.crypto_stream_chacha20_xor_wrap_final(state)
 }
 
 exports.crypto_stream_chacha20_ietf_xor_wrap_init = function (state, n, k) {
-  if (
-    state?.byteLength !== binding.crypto_stream_chacha20_ietf_xor_STATEBYTES
-  ) {
-    throw new Error(
-      "state must be 'crypto_stream_chacha20_ietf_xor_STATEBYTES' bytes"
-    )
-  }
-  if (n?.byteLength !== binding.crypto_stream_chacha20_ietf_NONCEBYTES)
-    throw new Error('n')
-  if (k?.byteLength !== binding.crypto_stream_chacha20_ietf_KEYBYTES)
-    throw new Error('k')
+  assert(ArrayBuffer.isView(state), 'state must be a typed array')
+  assert(
+    state.byteLength === binding.crypto_stream_chacha20_ietf_xor_STATEBYTES,
+    "state must be 'crypto_stream_chacha20_ietf_xor_STATEBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(
+    n.byteLength === binding.crypto_stream_chacha20_ietf_NONCEBYTES,
+    "n must be 'crypto_stream_chacha20_ietf_NONCEBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(
+    k.byteLength === binding.crypto_stream_chacha20_ietf_KEYBYTES,
+    "k must be 'crypto_stream_chacha20_ietf_KEYBYTES' bytes"
+  )
 
   binding.crypto_stream_chacha20_ietf_xor_wrap_init(state, n, k)
 }
 
 exports.crypto_stream_chacha20_ietf_xor_wrap_update = function (state, c, m) {
-  if (
-    state?.byteLength !== binding.crypto_stream_chacha20_ietf_xor_STATEBYTES
-  ) {
-    throw new Error(
-      "state must be 'crypto_stream_chacha20_ietf_xor_STATEBYTES' bytes"
-    )
-  }
-  if (c?.byteLength !== m.byteLength)
-    throw new Error('c must be "m.byteLength" bytes')
+  assert(ArrayBuffer.isView(state), 'state must be a typed array')
+  assert(
+    state.byteLength === binding.crypto_stream_chacha20_ietf_xor_STATEBYTES,
+    "state must be 'crypto_stream_chacha20_ietf_xor_STATEBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(c.byteLength === m.byteLength, "c must be 'm.byteLength' bytes")
 
   binding.crypto_stream_chacha20_ietf_xor_wrap_update(state, c, m)
 }
 
 exports.crypto_stream_chacha20_ietf_xor_wrap_final = function (state) {
-  if (
-    state?.byteLength !== binding.crypto_stream_chacha20_ietf_xor_STATEBYTES
-  ) {
-    throw new Error(
-      "state must be 'crypto_stream_chacha20_ietf_xor_STATEBYTES' bytes"
-    )
-  }
+  assert(ArrayBuffer.isView(state), 'state must be a typed array')
+  assert(
+    state.byteLength === binding.crypto_stream_chacha20_ietf_xor_STATEBYTES,
+    "state must be 'crypto_stream_chacha20_ietf_xor_STATEBYTES' bytes"
+  )
 
   binding.crypto_stream_chacha20_ietf_xor_wrap_final(state)
 }
 
 exports.crypto_stream_xchacha20_xor_wrap_init = function (state, n, k) {
-  if (state?.byteLength !== binding.crypto_stream_xchacha20_xor_STATEBYTES) {
-    throw new Error(
-      "state must be 'crypto_stream_xchacha20_xor_STATEBYTES' bytes"
-    )
-  }
-  if (n?.byteLength !== binding.crypto_stream_xchacha20_NONCEBYTES)
-    throw new Error('n')
-  if (k?.byteLength !== binding.crypto_stream_xchacha20_KEYBYTES)
-    throw new Error('k')
+  assert(ArrayBuffer.isView(state), 'state must be a typed array')
+  assert(
+    state.byteLength === binding.crypto_stream_xchacha20_xor_STATEBYTES,
+    "state must be 'crypto_stream_xchacha20_xor_STATEBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(
+    n.byteLength === binding.crypto_stream_xchacha20_NONCEBYTES,
+    "n must be 'crypto_stream_xchacha20_NONCEBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(
+    k.byteLength === binding.crypto_stream_xchacha20_KEYBYTES,
+    "k must be 'crypto_stream_xchacha20_KEYBYTES' bytes"
+  )
 
   binding.crypto_stream_xchacha20_xor_wrap_init(state, n, k)
 }
 
 exports.crypto_stream_xchacha20_xor_wrap_update = function (state, c, m) {
-  if (state?.byteLength !== binding.crypto_stream_xchacha20_xor_STATEBYTES) {
-    throw new Error(
-      "state must be 'crypto_stream_xchacha20_xor_STATEBYTES' bytes"
-    )
-  }
-  if (c?.byteLength !== m.byteLength)
-    throw new Error('c must be "m.byteLength" bytes')
+  assert(ArrayBuffer.isView(state), 'state must be a typed array')
+  assert(
+    state.byteLength === binding.crypto_stream_xchacha20_xor_STATEBYTES,
+    "state must be 'crypto_stream_xchacha20_xor_STATEBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(c.byteLength === m.byteLength, "c must be 'm.byteLength' bytes")
 
   binding.crypto_stream_xchacha20_xor_wrap_update(state, c, m)
 }
 
 exports.crypto_stream_xchacha20_xor_wrap_final = function (state) {
-  if (state?.byteLength !== binding.crypto_stream_xchacha20_xor_STATEBYTES) {
-    throw new Error(
-      "state must be 'crypto_stream_xchacha20_xor_STATEBYTES' bytes"
-    )
-  }
+  assert(ArrayBuffer.isView(state), 'state must be a typed array')
+  assert(
+    state.byteLength === binding.crypto_stream_xchacha20_xor_STATEBYTES,
+    "state must be 'crypto_stream_xchacha20_xor_STATEBYTES' bytes"
+  )
 
   binding.crypto_stream_xchacha20_xor_wrap_final(state)
 }
 
 exports.crypto_stream_salsa20_xor_wrap_init = function (state, n, k) {
-  if (state?.byteLength !== binding.crypto_stream_salsa20_xor_STATEBYTES) {
-    throw new Error(
-      "state must be 'crypto_stream_salsa20_xor_STATEBYTES' bytes"
-    )
-  }
-  if (n?.byteLength !== binding.crypto_stream_salsa20_NONCEBYTES)
-    throw new Error('n')
-  if (k?.byteLength !== binding.crypto_stream_salsa20_KEYBYTES)
-    throw new Error('k')
+  assert(ArrayBuffer.isView(state), 'state must be a typed array')
+  assert(
+    state.byteLength === binding.crypto_stream_salsa20_xor_STATEBYTES,
+    "state must be 'crypto_stream_salsa20_xor_STATEBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(
+    n.byteLength === binding.crypto_stream_salsa20_NONCEBYTES,
+    "n must be 'crypto_stream_salsa20_NONCEBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
+  assert(
+    k.byteLength === binding.crypto_stream_salsa20_KEYBYTES,
+    "k must be 'crypto_stream_salsa20_KEYBYTES' bytes"
+  )
 
   binding.crypto_stream_salsa20_xor_wrap_init(state, n, k)
 }
 
 exports.crypto_stream_salsa20_xor_wrap_update = function (state, c, m) {
-  if (state?.byteLength !== binding.crypto_stream_salsa20_xor_STATEBYTES) {
-    throw new Error(
-      "state must be 'crypto_stream_salsa20_xor_STATEBYTES' bytes"
-    )
-  }
-  if (c?.byteLength !== m.byteLength)
-    throw new Error('c must be "m.byteLength" bytes')
+  assert(ArrayBuffer.isView(state), 'state must be a typed array')
+  assert(
+    state.byteLength === binding.crypto_stream_salsa20_xor_STATEBYTES,
+    "state must be 'crypto_stream_salsa20_xor_STATEBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(c.byteLength === m.byteLength, "c must be 'm.byteLength' bytes")
 
   binding.crypto_stream_salsa20_xor_wrap_update(state, c, m)
 }
 
 exports.crypto_stream_salsa20_xor_wrap_final = function (state) {
-  if (state?.byteLength !== binding.crypto_stream_salsa20_xor_STATEBYTES) {
-    throw new Error(
-      "state must be 'crypto_stream_salsa20_xor_STATEBYTES' bytes"
-    )
-  }
+  assert(ArrayBuffer.isView(state), 'state must be a typed array')
+  assert(
+    state.byteLength === binding.crypto_stream_salsa20_xor_STATEBYTES,
+    "state must be 'crypto_stream_salsa20_xor_STATEBYTES' bytes"
+  )
 
   binding.crypto_stream_salsa20_xor_wrap_final(state)
 }
@@ -2385,48 +3107,84 @@ exports.crypto_stream_salsa20_xor_wrap_final = function (state) {
 // experimental
 
 exports.extension_tweak_ed25519_base = function (n, p, ns) {
-  if (n?.byteLength !== binding.extension_tweak_ed25519_SCALARBYTES)
-    throw new Error('n')
-  if (p?.byteLength !== binding.extension_tweak_ed25519_BYTES)
-    throw new Error('p')
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(
+    n.byteLength === binding.extension_tweak_ed25519_SCALARBYTES,
+    "n must be 'extension_tweak_ed25519_SCALARBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(p), 'p must be a typed array')
+  assert(
+    p.byteLength === binding.extension_tweak_ed25519_BYTES,
+    "p must be 'extension_tweak_ed25519_BYTES' bytes"
+  )
 
   binding.extension_tweak_ed25519_base(n, p, ns)
 }
 
 exports.extension_tweak_ed25519_sign_detached = function (sig, m, scalar, pk) {
-  if (sig?.byteLength !== binding.crypto_sign_BYTES) throw new Error('sig')
-  if (scalar?.byteLength !== binding.extension_tweak_ed25519_SCALARBYTES)
-    throw new Error('scalar')
-  if (pk && pk.byteLength !== binding.crypto_sign_PUBLICKEYBYTES)
-    throw new Error('pk')
+  assert(ArrayBuffer.isView(sig), 'sig must be a typed array')
+  assert(
+    sig.byteLength === binding.crypto_sign_BYTES,
+    "sig must be 'crypto_sign_BYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(scalar), 'scalar must be a typed array')
+  assert(
+    scalar.byteLength === binding.extension_tweak_ed25519_SCALARBYTES,
+    "scalar must be 'extension_tweak_ed25519_SCALARBYTES' bytes"
+  )
+  if (pk) {
+    assert(ArrayBuffer.isView(pk), 'pk must be a typed array')
+    assert(
+      pk.byteLength === binding.crypto_sign_PUBLICKEYBYTES,
+      "pk must be 'crypto_sign_PUBLICKEYBYTES' bytes"
+    )
+  }
 
   const res = binding.extension_tweak_ed25519_sign_detached(sig, m, scalar, pk)
   if (res !== 0) throw new Error('failed to compute signature')
 }
 
 exports.extension_tweak_ed25519_sk_to_scalar = function (n, sk) {
-  if (n?.byteLength !== binding.extension_tweak_ed25519_SCALARBYTES)
-    throw new Error('n')
-  if (sk?.byteLength !== binding.crypto_sign_SECRETKEYBYTES)
-    throw new Error('sk')
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(
+    n.byteLength === binding.extension_tweak_ed25519_SCALARBYTES,
+    "n must be 'extension_tweak_ed25519_SCALARBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(sk), 'sk must be a typed array')
+  assert(
+    sk.byteLength === binding.crypto_sign_SECRETKEYBYTES,
+    "sk must be 'crypto_sign_SECRETKEYBYTES' bytes"
+  )
 
   binding.extension_tweak_ed25519_sk_to_scalar(n, sk)
 }
 
 exports.extension_tweak_ed25519_scalar = function (scalarOut, scalar, ns) {
-  if (scalarOut?.byteLength !== binding.extension_tweak_ed25519_SCALARBYTES)
-    throw new Error('scalar_out')
-  if (scalar?.byteLength !== binding.extension_tweak_ed25519_SCALARBYTES)
-    throw new Error('scalar')
+  assert(ArrayBuffer.isView(scalarOut), 'scalarOut must be a typed array')
+  assert(
+    scalarOut.byteLength === binding.extension_tweak_ed25519_SCALARBYTES,
+    "scalarOut must be 'extension_tweak_ed25519_SCALARBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(scalar), 'scalar must be a typed array')
+  assert(
+    scalar.byteLength === binding.extension_tweak_ed25519_SCALARBYTES,
+    "scalar must be 'extension_tweak_ed25519_SCALARBYTES' bytes"
+  )
 
   binding.extension_tweak_ed25519_scalar(scalarOut, scalar, ns)
 }
 
 exports.extension_tweak_ed25519_pk = function (tpk, pk, ns) {
-  if (tpk?.byteLength !== binding.crypto_sign_PUBLICKEYBYTES)
-    throw new Error('tpk')
-  if (pk?.byteLength !== binding.crypto_sign_PUBLICKEYBYTES)
-    throw new Error('pk')
+  assert(ArrayBuffer.isView(tpk), 'tpk must be a typed array')
+  assert(
+    tpk.byteLength === binding.crypto_sign_PUBLICKEYBYTES,
+    "tpk must be 'crypto_sign_PUBLICKEYBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(pk), 'pk must be a typed array')
+  assert(
+    pk.byteLength === binding.crypto_sign_PUBLICKEYBYTES,
+    "pk must be 'crypto_sign_PUBLICKEYBYTES' bytes"
+  )
 
   const res = binding.extension_tweak_ed25519_pk(tpk, pk, ns)
   if (res !== 0) throw new Error('failed to tweak public key')
@@ -2438,33 +3196,61 @@ exports.extension_tweak_ed25519_keypair = function (
   scalarIn,
   ns
 ) {
-  if (pk?.byteLength !== binding.extension_tweak_ed25519_BYTES)
-    throw new Error('pk')
-  if (scalarOut?.byteLength !== binding.extension_tweak_ed25519_SCALARBYTES)
-    throw new Error('scalar_out')
-  if (scalarIn?.byteLength !== binding.extension_tweak_ed25519_SCALARBYTES)
-    throw new Error('scalar_in')
+  assert(ArrayBuffer.isView(pk), 'pk must be a typed array')
+  assert(
+    pk.byteLength === binding.extension_tweak_ed25519_BYTES,
+    "pk must be 'extension_tweak_ed25519_BYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(scalarOut), 'scalarOut must be a typed array')
+  assert(
+    scalarOut.byteLength === binding.extension_tweak_ed25519_SCALARBYTES,
+    "scalarOut must be 'extension_tweak_ed25519_SCALARBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(scalarIn), 'scalarIn must be a typed array')
+  assert(
+    scalarIn.byteLength === binding.extension_tweak_ed25519_SCALARBYTES,
+    "scalarIn must be 'extension_tweak_ed25519_SCALARBYTES' bytes"
+  )
 
   binding.extension_tweak_ed25519_keypair(pk, scalarOut, scalarIn, ns)
 }
 
 exports.extension_tweak_ed25519_scalar_add = function (scalarOut, scalar, n) {
-  if (scalarOut?.byteLength !== binding.extension_tweak_ed25519_SCALARBYTES)
-    throw new Error('scalar_out')
-  if (scalar?.byteLength !== binding.extension_tweak_ed25519_SCALARBYTES)
-    throw new Error('scalar')
-  if (n?.byteLength !== binding.extension_tweak_ed25519_SCALARBYTES)
-    throw new Error('n')
+  assert(ArrayBuffer.isView(scalarOut), 'scalarOut must be a typed array')
+  assert(
+    scalarOut.byteLength === binding.extension_tweak_ed25519_SCALARBYTES,
+    "scalarOut must be 'extension_tweak_ed25519_SCALARBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(scalar), 'scalar must be a typed array')
+  assert(
+    scalar.byteLength === binding.extension_tweak_ed25519_SCALARBYTES,
+    "scalar must be 'extension_tweak_ed25519_SCALARBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(
+    n.byteLength === binding.extension_tweak_ed25519_SCALARBYTES,
+    "n must be 'extension_tweak_ed25519_SCALARBYTES' bytes"
+  )
 
   binding.extension_tweak_ed25519_scalar_add(scalarOut, scalar, n)
 }
 
 exports.extension_tweak_ed25519_pk_add = function (tpk, pk, p) {
-  if (tpk?.byteLength !== binding.crypto_sign_PUBLICKEYBYTES)
-    throw new Error('tpk')
-  if (pk?.byteLength !== binding.crypto_sign_PUBLICKEYBYTES)
-    throw new Error('pk')
-  if (p?.byteLength !== binding.crypto_sign_PUBLICKEYBYTES) throw new Error('p')
+  assert(ArrayBuffer.isView(tpk), 'tpk must be a typed array')
+  assert(
+    tpk.byteLength === binding.crypto_sign_PUBLICKEYBYTES,
+    "tpk must be 'crypto_sign_PUBLICKEYBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(pk), 'pk must be a typed array')
+  assert(
+    pk.byteLength === binding.crypto_sign_PUBLICKEYBYTES,
+    "pk must be 'crypto_sign_PUBLICKEYBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(p), 'p must be a typed array')
+  assert(
+    p.byteLength === binding.crypto_sign_PUBLICKEYBYTES,
+    "p must be 'crypto_sign_PUBLICKEYBYTES' bytes"
+  )
 
   const res = binding.extension_tweak_ed25519_pk_add(tpk, pk, p)
   if (res !== 0) throw new Error('failed to add tweak to public key')
@@ -2476,14 +3262,26 @@ exports.extension_tweak_ed25519_keypair_add = function (
   scalarIn,
   tweak
 ) {
-  if (pk?.byteLength !== binding.extension_tweak_ed25519_BYTES)
-    throw new Error('pk')
-  if (scalarOut?.byteLength !== binding.extension_tweak_ed25519_SCALARBYTES)
-    throw new Error('scalar_out')
-  if (scalarIn?.byteLength !== binding.extension_tweak_ed25519_SCALARBYTES)
-    throw new Error('scalar_in')
-  if (tweak?.byteLength !== binding.extension_tweak_ed25519_SCALARBYTES)
-    throw new Error('tweak')
+  assert(ArrayBuffer.isView(pk), 'pk must be a typed array')
+  assert(
+    pk.byteLength === binding.extension_tweak_ed25519_BYTES,
+    "pk must be 'extension_tweak_ed25519_BYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(scalarOut), 'scalarOut must be a typed array')
+  assert(
+    scalarOut.byteLength === binding.extension_tweak_ed25519_SCALARBYTES,
+    "scalarOut must be 'extension_tweak_ed25519_SCALARBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(scalarIn), 'scalarIn must be a typed array')
+  assert(
+    scalarIn.byteLength === binding.extension_tweak_ed25519_SCALARBYTES,
+    "scalarIn must be 'extension_tweak_ed25519_SCALARBYTES' bytes"
+  )
+  assert(ArrayBuffer.isView(tweak), 'tweak must be a typed array')
+  assert(
+    tweak.byteLength === binding.extension_tweak_ed25519_SCALARBYTES,
+    "tweak must be 'extension_tweak_ed25519_SCALARBYTES' bytes"
+  )
 
   const res = binding.extension_tweak_ed25519_keypair_add(
     pk,
@@ -2502,14 +3300,21 @@ exports.extension_pbkdf2_sha512_async = function (
   outlen,
   callback = undefined
 ) {
-  if (iter < binding.extension_pbkdf2_sha512_ITERATIONS_MIN)
-    throw new Error('iterations')
-  if (outlen > binding.extension_pbkdf2_sha512_BYTES_MAX)
-    throw new Error('outlen')
-  if (out?.byteLength < outlen) throw new Error('out')
-  if (!out?.byteLength) throw new Error('out')
-  if (!passwd?.byteLength) throw new Error('passwd')
-  if (!salt?.byteLength) throw new Error('salt')
+  assert(
+    iter >= binding.extension_pbkdf2_sha512_ITERATIONS_MIN,
+    "iter must be at least 'extension_pbkdf2_sha512_ITERATIONS_MIN'"
+  )
+  assert(
+    outlen <= binding.extension_pbkdf2_sha512_BYTES_MAX,
+    "outlen must be at most 'extension_pbkdf2_sha512_BYTES_MAX'"
+  )
+  assert(ArrayBuffer.isView(out), 'out must be a typed array')
+  assert(out.byteLength >= outlen, "out must be at least 'outlen' bytes")
+  assert(out.byteLength > 0, 'out must not be empty')
+  assert(ArrayBuffer.isView(passwd), 'passwd must be a typed array')
+  assert(passwd.byteLength > 0, 'passwd must not be empty')
+  assert(ArrayBuffer.isView(salt), 'salt must be a typed array')
+  assert(salt.byteLength > 0, 'salt must not be empty')
 
   const [done, promise] = checkStatus(callback)
 
@@ -2536,11 +3341,16 @@ exports.extension_pbkdf2_sha512_async = function (
 }
 
 exports.extension_pbkdf2_sha512 = function (out, passwd, salt, iter, outlen) {
-  if (iter < binding.extension_pbkdf2_sha512_ITERATIONS_MIN)
-    throw new Error('iterations')
-  if (outlen > binding.extension_pbkdf2_sha512_BYTES_MAX)
-    throw new Error('outlen')
-  if (out?.byteLength < outlen) throw new Error('out')
+  assert(
+    iter >= binding.extension_pbkdf2_sha512_ITERATIONS_MIN,
+    "iter must be at least 'extension_pbkdf2_sha512_ITERATIONS_MIN'"
+  )
+  assert(
+    outlen <= binding.extension_pbkdf2_sha512_BYTES_MAX,
+    "outlen must be at most 'extension_pbkdf2_sha512_BYTES_MAX'"
+  )
+  assert(ArrayBuffer.isView(out), 'out must be a typed array')
+  assert(out.byteLength >= outlen, "out must be at least 'outlen' bytes")
 
   const res = binding.extension_pbkdf2_sha512(out, passwd, salt, iter, outlen)
 
