@@ -1894,20 +1894,20 @@ exports.crypto_pwhash_scryptsalsa208sha256_str_needs_rehash = function (
     "str must be 'crypto_pwhash_scryptsalsa208sha256_STRBYTES' bytes"
   )
   assert(
-    opslimit >= binding.crypto_pwhash_OPSLIMIT_MIN,
-    "opslimit must be at least 'crypto_pwhash_OPSLIMIT_MIN'"
+    opslimit >= binding.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN,
+    "opslimit must be at least 'crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN'"
   )
   assert(
-    opslimit <= binding.crypto_pwhash_OPSLIMIT_MAX,
-    "opslimit must be at most 'crypto_pwhash_OPSLIMIT_MAX'"
+    opslimit <= binding.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX,
+    "opslimit must be at most 'crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX'"
   )
   assert(
-    memlimit >= binding.crypto_pwhash_MEMLIMIT_MIN,
-    "memlimit must be at least 'crypto_pwhash_MEMLIMIT_MIN'"
+    memlimit >= binding.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN,
+    "memlimit must be at least 'crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN'"
   )
   assert(
-    memlimit <= binding.crypto_pwhash_MEMLIMIT_MAX,
-    "memlimit must be at most 'crypto_pwhash_MEMLIMIT_MAX'"
+    memlimit <= binding.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX,
+    "memlimit must be at most 'crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX'"
   )
 
   return binding.crypto_pwhash_scryptsalsa208sha256_str_needs_rehash(
