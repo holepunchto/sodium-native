@@ -60,7 +60,7 @@ jobs:
       - uses: actions/setup-node@v4
         with:
           node-version: lts/*
-      - run: choco upgrade llvm
+      - run: choco install llvm --version 21.1.8 --force
         if: ${{ matrix.platform == 'win32' }}
       - run: npm install -g bare-make
       - run: npm install
