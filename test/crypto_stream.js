@@ -208,7 +208,7 @@ test('crypto_stream_xor state long stream (random chunks) with empty buffers', f
   t.alike(Buffer.concat(decrypted), Buffer.concat(plain), 'decrypts')
 })
 
-test('crypto_stream_xor state after GC', { skip: isBare }, function (t) {
+test('crypto_stream_xor state after GC', { skip: typeof gc !== 'function' }, function (t) {
   const message = Buffer.from('Hello, world!')
   let nonce = random(sodium.crypto_stream_NONCEBYTES)
   let key = random(sodium.crypto_stream_KEYBYTES)
@@ -223,7 +223,7 @@ test('crypto_stream_xor state after GC', { skip: isBare }, function (t) {
   nonce = null
   key = null
 
-  forceGC()
+  gc()
 
   for (let i = 0; i < message.length; i++) {
     sodium.crypto_stream_xor_update(state, out.subarray(i, i + 1), message.subarray(i, i + 1))
@@ -238,9 +238,4 @@ function random(n) {
   const buf = Buffer.alloc(n)
   sodium.randombytes_buf(buf)
   return buf
-}
-
-function forceGC() {
-  require('v8').setFlagsFromString('--expose-gc')
-  require('vm').runInNewContext('gc')()
 }

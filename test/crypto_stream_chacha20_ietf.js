@@ -344,7 +344,7 @@ test('crypto_stream_chacha20_ietf_xor state long stream (random chunks) with emp
   t.alike(Buffer.concat(decrypted), Buffer.concat(plain), 'decrypts')
 })
 
-test('crypto_stream_chacha20_xor state after GC', { skip: isBare }, function (t) {
+test('crypto_stream_chacha20_xor state after GC', { skip: typeof gc !== 'function' }, function (t) {
   const message = Buffer.from('Hello, world!')
   let nonce = random(sodium.crypto_stream_chacha20_ietf_NONCEBYTES)
   let key = random(sodium.crypto_stream_chacha20_ietf_KEYBYTES)
@@ -359,7 +359,7 @@ test('crypto_stream_chacha20_xor state after GC', { skip: isBare }, function (t)
   nonce = null
   key = null
 
-  forceGC()
+  gc()
 
   for (let i = 0; i < message.length; i++) {
     sodium.crypto_stream_chacha20_ietf_xor_update(
@@ -378,9 +378,4 @@ function random(n) {
   const buf = Buffer.alloc(n)
   sodium.randombytes_buf(buf)
   return buf
-}
-
-function forceGC() {
-  require('v8').setFlagsFromString('--expose-gc')
-  require('vm').runInNewContext('gc')()
 }
