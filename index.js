@@ -9,16 +9,22 @@ module.exports = exports = { ...binding }
 // memory
 
 exports.sodium_memzero = function (buf) {
+  assert(ArrayBuffer.isView(buf), 'buf must be a typed array')
+
   binding.sodium_memzero(buf)
 }
 
 exports.sodium_mlock = function (buf) {
+  assert(ArrayBuffer.isView(buf), 'buf must be a typed array')
+
   const res = binding.sodium_mlock(buf)
 
   if (res !== 0) throw new Error('memory lock failed')
 }
 
 exports.sodium_munlock = function (buf) {
+  assert(ArrayBuffer.isView(buf), 'buf must be a typed array')
+
   const res = binding.sodium_munlock(buf)
 
   if (res !== 0) throw new Error('memory unlock failed')
@@ -59,10 +65,13 @@ exports.sodium_mprotect_readwrite = function (buf) {
 // crypto_randombytes
 
 exports.randombytes_buf = function (buffer) {
+  assert(ArrayBuffer.isView(buffer), 'buffer must be a typed array')
+
   binding.randombytes_buf(buffer.buffer, buffer.byteOffset, buffer.byteLength)
 }
 
 exports.randombytes_buf_deterministic = function (buffer, seed) {
+  assert(ArrayBuffer.isView(buffer), 'buffer must be a typed array')
   assert(ArrayBuffer.isView(seed), 'seed must be a typed array')
   assert(
     seed.byteLength === binding.randombytes_SEEDBYTES,
@@ -373,6 +382,7 @@ exports.crypto_box_seed_keypair = function (pk, sk, seed) {
     sk.byteLength === binding.crypto_box_SECRETKEYBYTES,
     "sk must be 'crypto_box_SECRETKEYBYTES' bytes"
   )
+  assert(ArrayBuffer.isView(seed), 'seed must be a typed array')
   assert(
     seed.byteLength === binding.crypto_box_SEEDBYTES,
     "seed must be 'crypto_box_SEEDBYTES' bytes"
@@ -384,6 +394,11 @@ exports.crypto_box_seed_keypair = function (pk, sk, seed) {
 }
 
 exports.crypto_box_easy = function (c, m, n, pk, sk) {
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(ArrayBuffer.isView(pk), 'pk must be a typed array')
+  assert(ArrayBuffer.isView(sk), 'sk must be a typed array')
   assert(
     c.byteLength === m.byteLength + exports.crypto_box_MACBYTES,
     "c must be 'm.byteLength + crypto_box_MACBYTES' bytes"
@@ -404,6 +419,12 @@ exports.crypto_box_easy = function (c, m, n, pk, sk) {
 }
 
 exports.crypto_box_detached = function (c, mac, m, n, pk, sk) {
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(mac), 'mac must be a typed array')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(ArrayBuffer.isView(pk), 'pk must be a typed array')
+  assert(ArrayBuffer.isView(sk), 'sk must be a typed array')
   assert(c.byteLength === m.byteLength, "c must be 'm.byteLength' bytes")
   assert(mac.byteLength === exports.crypto_box_MACBYTES, "mac must be 'crypto_box_MACBYTES' bytes")
   assert(n.byteLength === exports.crypto_box_NONCEBYTES, "n must be 'crypto_box_NONCEBYTES' bytes")
@@ -422,6 +443,11 @@ exports.crypto_box_detached = function (c, mac, m, n, pk, sk) {
 }
 
 exports.crypto_box_open_easy = function (m, c, n, pk, sk) {
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(ArrayBuffer.isView(pk), 'pk must be a typed array')
+  assert(ArrayBuffer.isView(sk), 'sk must be a typed array')
   assert(
     c.byteLength >= exports.crypto_box_MACBYTES,
     "c must be at least 'crypto_box_MACBYTES' bytes"
@@ -444,6 +470,12 @@ exports.crypto_box_open_easy = function (m, c, n, pk, sk) {
 }
 
 exports.crypto_box_open_detached = function (m, c, mac, n, pk, sk) {
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(mac), 'mac must be a typed array')
+  assert(ArrayBuffer.isView(n), 'n must be a typed array')
+  assert(ArrayBuffer.isView(pk), 'pk must be a typed array')
+  assert(ArrayBuffer.isView(sk), 'sk must be a typed array')
   assert(m.byteLength === c.byteLength, "m must be 'c.byteLength' bytes")
   assert(mac.byteLength === exports.crypto_box_MACBYTES, "mac must be 'crypto_box_MACBYTES' bytes")
   assert(n.byteLength === exports.crypto_box_NONCEBYTES, "n must be 'crypto_box_NONCEBYTES' bytes")
@@ -460,6 +492,9 @@ exports.crypto_box_open_detached = function (m, c, mac, n, pk, sk) {
 }
 
 exports.crypto_box_seal = function (c, m, pk) {
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
+  assert(ArrayBuffer.isView(pk), 'pk must be a typed array')
   assert(
     c.byteLength === m.byteLength + exports.crypto_box_SEALBYTES,
     "c must be 'm.byteLength + crypto_box_SEALBYTES' bytes"
@@ -475,6 +510,10 @@ exports.crypto_box_seal = function (c, m, pk) {
 }
 
 exports.crypto_box_seal_open = function (m, c, pk, sk) {
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(pk), 'pk must be a typed array')
+  assert(ArrayBuffer.isView(sk), 'sk must be a typed array')
   assert(
     c.byteLength >= exports.crypto_box_SEALBYTES,
     "c must be at least 'crypto_box_SEALBYTES' bytes"
@@ -614,6 +653,8 @@ exports.crypto_secretbox_open_detached = function (m, c, mac, n, k) {
 exports.crypto_generichash = function (output, input, key) {
   if (!key) key = OPTIONAL
 
+  assert(ArrayBuffer.isView(output), 'output must be a typed array')
+  assert(ArrayBuffer.isView(input), 'input must be a typed array')
   assert(
     output.byteLength >= binding.crypto_generichash_BYTES_MIN &&
       output.byteLength <= binding.crypto_generichash_BYTES_MAX,
@@ -621,6 +662,7 @@ exports.crypto_generichash = function (output, input, key) {
   )
 
   if (key !== OPTIONAL) {
+    assert(ArrayBuffer.isView(key), 'key must be a typed array')
     assert(
       key.byteLength >= binding.crypto_generichash_KEYBYTES_MIN &&
         key.byteLength <= binding.crypto_generichash_KEYBYTES_MAX,
@@ -646,6 +688,8 @@ exports.crypto_generichash = function (output, input, key) {
 }
 
 exports.crypto_generichash_batch = function (output, batch, key) {
+  assert(ArrayBuffer.isView(output), 'output must be a typed array')
+
   if (isNode || batch.length < 4) {
     const res = binding.crypto_generichash_batch(output, batch, !!key, key || OPTIONAL)
     if (res !== 0) throw new Error('status: ' + res)
@@ -663,6 +707,7 @@ exports.crypto_generichash_batch = function (output, batch, key) {
 }
 
 exports.crypto_generichash_keygen = function (key) {
+  assert(ArrayBuffer.isView(key), 'key must be a typed array')
   assert(
     key.byteLength === binding.crypto_generichash_KEYBYTES,
     "key must be 'crypto_generichash_KEYBYTES' bytes"
@@ -676,6 +721,7 @@ exports.crypto_generichash_keygen = function (key) {
 exports.crypto_generichash_init = function (state, key, outputLength) {
   if (!key) key = OPTIONAL
 
+  assert(ArrayBuffer.isView(state), 'state must be a typed array')
   assert(
     state.byteLength === binding.crypto_generichash_STATEBYTES,
     "state must be 'crypto_generichash_STATEBYTES' bytes"
@@ -697,6 +743,8 @@ exports.crypto_generichash_init = function (state, key, outputLength) {
 }
 
 exports.crypto_generichash_update = function (state, input) {
+  assert(ArrayBuffer.isView(state), 'state must be a typed array')
+  assert(ArrayBuffer.isView(input), 'input must be a typed array')
   assert(
     state.byteLength === binding.crypto_generichash_STATEBYTES,
     "state must be 'crypto_generichash_STATEBYTES' bytes"
@@ -716,6 +764,8 @@ exports.crypto_generichash_update = function (state, input) {
 }
 
 exports.crypto_generichash_final = function (state, output) {
+  assert(ArrayBuffer.isView(state), 'state must be a typed array')
+  assert(ArrayBuffer.isView(output), 'output must be a typed array')
   assert(
     state.byteLength === binding.crypto_generichash_STATEBYTES,
     "state must be 'crypto_generichash_STATEBYTES' bytes"
@@ -737,6 +787,7 @@ exports.crypto_generichash_final = function (state, output) {
 // secretstream
 
 exports.crypto_secretstream_xchacha20poly1305_keygen = function (k) {
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
   assert(
     k.byteLength === binding.crypto_secretstream_xchacha20poly1305_KEYBYTES,
     "k must be 'crypto_secretstream_xchacha20poly1305_KEYBYTES' bytes"
@@ -746,6 +797,9 @@ exports.crypto_secretstream_xchacha20poly1305_keygen = function (k) {
 }
 
 exports.crypto_secretstream_xchacha20poly1305_init_push = function (state, header, k) {
+  assert(ArrayBuffer.isView(state), 'state must be a typed array')
+  assert(ArrayBuffer.isView(header), 'header must be a typed array')
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
   assert(
     state.byteLength === binding.crypto_secretstream_xchacha20poly1305_STATEBYTES,
     "state must be 'crypto_secretstream_xchacha20poly1305_STATEBYTES' bytes"
@@ -777,6 +831,9 @@ exports.crypto_secretstream_xchacha20poly1305_init_push = function (state, heade
 }
 
 exports.crypto_secretstream_xchacha20poly1305_init_pull = function (state, header, k) {
+  assert(ArrayBuffer.isView(state), 'state must be a typed array')
+  assert(ArrayBuffer.isView(header), 'header must be a typed array')
+  assert(ArrayBuffer.isView(k), 'k must be a typed array')
   assert(
     state.byteLength === binding.crypto_secretstream_xchacha20poly1305_STATEBYTES,
     "state must be 'crypto_secretstream_xchacha20poly1305_STATEBYTES' bytes"
@@ -810,6 +867,9 @@ exports.crypto_secretstream_xchacha20poly1305_init_pull = function (state, heade
 exports.crypto_secretstream_xchacha20poly1305_push = function (state, c, m, ad, tag) {
   if (!ad) ad = OPTIONAL
 
+  assert(ArrayBuffer.isView(state), 'state must be a typed array')
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
   assert(
     state.byteLength === binding.crypto_secretstream_xchacha20poly1305_STATEBYTES,
     "state must be 'crypto_secretstream_xchacha20poly1305_STATEBYTES' bytes"
@@ -847,10 +907,12 @@ exports.crypto_secretstream_xchacha20poly1305_push = function (state, c, m, ad, 
 exports.crypto_secretstream_xchacha20poly1305_pull = function (state, m, tag, c, ad) {
   if (!ad) ad = OPTIONAL
 
+  assert(ArrayBuffer.isView(state), 'state must be a typed array')
   assert(
     state.byteLength === binding.crypto_secretstream_xchacha20poly1305_STATEBYTES,
     "state must be 'crypto_secretstream_xchacha20poly1305_STATEBYTES' bytes"
   )
+  assert(ArrayBuffer.isView(tag), 'tag must be a typed array')
   assert(tag.byteLength === 1, 'tag must be 1 byte')
 
   assert(ArrayBuffer.isView(c), 'c must be a typed array')
@@ -892,6 +954,7 @@ exports.crypto_secretstream_xchacha20poly1305_pull = function (state, m, tag, c,
 }
 
 exports.crypto_secretstream_xchacha20poly1305_rekey = function (state) {
+  assert(ArrayBuffer.isView(state), 'state must be a typed array')
   assert(
     state.byteLength === binding.crypto_secretstream_xchacha20poly1305_STATEBYTES,
     "state must be 'crypto_secretstream_xchacha20poly1305_STATEBYTES' bytes"
@@ -2233,6 +2296,7 @@ exports.crypto_core_ed25519_scalar_sub = function (z, x, y) {
 
 exports.crypto_shorthash = function (out, input, k) {
   assert(ArrayBuffer.isView(out), 'out must be a typed array')
+  assert(ArrayBuffer.isView(input), 'input must be a typed array')
   assert(
     out.byteLength === binding.crypto_shorthash_BYTES,
     "out must be 'crypto_shorthash_BYTES' bytes"
@@ -2284,6 +2348,7 @@ exports.crypto_kdf_derive_from_key = function (subkey, subkeyId, ctx, key) {
 
 exports.crypto_hash = function (out, input) {
   assert(ArrayBuffer.isView(out), 'out must be a typed array')
+  assert(ArrayBuffer.isView(input), 'input must be a typed array')
   assert(out.byteLength === binding.crypto_hash_BYTES, "out must be 'crypto_hash_BYTES' bytes")
 
   const res = binding.crypto_hash(out, input)
@@ -2293,6 +2358,7 @@ exports.crypto_hash = function (out, input) {
 
 exports.crypto_hash_sha256 = function (out, input) {
   assert(ArrayBuffer.isView(out), 'out must be a typed array')
+  assert(ArrayBuffer.isView(input), 'input must be a typed array')
   assert(
     out.byteLength === binding.crypto_hash_sha256_BYTES,
     "out must be 'crypto_hash_sha256_BYTES' bytes"
@@ -2317,6 +2383,7 @@ exports.crypto_hash_sha256_init = function (state) {
 
 exports.crypto_hash_sha256_update = function (state, input) {
   assert(ArrayBuffer.isView(state), 'state must be a typed array')
+  assert(ArrayBuffer.isView(input), 'input must be a typed array')
   assert(
     state.byteLength === binding.crypto_hash_sha256_STATEBYTES,
     "state must be 'crypto_hash_sha256_STATEBYTES' bytes"
@@ -2346,6 +2413,7 @@ exports.crypto_hash_sha256_final = function (state, out) {
 
 exports.crypto_hash_sha512 = function (out, input) {
   assert(ArrayBuffer.isView(out), 'out must be a typed array')
+  assert(ArrayBuffer.isView(input), 'input must be a typed array')
   assert(
     out.byteLength === binding.crypto_hash_sha512_BYTES,
     "out must be 'crypto_hash_sha512_BYTES' bytes"
@@ -2370,6 +2438,7 @@ exports.crypto_hash_sha512_init = function (state) {
 
 exports.crypto_hash_sha512_update = function (state, input) {
   assert(ArrayBuffer.isView(state), 'state must be a typed array')
+  assert(ArrayBuffer.isView(input), 'input must be a typed array')
   assert(
     state.byteLength === binding.crypto_hash_sha512_STATEBYTES,
     "state must be 'crypto_hash_sha512_STATEBYTES' bytes"
@@ -2414,6 +2483,7 @@ exports.crypto_aead_xchacha20poly1305_ietf_encrypt = function (c, m, ad, nsec, n
 
   assert(nsec === null, 'nsec must always be set to null')
   assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
   assert(
     c.byteLength === m.byteLength + binding.crypto_aead_xchacha20poly1305_ietf_ABYTES,
     "c must be 'm.byteLength + crypto_aead_xchacha20poly1305_ietf_ABYTES' bytes"
@@ -2442,6 +2512,7 @@ exports.crypto_aead_xchacha20poly1305_ietf_decrypt = function (m, nsec, c, ad, n
 
   assert(nsec === null, 'nsec must always be set to null')
   assert(ArrayBuffer.isView(m), 'm must be a typed array')
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
   assert(
     m.byteLength === c.byteLength - binding.crypto_aead_xchacha20poly1305_ietf_ABYTES,
     "m must be 'c.byteLength - crypto_aead_xchacha20poly1305_ietf_ABYTES' bytes"
@@ -2478,6 +2549,7 @@ exports.crypto_aead_xchacha20poly1305_ietf_encrypt_detached = function (
 
   assert(nsec === null, 'nsec must always be set to null')
   assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
   assert(c.byteLength === m.byteLength, "c must be 'm.byteLength' bytes")
   assert(ArrayBuffer.isView(mac), 'mac must be a typed array')
   assert(
@@ -2515,6 +2587,7 @@ exports.crypto_aead_xchacha20poly1305_ietf_decrypt_detached = function (
 
   assert(nsec === null, 'nsec must always be set to null')
   assert(ArrayBuffer.isView(m), 'm must be a typed array')
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
   assert(m.byteLength === c.byteLength, "m must be 'c.byteLength' bytes")
   assert(ArrayBuffer.isView(mac), 'mac must be a typed array')
   assert(
@@ -2552,6 +2625,7 @@ exports.crypto_aead_chacha20poly1305_ietf_encrypt = function (c, m, ad, nsec, np
 
   assert(nsec === null, 'nsec must always be set to null')
   assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
   assert(
     c.byteLength === m.byteLength + binding.crypto_aead_chacha20poly1305_ietf_ABYTES,
     "c must be 'm.byteLength + crypto_aead_chacha20poly1305_ietf_ABYTES' bytes"
@@ -2580,6 +2654,7 @@ exports.crypto_aead_chacha20poly1305_ietf_decrypt = function (m, nsec, c, ad, np
 
   assert(nsec === null, 'nsec must always be set to null')
   assert(ArrayBuffer.isView(m), 'm must be a typed array')
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
   assert(
     m.byteLength === c.byteLength - binding.crypto_aead_chacha20poly1305_ietf_ABYTES,
     "m must be 'c.byteLength - crypto_aead_chacha20poly1305_ietf_ABYTES' bytes"
@@ -2616,6 +2691,7 @@ exports.crypto_aead_chacha20poly1305_ietf_encrypt_detached = function (
 
   assert(nsec === null, 'nsec must always be set to null')
   assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
   assert(c.byteLength === m.byteLength, "c must be 'm.byteLength' bytes")
   assert(ArrayBuffer.isView(mac), 'mac must be a typed array')
   assert(
@@ -2653,6 +2729,7 @@ exports.crypto_aead_chacha20poly1305_ietf_decrypt_detached = function (
 
   assert(nsec === null, 'nsec must always be set to null')
   assert(ArrayBuffer.isView(m), 'm must be a typed array')
+  assert(ArrayBuffer.isView(c), 'c must be a typed array')
   assert(m.byteLength === c.byteLength, "m must be 'c.byteLength' bytes")
   assert(ArrayBuffer.isView(mac), 'mac must be a typed array')
   assert(
@@ -2704,6 +2781,7 @@ exports.crypto_stream_xor_wrap_update = function (state, c, m) {
     "state must be 'sn_crypto_stream_xor_STATEBYTES' bytes"
   )
   assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
   assert(c.byteLength === m.byteLength, "c must be 'm.byteLength' bytes")
 
   binding.crypto_stream_xor_wrap_update(state, c, m)
@@ -2746,6 +2824,7 @@ exports.crypto_stream_chacha20_xor_wrap_update = function (state, c, m) {
     "state must be 'crypto_stream_chacha20_xor_STATEBYTES' bytes"
   )
   assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
   assert(c.byteLength === m.byteLength, "c must be 'm.byteLength' bytes")
 
   binding.crypto_stream_chacha20_xor_wrap_update(state, c, m)
@@ -2788,6 +2867,7 @@ exports.crypto_stream_chacha20_ietf_xor_wrap_update = function (state, c, m) {
     "state must be 'crypto_stream_chacha20_ietf_xor_STATEBYTES' bytes"
   )
   assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
   assert(c.byteLength === m.byteLength, "c must be 'm.byteLength' bytes")
 
   binding.crypto_stream_chacha20_ietf_xor_wrap_update(state, c, m)
@@ -2830,6 +2910,7 @@ exports.crypto_stream_xchacha20_xor_wrap_update = function (state, c, m) {
     "state must be 'crypto_stream_xchacha20_xor_STATEBYTES' bytes"
   )
   assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
   assert(c.byteLength === m.byteLength, "c must be 'm.byteLength' bytes")
 
   binding.crypto_stream_xchacha20_xor_wrap_update(state, c, m)
@@ -2872,6 +2953,7 @@ exports.crypto_stream_salsa20_xor_wrap_update = function (state, c, m) {
     "state must be 'crypto_stream_salsa20_xor_STATEBYTES' bytes"
   )
   assert(ArrayBuffer.isView(c), 'c must be a typed array')
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
   assert(c.byteLength === m.byteLength, "c must be 'm.byteLength' bytes")
 
   binding.crypto_stream_salsa20_xor_wrap_update(state, c, m)
@@ -2907,6 +2989,7 @@ exports.extension_tweak_ed25519_base = function (n, p, ns) {
 exports.extension_tweak_ed25519_sign_detached = function (sig, m, scalar, pk) {
   assert(ArrayBuffer.isView(sig), 'sig must be a typed array')
   assert(sig.byteLength === binding.crypto_sign_BYTES, "sig must be 'crypto_sign_BYTES' bytes")
+  assert(ArrayBuffer.isView(m), 'm must be a typed array')
   assert(ArrayBuffer.isView(scalar), 'scalar must be a typed array')
   assert(
     scalar.byteLength === binding.extension_tweak_ed25519_SCALARBYTES,
@@ -3114,6 +3197,11 @@ exports.extension_pbkdf2_sha512 = function (out, passwd, salt, iter, outlen) {
   )
   assert(ArrayBuffer.isView(out), 'out must be a typed array')
   assert(out.byteLength >= outlen, "out must be at least 'outlen' bytes")
+  assert(out.byteLength > 0, 'out must not be empty')
+  assert(ArrayBuffer.isView(passwd), 'passwd must be a typed array')
+  assert(passwd.byteLength > 0, 'passwd must not be empty')
+  assert(ArrayBuffer.isView(salt), 'salt must be a typed array')
+  assert(salt.byteLength > 0, 'salt must not be empty')
 
   const res = binding.extension_pbkdf2_sha512(out, passwd, salt, iter, outlen)
 
