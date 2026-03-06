@@ -34,8 +34,8 @@
   },
   "scripts": {
     "test": "prettier . --check && npm run test:node && npm run test:bare",
-    "test:node": "node test/all.js",
-    "test:bare": "bare test/all.js"
+    "test:node": "node --expose-gc test/all.js",
+    "test:bare": "bare --expose-gc test/all.js"
   },
   "standard": {
     "ignore": [
