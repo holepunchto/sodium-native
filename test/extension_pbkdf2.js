@@ -40,13 +40,7 @@ test('vectors', { timeout: 0 }, async (t) => {
     const length = v.dkLen
     const output = Buffer.alloc(length)
 
-    await sodium.extension_pbkdf2_sha512(
-      output,
-      password,
-      salt,
-      iterations,
-      length
-    )
+    await sodium.extension_pbkdf2_sha512(output, password, salt, iterations, length)
 
     t.alike(output.toString('hex'), v.pbkdf2_hmac_sha512)
   }

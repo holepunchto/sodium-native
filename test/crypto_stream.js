@@ -74,11 +74,7 @@ test('crypto_stream_xor state', function (t) {
   sodium.crypto_stream_xor_init(state, nonce, key)
 
   for (let i = 0; i < message.length; i++) {
-    sodium.crypto_stream_xor_update(
-      state,
-      out.subarray(i, i + 1),
-      message.subarray(i, i + 1)
-    )
+    sodium.crypto_stream_xor_update(state, out.subarray(i, i + 1), message.subarray(i, i + 1))
   }
 
   sodium.crypto_stream_xor_final(state)
@@ -99,11 +95,7 @@ test('crypto_stream_xor state with empty buffers', function (t) {
   sodium.crypto_stream_xor_update(state, Buffer.alloc(0), Buffer.alloc(0))
 
   for (let i = 0; i < message.length; i++) {
-    sodium.crypto_stream_xor_update(
-      state,
-      out.subarray(i, i + 1),
-      message.subarray(i, i + 1)
-    )
+    sodium.crypto_stream_xor_update(state, out.subarray(i, i + 1), message.subarray(i, i + 1))
     sodium.crypto_stream_xor_update(state, Buffer.alloc(0), Buffer.alloc(0))
   }
 
@@ -234,11 +226,7 @@ test('crypto_stream_xor state after GC', { skip: isBare }, function (t) {
   forceGC()
 
   for (let i = 0; i < message.length; i++) {
-    sodium.crypto_stream_xor_update(
-      state,
-      out.subarray(i, i + 1),
-      message.subarray(i, i + 1)
-    )
+    sodium.crypto_stream_xor_update(state, out.subarray(i, i + 1), message.subarray(i, i + 1))
   }
 
   sodium.crypto_stream_xor_final(state)

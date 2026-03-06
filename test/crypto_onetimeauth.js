@@ -35,9 +35,5 @@ test('crypto_onetimeauth_state', function (t) {
   const mac = Buffer.alloc(sodium.crypto_onetimeauth_BYTES)
   sodium.crypto_onetimeauth_final(state, mac)
 
-  t.alike(
-    mac.toString('hex'),
-    'ac35df70e6b95051e015de11a6cbf4ab',
-    'streaming mac'
-  )
+  t.alike(mac.toString('hex'), 'ac35df70e6b95051e015de11a6cbf4ab', 'streaming mac')
 })

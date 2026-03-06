@@ -36,11 +36,7 @@ test('fastcall: crypto_sign_verify_detached', function (t) {
   const bpush = benchmark(t)
 
   for (let i = 0; i < N.verify_calls; i++) {
-    const valid = sodium.crypto_sign_verify_detached(
-      signature,
-      message,
-      publicKey
-    )
+    const valid = sodium.crypto_sign_verify_detached(signature, message, publicKey)
     if (!valid) throw new Error('Unexpected verification failure')
     bpush(1)
   }
@@ -166,13 +162,7 @@ test('fastcall: crypto_secretstream_xchacha20poly1305_push & pull', (t) => {
     )
     if (ret !== message.byteLength + ABYTES) t.fail('invalid amount written')
 
-    ret = sodium.crypto_secretstream_xchacha20poly1305_pull(
-      stateDec,
-      plain,
-      tag,
-      cipher,
-      adOut
-    )
+    ret = sodium.crypto_secretstream_xchacha20poly1305_pull(stateDec, plain, tag, cipher, adOut)
 
     if (ret !== cipher.byteLength - ABYTES) t.fail('invalid amount read')
     if (tag[0] !== TAG_MESSAGE) t.fail('bad tag decoded')

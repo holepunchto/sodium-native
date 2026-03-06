@@ -64,22 +64,11 @@ test('constants', function (t) {
 test('crypto_pwhash_scryptsalsa208sha256', function (t) {
   const output = Buffer.alloc(32) // can be any size
   const passwd = Buffer.from('Hej, Verden!')
-  const salt = Buffer.alloc(
-    sodium.crypto_pwhash_scryptsalsa208sha256_SALTBYTES,
-    'lo'
-  )
-  const opslimit =
-    sodium.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE
-  const memlimit =
-    sodium.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE
+  const salt = Buffer.alloc(sodium.crypto_pwhash_scryptsalsa208sha256_SALTBYTES, 'lo')
+  const opslimit = sodium.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE
+  const memlimit = sodium.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE
 
-  sodium.crypto_pwhash_scryptsalsa208sha256(
-    output,
-    passwd,
-    salt,
-    opslimit,
-    memlimit
-  )
+  sodium.crypto_pwhash_scryptsalsa208sha256(output, passwd, salt, opslimit, memlimit)
 
   t.alike(
     output.toString('hex'),
@@ -88,13 +77,7 @@ test('crypto_pwhash_scryptsalsa208sha256', function (t) {
   )
 
   salt[0] = 0
-  sodium.crypto_pwhash_scryptsalsa208sha256(
-    output,
-    passwd,
-    salt,
-    opslimit,
-    memlimit
-  )
+  sodium.crypto_pwhash_scryptsalsa208sha256(output, passwd, salt, opslimit, memlimit)
 
   t.alike(
     output.toString('hex'),
@@ -104,51 +87,28 @@ test('crypto_pwhash_scryptsalsa208sha256', function (t) {
 })
 
 test('crypto_pwhash_scryptsalsa208sha256_str', function (t) {
-  const output = Buffer.alloc(
-    sodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES
-  )
+  const output = Buffer.alloc(sodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES)
   const passwd = Buffer.from('Hej, Verden!')
-  const opslimit =
-    sodium.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE
-  const memlimit =
-    sodium.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE
+  const opslimit = sodium.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE
+  const memlimit = sodium.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE
 
-  sodium.crypto_pwhash_scryptsalsa208sha256_str(
-    output,
-    passwd,
-    opslimit,
-    memlimit
-  )
+  sodium.crypto_pwhash_scryptsalsa208sha256_str(output, passwd, opslimit, memlimit)
 
   t.not(output, Buffer.alloc(output.length), 'not blank')
   t.absent(
-    sodium.crypto_pwhash_scryptsalsa208sha256_str_verify(
-      Buffer.alloc(output.length),
-      passwd
-    ),
+    sodium.crypto_pwhash_scryptsalsa208sha256_str_verify(Buffer.alloc(output.length), passwd),
     'does not verify'
   )
-  t.ok(
-    sodium.crypto_pwhash_scryptsalsa208sha256_str_verify(output, passwd),
-    'verifies'
-  )
+  t.ok(sodium.crypto_pwhash_scryptsalsa208sha256_str_verify(output, passwd), 'verifies')
 })
 
 test('crypto_pwhash_scryptsalsa208sha256_str_needs_rehash', function (t) {
   const passwd = Buffer.from('secret')
-  const weakMem = Buffer.alloc(
-    sodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES
-  )
-  const weakOps = Buffer.alloc(
-    sodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES
-  )
-  const malformed = Buffer.alloc(
-    sodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES
-  )
+  const weakMem = Buffer.alloc(sodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES)
+  const weakOps = Buffer.alloc(sodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES)
+  const malformed = Buffer.alloc(sodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES)
   const good = Buffer.alloc(sodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES)
-  const weakAlg = Buffer.alloc(
-    sodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES
-  )
+  const weakAlg = Buffer.alloc(sodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES)
   weakAlg.set('argon2i$p=2,v=19,m=1024$SGVsbG8=$SGVsbG8gd29ybA==')
 
   sodium.crypto_pwhash_scryptsalsa208sha256_str(
@@ -222,14 +182,9 @@ test('crypto_pwhash_scryptsalsa208sha256_async', function (t) {
 
   const output = Buffer.alloc(32) // can be any size
   const passwd = Buffer.from('Hej, Verden!')
-  const salt = Buffer.alloc(
-    sodium.crypto_pwhash_scryptsalsa208sha256_SALTBYTES,
-    'lo'
-  )
-  const opslimit =
-    sodium.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE
-  const memlimit =
-    sodium.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE
+  const salt = Buffer.alloc(sodium.crypto_pwhash_scryptsalsa208sha256_SALTBYTES, 'lo')
+  const opslimit = sodium.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE
+  const memlimit = sodium.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE
 
   sodium.crypto_pwhash_scryptsalsa208sha256_async(
     output,
@@ -268,14 +223,10 @@ test('crypto_pwhash_scryptsalsa208sha256_async', function (t) {
 test('crypto_pwhash_scryptsalsa208sha256_str_async', function (t) {
   t.plan(6)
 
-  const output = Buffer.alloc(
-    sodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES
-  )
+  const output = Buffer.alloc(sodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES)
   const passwd = Buffer.from('Hej, Verden!')
-  const opslimit =
-    sodium.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE
-  const memlimit =
-    sodium.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE
+  const opslimit = sodium.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE
+  const memlimit = sodium.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE
 
   sodium.crypto_pwhash_scryptsalsa208sha256_str_async(
     output,
@@ -308,20 +259,13 @@ test('crypto_pwhash_scryptsalsa208sha256_str_async', function (t) {
 })
 
 test('crypto_pwhash_scryptsalsa208sha256 limits', function (t) {
-  const output = Buffer.alloc(
-    sodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES
-  )
+  const output = Buffer.alloc(sodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES)
   const passwd = Buffer.from('Hej, Verden!')
   const opslimit = Number.MAX_SAFE_INTEGER
   const memlimit = Number.MAX_SAFE_INTEGER
 
   t.exception.all(function () {
-    sodium.crypto_pwhash_scryptsalsa208sha256_str(
-      output,
-      passwd,
-      opslimit,
-      memlimit
-    )
+    sodium.crypto_pwhash_scryptsalsa208sha256_str(output, passwd, opslimit, memlimit)
   }, 'should throw on large limits')
   t.exception.all(function () {
     sodium.crypto_pwhash_scryptsalsa208sha256_str(output, passwd, -1, -1)
@@ -333,14 +277,9 @@ test('crypto_pwhash_scryptsalsa208sha256_async uncaughtException', function (t) 
 
   const output = Buffer.alloc(32) // can be any size
   const passwd = Buffer.from('Hej, Verden!')
-  const salt = Buffer.alloc(
-    sodium.crypto_pwhash_scryptsalsa208sha256_SALTBYTES,
-    'lo'
-  )
-  const opslimit =
-    sodium.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE
-  const memlimit =
-    sodium.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE
+  const salt = Buffer.alloc(sodium.crypto_pwhash_scryptsalsa208sha256_SALTBYTES, 'lo')
+  const opslimit = sodium.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE
+  const memlimit = sodium.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE
 
   uncaught(listener)
 
@@ -369,24 +308,14 @@ test('crypto_pwhash_scryptsalsa208sha256_async uncaughtException', function (t) 
 test('crypto_pwhash_scryptsalsa208sha256_str_async uncaughtException', function (t) {
   t.plan(1)
 
-  const output = Buffer.alloc(
-    sodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES
-  ) // can be any size
+  const output = Buffer.alloc(sodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES) // can be any size
   const passwd = Buffer.from('Hej, Verden!')
-  const opslimit =
-    sodium.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE
-  const memlimit =
-    sodium.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE
+  const opslimit = sodium.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE
+  const memlimit = sodium.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE
 
   uncaught(listener)
 
-  sodium.crypto_pwhash_scryptsalsa208sha256_str_async(
-    output,
-    passwd,
-    opslimit,
-    memlimit,
-    exception
-  )
+  sodium.crypto_pwhash_scryptsalsa208sha256_str_async(output, passwd, opslimit, memlimit, exception)
 
   function exception() {
     throw new Error('caught')
@@ -404,18 +333,12 @@ test('crypto_pwhash_scryptsalsa208sha256_str_async uncaughtException', function 
 test('crypto_pwhash_scryptsalsa208sha256_str_verify_async uncaughtException', function (t) {
   t.plan(1)
 
-  const output = Buffer.alloc(
-    sodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES
-  ) // can be any size
+  const output = Buffer.alloc(sodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES) // can be any size
   const passwd = Buffer.from('Hej, Verden!')
 
   uncaught(listener)
 
-  sodium.crypto_pwhash_scryptsalsa208sha256_str_verify_async(
-    output,
-    passwd,
-    exception
-  )
+  sodium.crypto_pwhash_scryptsalsa208sha256_str_verify_async(output, passwd, exception)
 
   function exception() {
     throw new Error('caught')
@@ -435,23 +358,12 @@ test('crypto_pwhash_scryptsalsa208sha256_async promise', async function (t) {
 
   const output = Buffer.alloc(32) // can be any size
   const passwd = Buffer.from('Hej, Verden!')
-  const salt = Buffer.alloc(
-    sodium.crypto_pwhash_scryptsalsa208sha256_SALTBYTES,
-    'lo'
-  )
-  const opslimit =
-    sodium.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE
-  const memlimit =
-    sodium.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE
+  const salt = Buffer.alloc(sodium.crypto_pwhash_scryptsalsa208sha256_SALTBYTES, 'lo')
+  const opslimit = sodium.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE
+  const memlimit = sodium.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE
 
   await t.execution(
-    sodium.crypto_pwhash_scryptsalsa208sha256_async(
-      output,
-      passwd,
-      salt,
-      opslimit,
-      memlimit
-    )
+    sodium.crypto_pwhash_scryptsalsa208sha256_async(output, passwd, salt, opslimit, memlimit)
   )
   t.alike(
     output.toString('hex'),
@@ -462,13 +374,7 @@ test('crypto_pwhash_scryptsalsa208sha256_async promise', async function (t) {
   salt[0] = 0
 
   await t.execution(
-    sodium.crypto_pwhash_scryptsalsa208sha256_async(
-      output,
-      passwd,
-      salt,
-      opslimit,
-      memlimit
-    )
+    sodium.crypto_pwhash_scryptsalsa208sha256_async(output, passwd, salt, opslimit, memlimit)
   )
   t.alike(
     output.toString('hex'),
@@ -480,21 +386,12 @@ test('crypto_pwhash_scryptsalsa208sha256_async promise', async function (t) {
 test('crypto_pwhash_scryptsalsa208sha256_str_async promise', async function (t) {
   t.plan(5)
 
-  const output = Buffer.alloc(
-    sodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES
-  )
+  const output = Buffer.alloc(sodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES)
   const passwd = Buffer.from('Hej, Verden!')
-  const opslimit =
-    sodium.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE
-  const memlimit =
-    sodium.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE
+  const opslimit = sodium.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE
+  const memlimit = sodium.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE
 
-  await sodium.crypto_pwhash_scryptsalsa208sha256_str_async(
-    output,
-    passwd,
-    opslimit,
-    memlimit
-  )
+  await sodium.crypto_pwhash_scryptsalsa208sha256_str_async(output, passwd, opslimit, memlimit)
   t.not(output, Buffer.alloc(output.length), 'not blank')
 
   let p = await sodium.crypto_pwhash_scryptsalsa208sha256_str_verify_async(
@@ -504,10 +401,7 @@ test('crypto_pwhash_scryptsalsa208sha256_str_async promise', async function (t) 
   await t.execution(p)
   t.ok(p === false, 'does not verify')
 
-  p = await sodium.crypto_pwhash_scryptsalsa208sha256_str_verify_async(
-    output,
-    passwd
-  )
+  p = await sodium.crypto_pwhash_scryptsalsa208sha256_str_verify_async(output, passwd)
   await t.execution(p)
   t.ok(p === true, 'verifies')
 })

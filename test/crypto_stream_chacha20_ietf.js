@@ -89,11 +89,7 @@ test('libsodium crypto_stream_chacha20_ietf', function (t) {
     nonce.write(tests[i][1], 0, nonce.byteLength, 'hex')
     out.fill(0)
     sodium.crypto_stream_chacha20_ietf_xor_ic(out, out, nonce, tests[i][2], key)
-    t.alike(
-      out,
-      Buffer.from(tests[i][3], 'hex'),
-      'crypto_stream_chacha20_ietf_xor_ic vector ' + i
-    )
+    t.alike(out, Buffer.from(tests[i][3], 'hex'), 'crypto_stream_chacha20_ietf_xor_ic vector ' + i)
     for (let plen = 0; plen < out.byteLength; plen++) {
       const part = Buffer.alloc(plen)
       sodium.crypto_stream_chacha20_ietf_xor_ic(
@@ -123,33 +119,15 @@ test('libsodium crypto_stream_chacha20_ietf', function (t) {
     )
   )
 
+  t.execution(() => sodium.crypto_stream_chacha20_ietf(out.subarray(0, 0), nonce, key))
   t.execution(() =>
-    sodium.crypto_stream_chacha20_ietf(out.subarray(0, 0), nonce, key)
+    sodium.crypto_stream_chacha20_ietf_xor(out.subarray(0, 0), Buffer.alloc(0), nonce, key)
   )
   t.execution(() =>
-    sodium.crypto_stream_chacha20_ietf_xor(
-      out.subarray(0, 0),
-      Buffer.alloc(0),
-      nonce,
-      key
-    )
+    sodium.crypto_stream_chacha20_ietf_xor(out.subarray(0, 0), Buffer.alloc(0), nonce, key)
   )
   t.execution(() =>
-    sodium.crypto_stream_chacha20_ietf_xor(
-      out.subarray(0, 0),
-      Buffer.alloc(0),
-      nonce,
-      key
-    )
-  )
-  t.execution(() =>
-    sodium.crypto_stream_chacha20_ietf_xor_ic(
-      out.subarray(0, 0),
-      Buffer.alloc(0),
-      nonce,
-      1,
-      key
-    )
+    sodium.crypto_stream_chacha20_ietf_xor_ic(out.subarray(0, 0), Buffer.alloc(0), nonce, 1, key)
   )
 
   out.fill(0x42)
@@ -246,11 +224,7 @@ test('crypto_stream_chacha20_ietf_xor state with empty buffers', function (t) {
   const state = Buffer.alloc(sodium.crypto_stream_chacha20_ietf_xor_STATEBYTES)
   sodium.crypto_stream_chacha20_ietf_xor_init(state, nonce, key)
 
-  sodium.crypto_stream_chacha20_ietf_xor_update(
-    state,
-    Buffer.alloc(0),
-    Buffer.alloc(0)
-  )
+  sodium.crypto_stream_chacha20_ietf_xor_update(state, Buffer.alloc(0), Buffer.alloc(0))
 
   for (let i = 0; i < message.length; i++) {
     sodium.crypto_stream_chacha20_ietf_xor_update(
@@ -258,11 +232,7 @@ test('crypto_stream_chacha20_ietf_xor state with empty buffers', function (t) {
       out.subarray(i, i + 1),
       message.subarray(i, i + 1)
     )
-    sodium.crypto_stream_chacha20_ietf_xor_update(
-      state,
-      Buffer.alloc(0),
-      Buffer.alloc(0)
-    )
+    sodium.crypto_stream_chacha20_ietf_xor_update(state, Buffer.alloc(0), Buffer.alloc(0))
   }
 
   sodium.crypto_stream_chacha20_ietf_xor_final(state)
@@ -274,12 +244,8 @@ test('crypto_stream_chacha20_ietf_xor state long stream', function (t) {
   const nonce = random(sodium.crypto_stream_chacha20_ietf_NONCEBYTES)
   const key = random(sodium.crypto_stream_chacha20_ietf_KEYBYTES)
 
-  const encState = Buffer.alloc(
-    sodium.crypto_stream_chacha20_ietf_xor_STATEBYTES
-  )
-  const decState = Buffer.alloc(
-    sodium.crypto_stream_chacha20_ietf_xor_STATEBYTES
-  )
+  const encState = Buffer.alloc(sodium.crypto_stream_chacha20_ietf_xor_STATEBYTES)
+  const decState = Buffer.alloc(sodium.crypto_stream_chacha20_ietf_xor_STATEBYTES)
 
   sodium.crypto_stream_chacha20_ietf_xor_init(encState, nonce, key)
   sodium.crypto_stream_chacha20_ietf_xor_init(decState, nonce, key)
@@ -311,12 +277,8 @@ test('crypto_stream_chacha20_ietf_xor state long stream (random chunks)', functi
   const nonce = random(sodium.crypto_stream_chacha20_ietf_NONCEBYTES)
   const key = random(sodium.crypto_stream_chacha20_ietf_KEYBYTES)
 
-  const encState = Buffer.alloc(
-    sodium.crypto_stream_chacha20_ietf_xor_STATEBYTES
-  )
-  const decState = Buffer.alloc(
-    sodium.crypto_stream_chacha20_ietf_xor_STATEBYTES
-  )
+  const encState = Buffer.alloc(sodium.crypto_stream_chacha20_ietf_xor_STATEBYTES)
+  const decState = Buffer.alloc(sodium.crypto_stream_chacha20_ietf_xor_STATEBYTES)
 
   sodium.crypto_stream_chacha20_ietf_xor_init(encState, nonce, key)
   sodium.crypto_stream_chacha20_ietf_xor_init(decState, nonce, key)
@@ -349,12 +311,8 @@ test('crypto_stream_chacha20_ietf_xor state long stream (random chunks) with emp
   const nonce = random(sodium.crypto_stream_chacha20_ietf_NONCEBYTES)
   const key = random(sodium.crypto_stream_chacha20_ietf_KEYBYTES)
 
-  const encState = Buffer.alloc(
-    sodium.crypto_stream_chacha20_ietf_xor_STATEBYTES
-  )
-  const decState = Buffer.alloc(
-    sodium.crypto_stream_chacha20_ietf_xor_STATEBYTES
-  )
+  const encState = Buffer.alloc(sodium.crypto_stream_chacha20_ietf_xor_STATEBYTES)
+  const decState = Buffer.alloc(sodium.crypto_stream_chacha20_ietf_xor_STATEBYTES)
 
   sodium.crypto_stream_chacha20_ietf_xor_init(encState, nonce, key)
   sodium.crypto_stream_chacha20_ietf_xor_init(decState, nonce, key)
@@ -367,11 +325,7 @@ test('crypto_stream_chacha20_ietf_xor state long stream (random chunks) with emp
     const next = random(len)
     plain.push(next)
 
-    sodium.crypto_stream_chacha20_ietf_xor_update(
-      encState,
-      Buffer.alloc(0),
-      Buffer.alloc(0)
-    )
+    sodium.crypto_stream_chacha20_ietf_xor_update(encState, Buffer.alloc(0), Buffer.alloc(0))
 
     const enc = Buffer.alloc(len)
     sodium.crypto_stream_chacha20_ietf_xor_update(encState, enc, next)
@@ -380,11 +334,7 @@ test('crypto_stream_chacha20_ietf_xor state long stream (random chunks) with emp
     const dec = Buffer.alloc(len)
     sodium.crypto_stream_chacha20_ietf_xor_update(decState, dec, enc)
     decrypted.push(dec)
-    sodium.crypto_stream_chacha20_ietf_xor_update(
-      decState,
-      Buffer.alloc(0),
-      Buffer.alloc(0)
-    )
+    sodium.crypto_stream_chacha20_ietf_xor_update(decState, Buffer.alloc(0), Buffer.alloc(0))
   }
 
   const enc2 = Buffer.alloc(Buffer.concat(plain).length)
@@ -394,41 +344,35 @@ test('crypto_stream_chacha20_ietf_xor state long stream (random chunks) with emp
   t.alike(Buffer.concat(decrypted), Buffer.concat(plain), 'decrypts')
 })
 
-test(
-  'crypto_stream_chacha20_xor state after GC',
-  { skip: isBare },
-  function (t) {
-    const message = Buffer.from('Hello, world!')
-    let nonce = random(sodium.crypto_stream_chacha20_ietf_NONCEBYTES)
-    let key = random(sodium.crypto_stream_chacha20_ietf_KEYBYTES)
+test('crypto_stream_chacha20_xor state after GC', { skip: isBare }, function (t) {
+  const message = Buffer.from('Hello, world!')
+  let nonce = random(sodium.crypto_stream_chacha20_ietf_NONCEBYTES)
+  let key = random(sodium.crypto_stream_chacha20_ietf_KEYBYTES)
 
-    const out = Buffer.alloc(message.length)
+  const out = Buffer.alloc(message.length)
 
-    const state = Buffer.alloc(
-      sodium.crypto_stream_chacha20_ietf_xor_STATEBYTES
+  const state = Buffer.alloc(sodium.crypto_stream_chacha20_ietf_xor_STATEBYTES)
+  sodium.crypto_stream_chacha20_ietf_xor_init(state, nonce, key)
+
+  const nonceCopy = Buffer.from(nonce.toString('hex'), 'hex')
+  const keyCopy = Buffer.from(key.toString('hex'), 'hex')
+  nonce = null
+  key = null
+
+  forceGC()
+
+  for (let i = 0; i < message.length; i++) {
+    sodium.crypto_stream_chacha20_ietf_xor_update(
+      state,
+      out.subarray(i, i + 1),
+      message.subarray(i, i + 1)
     )
-    sodium.crypto_stream_chacha20_ietf_xor_init(state, nonce, key)
-
-    const nonceCopy = Buffer.from(nonce.toString('hex'), 'hex')
-    const keyCopy = Buffer.from(key.toString('hex'), 'hex')
-    nonce = null
-    key = null
-
-    forceGC()
-
-    for (let i = 0; i < message.length; i++) {
-      sodium.crypto_stream_chacha20_ietf_xor_update(
-        state,
-        out.subarray(i, i + 1),
-        message.subarray(i, i + 1)
-      )
-    }
-
-    sodium.crypto_stream_chacha20_ietf_xor_final(state)
-    sodium.crypto_stream_chacha20_ietf_xor(out, out, nonceCopy, keyCopy)
-    t.alike(out, message, 'decrypted')
   }
-)
+
+  sodium.crypto_stream_chacha20_ietf_xor_final(state)
+  sodium.crypto_stream_chacha20_ietf_xor(out, out, nonceCopy, keyCopy)
+  t.alike(out, message, 'decrypted')
+})
 
 function random(n) {
   const buf = Buffer.alloc(n)

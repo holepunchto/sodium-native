@@ -2,59 +2,23 @@ const test = require('brittle')
 const sodium = require('..')
 
 test('constants', function (t) {
-  t.ok(
-    sodium.crypto_pwhash_ALG_ARGON2I13 != null,
-    'crypto_pwhash_ALG_ARGON2I13 is defined'
-  )
-  t.ok(
-    sodium.crypto_pwhash_ALG_ARGON2ID13 != null,
-    'crypto_pwhash_ALG_ARGON2ID13 is defined'
-  )
+  t.ok(sodium.crypto_pwhash_ALG_ARGON2I13 != null, 'crypto_pwhash_ALG_ARGON2I13 is defined')
+  t.ok(sodium.crypto_pwhash_ALG_ARGON2ID13 != null, 'crypto_pwhash_ALG_ARGON2ID13 is defined')
   t.ok(
     sodium.crypto_pwhash_ALG_DEFAULT === sodium.crypto_pwhash_ALG_ARGON2ID13,
     'crypto_pwhash_ALG_DEFAULT is crypto_pwhash_ALG_ARGON2ID13'
   )
-  t.ok(
-    sodium.crypto_pwhash_BYTES_MIN != null,
-    'crypto_pwhash_BYTES_MIN is defined'
-  )
-  t.ok(
-    sodium.crypto_pwhash_BYTES_MAX != null,
-    'crypto_pwhash_BYTES_MAX is defined'
-  )
-  t.ok(
-    sodium.crypto_pwhash_PASSWD_MIN != null,
-    'crypto_pwhash_PASSWD_MIN is defined'
-  )
-  t.ok(
-    sodium.crypto_pwhash_PASSWD_MAX != null,
-    'crypto_pwhash_PASSWD_MAX is defined'
-  )
-  t.ok(
-    sodium.crypto_pwhash_SALTBYTES != null,
-    'crypto_pwhash_SALTBYTES is defined'
-  )
-  t.ok(
-    sodium.crypto_pwhash_STRBYTES != null,
-    'crypto_pwhash_STRBYTES is defined'
-  )
+  t.ok(sodium.crypto_pwhash_BYTES_MIN != null, 'crypto_pwhash_BYTES_MIN is defined')
+  t.ok(sodium.crypto_pwhash_BYTES_MAX != null, 'crypto_pwhash_BYTES_MAX is defined')
+  t.ok(sodium.crypto_pwhash_PASSWD_MIN != null, 'crypto_pwhash_PASSWD_MIN is defined')
+  t.ok(sodium.crypto_pwhash_PASSWD_MAX != null, 'crypto_pwhash_PASSWD_MAX is defined')
+  t.ok(sodium.crypto_pwhash_SALTBYTES != null, 'crypto_pwhash_SALTBYTES is defined')
+  t.ok(sodium.crypto_pwhash_STRBYTES != null, 'crypto_pwhash_STRBYTES is defined')
 
-  t.ok(
-    sodium.crypto_pwhash_OPSLIMIT_MIN != null,
-    'crypto_pwhash_OPSLIMIT_MIN is defined'
-  )
-  t.ok(
-    sodium.crypto_pwhash_OPSLIMIT_MAX != null,
-    'crypto_pwhash_OPSLIMIT_MAX is defined'
-  )
-  t.ok(
-    sodium.crypto_pwhash_MEMLIMIT_MIN != null,
-    'crypto_pwhash_MEMLIMIT_MIN is defined'
-  )
-  t.ok(
-    sodium.crypto_pwhash_MEMLIMIT_MAX != null,
-    'crypto_pwhash_MEMLIMIT_MAX is defined'
-  )
+  t.ok(sodium.crypto_pwhash_OPSLIMIT_MIN != null, 'crypto_pwhash_OPSLIMIT_MIN is defined')
+  t.ok(sodium.crypto_pwhash_OPSLIMIT_MAX != null, 'crypto_pwhash_OPSLIMIT_MAX is defined')
+  t.ok(sodium.crypto_pwhash_MEMLIMIT_MIN != null, 'crypto_pwhash_MEMLIMIT_MIN is defined')
+  t.ok(sodium.crypto_pwhash_MEMLIMIT_MAX != null, 'crypto_pwhash_MEMLIMIT_MAX is defined')
   t.ok(
     sodium.crypto_pwhash_OPSLIMIT_INTERACTIVE != null,
     'crypto_pwhash_OPSLIMIT_INTERACTIVE is defined'
@@ -63,14 +27,8 @@ test('constants', function (t) {
     sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE != null,
     'crypto_pwhash_MEMLIMIT_INTERACTIVE is defined'
   )
-  t.ok(
-    sodium.crypto_pwhash_OPSLIMIT_MODERATE != null,
-    'crypto_pwhash_OPSLIMIT_MODERATE is defined'
-  )
-  t.ok(
-    sodium.crypto_pwhash_MEMLIMIT_MODERATE != null,
-    'crypto_pwhash_MEMLIMIT_MODERATE is defined'
-  )
+  t.ok(sodium.crypto_pwhash_OPSLIMIT_MODERATE != null, 'crypto_pwhash_OPSLIMIT_MODERATE is defined')
+  t.ok(sodium.crypto_pwhash_MEMLIMIT_MODERATE != null, 'crypto_pwhash_MEMLIMIT_MODERATE is defined')
   t.ok(
     sodium.crypto_pwhash_OPSLIMIT_SENSITIVE != null,
     'crypto_pwhash_OPSLIMIT_SENSITIVE is defined'
@@ -120,10 +78,7 @@ test('crypto_pwhash_str', function (t) {
   sodium.crypto_pwhash_str(output, passwd, opslimit, memlimit)
 
   t.not(output, Buffer.alloc(output.length), 'not blank')
-  t.absent(
-    sodium.crypto_pwhash_str_verify(Buffer.alloc(output.length), passwd),
-    'does not verify'
-  )
+  t.absent(sodium.crypto_pwhash_str_verify(Buffer.alloc(output.length), passwd), 'does not verify')
   t.ok(sodium.crypto_pwhash_str_verify(output, passwd), 'verifies')
 })
 
@@ -216,41 +171,25 @@ test('crypto_pwhash_async', function (t) {
   const memlimit = sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE
   const algo = sodium.crypto_pwhash_ALG_DEFAULT
 
-  sodium.crypto_pwhash_async(
-    output,
-    passwd,
-    salt,
-    opslimit,
-    memlimit,
-    algo,
-    function (err) {
+  sodium.crypto_pwhash_async(output, passwd, salt, opslimit, memlimit, algo, function (err) {
+    t.absent(err)
+    t.alike(
+      output.toString('hex'),
+      'f0236e17ec70050fc989f19d8ce640301e8f912154b4f0afc1552cdf246e659f',
+      'hashes password'
+    )
+
+    salt[0] = 0
+
+    sodium.crypto_pwhash_async(output, passwd, salt, opslimit, memlimit, algo, function (err) {
       t.absent(err)
       t.alike(
         output.toString('hex'),
-        'f0236e17ec70050fc989f19d8ce640301e8f912154b4f0afc1552cdf246e659f',
-        'hashes password'
+        'df73f15d217196311d4b1aa6fba339905ffe581dee4bd3a95ec2bb7c52991d65',
+        'diff salt -> diff hash'
       )
-
-      salt[0] = 0
-
-      sodium.crypto_pwhash_async(
-        output,
-        passwd,
-        salt,
-        opslimit,
-        memlimit,
-        algo,
-        function (err) {
-          t.absent(err)
-          t.alike(
-            output.toString('hex'),
-            'df73f15d217196311d4b1aa6fba339905ffe581dee4bd3a95ec2bb7c52991d65',
-            'diff salt -> diff hash'
-          )
-        }
-      )
-    }
-  )
+    })
+  })
 })
 
 test('crypto_pwhash_str_async', function (t) {
@@ -265,34 +204,24 @@ test('crypto_pwhash_str_async', function (t) {
     return sodium.crypto_pwhash_str_async(output, passwd)
   }, 'should throw on missing args')
 
-  sodium.crypto_pwhash_str_async(
-    output,
-    passwd,
-    opslimit,
-    memlimit,
-    function (err) {
-      t.absent(err)
-      t.not(output, Buffer.alloc(output.length), 'not blank')
+  sodium.crypto_pwhash_str_async(output, passwd, opslimit, memlimit, function (err) {
+    t.absent(err)
+    t.not(output, Buffer.alloc(output.length), 'not blank')
 
-      sodium.crypto_pwhash_str_verify_async(
-        Buffer.alloc(output.length),
-        passwd,
-        function (err, bool) {
+    sodium.crypto_pwhash_str_verify_async(
+      Buffer.alloc(output.length),
+      passwd,
+      function (err, bool) {
+        t.absent(err)
+        t.ok(bool === false, 'does not verify')
+
+        sodium.crypto_pwhash_str_verify_async(output, passwd, function (err, bool) {
           t.absent(err)
-          t.ok(bool === false, 'does not verify')
-
-          sodium.crypto_pwhash_str_verify_async(
-            output,
-            passwd,
-            function (err, bool) {
-              t.absent(err)
-              t.ok(bool === true, 'verifies')
-            }
-          )
-        }
-      )
-    }
-  )
+          t.ok(bool === true, 'verifies')
+        })
+      }
+    )
+  })
 })
 
 test('crypto_pwhash_async promise', async function (t) {
@@ -305,9 +234,7 @@ test('crypto_pwhash_async promise', async function (t) {
   const memlimit = sodium.crypto_pwhash_MEMLIMIT_INTERACTIVE
   const algo = sodium.crypto_pwhash_ALG_DEFAULT
 
-  await t.execution(
-    sodium.crypto_pwhash_async(output, passwd, salt, opslimit, memlimit, algo)
-  )
+  await t.execution(sodium.crypto_pwhash_async(output, passwd, salt, opslimit, memlimit, algo))
   t.alike(
     output.toString('hex'),
     'f0236e17ec70050fc989f19d8ce640301e8f912154b4f0afc1552cdf246e659f',
@@ -316,9 +243,7 @@ test('crypto_pwhash_async promise', async function (t) {
 
   salt[0] = 0
 
-  await t.execution(
-    sodium.crypto_pwhash_async(output, passwd, salt, opslimit, memlimit, algo)
-  )
+  await t.execution(sodium.crypto_pwhash_async(output, passwd, salt, opslimit, memlimit, algo))
   t.alike(
     output.toString('hex'),
     'df73f15d217196311d4b1aa6fba339905ffe581dee4bd3a95ec2bb7c52991d65',
@@ -338,15 +263,10 @@ test('crypto_pwhash_str_async promise', async function (t) {
     sodium.crypto_pwhash_str_async(output, passwd)
   }, 'should throw on missing args')
 
-  await t.execution(
-    sodium.crypto_pwhash_str_async(output, passwd, opslimit, memlimit)
-  )
+  await t.execution(sodium.crypto_pwhash_str_async(output, passwd, opslimit, memlimit))
   t.not(output, Buffer.alloc(output.length), 'not blank')
 
-  let p = sodium.crypto_pwhash_str_verify_async(
-    Buffer.alloc(output.length),
-    passwd
-  )
+  let p = sodium.crypto_pwhash_str_verify_async(Buffer.alloc(output.length), passwd)
   await t.execution(p)
   t.ok((await p) === false, 'does not verify')
 
@@ -381,15 +301,7 @@ test('crypto_pwhash_async uncaughtException', function (t) {
 
   uncaught(listener)
 
-  sodium.crypto_pwhash_async(
-    output,
-    passwd,
-    salt,
-    opslimit,
-    memlimit,
-    algo,
-    exception
-  )
+  sodium.crypto_pwhash_async(output, passwd, salt, opslimit, memlimit, algo, exception)
 
   function exception() {
     throw new Error('caught')

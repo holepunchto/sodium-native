@@ -16,12 +16,7 @@ test('crypto_secretbox_easy', function (t) {
   }, 'throws if output is too small')
 
   t.exception.all(function () {
-    sodium.crypto_secretbox_easy(
-      Buffer.alloc(message.length),
-      message,
-      nonce,
-      key
-    )
+    sodium.crypto_secretbox_easy(Buffer.alloc(message.length), message, nonce, key)
   }, 'throws if output is too small')
 
   sodium.crypto_secretbox_easy(output, message, nonce, key)
@@ -37,18 +32,13 @@ test('crypto_secretbox_easy', function (t) {
     ),
     'could not decrypt'
   )
-  t.ok(
-    sodium.crypto_secretbox_open_easy(result, output, nonce, key),
-    'could decrypt'
-  )
+  t.ok(sodium.crypto_secretbox_open_easy(result, output, nonce, key), 'could decrypt')
 
   t.alike(result, message, 'decrypted message is correct')
 })
 
 test('crypto_secretbox_easy overwrite buffer', function (t) {
-  const output = Buffer.alloc(
-    Buffer.byteLength('Hej, Verden!') + sodium.crypto_secretbox_MACBYTES
-  )
+  const output = Buffer.alloc(Buffer.byteLength('Hej, Verden!') + sodium.crypto_secretbox_MACBYTES)
   output.write('Hej, Verden!', sodium.crypto_secretbox_MACBYTES)
 
   const key = Buffer.alloc(sodium.crypto_secretbox_KEYBYTES)
@@ -100,19 +90,10 @@ test('crypto_secretbox_detached', function (t) {
   const result = Buffer.alloc(output.length)
 
   t.absent(
-    sodium.crypto_secretbox_open_detached(
-      result,
-      output,
-      mac,
-      nonce,
-      Buffer.alloc(key.length)
-    ),
+    sodium.crypto_secretbox_open_detached(result, output, mac, nonce, Buffer.alloc(key.length)),
     'could not decrypt'
   )
-  t.ok(
-    sodium.crypto_secretbox_open_detached(result, output, mac, nonce, key),
-    'could decrypt'
-  )
+  t.ok(sodium.crypto_secretbox_open_detached(result, output, mac, nonce, key), 'could decrypt')
 
   t.alike(result, message, 'decrypted message is correct')
 })

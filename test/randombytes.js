@@ -2,11 +2,7 @@ const test = require('brittle')
 const sodium = require('..')
 
 test('constants', function (t) {
-  t.alike(
-    typeof sodium.randombytes_SEEDBYTES,
-    'number',
-    'randombytes_SEEDBYTES is number'
-  )
+  t.alike(typeof sodium.randombytes_SEEDBYTES, 'number', 'randombytes_SEEDBYTES is number')
 })
 
 test('randombytes_random', function (t) {

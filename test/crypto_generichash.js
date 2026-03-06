@@ -15,21 +15,13 @@ test('crypto_generichash - bad output size (too large)', function (t) {
 
 test('crypto_generichash - bad key size (too small)', function (t) {
   t.exception(function () {
-    sodium.crypto_generichash(
-      Buffer.alloc(32),
-      Buffer.from('hello'),
-      Buffer.alloc(1)
-    )
+    sodium.crypto_generichash(Buffer.alloc(32), Buffer.from('hello'), Buffer.alloc(1))
   }, 'should throw on key too small')
 })
 
 test('crypto_generichash - bad key size (too large)', function (t) {
   t.exception(function () {
-    sodium.crypto_generichash(
-      Buffer.alloc(32),
-      Buffer.from('hello'),
-      Buffer.alloc(65)
-    )
+    sodium.crypto_generichash(Buffer.alloc(32), Buffer.from('hello'), Buffer.alloc(65))
   }, 'should throw on key too large')
 })
 
@@ -72,11 +64,7 @@ test('crypto_generichash', function (t) {
   const min = Buffer.alloc(sodium.crypto_generichash_BYTES_MIN)
   sodium.crypto_generichash(min, buf)
 
-  t.alike(
-    min.toString('hex'),
-    '3895c59e4aeb0903396b5be3fbec69fe',
-    'hashed buffer min'
-  )
+  t.alike(min.toString('hex'), '3895c59e4aeb0903396b5be3fbec69fe', 'hashed buffer min')
 
   const max = Buffer.alloc(sodium.crypto_generichash_BYTES_MAX)
   sodium.crypto_generichash(max, buf)
@@ -104,11 +92,7 @@ test('crypto_generichash with key', function (t) {
   const min = Buffer.alloc(sodium.crypto_generichash_BYTES_MIN)
   sodium.crypto_generichash(min, buf, key)
 
-  t.alike(
-    min.toString('hex'),
-    'c8226257b0d1c3dcf4bbc3ef79574689',
-    'hashed buffer min'
-  )
+  t.alike(min.toString('hex'), 'c8226257b0d1c3dcf4bbc3ef79574689', 'hashed buffer min')
 
   const max = Buffer.alloc(sodium.crypto_generichash_BYTES_MAX)
   sodium.crypto_generichash(max, buf, key)
@@ -159,11 +143,7 @@ test('crypto_generichash state with key', function (t) {
 
 test('crypto_generichash state with hash length', function (t) {
   const state = Buffer.alloc(sodium.crypto_generichash_STATEBYTES)
-  sodium.crypto_generichash_init(
-    state,
-    null,
-    sodium.crypto_generichash_BYTES_MIN
-  )
+  sodium.crypto_generichash_init(state, null, sodium.crypto_generichash_BYTES_MIN)
 
   const buf = Buffer.from('Hej, Verden')
 
@@ -172,11 +152,7 @@ test('crypto_generichash state with hash length', function (t) {
   const out = Buffer.alloc(sodium.crypto_generichash_BYTES_MIN)
   sodium.crypto_generichash_final(state, out)
 
-  t.alike(
-    out.toString('hex'),
-    'decacdcc3c61948c79d9f8dee5b6aa99',
-    'streaming short hash'
-  )
+  t.alike(out.toString('hex'), 'decacdcc3c61948c79d9f8dee5b6aa99', 'streaming short hash')
 })
 
 test('crypto_generichash state with key and hash length', function (t) {
@@ -184,11 +160,7 @@ test('crypto_generichash state with key and hash length', function (t) {
   key.fill('lo')
 
   const state = Buffer.alloc(sodium.crypto_generichash_STATEBYTES)
-  sodium.crypto_generichash_init(
-    state,
-    key,
-    sodium.crypto_generichash_BYTES_MIN
-  )
+  sodium.crypto_generichash_init(state, key, sodium.crypto_generichash_BYTES_MIN)
 
   const buf = Buffer.from('Hej, Verden')
 
@@ -197,11 +169,7 @@ test('crypto_generichash state with key and hash length', function (t) {
   const out = Buffer.alloc(sodium.crypto_generichash_BYTES_MIN)
   sodium.crypto_generichash_final(state, out)
 
-  t.alike(
-    out.toString('hex'),
-    'fb43f0ab6872cbfd39ec4f8a1bc6fb37',
-    'streaming short keyed hash'
-  )
+  t.alike(out.toString('hex'), 'fb43f0ab6872cbfd39ec4f8a1bc6fb37', 'streaming short keyed hash')
 })
 
 test('crypto_generichash_batch', function (t) {

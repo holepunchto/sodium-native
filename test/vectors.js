@@ -26,15 +26,9 @@ const sodium = require('..')
 const vectors = [
   [
     'crypto_hash_sha256',
-    [
-      'AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=',
-      'ZGV0ZXJtaW5pc3RpYyB0ZXN0cyBhcmUgZ29vZA=='
-    ],
+    ['AAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAAA=', 'ZGV0ZXJtaW5pc3RpYyB0ZXN0cyBhcmUgZ29vZA=='],
     null,
-    [
-      'qWW199GGskwegI1Tt3n+v4e11iejaM34tles8l8ATZk=',
-      'ZGV0ZXJtaW5pc3RpYyB0ZXN0cyBhcmUgZ29vZA=='
-    ]
+    ['qWW199GGskwegI1Tt3n+v4e11iejaM34tles8l8ATZk=', 'ZGV0ZXJtaW5pc3RpYyB0ZXN0cyBhcmUgZ29vZA==']
   ],
   [
     'crypto_hash_sha256',
