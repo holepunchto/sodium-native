@@ -41,6 +41,7 @@ exports.sodium_malloc = function (size) {
 exports.sodium_free = function (buf) {
   if (!buf || !buf.secure) return
 
+  buf.secure = false
   binding.sodium_free(buf.buffer)
 }
 
