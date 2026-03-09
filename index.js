@@ -46,6 +46,8 @@ exports.sodium_free = function (buf) {
 }
 
 exports.sodium_mprotect_noaccess = function (buf) {
+  assert(buf.secure, 'buf must be allocated with sodium_malloc')
+
   const res = binding.sodium_mprotect_noaccess(buf.buffer)
 
   if (res !== 0) throw new Error('failed to lock buffer')

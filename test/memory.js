@@ -142,6 +142,14 @@ test('sodium_free should clear secure flag', function (t) {
   t.ok(buf.secure === false, 'second free is a no-op, secure stays false')
 })
 
+test('sodium_mprotect_noaccess should reject non-secure buffers', function (t) {
+  const buf = Buffer.alloc(32)
+
+  t.exception(function () {
+    sodium.sodium_mprotect_noaccess(buf)
+  }, 'should throw on non-secure buffer')
+})
+
 test.skip('sodium_malloc bounds', function (t) {
   t.throws(function () {
     sodium.sodium_malloc(-1)
