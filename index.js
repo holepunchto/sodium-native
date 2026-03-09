@@ -55,6 +55,8 @@ exports.sodium_mprotect_noaccess = function (buf) {
 }
 
 exports.sodium_mprotect_readonly = function (buf) {
+  assert(ArrayBuffer.isView(buf), 'buf must be a typed array')
+
   const res = binding.sodium_mprotect_readonly(buf.buffer)
 
   if (res !== 0) throw new Error('failed to unlock buffer')
