@@ -128,6 +128,20 @@ test('sodium_free, double free', function (t) {
   t.ok(buf.byteLength === 0)
 })
 
+test('sodium_free should clear secure flag', function (t) {
+  const buf = sodium.sodium_malloc(32)
+
+  t.ok(buf.secure === true, 'buf.secure is true before free')
+
+  sodium.sodium_free(buf)
+
+  t.ok(buf.byteLength === 0, 'buffer is detached after free')
+  t.ok(buf.secure === false, 'buf.secure is false after free')
+
+  sodium.sodium_free(buf)
+  t.ok(buf.secure === false, 'second free is a no-op, secure stays false')
+})
+
 test.skip('sodium_malloc bounds', function (t) {
   t.throws(function () {
     sodium.sodium_malloc(-1)
