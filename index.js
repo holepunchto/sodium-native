@@ -46,18 +46,27 @@ exports.sodium_free = function (buf) {
 }
 
 exports.sodium_mprotect_noaccess = function (buf) {
+  assert(ArrayBuffer.isView(buf), 'buf must be a typed array')
+  assert(buf.secure, 'buf must be allocated with sodium_malloc')
+
   const res = binding.sodium_mprotect_noaccess(buf.buffer)
 
   if (res !== 0) throw new Error('failed to lock buffer')
 }
 
 exports.sodium_mprotect_readonly = function (buf) {
+  assert(ArrayBuffer.isView(buf), 'buf must be a typed array')
+  assert(buf.secure, 'buf must be allocated with sodium_malloc')
+
   const res = binding.sodium_mprotect_readonly(buf.buffer)
 
   if (res !== 0) throw new Error('failed to unlock buffer')
 }
 
 exports.sodium_mprotect_readwrite = function (buf) {
+  assert(ArrayBuffer.isView(buf), 'buf must be a typed array')
+  assert(buf.secure, 'buf must be allocated with sodium_malloc')
+
   const res = binding.sodium_mprotect_readwrite(buf.buffer)
 
   if (res !== 0) throw new Error('failed to unlock buffer')

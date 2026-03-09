@@ -142,6 +142,48 @@ test('sodium_free should clear secure flag', function (t) {
   t.ok(buf.secure === false, 'second free is a no-op, secure stays false')
 })
 
+test('sodium_mprotect_noaccess should reject non-secure buffers', function (t) {
+  const buf = Buffer.alloc(32)
+
+  t.exception(function () {
+    sodium.sodium_mprotect_noaccess(buf)
+  }, 'should throw on non-secure buffer')
+})
+
+test('sodium_mprotect_noaccess should reject non-typed-array input', function (t) {
+  t.exception(function () {
+    sodium.sodium_mprotect_noaccess(null)
+  }, 'should throw on null')
+})
+
+test('sodium_mprotect_readonly should reject non-typed-array input', function (t) {
+  t.exception(function () {
+    sodium.sodium_mprotect_readonly(null)
+  }, 'should throw on null')
+})
+
+test('sodium_mprotect_readonly should reject non-secure buffers', function (t) {
+  const buf = Buffer.alloc(32)
+
+  t.exception(function () {
+    sodium.sodium_mprotect_readonly(buf)
+  }, 'should throw on non-secure buffer')
+})
+
+test('sodium_mprotect_readwrite should reject non-typed-array input', function (t) {
+  t.exception(function () {
+    sodium.sodium_mprotect_readwrite(null)
+  }, 'should throw on null')
+})
+
+test('sodium_mprotect_readwrite should reject non-secure buffers', function (t) {
+  const buf = Buffer.alloc(32)
+
+  t.exception(function () {
+    sodium.sodium_mprotect_readwrite(buf)
+  }, 'should throw on non-secure buffer')
+})
+
 test.skip('sodium_malloc bounds', function (t) {
   t.throws(function () {
     sodium.sodium_malloc(-1)
