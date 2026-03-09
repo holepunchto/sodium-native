@@ -65,6 +65,7 @@ exports.sodium_mprotect_readonly = function (buf) {
 
 exports.sodium_mprotect_readwrite = function (buf) {
   assert(ArrayBuffer.isView(buf), 'buf must be a typed array')
+  assert(buf.secure, 'buf must be allocated with sodium_malloc')
 
   const res = binding.sodium_mprotect_readwrite(buf.buffer)
 

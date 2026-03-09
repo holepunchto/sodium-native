@@ -176,6 +176,14 @@ test('sodium_mprotect_readwrite should reject non-typed-array input', function (
   }, 'should throw on null')
 })
 
+test('sodium_mprotect_readwrite should reject non-secure buffers', function (t) {
+  const buf = Buffer.alloc(32)
+
+  t.exception(function () {
+    sodium.sodium_mprotect_readwrite(buf)
+  }, 'should throw on non-secure buffer')
+})
+
 test.skip('sodium_malloc bounds', function (t) {
   t.throws(function () {
     sodium.sodium_malloc(-1)
