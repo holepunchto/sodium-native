@@ -568,6 +568,10 @@ exports.crypto_secretbox_easy = function (c, m, n, k) {
   assert(ArrayBuffer.isView(n), 'n must be a typed array')
   assert(ArrayBuffer.isView(k), 'k must be a typed array')
   assert(
+    c.byteLength >= binding.crypto_secretbox_MACBYTES,
+    "c must be at least 'crypto_secretbox_MACBYTES' bytes"
+  )
+  assert(
     c.byteLength === m.byteLength + binding.crypto_secretbox_MACBYTES,
     "c must be 'm.byteLength + crypto_secretbox_MACBYTES' bytes"
   )
