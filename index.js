@@ -1317,6 +1317,8 @@ exports.crypto_onetimeauth = function (out, input, k) {
   if (res !== 0) throw new Error('status: ' + res)
 }
 
+const _onetimeauthFinalized = new WeakSet()
+
 exports.crypto_onetimeauth_init = function (state, k) {
   assert(ArrayBuffer.isView(state), 'state must be a typed array')
   assert(ArrayBuffer.isView(k), 'k must be a typed array')
@@ -1328,6 +1330,8 @@ exports.crypto_onetimeauth_init = function (state, k) {
     k.byteLength === binding.crypto_onetimeauth_KEYBYTES,
     "k must be 'crypto_onetimeauth_KEYBYTES' bytes"
   )
+
+  _onetimeauthFinalized.delete(state.buffer)
 
   const res = binding.crypto_onetimeauth_init(state, k)
 
@@ -1341,6 +1345,7 @@ exports.crypto_onetimeauth_update = function (state, input) {
     state.byteLength === binding.crypto_onetimeauth_STATEBYTES,
     "state must be 'crypto_onetimeauth_STATEBYTES' bytes"
   )
+  assert(!_onetimeauthFinalized.has(state.buffer), 'state has already been finalized')
 
   const res = binding.crypto_onetimeauth_update(state, input)
 
@@ -1358,8 +1363,11 @@ exports.crypto_onetimeauth_final = function (state, out) {
     out.byteLength === binding.crypto_onetimeauth_BYTES,
     "out must be 'crypto_onetimeauth_BYTES' bytes"
   )
+  assert(!_onetimeauthFinalized.has(state.buffer), 'state has already been finalized')
 
   const res = binding.crypto_onetimeauth_final(state, out)
+
+  _onetimeauthFinalized.add(state.buffer)
 
   if (res !== 0) throw new Error('status: ' + res)
 }

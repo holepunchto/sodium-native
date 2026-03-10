@@ -17,6 +17,26 @@ test('crypto_onetimeauth', function (t) {
   t.ok(sodium.crypto_onetimeauth_verify(mac, value, key), 'verifies')
 })
 
+test('crypto_onetimeauth - double final must not produce zero MAC', function (t) {
+  const key = Buffer.alloc(sodium.crypto_onetimeauth_KEYBYTES)
+  const state = Buffer.alloc(sodium.crypto_onetimeauth_STATEBYTES)
+  const out = Buffer.alloc(sodium.crypto_onetimeauth_BYTES)
+
+  sodium.randombytes_buf(key)
+  sodium.crypto_onetimeauth_init(state, key)
+  sodium.crypto_onetimeauth_update(state, Buffer.from('hello'))
+  sodium.crypto_onetimeauth_final(state, out)
+
+  const validMac = Buffer.from(out)
+  t.not(validMac, Buffer.alloc(validMac.length), 'first final produces valid MAC')
+
+  t.exception.all(function () {
+    sodium.crypto_onetimeauth_final(state, out)
+  }, 'second final throws instead of producing zero MAC')
+
+  t.alike(out, validMac, 'MAC was not overwritten by second final')
+})
+
 test('crypto_onetimeauth_state', function (t) {
   const key = Buffer.alloc(sodium.crypto_onetimeauth_KEYBYTES, 'lo')
   const state = Buffer.alloc(sodium.crypto_onetimeauth_STATEBYTES)
