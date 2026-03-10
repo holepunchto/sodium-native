@@ -80,6 +80,14 @@ test('crypto_sign_keypair - bad sk size', function (t) {
   }, 'should throw on bad sk size')
 })
 
+test('crypto_sign - sm must be at least crypto_sign_BYTES', function (t) {
+  const sk = Buffer.alloc(sodium.crypto_sign_SECRETKEYBYTES)
+
+  t.exception.all(function () {
+    sodium.crypto_sign(Buffer.alloc(0), Buffer.alloc(0), sk)
+  }, 'throws if sm is smaller than crypto_sign_BYTES')
+})
+
 test('crypto_sign', function (t) {
   const pk = Buffer.alloc(sodium.crypto_sign_PUBLICKEYBYTES)
   const sk = Buffer.alloc(sodium.crypto_sign_SECRETKEYBYTES)

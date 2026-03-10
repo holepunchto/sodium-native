@@ -71,6 +71,18 @@ test('crypto_secretbox_easy overwrite buffer', function (t) {
   )
 })
 
+test('crypto_secretbox_easy - c must be at least MACBYTES', function (t) {
+  const key = Buffer.alloc(sodium.crypto_secretbox_KEYBYTES)
+  sodium.randombytes_buf(key)
+
+  const nonce = Buffer.alloc(sodium.crypto_secretbox_NONCEBYTES)
+  sodium.randombytes_buf(nonce)
+
+  t.exception.all(function () {
+    sodium.crypto_secretbox_easy(Buffer.alloc(0), Buffer.alloc(0), nonce, key)
+  }, 'throws if c is smaller than MACBYTES')
+})
+
 test('crypto_secretbox_detached', function (t) {
   const message = Buffer.from('Hej, Verden!')
   const output = Buffer.alloc(message.length)
