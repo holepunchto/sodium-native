@@ -210,6 +210,10 @@ exports.crypto_sign = function (sm, m, sk) {
   assert(ArrayBuffer.isView(m), 'm must be a typed array')
   assert(ArrayBuffer.isView(sk), 'sk must be a typed array')
   assert(
+    sm.byteLength >= binding.crypto_sign_BYTES,
+    "sm must be at least 'crypto_sign_BYTES' bytes"
+  )
+  assert(
     sm.byteLength === binding.crypto_sign_BYTES + m.byteLength,
     "sm must be 'm.byteLength + crypto_sign_BYTES' bytes"
   )
