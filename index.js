@@ -1337,6 +1337,7 @@ exports.crypto_onetimeauth_init = function (state, k) {
 exports.crypto_onetimeauth_update = function (state, input) {
   assert(ArrayBuffer.isView(state), 'state must be a typed array')
   assert(ArrayBuffer.isView(input), 'input must be a typed array')
+  assert(!state.buffer.detached, 'state has already been finalized')
   assert(
     state.byteLength === binding.crypto_onetimeauth_STATEBYTES,
     "state must be 'crypto_onetimeauth_STATEBYTES' bytes"
