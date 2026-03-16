@@ -1,0 +1,12 @@
+diff --git a/build.zig b/build.zig
+index 0ad8c867..a0a27eb9 100644
+--- a/build.zig
++++ b/build.zig
+@@ -59,7 +59,6 @@ fn initLibConfig(b: *std.Build, target: std.Build.ResolvedTarget, lib: *Compile)
+         },
+         .windows => {
+             lib.root_module.addCMacro("HAVE_RAISE", "1");
+-            lib.root_module.addCMacro("HAVE_SYS_PARAM_H", "1");
+             if (lib.isStaticLibrary()) {
+                 lib.root_module.addCMacro("SODIUM_STATIC", "1");
+             }
