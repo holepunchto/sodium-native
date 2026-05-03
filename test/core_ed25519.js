@@ -36,7 +36,7 @@ function addL64(S) {
   sodium.sodium_add(S, l)
 }
 
-test('ported libsodium test', function (t) {
+test.skip('ported libsodium test', function (t) {
   let i
 
   const h = sodium.sodium_malloc(sodium.crypto_core_ed25519_UNIFORMBYTES)

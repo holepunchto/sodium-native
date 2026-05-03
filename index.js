@@ -2098,23 +2098,6 @@ exports.crypto_core_ed25519_is_valid_point = function (p) {
   return binding.crypto_core_ed25519_is_valid_point(p)
 }
 
-exports.crypto_core_ed25519_from_uniform = function (p, r) {
-  assert(ArrayBuffer.isView(p), 'p must be a typed array')
-  assert(
-    p.byteLength === binding.crypto_core_ed25519_BYTES,
-    "p must be 'crypto_core_ed25519_BYTES' bytes"
-  )
-  assert(ArrayBuffer.isView(r), 'r must be a typed array')
-  assert(
-    r.byteLength === binding.crypto_core_ed25519_UNIFORMBYTES,
-    "r must be 'crypto_core_ed25519_UNIFORMBYTES' bytes"
-  )
-
-  const res = binding.crypto_core_ed25519_from_uniform(p, r)
-
-  if (res !== 0) throw new Error('status: ' + res)
-}
-
 exports.crypto_scalarmult_ed25519_base_noclamp = function (q, n) {
   assert(ArrayBuffer.isView(q), 'q must be a typed array')
   assert(
