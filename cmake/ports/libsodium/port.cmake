@@ -7,7 +7,7 @@ else()
 endif()
 
 declare_port(
-  "github:jedisct1/libsodium#a937222"
+  "github:jedisct1/libsodium#10f787b"
   sodium
   ZIG
   BYPRODUCTS lib/${lib}
