@@ -1360,19 +1360,6 @@ sn_crypto_core_ed25519_is_valid_point(
 }
 
 static inline int
-sn_crypto_core_ed25519_from_uniform(
-  js_env_t *,
-  js_receiver_t,
-  js_typedarray_span_t<> p,
-  js_typedarray_span_t<> r
-) {
-  assert(p.size_bytes() == crypto_core_ed25519_BYTES);
-  assert(r.size_bytes() == crypto_core_ed25519_UNIFORMBYTES);
-
-  return crypto_core_ed25519_from_uniform(p.data(), r.data());
-}
-
-static inline int
 sn_crypto_scalarmult_ed25519_base_noclamp(
   js_env_t *,
   js_receiver_t,
@@ -3786,7 +3773,6 @@ sodium_native_exports(js_env_t *env, js_value_t *exports) {
   // crypto_core
 
   V_FUNCTION("crypto_core_ed25519_is_valid_point", sn_crypto_core_ed25519_is_valid_point);
-  V_FUNCTION("crypto_core_ed25519_from_uniform", sn_crypto_core_ed25519_from_uniform);
   V_FUNCTION("crypto_core_ed25519_add", sn_crypto_core_ed25519_add);
   V_FUNCTION("crypto_core_ed25519_sub", sn_crypto_core_ed25519_sub);
   V_FUNCTION("crypto_core_ed25519_scalar_random", sn_crypto_core_ed25519_scalar_random);
