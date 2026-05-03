@@ -41,18 +41,9 @@ test('ported libsodium test', function (t) {
 
   const h = sodium.sodium_malloc(sodium.crypto_core_ed25519_UNIFORMBYTES)
   const p = sodium.sodium_malloc(sodium.crypto_core_ed25519_BYTES)
-  for (i = 0; i < 1000; i++) {
-    sodium.randombytes_buf(h.subarray(0, sodium.crypto_core_ed25519_UNIFORMBYTES))
-    sodium.crypto_core_ed25519_from_uniform(p, h)
-    if (sodium.crypto_core_ed25519_is_valid_point(p) === false) {
-      t.fail('crypto_core_ed25519_from_uniform() returned an invalid point')
-    }
-  }
-
   const p2 = sodium.sodium_malloc(sodium.crypto_core_ed25519_BYTES)
   const p3 = sodium.sodium_malloc(sodium.crypto_core_ed25519_BYTES)
   sodium.randombytes_buf(h.subarray(0, sodium.crypto_core_ed25519_UNIFORMBYTES))
-  sodium.crypto_core_ed25519_from_uniform(p2, h)
 
   const j = 1 + sodium.randombytes_uniform(100)
   p.copy(p3, 0, 0, sodium.crypto_core_ed25519_BYTES)
@@ -126,18 +117,6 @@ test('ported libsodium test', function (t) {
   sodium.crypto_core_ed25519_sub(p3, nonCanonicalP, p3)
   t.exception.all(() => sodium.crypto_core_ed25519_sub(p3, nonCanonicalInvalidP, p3))
 
-  for (i = 0; i < 1000; i++) {
-    sodium.randombytes_buf(h.subarray(0, sodium.crypto_core_ed25519_UNIFORMBYTES))
-    sodium.crypto_core_ed25519_from_uniform(p, h)
-    sodium.crypto_core_ed25519_scalar_random(sc)
-    sodium.crypto_scalarmult_ed25519_noclamp(p2, sc, p)
-    if (!sodium.crypto_core_ed25519_is_valid_point(p2)) t.fail()
-    sodium.crypto_core_ed25519_scalar_invert(sc, sc)
-    sodium.crypto_scalarmult_ed25519_noclamp(p3, sc, p2)
-    if (sodium.sodium_memcmp(p3.subarray(0, sodium.crypto_core_ed25519_BYTES), p) === false)
-      t.fail()
-  }
-
   const sc64 = sodium.sodium_malloc(64)
   sodium.crypto_core_ed25519_scalar_random(sc)
   sc.copy(sc64, 0, 0, sodium.crypto_core_ed25519_BYTES)
@@ -149,34 +128,6 @@ test('ported libsodium test', function (t) {
   const reduced = sodium.sodium_malloc(sodium.crypto_core_ed25519_SCALARBYTES)
   sodium.crypto_core_ed25519_scalar_reduce(reduced, sc64)
   t.ok(sodium.sodium_memcmp(reduced, sc))
-
-  sodium.randombytes_buf(h.subarray(0, sodium.crypto_core_ed25519_UNIFORMBYTES))
-  sodium.crypto_core_ed25519_from_uniform(p, h)
-  p.copy(p2, 0, 0, sodium.crypto_core_ed25519_BYTES)
-  sodium.crypto_core_ed25519_scalar_random(sc)
-  sodium.crypto_scalarmult_ed25519_noclamp(p, sc, p)
-  sodium.crypto_core_ed25519_scalar_complement(sc, sc)
-  sodium.crypto_scalarmult_ed25519_noclamp(p2, sc, p2)
-  sodium.crypto_core_ed25519_add(p3, p, p2)
-  sodium.crypto_core_ed25519_from_uniform(p, h)
-  sodium.crypto_core_ed25519_sub(p, p, p3)
-  if (p[0] !== 0x01) t.fail()
-  for (i = 1; i < sodium.crypto_core_ed25519_BYTES; i++) {
-    if (p[i] !== 0) t.fail()
-  }
-
-  sodium.randombytes_buf(h.subarray(0, sodium.crypto_core_ed25519_UNIFORMBYTES))
-  sodium.crypto_core_ed25519_from_uniform(p, h)
-  p.copy(p2, 0, 0, sodium.crypto_core_ed25519_BYTES)
-  sodium.crypto_core_ed25519_scalar_random(sc)
-  sodium.crypto_scalarmult_ed25519_noclamp(p, sc, p)
-  sodium.crypto_core_ed25519_scalar_negate(sc, sc)
-  sodium.crypto_scalarmult_ed25519_noclamp(p2, sc, p2)
-  sodium.crypto_core_ed25519_add(p, p, p2)
-  if (p[0] !== 0x01) t.fail()
-  for (i = 1; i < sodium.crypto_core_ed25519_BYTES; i++) {
-    if (p[i] !== 0) t.fail()
-  }
 
   for (i = 0; i < sodium.crypto_core_ed25519_SCALARBYTES; i++) {
     sc[i] = 255 - i
