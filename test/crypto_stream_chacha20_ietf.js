@@ -1,6 +1,6 @@
+/* global gc */
 const test = require('brittle')
 const sodium = require('..')
-const { isBare } = require('which-runtime')
 
 const tests = [
   [

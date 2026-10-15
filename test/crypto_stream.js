@@ -1,6 +1,6 @@
+/* global gc */
 const test = require('brittle')
 const sodium = require('..')
-const { isBare } = require('which-runtime')
 
 test('crypto_stream', function (t) {
   const buf = Buffer.alloc(50)
