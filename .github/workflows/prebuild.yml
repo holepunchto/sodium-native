@@ -14,6 +14,18 @@ jobs:
           - os: ubuntu-22.04-arm
             platform: linux
             arch: arm64
+          - os: ubuntu-22.04
+            platform: linux
+            arch: x64
+            tags: -musl
+            flags: --environment musl
+            musl: true
+          - os: ubuntu-22.04-arm
+            platform: linux
+            arch: arm64
+            tags: -musl
+            flags: --environment musl
+            musl: true
           - os: ubuntu-24.04
             platform: android
             arch: x64
@@ -64,7 +76,8 @@ jobs:
           platform: ${{ matrix.platform }}
           arch: ${{ matrix.arch }}
           flags: ${{ matrix.flags }}
-          tags: ${{ matrix.tags}}
+          tags: ${{ matrix.tags }}
+          musl: ${{ matrix.musl }}
           upload: true
   merge:
     runs-on: ubuntu-latest
