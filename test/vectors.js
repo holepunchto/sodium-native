@@ -1207,7 +1207,7 @@ const vectors = [
 vectors.forEach(function (vector, i) {
   test('test:' + vector[0] + ' ' + i, function (t) {
     const args = vector[1].map(fromBase64)
-    const ret = vector[2] == null ? undefined : vector[2]
+    const ret = vector[2] === null ? undefined : vector[2]
     t.is(sodium[vector[0]].apply(null, args), ret) // check return value
     t.alike(args, vector[3].map(fromBase64))
   })

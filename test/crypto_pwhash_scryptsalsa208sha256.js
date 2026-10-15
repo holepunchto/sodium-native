@@ -3,60 +3,60 @@ const sodium = require('..')
 
 test('constants', function (t) {
   t.ok(
-    sodium.crypto_pwhash_scryptsalsa208sha256_BYTES_MIN != null,
+    sodium.crypto_pwhash_scryptsalsa208sha256_BYTES_MIN !== null,
     'crypto_pwhash_scryptsalsa208sha256_BYTES_MIN is defined'
   )
   t.ok(
-    sodium.crypto_pwhash_scryptsalsa208sha256_BYTES_MAX != null,
+    sodium.crypto_pwhash_scryptsalsa208sha256_BYTES_MAX !== null,
     'crypto_pwhash_scryptsalsa208sha256_BYTES_MAX is defined'
   )
   t.ok(
-    sodium.crypto_pwhash_scryptsalsa208sha256_PASSWD_MIN != null,
+    sodium.crypto_pwhash_scryptsalsa208sha256_PASSWD_MIN !== null,
     'crypto_pwhash_scryptsalsa208sha256_PASSWD_MIN is defined'
   )
   t.ok(
-    sodium.crypto_pwhash_scryptsalsa208sha256_PASSWD_MAX != null,
+    sodium.crypto_pwhash_scryptsalsa208sha256_PASSWD_MAX !== null,
     'crypto_pwhash_scryptsalsa208sha256_PASSWD_MAX is defined'
   )
   t.ok(
-    sodium.crypto_pwhash_scryptsalsa208sha256_SALTBYTES != null,
+    sodium.crypto_pwhash_scryptsalsa208sha256_SALTBYTES !== null,
     'crypto_pwhash_scryptsalsa208sha256_SALTBYTES is defined'
   )
   t.ok(
-    sodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES != null,
+    sodium.crypto_pwhash_scryptsalsa208sha256_STRBYTES !== null,
     'crypto_pwhash_scryptsalsa208sha256_STRBYTES is defined'
   )
 
   t.ok(
-    sodium.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN != null,
+    sodium.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN !== null,
     'crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MIN is defined'
   )
   t.ok(
-    sodium.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX != null,
+    sodium.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX !== null,
     'crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_MAX is defined'
   )
   t.ok(
-    sodium.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN != null,
+    sodium.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN !== null,
     'crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MIN is defined'
   )
   t.ok(
-    sodium.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX != null,
+    sodium.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX !== null,
     'crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_MAX is defined'
   )
   t.ok(
-    sodium.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE != null,
+    sodium.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE !== null,
     'crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_INTERACTIVE is defined'
   )
   t.ok(
-    sodium.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE != null,
+    sodium.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE !== null,
     'crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_INTERACTIVE is defined'
   )
   t.ok(
-    sodium.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_SENSITIVE != null,
+    sodium.crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_SENSITIVE !== null,
     'crypto_pwhash_scryptsalsa208sha256_OPSLIMIT_SENSITIVE is defined'
   )
   t.ok(
-    sodium.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_SENSITIVE != null,
+    sodium.crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_SENSITIVE !== null,
     'crypto_pwhash_scryptsalsa208sha256_MEMLIMIT_SENSITIVE is defined'
   )
 })

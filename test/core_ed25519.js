@@ -134,8 +134,9 @@ test('ported libsodium test', function (t) {
     if (!sodium.crypto_core_ed25519_is_valid_point(p2)) t.fail()
     sodium.crypto_core_ed25519_scalar_invert(sc, sc)
     sodium.crypto_scalarmult_ed25519_noclamp(p3, sc, p2)
-    if (sodium.sodium_memcmp(p3.subarray(0, sodium.crypto_core_ed25519_BYTES), p) === false)
+    if (sodium.sodium_memcmp(p3.subarray(0, sodium.crypto_core_ed25519_BYTES), p) === false) {
       t.fail()
+    }
   }
 
   const sc64 = sodium.sodium_malloc(64)

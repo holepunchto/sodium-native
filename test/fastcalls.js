@@ -181,7 +181,7 @@ function benchmark(t, interval = 2000) {
   let n = 0
   let total = n
 
-  return function measure(qty = 1) {
+  return function (qty = 1) {
     const now = Date.now()
     const delta = now - prev
 
