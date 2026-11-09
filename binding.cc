@@ -1680,7 +1680,7 @@ sn_crypto_aead_xchacha20poly1305_ietf_keygen(
   crypto_aead_xchacha20poly1305_ietf_keygen(k.data());
 }
 
-static inline uint64_t
+static inline int64_t
 sn_crypto_aead_xchacha20poly1305_ietf_encrypt(
   js_env_t *,
   js_receiver_t,
@@ -1720,7 +1720,7 @@ sn_crypto_aead_xchacha20poly1305_ietf_encrypt(
   return clen;
 }
 
-static inline uint64_t
+static inline int64_t
 sn_crypto_aead_xchacha20poly1305_ietf_decrypt(
   js_env_t *,
   js_receiver_t,
@@ -1760,7 +1760,7 @@ sn_crypto_aead_xchacha20poly1305_ietf_decrypt(
   return mlen;
 }
 
-static inline uint64_t
+static inline int64_t
 sn_crypto_aead_xchacha20poly1305_ietf_encrypt_detached(
   js_env_t *,
   js_receiver_t,
@@ -1849,7 +1849,7 @@ sn_crypto_aead_chacha20poly1305_ietf_keygen(
   crypto_aead_chacha20poly1305_ietf_keygen(k.data());
 }
 
-static inline uint64_t
+static inline int64_t
 sn_crypto_aead_chacha20poly1305_ietf_encrypt(
   js_env_t *,
   js_receiver_t,
@@ -1889,7 +1889,7 @@ sn_crypto_aead_chacha20poly1305_ietf_encrypt(
   return clen;
 }
 
-static inline uint64_t
+static inline int64_t
 sn_crypto_aead_chacha20poly1305_ietf_decrypt(
   js_env_t *,
   js_receiver_t,
@@ -1929,7 +1929,7 @@ sn_crypto_aead_chacha20poly1305_ietf_decrypt(
   return mlen;
 }
 
-static inline uint64_t
+static inline int64_t
 sn_crypto_aead_chacha20poly1305_ietf_encrypt_detached(
   js_env_t *,
   js_receiver_t,
@@ -2052,7 +2052,7 @@ sn_crypto_secretstream_xchacha20poly1305_init_push(
   return crypto_secretstream_xchacha20poly1305_init_push(state_data, &header[header_offset], &k[k_offset]);
 }
 
-static inline uint64_t
+static inline int64_t
 sn_crypto_secretstream_xchacha20poly1305_push(
   js_env_t *env,
   js_receiver_t,
@@ -2138,7 +2138,7 @@ sn_crypto_secretstream_xchacha20poly1305_init_pull(
   return crypto_secretstream_xchacha20poly1305_init_pull(state_data, &header[header_offset], &k[k_offset]);
 }
 
-static inline uint64_t
+static inline int64_t
 sn_crypto_secretstream_xchacha20poly1305_pull(
   js_env_t *env,
   js_receiver_t,
