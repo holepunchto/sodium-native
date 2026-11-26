@@ -1,14 +1,14 @@
-cmake_minimum_required(VERSION 3.25)
+cmake_minimum_required(VERSION 4.0)
 
 find_package(cmake-bare REQUIRED PATHS node_modules/cmake-bare)
 find_package(cmake-fetch REQUIRED PATHS node_modules/cmake-fetch)
 find_package(cmake-napi REQUIRED PATHS node_modules/cmake-napi)
-find_package(cmake-npm REQUIRED PATHS node_modules/cmake-npm)
 
 set(CMAKE_POSITION_INDEPENDENT_CODE ON)
 
 project(sodium_native C ASM CXX)
 
+fetch_package("github:holepunchto/libnapish#8cbfe78")
 fetch_package("github:jedisct1/libsodium#79a59b7" SOURCE_DIR sodium)
 
 fetch_package("github:holepunchto/libjstl#1890183")
@@ -254,27 +254,14 @@ target_sources(
     binding.cc
 )
 
-target_compile_definitions(
-  ${sodium_native_node}
-  PRIVATE
-    NAPI_VERSION=9
-)
-
 target_link_libraries(
   ${sodium_native_node}
   PRIVATE
     $<TARGET_OBJECTS:sodium>
     $<TARGET_OBJECTS:sodium_extensions>
     jstl
+    napish::static
   PUBLIC
     sodium
     sodium_extensions
-)
-
-resolve_node_module(bare-compat-napi compat)
-
-target_include_directories(
-  ${sodium_native_node}
-  PRIVATE
-    "${compat}/include"
 )
